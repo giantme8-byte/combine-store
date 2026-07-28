@@ -1,0 +1,95 @@
+export const CATEGORY_OPTIONS = {
+  Bags: [
+    "Top Handle Bags",
+    "Shoulder Bags",
+    "Crossbody Bags",
+    "Tote Bags",
+    "Mini Bags",
+    "Bucket Bags",
+    "Hobo Bags",
+    "Backpacks",
+    "Travel Bags",
+    "Business Bags",
+    "Messenger Bags",
+    "Clutches",
+    "Evening Bags",
+    "Wallets",
+    "Card Holders",
+    "Pouches",
+  ],
+
+  Shoes: [
+    "Sneakers",
+    "Loafers",
+    "Derby Shoes",
+    "Oxford Shoes",
+    "Boots",
+    "Chelsea Boots",
+    "Sandals",
+    "Slides",
+    "Heels",
+    "Flats",
+    "Espadrilles",
+  ],
+
+  Clothing: [
+    "T-Shirts",
+    "Shirts",
+    "Polo Shirts",
+    "Sweaters",
+    "Cardigans",
+    "Hoodies",
+    "Jackets",
+    "Blazers",
+    "Coats",
+    "Jeans",
+    "Pants",
+    "Shorts",
+    "Skirts",
+    "Dresses",
+  ],
+
+  Watches: [
+    "Dress Watches",
+    "Sports Watches",
+    "Dive Watches",
+    "Pilot Watches",
+    "Chronograph",
+    "Automatic",
+    "Quartz",
+    "Tourbillon",
+  ],
+
+  Jewelry: [
+    "Necklaces",
+    "Bracelets",
+    "Rings",
+    "Earrings",
+    "Brooches",
+    "Pendants",
+    "Anklets",
+  ],
+
+  Accessories: [
+    "Belts",
+    "Sunglasses",
+    "Scarves",
+    "Caps",
+    "Beanies",
+    "Bag Charms",
+    "Phone Cases",
+    "Key Holders",
+    "Passport Holders",
+  ],
+
+  Fragrance: [
+    "Men&apos;s Fragrance",
+    "Women&apos;s Fragrance",
+    "Unisex Fragrance",
+    "Home Fragrance",
+    "Candles",
+  ],
+} as const;
+
+export type CategoryName =
+  keyof typeof CATEGORY_OPTIONS;

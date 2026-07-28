@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* 先把下面两段全部注释掉 */
+/*
+a {
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+*/
