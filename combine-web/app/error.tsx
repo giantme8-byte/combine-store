@@ -30,10 +30,11 @@ export default function Error({
           Something Went Wrong
         </h1>
 
-        <p className="mx-auto mt-8 max-w-lg text-lg leading-8 text-neutral-500">
-          An unexpected error occurred while loading this page.
-          Please try again, or return to the homepage.
-        </p>
+<div className="mx-auto mt-8 max-w-lg rounded-lg bg-red-50 p-4 text-left text-sm text-red-700">
+  <strong>Error:</strong>
+  <br />
+  {error.message}
+</div>
 
         <div className="mt-14 flex flex-wrap justify-center gap-4">
 
