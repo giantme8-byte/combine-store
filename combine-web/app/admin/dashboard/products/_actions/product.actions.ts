@@ -661,57 +661,24 @@ model:
 
 
 
-    if(uploadedImages.length > 0){
+if (uploadedImages.length > 0) {
 
+  const currentCount = await prisma.productImage.count({
+    where: {
+      productId: id,
+    },
+  });
 
+  await prisma.productImage.createMany({
+    data: uploadedImages.map((image, index) => ({
+      productId: id,
+      url: image.url,
+      publicId: image.publicId,
+      sortOrder: currentCount + index,
+    })),
+  });
 
-      // 删除旧 Gallery 图片（Cloudinary）
-      for (
-        const image of product.images
-      ) {
-
-        await cloudinary.uploader.destroy(
-          image.publicId
-        );
-
-      }
-
-      // 删除旧 Gallery 资料
-      await prisma.productImage.deleteMany({
-
-        where: {
-          productId: id,
-        },
-
-      });
-
-
-
-
-      await prisma.productImage.createMany({
-
-        data:
-          uploadedImages.map(
-            image=>({
-
-              productId:id,
-
-              url:
-                image.url,
-
-              publicId:
-                image.publicId,
-
-              sortOrder:
-                image.sortOrder,
-
-            })
-          ),
-
-      });
-
-
-    }
+}
 
 
 
