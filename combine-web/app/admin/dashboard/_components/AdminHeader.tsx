@@ -23,7 +23,9 @@ export default function AdminHeader({
   user,
 }: Props) {
 
+
   const router = useRouter();
+
 
 
   const today = useMemo(
@@ -42,23 +44,43 @@ export default function AdminHeader({
 
 
 
+
+
   async function handleLogout() {
-    await fetch(
-      "/api/auth/logout",
-      {
-        method: "POST",
-      }
-    );
+
+    try {
+
+      await fetch(
+        "/api/auth/logout",
+        {
+          method: "POST",
+        }
+      );
 
 
-    router.replace("/login");
+      router.replace("/admin");
 
-    router.refresh();
+      router.refresh();
+
+
+    } catch (error) {
+
+      console.error(
+        "Logout failed:",
+        error
+      );
+
+    }
+
   }
 
 
 
+
+
+
   return (
+
     <header
       className="
         sticky
@@ -71,6 +93,7 @@ export default function AdminHeader({
       "
     >
 
+
       <div
         className="
           flex
@@ -81,12 +104,21 @@ export default function AdminHeader({
         "
       >
 
+
+
         {/* Left */}
+
         <div>
 
-          <p className="text-sm text-neutral-500">
+          <p
+            className="
+              text-sm
+              text-neutral-500
+            "
+          >
             {today}
           </p>
+
 
 
           <h1
@@ -95,16 +127,24 @@ export default function AdminHeader({
               text-2xl
               font-light
               tracking-tight
+              text-neutral-900
             "
           >
             Admin Dashboard
           </h1>
 
+
         </div>
 
 
 
+
+
+
+
         {/* Right */}
+
+
         <div
           className="
             flex
@@ -113,7 +153,12 @@ export default function AdminHeader({
           "
         >
 
+
+
+
           {/* Search */}
+
+
           <div
             className="
               flex
@@ -146,12 +191,18 @@ export default function AdminHeader({
               "
             />
 
+
           </div>
 
 
 
 
+
+
+
           {/* Notification */}
+
+
           <button
             type="button"
             className="
@@ -164,13 +215,20 @@ export default function AdminHeader({
               hover:bg-neutral-50
             "
           >
-            <Bell size={18} />
+
+            <Bell size={18}/>
+
           </button>
 
 
 
 
+
+
+
           {/* User */}
+
+
           <div
             className="
               flex
@@ -185,7 +243,9 @@ export default function AdminHeader({
             "
           >
 
+
             <div>
+
 
               <p
                 className="
@@ -194,8 +254,11 @@ export default function AdminHeader({
                   text-neutral-900
                 "
               >
+
                 {user.name ?? "Admin"}
+
               </p>
+
 
 
               <p
@@ -206,10 +269,15 @@ export default function AdminHeader({
                   text-neutral-400
                 "
               >
+
                 {user.role}
+
               </p>
 
+
             </div>
+
+
 
 
 
@@ -227,18 +295,25 @@ export default function AdminHeader({
               aria-label="Logout"
             >
 
-              <LogOut size={17} />
+              <LogOut size={17}/>
 
             </button>
+
 
 
           </div>
 
 
+
         </div>
+
+
 
       </div>
 
+
     </header>
+
   );
+
 }
