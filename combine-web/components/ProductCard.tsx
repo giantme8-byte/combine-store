@@ -41,30 +41,33 @@ export default function ProductCard({
 
 
   return (
-    <article
-      className="
-        group
-        overflow-hidden
-        rounded-[28px]
-        border
-        border-neutral-200
-        bg-white
-        transition-all
-        duration-500
-        hover:-translate-y-1
-        hover:border-neutral-300
-        hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)]
-      "
-    >
+<article
+  className="
+    group
+    flex
+    h-full
+    flex-col
+    overflow-hidden
+    rounded-[28px]
+    border
+    border-neutral-200
+    bg-white
+    transition-all
+    duration-500
+    hover:-translate-y-2
+    hover:border-neutral-300
+    hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)]
+  "
+>
 
-      <Link
-        href={
-          slug
-            ? `/shop/${slug}`
-            : "#"
-        }
-        className="block"
-      >
+<Link
+  href={
+    slug
+      ? `/shop/${slug}`
+      : "#"
+  }
+  className="flex flex-1 flex-col"
+>
 
         {/* Image */}
         <div className="relative aspect-[4/5] overflow-hidden bg-neutral-50">
@@ -142,7 +145,7 @@ export default function ProductCard({
               p-12
               transition-transform
               duration-700
-              group-hover:scale-[1.03]
+              group-hover:scale-[1.04]
             "
           />
 
@@ -155,31 +158,38 @@ export default function ProductCard({
 
         {/* Content */}
 
-        <div className="px-6 pb-4 pt-7">
+        <div className="flex-1 px-6 pb-4 pt-7">
 
           <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">
             {brand}
           </p>
 
 
-          <h3 className="mt-3 text-2xl font-extralight tracking-[-0.02em] text-neutral-900">
-            {name}
-          </h3>
+<h3
+  className="
+    mt-3
+    min-h-[3.5rem]
+    line-clamp-2
+    text-xl
+    font-light
+    leading-7
+    tracking-[-0.02em]
+    text-neutral-900
+  "
+>
+  {name}
+</h3>
 
 
-          {model && (
-            <div className="mt-5">
+<div className="mt-5 min-h-[3.5rem]">
+  <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-400">
+    Model
+  </p>
 
-              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-400">
-                Model
-              </p>
-
-              <p className="mt-1 text-sm text-neutral-600">
-                {model}
-              </p>
-
-            </div>
-          )}
+  <p className="mt-1 text-sm text-neutral-600">
+    {model ?? "—"}
+  </p>
+</div>
 
         </div>
 

@@ -22,27 +22,33 @@ export default async function EditProductPage({
       where: {
         id: Number(id),
       },
-include: {
-  images: {
-    orderBy: {
-      sortOrder: "asc",
-    },
-  },
-  colors: {
-    orderBy: {
-      sortOrder: "asc",
-    },
-  },
-},
+      include: {
+        images: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
+        colors: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
+      },
     }),
 
     prisma.brand.findMany({
+      where: {
+        active: true,
+      },
       orderBy: {
         name: "asc",
       },
     }),
 
     prisma.category.findMany({
+      where: {
+        active: true,
+      },
       orderBy: {
         name: "asc",
       },
@@ -55,31 +61,14 @@ include: {
     notFound();
   }
 
-  console.log(product);
-
   return (
-    <main className="mx-auto max-w-5xl space-y-8">
-      <div>
-        <h1 className="text-4xl font-light">
-          Edit Product
-        </h1>
-
-        <p className="mt-2 text-gray-500">
-          Update product information.
-        </p>
-      </div>
-
-<ProductForm
-  product={product}
-  submitText="Update Product"
-  brands={brands}
-  categories={categories}
-  exchangeRate={settings?.exchangeRate ?? 0.6}
-  action={updateProduct.bind(
-    null,
-    product.id
-  )}
-/>
-    </main>
+    <ProductForm
+      action={updateProduct.bind(null, product.id)}
+      product={product}
+      submitText="Update Product"
+      categories={categories}
+      brands={brands}
+      exchangeRate={settings?.exchangeRate ?? 0.59}
+    />
   );
 }

@@ -15,12 +15,12 @@ function MetaItem({
   value: string;
 }) {
   return (
-    <div className="border-t border-neutral-200 py-6 first:border-t-0 first:pt-0 last:pb-0">
-      <p className="text-xs uppercase tracking-[0.35em] text-neutral-400">
+    <div className="border-t border-neutral-200 py-5 first:border-t-0 first:pt-0">
+      <p className="text-[11px] uppercase tracking-[0.35em] text-neutral-400">
         {label}
       </p>
 
-      <p className="mt-3 text-lg text-neutral-900">
+      <p className="mt-2 text-base font-medium text-neutral-900">
         {value}
       </p>
     </div>
@@ -44,12 +44,14 @@ export default function ProductMeta({
         />
       )}
 
-      {model && (
-        <MetaItem
-          label="Model"
-          value={model}
-        />
-      )}
+{/*
+{model && (
+  <MetaItem
+    label="Model"
+    value={model}
+  />
+)}
+*/}
 
       <MetaItem
         label="Collection"

@@ -1,16 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { ChangeEvent } from "react";
 import { ImagePlus, Trash2 } from "lucide-react";
 
-import type { ProductImageItem } from "@/types/product-image";
+import type { ColorImageItem } from "@/types/color-image";
 
 type Props = {
-  colors: ProductImageItem[];
-  onChange: (
-    colors: ProductImageItem[]
-  ) => void;
+  colors: ColorImageItem[];
+  onChange: (colors: ColorImageItem[]) => void;
 };
 
 export default function ColorUpload({
@@ -18,24 +15,35 @@ export default function ColorUpload({
   onChange,
 }: Props) {
 
-  function addColor() {
-    onChange([
-      ...colors,
-      {
-        id: crypto.randomUUID(),
-        name: "",
-        url: "",
-        publicId: null,
-        isNew: true,
-      },
-    ]);
-  }
+function addColor() {
+  onChange([
+    ...colors,
+    {
+      id: crypto.randomUUID(),
+      name: "",
+      url: "",
+      publicId: null,
+      isNew: true,
+      sortOrder: colors.length,
+      deleted: false,
+    },
+  ]);
+}
 
 function removeColor(id: string) {
   onChange(
-    colors.filter(
-      (color) => color.id !== id
-    )
+    colors.map((color) => {
+      if (color.id !== id) return color;
+
+      if (color.isNew) {
+        return null;
+      }
+
+      return {
+        ...color,
+        deleted: true,
+      };
+    }).filter(Boolean) as ColorImageItem[]
   );
 }
 
@@ -59,22 +67,24 @@ function updateColorImage(
   id: string,
   e: ChangeEvent<HTMLInputElement>
 ) {
-  const file =
-    e.target.files?.[0];
+  const file = e.target.files?.[0];
 
   if (!file) return;
 
   onChange(
-    colors.map((color) =>
-      color.id === id
-        ? {
-            ...color,
-            file,
-            url: URL.createObjectURL(file),
-            isNew: true,
-          }
-        : color
-    )
+    colors.map((color) => {
+      if (color.id !== id) return color;
+
+      if (color.url.startsWith("blob:")) {
+        URL.revokeObjectURL(color.url);
+      }
+
+      return {
+        ...color,
+        file,
+        url: URL.createObjectURL(file),
+      };
+    })
   );
 
   e.target.value = "";
@@ -121,7 +131,9 @@ function updateColorImage(
 
         <div className="space-y-6">
 
-                  {colors.map((color) => (
+                  {colors
+  .filter((color) => !color.deleted)
+  .map((color) => (
 
             <div
               key={color.id}
@@ -199,21 +211,15 @@ function updateColorImage(
                   "
                 >
 
-                  {color.url ? (
+{color.url ? (
 
-                    <Image
-                      src={color.url}
-                      alt={color.name || "Color"}
-                      width={180}
-                      height={180}
-                      className="
-                        h-36
-                        w-auto
-                        object-contain
-                      "
-                    />
+<img
+  src={color.url}
+  alt={color.name || "Color"}
+  className="h-36 w-auto object-contain"
+/>
 
-                  ) : (
+) : (
 
                     <>
                       <ImagePlus

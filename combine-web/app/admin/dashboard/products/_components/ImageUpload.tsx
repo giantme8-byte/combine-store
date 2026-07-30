@@ -59,7 +59,9 @@ export default function ImageUpload({
     )
   );
 
-
+const visibleImages = images.filter(
+  (image) => !image.deleted
+);
 
   function handleUpload(
     e: ChangeEvent<HTMLInputElement>
@@ -74,22 +76,21 @@ export default function ImageUpload({
 
 
 
-    const newImages =
-      files.map(
-        (file)=>({
-          id: crypto.randomUUID(),
+const newImages = files.map((file, index) => ({
+  id: crypto.randomUUID(),
 
-          url: URL.createObjectURL(
-            file
-          ),
+  url: URL.createObjectURL(file),
 
-          publicId:null,
+  publicId: null,
 
-          file,
+  file,
 
-          isNew:true,
-        })
-      );
+  isNew: true,
+
+  sortOrder: images.length + index,
+
+  deleted: false,
+}));
 
 
 
@@ -124,45 +125,81 @@ export default function ImageUpload({
 
 
 
-    const oldIndex =
-      images.findIndex(
-        (image)=>
-          image.id === active.id
-      );
+const oldIndex =
+  visibleImages.findIndex(
+    (image) => image.id === active.id
+  );
 
+const newIndex =
+  visibleImages.findIndex(
+    (image) => image.id === over.id
+  );
 
-    const newIndex =
-      images.findIndex(
-        (image)=>
-          image.id === over.id
-      );
+const reordered = arrayMove(
+  visibleImages,
+  oldIndex,
+  newIndex
+).map((image, index) => ({
+  ...image,
+  sortOrder: index,
+}));
 
+const deletedImages = images.filter(
+  (image) => image.deleted
+);
 
-    onChange(
-      arrayMove(
-        images,
-        oldIndex,
-        newIndex
-      )
-    );
+onChange([
+  ...reordered,
+  ...deletedImages,
+]);
 
-  }
-
-
-
-
-  function removeImage(
-    id:string
-  ){
-
-    onChange(
-      images.filter(
-        (image)=>
-          image.id !== id
-      )
-    );
+return;
 
   }
+
+
+
+
+function removeImage(
+  id: string
+) {
+
+const updated = images.flatMap((image) => {
+
+  if (image.id !== id) {
+    return [image];
+  }
+
+  if (image.isNew) {
+    URL.revokeObjectURL(image.url);
+    return [];
+  }
+
+  return [
+    {
+      ...image,
+      deleted: true,
+    },
+  ];
+});
+
+const visible = updated
+  .filter((image) => !image.deleted)
+  .map((image, index) => ({
+    ...image,
+    sortOrder: index,
+  }));
+
+const deleted = updated.filter(
+  (image) => image.deleted
+);
+
+onChange([
+  ...visible,
+  ...deleted,
+]);
+
+}
 
     return (
     <div className="space-y-8">
@@ -193,7 +230,7 @@ export default function ImageUpload({
         />
 
 
-        {images.length === 0 ? (
+        {visibleImages.length === 0 ? (
 
           <label
             htmlFor="image-upload"
@@ -277,7 +314,7 @@ export default function ImageUpload({
 
       {/* Images Grid */}
 
-      {images.length > 0 && (
+      {visibleImages.length > 0 && (
 
         <DndContext
           sensors={sensors}
@@ -286,11 +323,11 @@ export default function ImageUpload({
         >
 
           <SortableContext
-            items={
-              images.map(
-                (image)=>image.id
-              )
-            }
+items={
+  visibleImages.map(
+    (image) => image.id
+  )
+}
             strategy={rectSortingStrategy}
           >
 
@@ -302,7 +339,7 @@ export default function ImageUpload({
               "
             >
 
-              {images.map(
+              {visibleImages.map(
                 (image,index)=>(
 
                   <div

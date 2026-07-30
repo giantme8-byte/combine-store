@@ -6,17 +6,27 @@ import Image from "next/image";
 type Props = {
   cover: string;
   gallery: string[];
+  colors: {
+    id: number;
+    name: string;
+    imageUrl: string;
+  }[];
   name: string;
 };
 
 export default function ProductGallery({
   cover,
   gallery,
+  colors,
   name,
 }: Props) {
   const images = Array.from(new Set([cover, ...gallery]));
 
-  const [selectedImage, setSelectedImage] = useState(images[0]);
+const [selectedImage, setSelectedImage] = useState(images[0]);
+
+const selectedColor = colors.find(
+  (color) => color.imageUrl === selectedImage
+);
 
   return (
     <div className="flex flex-col-reverse gap-8 lg:flex-row">
@@ -44,7 +54,7 @@ export default function ProductGallery({
         ))}
       </div>
 
-      {/* Main Image */}
+      {/* Main */}
       <div className="flex-1">
         <div className="group overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.05)] transition-all duration-500 hover:shadow-[0_30px_80px_rgba(0,0,0,0.08)]">
           <Image
@@ -57,6 +67,55 @@ export default function ProductGallery({
             className="aspect-square w-full object-contain p-12 transition-transform duration-500 group-hover:scale-[1.05]"
           />
         </div>
+
+{colors.length > 0 && (
+  <div className="mt-10">
+
+    <p className="mb-2 text-xs uppercase tracking-[0.3em] text-neutral-500">
+      Colour
+    </p>
+
+<p className="mb-5 text-lg font-medium">
+  {selectedColor?.name ?? "Select Colour"}
+</p>
+
+    <div className="flex flex-wrap gap-4">
+      {colors.map((color) => (
+        <button
+          key={color.id}
+          type="button"
+          onClick={() => setSelectedImage(color.imageUrl)}
+          className={`group transition ${
+            selectedColor?.id === color.id
+              ? "scale-105"
+              : "hover:scale-105"
+          }`}
+        >
+          <div
+            className={`overflow-hidden rounded-full border-2 p-1 ${
+              selectedColor?.id === color.id
+                ? "border-black shadow-md"
+                : "border-neutral-300"
+            }`}
+          >
+            <Image
+              src={color.imageUrl}
+              alt={color.name}
+              width={60}
+              height={60}
+              className="h-14 w-14 bg-white object-contain"
+            />
+          </div>
+
+          <p className="mt-2 text-center text-xs">
+            {color.name}
+          </p>
+        </button>
+      ))}
+    </div>
+
+  </div>
+)}
       </div>
     </div>
   );

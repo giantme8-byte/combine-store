@@ -10,6 +10,7 @@ import {
 import ImageUpload from "./ImageUpload";
 import CategorySelect from "./CategorySelect";
 import type { ProductImageItem } from "@/types/product-image";
+import type { ColorImageItem } from "@/types/color-image";
 import ColorUpload from "./ColorUpload";
 
 import type {
@@ -68,10 +69,8 @@ const [
   setImages,
 ] = useState<ProductImageItem[]>([]);
 
-const [
-  colors,
-  setColors,
-] = useState<ProductImageItem[]>([]);
+const [colors, setColors] =
+  useState<ColorImageItem[]>([]);
 
 const [costPriceCny, setCostPriceCny] =
   useState<number>(
@@ -92,14 +91,16 @@ const slugEdited = useRef(false);
 useEffect(() => {
   if (!product) return;
 
-  setImages(
-    product.images.map((image) => ({
-      id: image.id.toString(),
-      url: image.url,
-      publicId: image.publicId,
-      isNew: false,
-    }))
-  );
+setImages(
+  product.images.map((image) => ({
+    id: image.id.toString(),
+    url: image.url,
+    publicId: image.publicId,
+    isNew: false,
+    sortOrder: image.sortOrder,
+    deleted: false,
+  }))
+);
 
 setColors(
   product.colors.map((color) => ({
@@ -108,6 +109,8 @@ setColors(
     publicId: color.publicId,
     isNew: false,
     name: color.name,
+    sortOrder: color.sortOrder,
+    deleted: false,
   }))
 );
 
@@ -147,35 +150,58 @@ async function handleSubmit(
     formRef.current
   );
 
-  images.forEach((image) => {
-    if (image.file) {
-      formData.append(
-        "images",
-        image.file
-      );
-    }
-  });
+images.forEach((image, index) => {
 
-  colors.forEach((color) => {
+  formData.append(
+    "imageOrder",
+    JSON.stringify({
+      id: image.id,
+      publicId: image.publicId,
+      sortOrder: index,
+      isNew: image.isNew,
+      deleted: image.deleted ?? false,
+    })
+  );
+
+  if (image.file) {
     formData.append(
-      "colorNames",
-      color.name ?? ""
+      "images",
+      image.file
     );
+  }
 
-    if (color.file) {
-      formData.append(
-        "colorImages",
-        color.file
-      );
-    }
-  });
+});
+
+colors.forEach((color, index) => {
+
+formData.append(
+  "colorOrder",
+  JSON.stringify({
+    id: color.id,
+    publicId: color.publicId,
+    name: color.name,
+    sortOrder: index,
+    isNew: color.isNew,
+    deleted: color.deleted ?? false,
+    hasNewImage: !!color.file,
+  })
+);
+
+  if (color.file) {
+    formData.append(
+      "colorImages",
+      color.file
+    );
+  }
+
+});
 
   startTransition(async () => {
     await action(formData);
   });
 }
 
-console.log(product);
+console.log(product?.colors);
 
 return (
     <form
@@ -516,24 +542,25 @@ RM {(
       />
     </div>
 
-    {/* Primary Color */}
-    <div className="space-y-2">
-      <label className="mb-1 block text-sm font-semibold text-neutral-700">
-        Primary Color
-      </label>
+{/* Primary Color */}
+<div className="space-y-2">
+  <label className="mb-1 block text-sm font-semibold text-neutral-700">
+    Primary Color
+  </label>
 
-      <input
-        name="mainColor"
-        placeholder="Primary Color"
-        defaultValue={product?.mainColor ?? ""}
-        className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
-      />
-    </div>
+  <input
+    name="mainColor"
+    placeholder="Primary Color"
+    defaultValue={product?.mainColor ?? ""}
+    className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+  />
+</div>
 
 <ColorUpload
   colors={colors}
   onChange={setColors}
 />
+
 </div>
 
   {/* Description */}

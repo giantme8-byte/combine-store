@@ -74,117 +74,88 @@ export async function createProduct(
   formData: FormData
 ) {
 
-  try {
+try {
 
+  // Gallery Images
+  const files =
+    formData.getAll("images") as File[];
 
-    const files =
-      formData.getAll(
-        "images"
-      ) as File[];
+  const uploadedImages: UploadedImage[] = [];
 
+  for (let i = 0; i < files.length; i++) {
 
+    const file = files[i];
 
-    const uploadedImages: UploadedImage[] = [];
-    const colorNames =
-  formData.getAll(
-    "colorNames"
-  ) as string[];
+    if (!file || file.size === 0)
+      continue;
 
-const colorFiles =
-  formData.getAll(
-    "colorImages"
-  ) as File[];
+    const uploaded = await uploadImage(
+      file,
+      "combine-store/gallery"
+    );
 
-const uploadedColors: {
-  name: string;
-  imageUrl: string;
-  publicId: string;
-  sortOrder: number;
-}[] = [];
+    uploadedImages.push({
+      url: uploaded.url,
+      publicId: uploaded.publicId,
+      sortOrder: i,
+    });
 
+  }
 
-    for (
-      let i = 0;
-      i < files.length;
-      i++
-    ) {
+  // Product Colors
+  const colorFiles =
+    formData.getAll("colorImages") as File[];
 
+  type ColorOrderItem = {
+    id: string;
+    publicId: string | null;
+    name: string;
+    sortOrder: number;
+    isNew: boolean;
+    deleted: boolean;
+  };
 
-      const file = files[i];
+  const colorOrder =
+    formData
+      .getAll("colorOrder")
+      .map((item) =>
+        JSON.parse(item.toString())
+      ) as ColorOrderItem[];
 
+  const newColorOrder =
+    colorOrder.filter(
+      (color) =>
+        color.isNew &&
+        !color.deleted
+    );
 
-      if (
-        !file ||
-        file.size === 0
-      ) continue;
+  const uploadedColors: {
+    name: string;
+    imageUrl: string;
+    publicId: string;
+    sortOrder: number;
+  }[] = [];
 
+  for (let i = 0; i < colorFiles.length; i++) {
 
+    const file = colorFiles[i];
 
-      const uploaded =
-        await uploadImage(
-          file,
-          "combine-store/gallery"
-        );
+    if (!file || file.size === 0)
+      continue;
 
-
-
-
-      uploadedImages.push({
-
-        url:
-          uploaded.url,
-
-        publicId:
-          uploaded.publicId,
-
-        sortOrder:
-          i,
-
-      });
-
-    }
-
-    for (
-  let i = 0;
-  i < colorFiles.length;
-  i++
-) {
-
-  const file =
-    colorFiles[i];
-
-  if (
-    !file ||
-    file.size === 0
-  ) continue;
-
-  const uploaded =
-    await uploadImage(
+    const uploaded = await uploadImage(
       file,
       "combine-store/colors"
     );
 
-  uploadedColors.push({
+    uploadedColors.push({
+      name: newColorOrder[i].name,
+      imageUrl: uploaded.url,
+      publicId: uploaded.publicId,
+      sortOrder: newColorOrder[i].sortOrder,
+    });
 
-    name:
-      colorNames[i] || "",
-
-    imageUrl:
-      uploaded.url,
-
-    publicId:
-      uploaded.publicId,
-
-    sortOrder:
-      i,
-
-  });
-
-}
-
-
-
-
+  }
 
     await prisma.product.create({
 
@@ -358,19 +329,24 @@ export async function updateProduct(
   try {
 
 
-    const product =
-      await prisma.product.findUnique({
-
-        where:{
-          id,
+const product =
+  await prisma.product.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      images: {
+        orderBy: {
+          sortOrder: "asc",
         },
-
-include:{
-  images:true,
-  colors:true,
-},
-
-      });
+      },
+      colors: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+    },
+  });
 
 
 
@@ -385,22 +361,60 @@ include:{
 
 
 
-    const files =
-      formData.getAll(
-        "images"
-      ) as File[];
+const files =
+  formData.getAll("images") as File[];
 
-    const uploadedImages: UploadedImage[] = [];
+type ImageOrderItem = {
+  id: string;
+  publicId: string | null;
+  sortOrder: number;
+  isNew: boolean;
+  deleted: boolean;
+};
 
-    const colorNames =
-  formData.getAll(
-    "colorNames"
-  ) as string[];
+const imageOrder = formData
+  .getAll("imageOrder")
+  .map((item) => JSON.parse(item.toString())) as ImageOrderItem[];
+
+const newImageOrder = imageOrder.filter(
+  (image) => image.isNew && !image.deleted
+);  
+
+const uploadedImages: UploadedImage[] = [];
 
 const colorFiles =
-  formData.getAll(
-    "colorImages"
-  ) as File[];
+  formData.getAll("colorImages") as File[];
+
+type ColorOrderItem = {
+  id: string;
+  publicId: string | null;
+  name: string;
+  sortOrder: number;
+  isNew: boolean;
+  deleted: boolean;
+  hasNewImage: boolean;
+};
+
+const colorOrder = formData
+  .getAll("colorOrder")
+  .map((item) =>
+    JSON.parse(item.toString())
+  ) as ColorOrderItem[];
+
+const newColorOrder =
+  colorOrder.filter(
+    (color) =>
+      color.isNew &&
+      !color.deleted
+  );
+
+const replaceColors =
+  colorOrder.filter(
+    (color) =>
+      !color.isNew &&
+      !color.deleted &&
+      color.hasNewImage
+  );
 
 const uploadedColors: {
   name: string;
@@ -432,18 +446,11 @@ const uploadedColors: {
             "combine-store/gallery"
           );
 
-        uploadedImages.push({
-
-          url:
-            uploaded.url,
-
-          publicId:
-            uploaded.publicId,
-
-          sortOrder:
-            i,
-
-        });
+uploadedImages.push({
+  url: uploaded.url,
+  publicId: uploaded.publicId,
+  sortOrder: newImageOrder[i].sortOrder,
+});
 
       }
 
@@ -471,37 +478,24 @@ const uploadedColors: {
           "combine-store/colors"
         );
 
-      uploadedColors.push({
+uploadedColors.push({
 
-        name:
-          colorNames[i] || "",
+  name:
+    newColorOrder[i].name,
 
-        imageUrl:
-          uploaded.url,
+  imageUrl:
+    uploaded.url,
 
-        publicId:
-          uploaded.publicId,
+  publicId:
+    uploaded.publicId,
 
-        sortOrder:
-          i,
+  sortOrder:
+    newColorOrder[i].sortOrder,
 
-      });
-
-    }
-
-    if (uploadedColors.length > 0) {
-
-      for (
-        const color of product.colors
-      ) {
-
-        await cloudinary.uploader.destroy(
-          color.publicId
-        );
-
-      }
+});
 
     }
+
 
     await prisma.product.update({
 
@@ -643,44 +637,136 @@ model:
           )
           === "on",
 
-...(uploadedColors.length > 0
-  ? {
-      colors: {
-        deleteMany: {},
-        create: uploadedColors,
-      },
-    }
-  : {}),
-
-
       },
 
     });
 
+const deletedImages = imageOrder.filter(
+  (image) => !image.isNew && image.deleted
+);
 
+console.log("deletedImages:", deletedImages);
 
+for (const image of deletedImages) {
 
+  console.log("Deleting Cloudinary:", image.publicId);
 
-if (uploadedImages.length > 0) {
+  if (image.publicId) {
+    await cloudinary.uploader.destroy(image.publicId);
+  }
 
-  const currentCount = await prisma.productImage.count({
+  console.log("Deleting DB Image:", image.id);
+
+  await prisma.productImage.delete({
     where: {
-      productId: id,
+      id: Number(image.id),
     },
   });
+}
 
+await prisma.productImage.updateMany({
+  where: {
+    productId: id,
+  },
+  data: {
+    sortOrder: {
+      increment: 1000,
+    },
+  },
+});
+
+for (const image of imageOrder.filter(
+  (image) => !image.isNew && !image.deleted
+)) {
+  await prisma.productImage.update({
+    where: {
+      id: Number(image.id),
+    },
+    data: {
+      sortOrder: image.sortOrder,
+    },
+  });
+}
+
+if (uploadedImages.length > 0) {
   await prisma.productImage.createMany({
-    data: uploadedImages.map((image, index) => ({
+    data: uploadedImages.map((image) => ({
       productId: id,
       url: image.url,
       publicId: image.publicId,
-      sortOrder: currentCount + index,
+      sortOrder: image.sortOrder,
     })),
+  });
+}
+
+const deletedColors = colorOrder.filter(
+  (color) => !color.isNew && color.deleted
+);
+
+for (const color of deletedColors) {
+
+  if (color.publicId) {
+    await cloudinary.uploader.destroy(
+      color.publicId
+    );
+  }
+
+  await prisma.productColor.delete({
+    where: {
+      id: Number(color.id),
+    },
   });
 
 }
 
+await prisma.productColor.updateMany({
+  where: {
+    productId: id,
+  },
+  data: {
+    sortOrder: {
+      increment: 1000,
+    },
+  },
+});
 
+for (
+  const color of colorOrder.filter(
+    (color) =>
+      !color.isNew &&
+      !color.deleted
+  )
+) {
+
+  await prisma.productColor.update({
+    where: {
+      id: Number(color.id),
+    },
+    data: {
+      name: color.name,
+      sortOrder: color.sortOrder,
+    },
+  });
+
+}
+
+if (uploadedColors.length > 0) {
+
+  await prisma.productColor.createMany({
+
+    data: uploadedColors.map(
+      (color) => ({
+        productId: id,
+        name: color.name,
+        imageUrl: color.imageUrl,
+        publicId: color.publicId,
+        sortOrder: color.sortOrder,
+      })
+    ),
+
+  });
+
+}
 
 
     redirect(
@@ -710,10 +796,18 @@ export async function duplicateProduct(id: number) {
     where: {
       id,
     },
-    include: {
-      images: true,
-      colors: true,
+include: {
+  images: {
+    orderBy: {
+      sortOrder: "asc",
     },
+  },
+  colors: {
+    orderBy: {
+      sortOrder: "asc",
+    },
+  },
+},
   });
 
   if (!product) {

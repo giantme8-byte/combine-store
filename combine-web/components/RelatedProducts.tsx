@@ -50,18 +50,18 @@ export default async function RelatedProducts({
   }
 
   return (
-    <section className="mt-32">
+    <section className="mt-40">
       <div className="mb-12 text-center">
-        <p className="text-sm uppercase tracking-[0.4em] text-gray-400">
-          Luxury Collection
-        </p>
+<p className="text-xs uppercase tracking-[0.45em] text-neutral-400">
+  DISCOVER MORE
+</p>
 
-        <h2 className="mt-3 text-4xl font-light">
-          You May Also Like
-        </h2>
+<h2 className="mt-5 text-5xl font-extralight tracking-[-0.03em]">
+  You May Also Like
+</h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
         {products.map((product) => (
           <ProductCard
             key={product.id}

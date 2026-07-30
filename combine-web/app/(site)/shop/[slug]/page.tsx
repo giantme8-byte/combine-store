@@ -180,6 +180,7 @@ const whatsappLink = await getWhatsAppLink(whatsappMessage);
 <ProductGallery
   cover={cover}
   gallery={gallery}
+  colors={product.colors}
   name={product.name}
 />
 

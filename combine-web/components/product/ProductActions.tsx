@@ -11,49 +11,50 @@ export default function ProductActions({
   whatsappLink,
 }: ProductActionsProps) {
   return (
-    <div className="mt-14 space-y-5">
+    <div className="mt-6">
+      <div className="border-t border-neutral-200 pt-8">
+        <p className="mb-5 text-[11px] uppercase tracking-[0.35em] text-neutral-400">
+          Contact Us
+        </p>
 
-      {/* Main Actions */}
-      <div className="flex flex-wrap gap-4">
+        {/* Primary CTA */}
+        <a
+          href={whatsappLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="
+            flex
+            w-full
+            items-center
+            justify-center
+            rounded-full
+            bg-black
+            px-8
+            py-5
+            text-sm
+            font-medium
+            uppercase
+            tracking-[0.22em]
+            text-white
+            transition
+            duration-300
+            hover:bg-neutral-800
+          "
+        >
+          WhatsApp Inquiry →
+        </a>
 
-        <AddToInquiryButton
-          productId={productId}
-        />
+        {/* Secondary Actions */}
+        <div className="mt-5 grid grid-cols-2 gap-4">
+          <AddToInquiryButton
+            productId={productId}
+          />
 
-        <WishlistButton
-          productId={productId}
-        />
-
+          <WishlistButton
+            productId={productId}
+          />
+        </div>
       </div>
-
-
-      {/* WhatsApp */}
-      <a
-        href={whatsappLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="
-          flex
-          w-full
-          items-center
-          justify-center
-          rounded-full
-          bg-black
-          px-8
-          py-5
-          text-sm
-          uppercase
-          tracking-[0.25em]
-          text-white
-          transition
-          duration-300
-          hover:bg-neutral-800
-        "
-      >
-        Inquire via WhatsApp →
-      </a>
-
-
     </div>
   );
 }

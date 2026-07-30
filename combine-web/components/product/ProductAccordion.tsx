@@ -20,26 +20,49 @@ function AccordionItem({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between py-6 text-left"
+        className="
+          flex
+          w-full
+          items-center
+          justify-between
+          rounded-sm
+          py-6
+          text-left
+          transition-all
+          duration-300
+          hover:bg-neutral-50
+        "
       >
-        <span className="text-xs uppercase tracking-[0.35em] text-neutral-700">
+        <span className="text-xs font-medium uppercase tracking-[0.35em] text-neutral-900">
           {title}
         </span>
 
-        <span className="text-xl font-light text-neutral-500">
-          {open ? "−" : "+"}
-        </span>
+        <svg
+          className={`h-4 w-4 text-neutral-500 transition-transform duration-500 ease-in-out ${
+            open ? "rotate-180" : ""
+          }`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 9l6 6 6-6"
+          />
+        </svg>
       </button>
 
       <div
-        className={`grid overflow-hidden transition-all duration-300 ${
+        className={`grid overflow-hidden transition-all duration-500 ease-in-out ${
           open
             ? "grid-rows-[1fr] pb-6 opacity-100"
             : "grid-rows-[0fr] opacity-0"
         }`}
       >
         <div className="overflow-hidden">
-          <div className="leading-8 whitespace-pre-line text-neutral-600">
+          <div className="whitespace-pre-line text-[15px] leading-8 text-neutral-600">
             {children}
           </div>
         </div>
@@ -56,7 +79,7 @@ export default function ProductAccordion({
   description,
 }: ProductAccordionProps) {
   return (
-    <div className="mt-20">
+    <div className="mt-20 border-b border-neutral-200">
       <AccordionItem
         title="Description"
         defaultOpen

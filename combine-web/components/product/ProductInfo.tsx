@@ -34,36 +34,38 @@ export default function ProductInfo({
       )}
 
       {/* Badges */}
-      <div className="mt-8 flex flex-wrap gap-3">
-        {product.newArrival && (
-          <span className="rounded-full bg-black px-4 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
-            NEW
-          </span>
-        )}
+      <div className="mt-10 border-t border-neutral-200 pt-8">
+        <div className="flex flex-wrap gap-3">
+          {product.newArrival && (
+            <span className="rounded-full bg-black px-4 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
+              NEW
+            </span>
+          )}
 
-        {product.featured && (
-          <span className="rounded-full bg-[#C8A96A] px-4 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
-            FEATURED
-          </span>
-        )}
+          {product.featured && (
+            <span className="rounded-full bg-[#C8A96A] px-4 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
+              FEATURED
+            </span>
+          )}
 
-        {product.bestSeller && (
-          <span className="rounded-full bg-neutral-800 px-4 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
-            BEST SELLER
-          </span>
-        )}
+          {product.bestSeller && (
+            <span className="rounded-full bg-neutral-800 px-4 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
+              BEST SELLER
+            </span>
+          )}
 
-        {product.limited && (
-          <span className="rounded-full border border-black px-4 py-1 text-[11px] uppercase tracking-[0.18em]">
-            LIMITED
-          </span>
-        )}
+          {product.limited && (
+            <span className="rounded-full border border-black px-4 py-1 text-[11px] uppercase tracking-[0.18em]">
+              LIMITED
+            </span>
+          )}
 
-        {product.onSale && (
-          <span className="rounded-full bg-[#7A4E2C] px-4 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
-            SALE
-          </span>
-        )}
+          {product.onSale && (
+            <span className="rounded-full bg-[#7A4E2C] px-4 py-1 text-[11px] uppercase tracking-[0.18em] text-white">
+              SALE
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
