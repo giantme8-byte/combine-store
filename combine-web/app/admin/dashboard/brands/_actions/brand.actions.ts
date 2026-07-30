@@ -1,16 +1,44 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+
+import { prisma } from "@/lib/prisma";
 
 export async function createBrand(
   formData: FormData
 ) {
-  const name = formData.get("name") as string;
-  const slug = formData.get("slug") as string;
+  const name = (
+    formData.get("name") as string
+  ).trim();
+
+  const slug = (
+    formData.get("slug") as string
+  ).trim();
 
   const active =
     formData.get("active") === "on";
+
+  if (!name || !slug) {
+    throw new Error(
+      "Brand name and slug are required."
+    );
+  }
+
+  const existingBrand =
+    await prisma.brand.findFirst({
+      where: {
+        OR: [
+          { name },
+          { slug },
+        ],
+      },
+    });
+
+  if (existingBrand) {
+    throw new Error(
+      "A brand with the same name or slug already exists."
+    );
+  }
 
   await prisma.brand.create({
     data: {
@@ -27,11 +55,41 @@ export async function updateBrand(
   id: number,
   formData: FormData
 ) {
-  const name = formData.get("name") as string;
-  const slug = formData.get("slug") as string;
+  const name = (
+    formData.get("name") as string
+  ).trim();
+
+  const slug = (
+    formData.get("slug") as string
+  ).trim();
 
   const active =
     formData.get("active") === "on";
+
+  if (!name || !slug) {
+    throw new Error(
+      "Brand name and slug are required."
+    );
+  }
+
+  const existingBrand =
+    await prisma.brand.findFirst({
+      where: {
+        id: {
+          not: id,
+        },
+        OR: [
+          { name },
+          { slug },
+        ],
+      },
+    });
+
+  if (existingBrand) {
+    throw new Error(
+      "A brand with the same name or slug already exists."
+    );
+  }
 
   await prisma.brand.update({
     where: {

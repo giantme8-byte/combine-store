@@ -8,33 +8,43 @@ datasource db {
 }
 
 model Product {
-  id               Int            @id @default(autoincrement())
-  sku              String?        @unique
-  brand            String
-  category         String
-  subCategory      String?
-  name             String
-  slug             String?        @unique
-  model            String?
+  id          Int     @id @default(autoincrement())
+  sku         String? @unique
+  brand       String
+  category    String
+  subCategory String?
+  name        String
+  slug        String? @unique
+
+  model            String? // Deprecated: use ProductVariant.model
   shortDescription String?
   description      String
-  costPriceCny     Float?
-  priceRemark      String?
-  price            Float
-  mainColor        String?
-  dimensions       String?
-  availability     Availability   @default(PRE_ORDER)
-  featured         Boolean        @default(false)
-  newArrival       Boolean        @default(false)
-  bestSeller       Boolean        @default(false)
-  limited          Boolean        @default(false)
-  onSale           Boolean        @default(false)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  inquiryItems     InquiryItem[]
-  colors           ProductColor[]
-  images           ProductImage[]
-  wishlistItems    WishlistItem[]
+
+  costPriceCny Float?
+  priceRemark  String?
+  price        Float
+
+  mainColor  String?
+  dimensions String? // Deprecated: use ProductVariant.dimensions
+
+  availability Availability @default(PRE_ORDER)
+
+  featured   Boolean @default(false)
+  newArrival Boolean @default(false)
+  bestSeller Boolean @default(false)
+  limited    Boolean @default(false)
+  onSale     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inquiryItems InquiryItem[]
+  colors       ProductColor[]
+  images       ProductImage[]
+
+  variants ProductVariant[] // 👈 新增这一行
+
+  wishlistItems WishlistItem[]
 
   @@index([brand])
   @@index([category])
@@ -70,6 +80,25 @@ model ProductColor {
   @@index([productId])
 }
 
+model ProductVariant {
+  id        Int @id @default(autoincrement())
+  productId Int
+
+  size       String
+  model      String?
+  dimensions String?
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size])
+  @@index([productId])
+}
+
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
@@ -93,6 +122,11 @@ model User {
   name     String
   email    String   @unique
   password String
+
+  image String?
+
+  active Boolean @default(true)
+
   role     UserRole
 
   createdAt DateTime @default(now())

@@ -122,6 +122,26 @@ try {
         JSON.parse(item.toString())
       ) as ColorOrderItem[];
 
+  type VariantOrderItem = {
+  id: string;
+  size: string;
+  model: string;
+  dimensions: string;
+  sortOrder: number;
+  isNew: boolean;
+  deleted: boolean;
+};
+
+const variantOrder = formData
+  .getAll("variantOrder")
+  .map((item) =>
+    JSON.parse(item.toString())
+  ) as VariantOrderItem[];   
+  
+const activeVariants = variantOrder.filter(
+  (variant) => !variant.deleted
+);  
+
   const newColorOrder =
     colorOrder.filter(
       (color) =>
@@ -300,6 +320,15 @@ model:
     uploadedColors,
 },
 
+variants: {
+  create: activeVariants.map((variant) => ({
+    size: variant.size,
+    model: variant.model || null,
+    dimensions: variant.dimensions || null,
+    sortOrder: variant.sortOrder,
+  })),
+},
+
 
       },
 
@@ -341,6 +370,11 @@ const product =
         },
       },
       colors: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+      variants: {
         orderBy: {
           sortOrder: "asc",
         },
@@ -422,6 +456,22 @@ const uploadedColors: {
   publicId: string;
   sortOrder: number;
 }[] = [];
+
+type VariantOrderItem = {
+  id: string;
+  size: string;
+  model: string;
+  dimensions: string;
+  sortOrder: number;
+  isNew: boolean;
+  deleted: boolean;
+};
+
+const variantOrder = formData
+  .getAll("variantOrder")
+  .map((item) =>
+    JSON.parse(item.toString())
+  ) as VariantOrderItem[];
 
     if(files.length > 0){
 
@@ -768,6 +818,61 @@ if (uploadedColors.length > 0) {
 
 }
 
+// Delete variants
+const deletedVariants = variantOrder.filter(
+  (variant) => !variant.isNew && variant.deleted
+);
+
+for (const variant of deletedVariants) {
+  await prisma.productVariant.delete({
+    where: {
+      id: Number(variant.id),
+    },
+  });
+}
+
+// Update existing variants
+for (const variant of variantOrder.filter(
+  (variant) =>
+    !variant.isNew &&
+    !variant.deleted
+)) {
+  await prisma.productVariant.update({
+    where: {
+      id: Number(variant.id),
+    },
+    data: {
+      size: variant.size,
+      model: variant.model || null,
+      dimensions:
+        variant.dimensions || null,
+      sortOrder: variant.sortOrder,
+    },
+  });
+}
+
+// Create new variants
+const newVariants = variantOrder.filter(
+  (variant) =>
+    variant.isNew &&
+    !variant.deleted
+);
+
+if (newVariants.length > 0) {
+  await prisma.productVariant.createMany({
+    data: newVariants.map(
+      (variant) => ({
+        productId: id,
+        size: variant.size,
+        model: variant.model || null,
+        dimensions:
+          variant.dimensions || null,
+        sortOrder: variant.sortOrder,
+      })
+    ),
+  });
+}
+
 
     redirect(
       "/admin/dashboard/products"
@@ -807,6 +912,11 @@ include: {
       sortOrder: "asc",
     },
   },
+variants: {
+  orderBy: {
+    sortOrder: "asc",
+  },
+},  
 },
   });
 
@@ -814,56 +924,65 @@ include: {
     redirect("/admin/dashboard/products");
   }
 
-  const newProduct = await prisma.product.create({
-    data: {
-      sku: null,
+const newProduct = await prisma.product.create({
+  data: {
+    sku: null,
 
-      brand: product.brand,
-      category: product.category,
-      subCategory: product.subCategory,
+    brand: product.brand,
+    category: product.category,
+    subCategory: product.subCategory,
 
-      name: `${product.name} (Copy)`,
-      model: product.model,
+    name: `${product.name} (Copy)`,
+    model: product.model,
 
-      shortDescription: product.shortDescription,
-      description: product.description,
+    shortDescription: product.shortDescription,
+    description: product.description,
 
-      costPriceCny: product.costPriceCny,
-      priceRemark: product.priceRemark,
+    costPriceCny: product.costPriceCny,
+    priceRemark: product.priceRemark,
 
-      price: product.price,
+    price: product.price,
 
-      mainColor: product.mainColor,
-      dimensions: product.dimensions,
+    mainColor: product.mainColor,
+    dimensions: product.dimensions,
 
-      availability: product.availability,
+    availability: product.availability,
 
-      featured: product.featured,
-      newArrival: product.newArrival,
-      bestSeller: product.bestSeller,
-      limited: product.limited,
-      onSale: product.onSale,
+    featured: product.featured,
+    newArrival: product.newArrival,
+    bestSeller: product.bestSeller,
+    limited: product.limited,
+    onSale: product.onSale,
 
-      images: {
-        create: product.images.map((image) => ({
-          url: image.url,
-          publicId: image.publicId,
-          sortOrder: image.sortOrder,
-        })),
-      },
-
-      colors: {
-        create: product.colors.map((color) => ({
-          name: color.name,
-          imageUrl: color.imageUrl,
-          publicId: color.publicId,
-          sortOrder: color.sortOrder,
-        })),
-      },
+    images: {
+      create: product.images.map((image) => ({
+        url: image.url,
+        publicId: image.publicId,
+        sortOrder: image.sortOrder,
+      })),
     },
-  });
 
-  redirect(`/admin/dashboard/products/${newProduct.id}/edit`);
+    colors: {
+      create: product.colors.map((color) => ({
+        name: color.name,
+        imageUrl: color.imageUrl,
+        publicId: color.publicId,
+        sortOrder: color.sortOrder,
+      })),
+    },
+
+    variants: {
+      create: product.variants.map((variant) => ({
+        size: variant.size,
+        model: variant.model,
+        dimensions: variant.dimensions,
+        sortOrder: variant.sortOrder,
+      })),
+    },
+  },
+});
+
+redirect(`/admin/dashboard/products/${newProduct.id}/edit`);
 }
 
 export async function deleteProduct(id: number) {

@@ -33,7 +33,6 @@ export default function ProductGrid({
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center">
-
         <div className="mb-8 text-6xl">🔍</div>
 
         <h2 className="text-4xl font-extralight tracking-[-0.02em]">
@@ -47,13 +46,13 @@ export default function ProductGrid({
 
         {onClearFilters && (
           <button
+            type="button"
             onClick={onClearFilters}
             className="mt-10 rounded-full bg-black px-8 py-4 text-sm uppercase tracking-[0.2em] text-white transition hover:bg-neutral-800"
           >
             Clear All Filters
           </button>
         )}
-
       </div>
     );
   }
@@ -61,12 +60,12 @@ export default function ProductGrid({
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-4">
       {products.map((product) => (
-<ProductCard
-  key={product.id}
-  id={product.id}
-  slug={product.slug}
-  brand={product.brand}
-  name={product.name}
+        <ProductCard
+          key={product.id}
+          id={product.id}
+          slug={product.slug}
+          brand={product.brand}
+          name={product.name}
           model={product.model}
           image={product.image}
           featured={product.featured}

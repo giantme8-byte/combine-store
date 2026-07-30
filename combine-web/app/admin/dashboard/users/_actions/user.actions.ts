@@ -10,38 +10,47 @@ import { requireRole } from "@/lib/authorize";
 export async function createUser(
   formData: FormData
 ) {
-  await requireRole([
+  const currentUser = await requireRole([
     UserRole.ADMIN,
     UserRole.OWNER,
   ]);
 
-  const name = String(
-    formData.get("name") ?? ""
-  ).trim();
+  const name = String(formData.get("name") ?? "").trim();
 
-  const email = String(
-    formData.get("email") ?? ""
-  )
+  const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
 
-  const password = String(
-    formData.get("password") ?? ""
-  );
+  const password = String(formData.get("password") ?? "");
 
   const roleValue = String(
-    formData.get("role") ?? "STAFF"
+    formData.get("role") ?? UserRole.STAFF
   );
 
-  const role = Object.values(UserRole).includes(
+  const isValidRole = Object.values(UserRole).includes(
     roleValue as UserRole
-  )
+  );
+
+  const role = isValidRole
     ? (roleValue as UserRole)
     : UserRole.STAFF;
 
   if (!name || !email || !password) {
+    throw new Error("Missing required fields.");
+  }
+
+  if (password.length < 8) {
     throw new Error(
-      "Missing required fields."
+      "Password must be at least 8 characters."
+    );
+  }
+
+  if (
+    currentUser.role !== UserRole.OWNER &&
+    role === UserRole.OWNER
+  ) {
+    throw new Error(
+      "Only the owner can assign the Owner role."
     );
   }
 
@@ -53,13 +62,13 @@ export async function createUser(
     });
 
   if (existingUser) {
-    throw new Error(
-      "Email already exists."
-    );
+    throw new Error("Email already exists.");
   }
 
-  const hashedPassword =
-    await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(
+    password,
+    10
+  );
 
   await prisma.user.create({
     data: {
@@ -70,46 +79,53 @@ export async function createUser(
     },
   });
 
-  revalidatePath(
-    "/admin/dashboard/users"
-  );
+  revalidatePath("/admin/dashboard/users");
 }
 
 export async function updateUser(
   formData: FormData
 ) {
-  await requireRole([
+  const currentUser = await requireRole([
     UserRole.ADMIN,
     UserRole.OWNER,
   ]);
 
-  const id = Number(
-    formData.get("id")
-  );
+  const id = Number(formData.get("id"));
 
-  const name = String(
-    formData.get("name") ?? ""
-  ).trim();
+  const name = String(formData.get("name") ?? "").trim();
 
-  const email = String(
-    formData.get("email") ?? ""
-  )
+  const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
 
   const roleValue = String(
-    formData.get("role") ?? "STAFF"
+    formData.get("role") ?? UserRole.STAFF
   );
 
-  const role = Object.values(UserRole).includes(
+  const isValidRole = Object.values(UserRole).includes(
     roleValue as UserRole
-  )
+  );
+
+  const role = isValidRole
     ? (roleValue as UserRole)
     : UserRole.STAFF;
 
   if (!id || !name || !email) {
+    throw new Error("Missing required fields.");
+  }
+
+  if (
+    currentUser.role !== UserRole.OWNER &&
+    role === UserRole.OWNER
+  ) {
     throw new Error(
-      "Missing required fields."
+      "Only the owner can assign the Owner role."
+    );
+  }
+
+  if (currentUser.id === id) {
+    throw new Error(
+      "You cannot change your own role."
     );
   }
 
@@ -124,9 +140,7 @@ export async function updateUser(
     });
 
   if (existingUser) {
-    throw new Error(
-      "Email already exists."
-    );
+    throw new Error("Email already exists.");
   }
 
   await prisma.user.update({
@@ -140,7 +154,5 @@ export async function updateUser(
     },
   });
 
-  revalidatePath(
-    "/admin/dashboard/users"
-  );
+  revalidatePath("/admin/dashboard/users");
 }

@@ -1,6 +1,6 @@
 import { UserRole } from "@prisma/client";
 
-import { getCurrentUser } from "@/lib/auth";
+import { requireRole } from "@/lib/authorize";
 import { buildProductOrderBy } from "@/lib/product-sort";
 import { buildProductWhere } from "@/lib/product-filter";
 import { prisma } from "@/lib/prisma";
@@ -33,12 +33,20 @@ export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
 
-  const user = await getCurrentUser();
+const user = await requireRole([
+  UserRole.STAFF,
+  UserRole.MANAGER,
+  UserRole.ADMIN,
+  UserRole.OWNER,
+]);
 
-  const canDelete =
-    user?.role === UserRole.MANAGER ||
-    user?.role === UserRole.ADMIN ||
-    user?.role === UserRole.OWNER;
+const deleteRoles: UserRole[] = [
+  UserRole.MANAGER,
+  UserRole.ADMIN,
+  UserRole.OWNER,
+];
+
+const canDelete = deleteRoles.includes(user.role);
 
 
   const params = await searchParams;
@@ -55,8 +63,10 @@ export default async function ProductsPage({
     params.sort ?? "latest";
 
 
-  const page =
-    Number(params.page ?? "1");
+const page = Math.max(
+  1,
+  Number(params.page ?? "1") || 1
+);
 
 
   const pageSize = 20;
@@ -127,10 +137,10 @@ export default async function ProductsPage({
     settings?.exchangeRate ?? 0.59;
 
 
-  const totalPages =
-    Math.ceil(
-      totalProducts / pageSize
-    );
+const totalPages = Math.max(
+  1,
+  Math.ceil(totalProducts / pageSize)
+);
 
 
   const currentSearchParams =

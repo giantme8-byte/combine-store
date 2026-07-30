@@ -10,8 +10,21 @@ export default async function NewArrivals() {
       createdAt: "desc",
     },
     take: 4,
-    include: {
+    select: {
+      id: true,
+      slug: true,
+      brand: true,
+      name: true,
+      model: true,
+      featured: true,
+      newArrival: true,
+      bestSeller: true,
+      limited: true,
+      onSale: true,
       images: {
+        select: {
+          url: true,
+        },
         orderBy: {
           sortOrder: "asc",
         },
@@ -44,8 +57,8 @@ export default async function NewArrivals() {
           </h3>
 
           <p className="mx-auto mt-6 max-w-lg leading-8 text-neutral-500">
-            Our latest collection is currently being curated.
-            Please check back soon for new arrivals.
+            Our latest collection is currently being curated. Please check back
+            soon for new arrivals.
           </p>
         </div>
       ) : (

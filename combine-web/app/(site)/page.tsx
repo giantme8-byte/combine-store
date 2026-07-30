@@ -1,5 +1,5 @@
 import Hero from "@/components/Hero";
-import Categories from "@/components/Categories";
+import CollectionSection from "@/components/collections/CollectionSection";
 import BrandShowcase from "@/components/BrandShowcase";
 import NewArrivals from "@/components/NewArrivals";
 import BestSellers from "@/components/BestSellers";
@@ -13,7 +13,7 @@ export default function Home() {
       <Hero />
 
       <MotionSection>
-        <Categories />
+        <CollectionSection />
       </MotionSection>
 
       <MotionSection delay={0.05}>

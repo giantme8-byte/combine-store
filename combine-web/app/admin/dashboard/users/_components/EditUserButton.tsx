@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, UserRole } from "@prisma/client";
+import { User } from "@prisma/client";
 
 import { updateUser } from "../_actions/user.actions";
 import UserForm from "./UserForm";
@@ -14,6 +14,11 @@ export default function EditUserButton({
   user,
 }: EditUserButtonProps) {
   const [open, setOpen] = useState(false);
+
+  async function handleSubmit(formData: FormData) {
+    await updateUser(formData);
+    setOpen(false);
+  }
 
   return (
     <>
@@ -32,10 +37,7 @@ export default function EditUserButton({
             </h2>
 
             <form
-              action={async (formData) => {
-                await updateUser(formData);
-                setOpen(false);
-              }}
+              action={handleSubmit}
               className="mt-6 space-y-4"
             >
               <input
@@ -44,21 +46,21 @@ export default function EditUserButton({
                 value={user.id}
               />
 
-<UserForm
-  mode="edit"
-  defaultValues={{
-    name: user.name,
-    email: user.email,
-    role: user.role as UserRole,
-  }}
-/>
+              <UserForm
+                mode="edit"
+                defaultValues={{
+                  name: user.name,
+                  email: user.email,
+                  role: user.role,
+                }}
+              />
 
-<button
-  type="submit"
-  className="w-full rounded-xl bg-black py-3 text-white"
->
-  Save Changes
-</button>
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-black py-3 text-white"
+              >
+                Save Changes
+              </button>
 
               <button
                 type="button"

@@ -12,21 +12,25 @@ import {
 
 import { UserRole } from "@prisma/client";
 
+
 export type SidebarItem = {
   title: string;
-  href?: string;
+  href: string;
   icon: LucideIcon;
   disabled?: boolean;
   roles?: UserRole[];
 };
 
+
 export const sidebarSections: {
   title: string;
   items: SidebarItem[];
 }[] = [
+
   {
     title: "MAIN",
     items: [
+
       {
         title: "Dashboard",
         href: "/admin/dashboard",
@@ -38,6 +42,8 @@ export const sidebarSections: {
           UserRole.STAFF,
         ],
       },
+
+
       {
         title: "Products",
         href: "/admin/dashboard/products",
@@ -49,6 +55,8 @@ export const sidebarSections: {
           UserRole.STAFF,
         ],
       },
+
+
       {
         title: "Categories",
         href: "/admin/dashboard/categories",
@@ -59,6 +67,8 @@ export const sidebarSections: {
           UserRole.MANAGER,
         ],
       },
+
+
       {
         title: "Brands",
         href: "/admin/dashboard/brands",
@@ -69,12 +79,16 @@ export const sidebarSections: {
           UserRole.MANAGER,
         ],
       },
+
     ],
   },
+
+
 
   {
     title: "CRM",
     items: [
+
       {
         title: "Inquiries",
         href: "/admin/dashboard/inquiries",
@@ -86,24 +100,30 @@ export const sidebarSections: {
           UserRole.STAFF,
         ],
       },
+
     ],
   },
+
+
 
   {
     title: "SYSTEM",
     items: [
-    
-{
-  title: "Users",
-  href: "/admin/dashboard/users",
-  icon: Users,
-  roles: [
-    UserRole.OWNER,
-    UserRole.ADMIN,
-  ],
-},
+
+      {
+        title: "Users",
+        href: "/admin/dashboard/users",
+        icon: Users,
+        roles: [
+          UserRole.OWNER,
+          UserRole.ADMIN,
+        ],
+      },
+
+
       {
         title: "Analytics",
+        href: "",
         icon: ChartColumn,
         disabled: true,
         roles: [
@@ -111,6 +131,8 @@ export const sidebarSections: {
           UserRole.ADMIN,
         ],
       },
+
+
       {
         title: "Settings",
         href: "/admin/dashboard/settings",
@@ -120,6 +142,8 @@ export const sidebarSections: {
           UserRole.ADMIN,
         ],
       },
+
     ],
   },
+
 ];

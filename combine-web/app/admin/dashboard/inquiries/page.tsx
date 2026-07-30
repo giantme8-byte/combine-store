@@ -18,7 +18,10 @@ searchParams: Promise<{
 }) {
   const { status, search, page } = await searchParams;
 
-const currentPage = Number(page ?? "1");
+const currentPage = Math.max(
+  1,
+  Number(page ?? "1") || 1
+);
 const pageSize = 20;
 const skip = (currentPage - 1) * pageSize;
 

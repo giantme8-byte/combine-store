@@ -1,10 +1,19 @@
 "use server";
 
+import { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 
+import { requireRole } from "@/lib/authorize";
 import { prisma } from "@/lib/prisma";
 
-export async function saveSettings(formData: FormData) {
+export async function saveSettings(
+  formData: FormData
+) {
+  await requireRole([
+    UserRole.OWNER,
+    UserRole.ADMIN,
+  ]);
+
   const companyName =
     (formData.get("companyName") as string)?.trim() ||
     "COMBINE";
@@ -67,8 +76,15 @@ export async function saveSettings(formData: FormData) {
   const maintenanceMode =
     formData.get("maintenanceMode") === "on";
 
-  const exchangeRate =
-    Number(formData.get("exchangeRate")) || 0.59;
+  const parsedExchangeRate = Number(
+    formData.get("exchangeRate")
+  );
+
+  const exchangeRate = Number.isFinite(
+    parsedExchangeRate
+  )
+    ? parsedExchangeRate
+    : 0.59;
 
   const siteTitle =
     (formData.get("siteTitle") as string)?.trim() ||
@@ -78,7 +94,8 @@ export async function saveSettings(formData: FormData) {
     (formData.get("metaDescription") as string)?.trim() ||
     null;
 
-  const existing = await prisma.setting.findFirst();
+  const existing =
+    await prisma.setting.findFirst();
 
   if (existing) {
     await prisma.setting.update({

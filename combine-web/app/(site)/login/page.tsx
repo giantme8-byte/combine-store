@@ -34,16 +34,15 @@ export default function LoginPage() {
         }),
       });
 
-if (!res.ok) {
-  const data = await res.json();
+      const data = await res.json();
 
-  setError(data.message ?? "Login failed.");
+      if (!res.ok) {
+        setError(data.message ?? "Login failed.");
+        return;
+      }
 
-  return;
-}
-
-router.push("/admin/dashboard");
-router.refresh();
+      router.replace("/admin");
+      router.refresh();
     } catch (error) {
       console.error("Login failed:", error);
       setError("Something went wrong. Please try again.");
@@ -64,7 +63,7 @@ router.refresh();
           </Link>
 
           <p className="mt-4 text-sm uppercase tracking-[0.25em] text-neutral-500">
-            Welcome Back
+            Admin Login
           </p>
         </div>
 
@@ -123,19 +122,9 @@ router.refresh();
             disabled={loading}
             className="w-full rounded-2xl bg-black py-4 text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Signing In..." : "Login"}
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
-
-        <div className="mt-8 text-center text-sm text-neutral-500">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/register"
-            className="font-medium text-black hover:underline"
-          >
-            Create Account
-          </Link>
-        </div>
       </div>
     </main>
   );

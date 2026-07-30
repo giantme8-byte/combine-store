@@ -12,8 +12,21 @@ export default async function BestSellers() {
       createdAt: "desc",
     },
     take: 4,
-    include: {
+    select: {
+      id: true,
+      slug: true,
+      brand: true,
+      name: true,
+      model: true,
+      featured: true,
+      newArrival: true,
+      bestSeller: true,
+      limited: true,
+      onSale: true,
       images: {
+        select: {
+          url: true,
+        },
         orderBy: {
           sortOrder: "asc",
         },
@@ -34,9 +47,8 @@ export default async function BestSellers() {
           </h2>
 
           <p className="mt-8 max-w-2xl text-lg leading-8 text-neutral-500">
-            Discover a refined selection of exceptional pieces,
-            chosen for their craftsmanship, timeless elegance
-            and enduring style.
+            Discover a refined selection of exceptional pieces, chosen for their
+            craftsmanship, timeless elegance and enduring style.
           </p>
         </div>
 
@@ -51,12 +63,12 @@ export default async function BestSellers() {
       {products.length === 0 ? (
         <div className="rounded-[32px] border border-dashed border-neutral-300 py-24 text-center">
           <h3 className="text-3xl font-extralight">
-            No Featured Products
+            Curated Collection Coming Soon
           </h3>
 
           <p className="mx-auto mt-6 max-w-xl text-neutral-500">
-            Mark products as <strong>Best Seller</strong> in the
-            Admin Dashboard to showcase them here.
+            Our curated selection is currently being updated. Please check back
+            soon to discover more exceptional pieces.
           </p>
         </div>
       ) : (

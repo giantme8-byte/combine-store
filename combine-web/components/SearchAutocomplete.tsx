@@ -42,6 +42,7 @@ export default function SearchAutocomplete({
           `/api/search?q=${encodeURIComponent(keyword)}`,
           {
             signal: controller.signal,
+            cache: "no-store",
           }
         );
 
@@ -172,7 +173,7 @@ export default function SearchAutocomplete({
   }
 
   return (
-        <div
+    <div
       ref={containerRef}
       className="absolute left-0 right-0 top-full z-50 mt-3 max-h-[520px] overflow-y-auto overflow-x-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_18px_50px_rgba(0,0,0,0.08)]"
     >
@@ -271,7 +272,7 @@ export default function SearchAutocomplete({
               `/shop?search=${encodeURIComponent(query)}`
             );
           }}
-          className="w-full border-t border-neutral-200 bg-white px-6 py-4 text-center text-sm font-medium tracking-[0.2em] uppercase text-neutral-700 transition-colors duration-300 hover:bg-neutral-50"
+          className="w-full border-t border-neutral-200 bg-white px-6 py-4 text-center text-sm font-medium uppercase tracking-[0.2em] text-neutral-700 transition-colors duration-300 hover:bg-neutral-50"
         >
           View All Results →
         </button>

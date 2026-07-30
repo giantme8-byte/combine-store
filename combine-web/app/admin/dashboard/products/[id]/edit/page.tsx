@@ -33,6 +33,11 @@ export default async function EditProductPage({
             sortOrder: "asc",
           },
         },
+        variants: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
       },
     }),
 

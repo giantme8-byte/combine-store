@@ -11,6 +11,7 @@ import {
   useInquiry,
 } from "@/components/providers/InquiryProvider";
 
+import { getWhatsAppLink } from "@/lib/whatsapp";
 
 type ProductImage = {
   id: number;
@@ -56,7 +57,7 @@ export default function InquiryDrawer() {
 
 
 
-  function handleWhatsAppInquiry() {
+  async function handleWhatsAppInquiry() {
 
     const message = [
       "Hello COMBINE,",
@@ -94,17 +95,12 @@ Quantity: ${item.quantity}`;
 
 
 
-    const url =
-      `https://wa.me/60166620448?text=${encodeURIComponent(
-        message
-      )}`;
+const url = await getWhatsAppLink(message);
 
-
-
-    window.open(
-      url,
-      "_blank"
-    );
+window.open(
+  url,
+  "_blank"
+);
 
   }
 

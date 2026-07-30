@@ -8,11 +8,16 @@ import UserForm from "./UserForm";
 export default function CreateUserButton() {
   const [open, setOpen] = useState(false);
 
+  async function handleSubmit(formData: FormData) {
+    await createUser(formData);
+    setOpen(false);
+  }
+
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-xl bg-black px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+        className="rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
       >
         + Add User
       </button>
@@ -25,27 +30,22 @@ export default function CreateUserButton() {
             </h2>
 
             <form
-              action={async (formData) => {
-                await createUser(formData);
-                setOpen(false);
-              }}
+              action={handleSubmit}
               className="mt-6 space-y-4"
             >
-<UserForm
-  mode="create"
-/>
+              <UserForm mode="create" />
 
-<button
-  type="submit"
-  className="w-full rounded-xl bg-black py-3 text-white"
->
-  Create
-</button>
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-black py-3 text-white transition hover:bg-neutral-800"
+              >
+                Create
+              </button>
 
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="w-full rounded-xl border py-3"
+                className="w-full rounded-xl border py-3 transition hover:bg-neutral-50"
               >
                 Cancel
               </button>

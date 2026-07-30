@@ -6,6 +6,9 @@ import {
   useState,
 } from "react";
 
+import { Heart } from "lucide-react";
+import { toast } from "sonner";
+
 type Props = {
   productId: number;
   variant?: "button" | "icon";
@@ -18,7 +21,6 @@ export default function WishlistButton({
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // 进入页面时读取收藏状态
   useEffect(() => {
     async function loadWishlist() {
       try {
@@ -31,18 +33,22 @@ export default function WishlistButton({
         const data = await res.json();
 
         setSaved(data.saved);
+
       } catch (error) {
-        console.error("Failed to load wishlist:", error);
+        console.error(
+          "Failed to load wishlist:",
+          error
+        );
       }
     }
 
     loadWishlist();
   }, [productId]);
 
+
   async function handleWishlist(
     e: MouseEvent<HTMLButtonElement>
   ) {
-    // 防止 ProductCard 的 Link 被触发
     e.preventDefault();
     e.stopPropagation();
 
@@ -51,33 +57,50 @@ export default function WishlistButton({
     setLoading(true);
 
     try {
-      const res = await fetch("/api/wishlist", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId,
-        }),
-      });
+      const res = await fetch(
+        "/api/wishlist",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            productId,
+          }),
+        }
+      );
 
       const data = await res.json();
 
       if (data.success) {
         setSaved(data.saved);
+
+        toast.success(
+          data.saved
+            ? "Added to wishlist."
+            : "Removed from wishlist."
+        );
+
       } else if (data.message) {
-        alert(data.message);
+        toast.error(data.message);
       }
+
     } catch (error) {
-      console.error("Failed to update wishlist:", error);
+      console.error(
+        "Failed to update wishlist:",
+        error
+      );
+
+      toast.error(
+        "Something went wrong."
+      );
+
     } finally {
       setLoading(false);
     }
   }
 
-  // ==========================
-  // Product Card (Icon)
-  // ==========================
+
   if (variant === "icon") {
     return (
       <button
@@ -86,33 +109,79 @@ export default function WishlistButton({
         disabled={loading}
         aria-label="Toggle Wishlist"
         aria-pressed={saved}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-lg shadow-lg backdrop-blur transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50"
+        className="
+          flex
+          h-10
+          w-10
+          items-center
+          justify-center
+          rounded-full
+          bg-white/90
+          shadow-lg
+          backdrop-blur
+          transition-all
+          duration-300
+          hover:scale-110
+          disabled:opacity-50
+        "
       >
-        {loading ? "..." : saved ? "❤️" : "🤍"}
+        <Heart
+          size={20}
+          className={
+            saved
+              ? "fill-red-500 text-red-500"
+              : "text-neutral-700"
+          }
+        />
       </button>
     );
   }
 
-  // ==========================
-  // Product Detail Button
-  // ==========================
+
   return (
     <button
       type="button"
       onClick={handleWishlist}
       disabled={loading}
       aria-pressed={saved}
-      className={`inline-flex min-w-[240px] items-center justify-center rounded-full border px-8 py-4 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50 ${
-        saved
-          ? "border-red-500 bg-red-500 text-white"
-          : "border-black hover:bg-black hover:text-white"
-      }`}
+      className={`
+        inline-flex
+        w-full
+        items-center
+        justify-center
+        gap-2
+        rounded-full
+        border
+        px-8
+        py-4
+        text-sm
+        font-medium
+        uppercase
+        tracking-[0.25em]
+        transition-all
+        duration-300
+        disabled:opacity-50
+        ${
+          saved
+            ? "border-red-500 bg-red-500 text-white"
+            : "border-black hover:bg-black hover:text-white"
+        }
+      `}
     >
+      <Heart
+        size={18}
+        className={
+          saved
+            ? "fill-white"
+            : ""
+        }
+      />
+
       {loading
         ? "Loading..."
         : saved
-        ? "❤️ Saved to Wishlist"
-        : "♡ Add to Wishlist"}
+        ? "Saved"
+        : "Add to Wishlist"}
     </button>
   );
 }

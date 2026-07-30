@@ -12,34 +12,22 @@ type Props = {
 export default function AddToInquiryButton({
   productId,
 }: Props) {
-
   const {
     addItem,
     isInInquiry,
-    getQuantity,
     openDrawer,
   } = useInquiry();
 
-
   const [loading, setLoading] = useState(false);
-
 
   const added = isInInquiry(productId);
 
-  const quantity = getQuantity(productId);
-
-
-
   function handleAdd() {
-
     if (loading) return;
-
 
     setLoading(true);
 
-
     try {
-
       addItem(productId);
 
       openDrawer();
@@ -48,9 +36,7 @@ export default function AddToInquiryButton({
         "Added to inquiry."
       );
 
-
     } catch (error) {
-
       console.error(
         "Failed to add inquiry:",
         error
@@ -60,33 +46,45 @@ export default function AddToInquiryButton({
         "Something went wrong."
       );
 
-
     } finally {
-
       setLoading(false);
-
     }
-
   }
-
-
 
   return (
     <button
       type="button"
       onClick={handleAdd}
       disabled={loading}
-      className={`inline-flex min-w-[240px] items-center justify-center rounded-full border px-8 py-4 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50 ${
-        added
-          ? "border-green-600 bg-green-600 text-white"
-          : "border-black text-black hover:bg-black hover:text-white"
-      }`}
+      className={`
+        inline-flex
+        w-full
+        items-center
+        justify-center
+        rounded-full
+        border
+        px-8
+        py-4
+        text-sm
+        font-medium
+        uppercase
+        tracking-[0.25em]
+        transition-all
+        duration-300
+        disabled:cursor-not-allowed
+        disabled:opacity-50
+        ${
+          added
+            ? "border-green-600 bg-green-600 text-white"
+            : "border-black text-black hover:bg-black hover:text-white"
+        }
+      `}
     >
       {loading
         ? "Adding..."
         : added
-        ? `✓ Added (${quantity})`
-        : "📋 Add to Inquiry"}
+        ? "✓ Added"
+        : "Add to Inquiry"}
     </button>
   );
 }

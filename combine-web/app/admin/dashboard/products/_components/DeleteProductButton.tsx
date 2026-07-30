@@ -19,6 +19,7 @@ export default function DeleteProductButton({
 }: DeleteProductButtonProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+
   const router = useRouter();
 
   function handleDelete() {
@@ -30,8 +31,7 @@ export default function DeleteProductButton({
 
         router.refresh();
       } catch (error) {
-        console.error(error);
-        alert("Failed to delete product.");
+        console.error("Failed to delete product:", error);
       }
     });
   }
@@ -39,6 +39,7 @@ export default function DeleteProductButton({
   return (
     <>
       <Button
+        type="button"
         variant="danger"
         onClick={() => setOpen(true)}
         disabled={isPending}
@@ -59,6 +60,9 @@ export default function DeleteProductButton({
             This action cannot be undone.
           </>
         }
+        confirmText={isPending ? "Deleting..." : "Delete"}
+        cancelText="Cancel"
+        loading={isPending}
         onCancel={() => {
           if (!isPending) {
             setOpen(false);

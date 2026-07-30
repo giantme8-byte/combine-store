@@ -25,9 +25,13 @@ export default function UserRow({
         </span>
       </td>
 
-      <td className="px-6 py-4 text-sm text-neutral-500">
-        {user.createdAt.toLocaleDateString()}
-      </td>
+<td className="px-6 py-4 text-sm text-neutral-500">
+  {new Intl.DateTimeFormat("en-MY", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(user.createdAt)}
+</td>
 
       <td className="px-6 py-4 text-right">
         <EditUserButton

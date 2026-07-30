@@ -11,7 +11,9 @@ import ImageUpload from "./ImageUpload";
 import CategorySelect from "./CategorySelect";
 import type { ProductImageItem } from "@/types/product-image";
 import type { ColorImageItem } from "@/types/color-image";
-import ColorUpload from "./ColorUpload";
+import ColorUpload from "./ColorUpload"
+import type { ProductVariantItem } from "@/types";
+import VariantManager from "./VariantManager";
 
 import type {
   Brand,
@@ -19,12 +21,14 @@ import type {
   Product,
   ProductImage,
   ProductColor,
+  ProductVariant,
 } from "@prisma/client";
 
 
 type ProductWithRelations = Product & {
   images: ProductImage[];
   colors: ProductColor[];
+  variants: ProductVariant[];
 };
 
 type ProductFormProps = {
@@ -72,6 +76,9 @@ const [
 const [colors, setColors] =
   useState<ColorImageItem[]>([]);
 
+const [variants, setVariants] =
+  useState<ProductVariantItem[]>([]);  
+
 const [costPriceCny, setCostPriceCny] =
   useState<number>(
     product?.costPriceCny ?? 0
@@ -114,6 +121,17 @@ setColors(
   }))
 );
 
+setVariants(
+  product.variants.map((variant) => ({
+    id: variant.id.toString(),
+    size: variant.size,
+    model: variant.model ?? "",
+    dimensions: variant.dimensions ?? "",
+    isNew: false,
+    deleted: false,
+  }))
+);
+
 setCostPriceCny(
   product.costPriceCny ?? 0
 );
@@ -146,12 +164,11 @@ async function handleSubmit(
 
   if (!formRef.current) return;
 
-  const formData = new FormData(
-    formRef.current
-  );
+const formData = new FormData(
+  formRef.current
+);
 
 images.forEach((image, index) => {
-
   formData.append(
     "imageOrder",
     JSON.stringify({
@@ -164,28 +181,23 @@ images.forEach((image, index) => {
   );
 
   if (image.file) {
-    formData.append(
-      "images",
-      image.file
-    );
+    formData.append("images", image.file);
   }
-
 });
 
 colors.forEach((color, index) => {
-
-formData.append(
-  "colorOrder",
-  JSON.stringify({
-    id: color.id,
-    publicId: color.publicId,
-    name: color.name,
-    sortOrder: index,
-    isNew: color.isNew,
-    deleted: color.deleted ?? false,
-    hasNewImage: !!color.file,
-  })
-);
+  formData.append(
+    "colorOrder",
+    JSON.stringify({
+      id: color.id,
+      publicId: color.publicId,
+      name: color.name,
+      sortOrder: index,
+      isNew: color.isNew,
+      deleted: color.deleted ?? false,
+      hasNewImage: !!color.file,
+    })
+  );
 
   if (color.file) {
     formData.append(
@@ -193,12 +205,26 @@ formData.append(
       color.file
     );
   }
-
 });
 
-  startTransition(async () => {
-    await action(formData);
-  });
+variants.forEach((variant, index) => {
+  formData.append(
+    "variantOrder",
+    JSON.stringify({
+      id: variant.id,
+      size: variant.size,
+      model: variant.model,
+      dimensions: variant.dimensions,
+      sortOrder: index,
+      isNew: variant.isNew,
+      deleted: variant.deleted,
+    })
+  );
+});
+
+startTransition(async () => {
+  await action(formData);
+});
 }
 
 console.log(product?.colors);
@@ -579,6 +605,12 @@ RM {(
   </div>
 
 </div> {/* Product Details */}
+
+{/* Variants */}
+<VariantManager
+  variants={variants}
+  onChange={setVariants}
+/>
 
 </div> {/* LEFT */}
 

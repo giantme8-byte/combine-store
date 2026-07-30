@@ -27,13 +27,58 @@ export default function ViewInquiryButton({
 }: ViewInquiryButtonProps) {
   const [open, setOpen] = useState(false);
 
-const [status, setStatus] = useState<InquiryStatus>(
-  inquiry.status
-);
+  const [status, setStatus] =
+    useState<InquiryStatus>(inquiry.status);
 
-const [isPending, startTransition] = useTransition();
+  const [isPending, startTransition] =
+    useTransition();
 
-const router = useRouter();
+  const router = useRouter();
+
+  const phone = inquiry.whatsapp.replace(
+    /\D/g,
+    ""
+  );
+
+  const whatsappMessage = encodeURIComponent(
+`Hi ${inquiry.name},
+
+Thank you for your inquiry with COMBINE.
+
+We have received your inquiry and will get back to you as soon as possible.
+
+If you have any additional questions, feel free to let us know.
+
+Best regards,
+COMBINE`
+  );
+
+  function handleClose() {
+    if (isPending) return;
+
+    setStatus(inquiry.status);
+    setOpen(false);
+  }
+
+  function handleSaveStatus() {
+    startTransition(async () => {
+      try {
+        await updateInquiryStatus(
+          inquiry.id,
+          status
+        );
+
+        setOpen(false);
+
+        router.refresh();
+      } catch (error) {
+        console.error(
+          "Failed to update inquiry status:",
+          error
+        );
+      }
+    });
+  }
 
   return (
     <>
@@ -55,7 +100,8 @@ const router = useRouter();
 
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={handleClose}
+                disabled={isPending}
                 className="rounded-lg border px-3 py-1 text-sm"
               >
                 Close
@@ -63,52 +109,48 @@ const router = useRouter();
             </div>
 
             <div className="mt-8 space-y-6">
+
+              {/* Customer */}
               <div>
                 <h3 className="mb-2 font-medium">
                   Customer
                 </h3>
 
-<div className="space-y-1 text-sm">
-  <p>
-    <strong>Name:</strong> {inquiry.name}
-  </p>
+                <div className="space-y-1 text-sm">
+                  <p>
+                    <strong>Name:</strong>{" "}
+                    {inquiry.name}
+                  </p>
 
-  <p>
-    <strong>WhatsApp:</strong> {inquiry.whatsapp}
-  </p>
+                  <p>
+                    <strong>WhatsApp:</strong>{" "}
+                    {inquiry.whatsapp}
+                  </p>
 
-  <p>
-    <strong>Email:</strong> {inquiry.email ?? "-"}
-  </p>
+                  <p>
+                    <strong>Email:</strong>{" "}
+                    {inquiry.email ?? "-"}
+                  </p>
 
-  <p>
-    <strong>Country:</strong> {inquiry.country ?? "-"}
-  </p>
+                  <p>
+                    <strong>Country:</strong>{" "}
+                    {inquiry.country ?? "-"}
+                  </p>
 
-  <div className="pt-4">
-    <a
-      href={`https://wa.me/${inquiry.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
-  `Hi ${inquiry.name},
+                  <div className="pt-4">
+                    <a
+                      href={`https://wa.me/${phone}?text=${whatsappMessage}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
+                    >
+                      Open WhatsApp
+                    </a>
+                  </div>
+                </div>
+              </div>
 
-Thank you for your inquiry with COMBINE.
-
-We have received your inquiry and will get back to you as soon as possible.
-
-If you have any additional questions, feel free to let us know.
-
-Best regards,
-COMBINE`
-)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
-    >
-      Open WhatsApp
-    </a>
-    </div>
-  </div>
-</div>
-
+              {/* Products */}
               <div>
                 <h3 className="mb-2 font-medium">
                   Products
@@ -138,6 +180,7 @@ COMBINE`
                 </div>
               </div>
 
+              {/* Customer Message */}
               <div>
                 <h3 className="mb-2 font-medium">
                   Customer Message
@@ -147,52 +190,52 @@ COMBINE`
                   {inquiry.message || "-"}
                 </p>
               </div>
+
+              {/* Status */}
               <div>
-  <h3 className="mb-2 font-medium">
-    Status
-  </h3>
+                <h3 className="mb-2 font-medium">
+                  Status
+                </h3>
 
-  <select
-    value={status}
-    onChange={(e) =>
-      setStatus(e.target.value as InquiryStatus)
-    }
-    className="w-full rounded-xl border px-4 py-3"
-    disabled={isPending}
-  >
-    <option value="PENDING">Pending</option>
-    <option value="CONTACTED">Contacted</option>
-    <option value="COMPLETED">Completed</option>
-    <option value="CANCELLED">Cancelled</option>
-  </select>
+                <select
+                  value={status}
+                  onChange={(e) =>
+                    setStatus(
+                      e.target.value as InquiryStatus
+                    )
+                  }
+                  disabled={isPending}
+                  className="w-full rounded-xl border px-4 py-3"
+                >
+                  <option value="PENDING">
+                    Pending
+                  </option>
 
-  <button
-    type="button"
-    onClick={() => {
-startTransition(async () => {
-  try {
-    await updateInquiryStatus(
-      inquiry.id,
-      status
-    );
+                  <option value="CONTACTED">
+                    Contacted
+                  </option>
 
-    setOpen(false);
+                  <option value="COMPLETED">
+                    Completed
+                  </option>
 
-    router.refresh();
-  } catch (error) {
-    console.error(error);
-    alert("Failed to update inquiry status.");
-  }
-});
-    }}
-    disabled={isPending}
-    className="mt-4 rounded-xl bg-black px-5 py-3 text-white transition hover:bg-neutral-800 disabled:opacity-50"
-  >
-    {isPending
-      ? "Saving..."
-      : "Save Status"}
-  </button>
-</div>
+                  <option value="CANCELLED">
+                    Cancelled
+                  </option>
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleSaveStatus}
+                  disabled={isPending}
+                  className="mt-4 rounded-xl bg-black px-5 py-3 text-white transition hover:bg-neutral-800 disabled:opacity-50"
+                >
+                  {isPending
+                    ? "Saving..."
+                    : "Save Status"}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

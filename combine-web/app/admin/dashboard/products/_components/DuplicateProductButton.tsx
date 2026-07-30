@@ -16,12 +16,17 @@ export default function DuplicateProductButton({
 
   function handleDuplicate() {
     startTransition(async () => {
-      await duplicateProduct(productId);
+      try {
+        await duplicateProduct(productId);
+      } catch (error) {
+        console.error("Failed to duplicate product:", error);
+      }
     });
   }
 
   return (
     <Button
+      type="button"
       variant="secondary"
       onClick={handleDuplicate}
       disabled={isPending}

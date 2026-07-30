@@ -18,7 +18,7 @@ type Product = {
   brand: string;
   name: string;
   model: string | null;
-  sku: string |null;
+  sku: string | null;
 
   price: number;
 
@@ -97,6 +97,8 @@ export default function ShopClient({
   }, [products]);
 
   const filteredProducts = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
     const result = products.filter((product) => {
       const keyword = [
         product.brand,
@@ -112,7 +114,7 @@ export default function ShopClient({
         .toLowerCase();
 
       return (
-        keyword.includes(search.toLowerCase()) &&
+        keyword.includes(normalizedSearch) &&
         (category === "All" ||
           product.category === category) &&
         (brand === "All" ||

@@ -4,7 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 
 export default async function Footer() {
-  const settings = await prisma.setting.findFirst();
+  const settings = await prisma.setting.findFirst({
+    select: {
+      companyName: true,
+      companyDescription: true,
+      instagram: true,
+      facebook: true,
+    },
+  });
+
   const whatsappLink = await getWhatsAppLink();
 
   return (
@@ -90,23 +98,27 @@ export default async function Footer() {
                 WhatsApp
               </a>
 
-              <a
-                href={settings?.instagram || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors duration-300 hover:text-black"
-              >
-                Instagram
-              </a>
+              {settings?.instagram && (
+                <a
+                  href={settings.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors duration-300 hover:text-black"
+                >
+                  Instagram
+                </a>
+              )}
 
-              <a
-                href={settings?.facebook || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors duration-300 hover:text-black"
-              >
-                Facebook
-              </a>
+              {settings?.facebook && (
+                <a
+                  href={settings.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors duration-300 hover:text-black"
+                >
+                  Facebook
+                </a>
+              )}
 
               <span>Daily · 10:00 AM – 10:00 PM</span>
 
