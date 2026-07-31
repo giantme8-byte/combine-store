@@ -9,12 +9,12 @@ export function calculateProductProfit(
   product: ProfitInput,
   exchangeRate: number
 ) {
-  const costPrice =
+  const costMyr =
     (product.costPriceCny ?? 0) *
     exchangeRate;
 
   const profit =
-    product.price - costPrice;
+    product.price - costMyr;
 
   const margin =
     product.price === 0
@@ -27,7 +27,7 @@ export function calculateProductProfit(
         );
 
   return {
-    costPrice,
+    costMyr,
     profit,
     margin,
     isProfit: profit >= 0,
