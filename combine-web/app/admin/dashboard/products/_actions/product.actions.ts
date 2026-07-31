@@ -112,14 +112,21 @@ console.log("Gallery uploaded:", uploadedImages.length);
   const colorFiles =
     formData.getAll("colorImages") as File[];
 
-  type ColorOrderItem = {
-    id: string;
-    publicId: string | null;
-    name: string;
-    sortOrder: number;
-    isNew: boolean;
-    deleted: boolean;
-  };
+type ColorOrderItem = {
+  id: string;
+
+  publicId: string | null;
+
+  name: string;
+
+  model: string;
+
+  sortOrder: number;
+
+  isNew: boolean;
+
+  deleted: boolean;
+};
 
   const colorOrder =
     formData
@@ -128,13 +135,25 @@ console.log("Gallery uploaded:", uploadedImages.length);
         JSON.parse(item.toString())
       ) as ColorOrderItem[];
 
-  type VariantOrderItem = {
+type VariantOrderItem = {
   id: string;
+
   size: string;
+
   model: string;
+
   dimensions: string;
+
+  imageUrl?: string;
+
+  publicId?: string;
+
+  hasNewImage?: boolean;
+
   sortOrder: number;
+
   isNew: boolean;
+
   deleted: boolean;
 };
 
@@ -148,6 +167,33 @@ const activeVariants = variantOrder.filter(
   (variant) => !variant.deleted
 );  
 
+const variantFiles =
+  formData.getAll("variantImages") as File[];
+
+const uploadedVariants: {
+  imageUrl: string;
+  publicId: string;
+}[] = [];
+
+
+for (const file of variantFiles) {
+
+  if (!file || file.size === 0) continue;
+
+
+  const uploaded = await uploadImage(
+    file,
+    "combine-store/variants"
+  );
+
+
+  uploadedVariants.push({
+    imageUrl: uploaded.url,
+    publicId: uploaded.publicId,
+  });
+
+}
+
   const newColorOrder =
     colorOrder.filter(
       (color) =>
@@ -155,12 +201,17 @@ const activeVariants = variantOrder.filter(
         !color.deleted
     );
 
-  const uploadedColors: {
-    name: string;
-    imageUrl: string;
-    publicId: string;
-    sortOrder: number;
-  }[] = [];
+const uploadedColors: {
+  name: string;
+
+  model: string;
+
+  imageUrl: string;
+
+  publicId: string;
+
+  sortOrder: number;
+}[] = [];
 
   for (let i = 0; i < colorFiles.length; i++) {
 
@@ -174,12 +225,17 @@ const activeVariants = variantOrder.filter(
       "combine-store/colors"
     );
 
-    uploadedColors.push({
-      name: newColorOrder[i].name,
-      imageUrl: uploaded.url,
-      publicId: uploaded.publicId,
-      sortOrder: newColorOrder[i].sortOrder,
-    });
+uploadedColors.push({
+  name: newColorOrder[i].name,
+
+  model: newColorOrder[i].model,
+
+  imageUrl: uploaded.url,
+
+  publicId: uploaded.publicId,
+
+  sortOrder: newColorOrder[i].sortOrder,
+});
 
   }
 
@@ -323,18 +379,43 @@ model:
             uploadedImages,
         },
 
-        colors: {
-  create:
-    uploadedColors,
+colors: {
+  create: uploadedColors.map((color) => ({
+    name: color.name,
+
+    model: color.model,
+
+    imageUrl: color.imageUrl,
+
+    publicId: color.publicId,
+
+    sortOrder: color.sortOrder,
+  })),
 },
 
 variants: {
-  create: activeVariants.map((variant) => ({
-    size: variant.size,
-    model: variant.model || null,
-    dimensions: variant.dimensions || null,
-    sortOrder: variant.sortOrder,
-  })),
+  create: activeVariants.map(
+    (variant, index) => ({
+      size: variant.size,
+
+      model:
+        variant.model || null,
+
+      dimensions:
+        variant.dimensions || null,
+
+      imageUrl:
+        uploadedVariants[index]?.imageUrl ||
+        null,
+
+      publicId:
+        uploadedVariants[index]?.publicId ||
+        null,
+
+      sortOrder:
+        variant.sortOrder,
+    })
+  ),
 },
 
 
@@ -437,11 +518,19 @@ const colorFiles =
 
 type ColorOrderItem = {
   id: string;
+
   publicId: string | null;
+
   name: string;
+
+  model: string;
+
   sortOrder: number;
+
   isNew: boolean;
+
   deleted: boolean;
+
   hasNewImage: boolean;
 };
 
@@ -468,18 +557,35 @@ const replaceColors =
 
 const uploadedColors: {
   name: string;
+
+  model: string;
+
   imageUrl: string;
+
   publicId: string;
+
   sortOrder: number;
 }[] = [];
 
 type VariantOrderItem = {
   id: string;
+
   size: string;
+
   model: string;
+
   dimensions: string;
+
+  imageUrl?: string;
+
+  publicId?: string;
+
+  hasNewImage?: boolean;
+
   sortOrder: number;
+
   isNew: boolean;
+
   deleted: boolean;
 };
 
@@ -488,6 +594,43 @@ const variantOrder = formData
   .map((item) =>
     JSON.parse(item.toString())
   ) as VariantOrderItem[];
+
+const variantFiles =
+  formData.getAll("variantImages") as File[];
+
+
+const uploadedVariants: {
+  imageUrl: string;
+  publicId: string;
+}[] = [];
+
+
+for (
+  let i = 0;
+  i < variantFiles.length;
+  i++
+) {
+
+  const file = variantFiles[i];
+
+
+  if (!file || file.size === 0)
+    continue;
+
+
+  const uploaded =
+    await uploadImage(
+      file,
+      "combine-store/variants"
+    );
+
+
+  uploadedVariants.push({
+    imageUrl: uploaded.url,
+    publicId: uploaded.publicId,
+  });
+
+}  
 
     if(files.length > 0){
 
@@ -545,19 +688,15 @@ uploadedImages.push({
         );
 
 uploadedColors.push({
+  name: newColorOrder[i].name,
 
-  name:
-    newColorOrder[i].name,
+  model: newColorOrder[i].model,
 
-  imageUrl:
-    uploaded.url,
+  imageUrl: uploaded.url,
 
-  publicId:
-    uploaded.publicId,
+  publicId: uploaded.publicId,
 
-  sortOrder:
-    newColorOrder[i].sortOrder,
-
+  sortOrder: newColorOrder[i].sortOrder,
 });
 
     }
@@ -804,15 +943,18 @@ for (
   )
 ) {
 
-  await prisma.productColor.update({
-    where: {
-      id: Number(color.id),
-    },
-    data: {
-      name: color.name,
-      sortOrder: color.sortOrder,
-    },
-  });
+await prisma.productColor.update({
+  where: {
+    id: Number(color.id),
+  },
+  data: {
+    name: color.name,
+
+    model: color.model,
+
+    sortOrder: color.sortOrder,
+  },
+});
 
 }
 
@@ -820,15 +962,21 @@ if (uploadedColors.length > 0) {
 
   await prisma.productColor.createMany({
 
-    data: uploadedColors.map(
-      (color) => ({
-        productId: id,
-        name: color.name,
-        imageUrl: color.imageUrl,
-        publicId: color.publicId,
-        sortOrder: color.sortOrder,
-      })
-    ),
+data: uploadedColors.map(
+  (color) => ({
+    productId: id,
+
+    name: color.name,
+
+    model: color.model,
+
+    imageUrl: color.imageUrl,
+
+    publicId: color.publicId,
+
+    sortOrder: color.sortOrder,
+  })
+),
 
   });
 
@@ -840,28 +988,59 @@ const deletedVariants = variantOrder.filter(
 );
 
 for (const variant of deletedVariants) {
+
+  if (variant.publicId) {
+    await cloudinary.uploader.destroy(
+      variant.publicId
+    );
+  }
+
+
   await prisma.productVariant.delete({
     where: {
       id: Number(variant.id),
     },
   });
+
 }
 
 // Update existing variants
-for (const variant of variantOrder.filter(
+const existingVariants = variantOrder.filter(
   (variant) =>
     !variant.isNew &&
     !variant.deleted
-)) {
+);
+
+for (
+  let index = 0;
+  index < existingVariants.length;
+  index++
+) {
+  const variant = existingVariants[index];
+
   await prisma.productVariant.update({
     where: {
       id: Number(variant.id),
     },
     data: {
       size: variant.size,
+
       model: variant.model || null,
-      dimensions:
-        variant.dimensions || null,
+
+      dimensions: variant.dimensions || null,
+
+      imageUrl: variant.hasNewImage
+        ? uploadedVariants[index]?.imageUrl ??
+          variant.imageUrl ??
+          null
+        : variant.imageUrl ?? null,
+
+      publicId: variant.hasNewImage
+        ? uploadedVariants[index]?.publicId ??
+          variant.publicId ??
+          null
+        : variant.publicId ?? null,
+
       sortOrder: variant.sortOrder,
     },
   });
@@ -876,16 +1055,33 @@ const newVariants = variantOrder.filter(
 
 if (newVariants.length > 0) {
   await prisma.productVariant.createMany({
-    data: newVariants.map(
-      (variant) => ({
-        productId: id,
-        size: variant.size,
-        model: variant.model || null,
-        dimensions:
-          variant.dimensions || null,
-        sortOrder: variant.sortOrder,
-      })
-    ),
+data: newVariants.map(
+  (variant, index) => ({
+    productId: id,
+
+    size: variant.size,
+
+    model:
+      variant.model || null,
+
+    dimensions:
+      variant.dimensions || null,
+
+
+    imageUrl:
+      uploadedVariants[index]?.imageUrl ??
+      null,
+
+
+    publicId:
+      uploadedVariants[index]?.publicId ??
+      null,
+
+
+    sortOrder:
+      variant.sortOrder,
+  })
+),
   });
 }
 
@@ -978,22 +1174,31 @@ const newProduct = await prisma.product.create({
       })),
     },
 
-    colors: {
-      create: product.colors.map((color) => ({
-        name: color.name,
-        imageUrl: color.imageUrl,
-        publicId: color.publicId,
-        sortOrder: color.sortOrder,
-      })),
-    },
+colors: {
+  create: product.colors.map((color) => ({
+    name: color.name,
+
+    model: color.model,
+
+    imageUrl: color.imageUrl,
+
+    publicId: color.publicId,
+
+    sortOrder: color.sortOrder,
+  })),
+},
 
     variants: {
-      create: product.variants.map((variant) => ({
-        size: variant.size,
-        model: variant.model,
-        dimensions: variant.dimensions,
-        sortOrder: variant.sortOrder,
-      })),
+create: product.variants.map((variant) => ({
+  size: variant.size,
+  model: variant.model,
+  dimensions: variant.dimensions,
+
+  imageUrl: variant.imageUrl,
+  publicId: variant.publicId,
+
+  sortOrder: variant.sortOrder,
+}))
     },
   },
 });
@@ -1014,6 +1219,7 @@ export async function deleteProduct(id: number) {
     include: {
       images: true,
       colors: true,
+      variants: true,
     },
   });
 
@@ -1025,9 +1231,17 @@ export async function deleteProduct(id: number) {
     await cloudinary.uploader.destroy(image.publicId);
   }
 
-  for (const color of product.colors) {
+for (const color of product.colors) {
+  if (color.publicId) {
     await cloudinary.uploader.destroy(color.publicId);
   }
+}
+
+  for (const variant of product.variants) {
+  if (variant.publicId) {
+    await cloudinary.uploader.destroy(variant.publicId);
+  }
+}
 
   await prisma.product.delete({
     where: {
@@ -1053,18 +1267,27 @@ export async function deleteProducts(ids: number[]) {
     include: {
       images: true,
       colors: true,
+      variants: true
     },
   });
 
-  for (const product of products) {
-    for (const image of product.images) {
-      await cloudinary.uploader.destroy(image.publicId);
-    }
+for (const product of products) {
+  for (const image of product.images) {
+    await cloudinary.uploader.destroy(image.publicId);
+  }
 
-    for (const color of product.colors) {
+  for (const color of product.colors) {
+    if (color.publicId) {
       await cloudinary.uploader.destroy(color.publicId);
     }
   }
+
+  for (const variant of product.variants) {
+    if (variant.publicId) {
+      await cloudinary.uploader.destroy(variant.publicId);
+    }
+  }
+}
 
   await prisma.product.deleteMany({
     where: {

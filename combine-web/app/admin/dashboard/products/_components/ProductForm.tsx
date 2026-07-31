@@ -112,10 +112,14 @@ setImages(
 setColors(
   product.colors.map((color) => ({
     id: color.id.toString(),
+
+    name: color.name,
+    model: color.model ?? "",
+
     url: color.imageUrl,
     publicId: color.publicId,
+
     isNew: false,
-    name: color.name,
     sortOrder: color.sortOrder,
     deleted: false,
   }))
@@ -124,10 +128,19 @@ setColors(
 setVariants(
   product.variants.map((variant) => ({
     id: variant.id.toString(),
+
     size: variant.size,
+
     model: variant.model ?? "",
+
     dimensions: variant.dimensions ?? "",
+
+    imageUrl: variant.imageUrl ?? "",
+
+    publicId: variant.publicId ?? "",
+
     isNew: false,
+
     deleted: false,
   }))
 );
@@ -209,11 +222,17 @@ colors.forEach((color, index) => {
     "colorOrder",
     JSON.stringify({
       id: color.id,
-      publicId: color.publicId,
+
       name: color.name,
+      model: color.model,
+
+      publicId: color.publicId,
+
       sortOrder: index,
+
       isNew: color.isNew,
       deleted: color.deleted ?? false,
+
       hasNewImage: !!color.file,
     })
   );
@@ -231,15 +250,36 @@ variants.forEach((variant, index) => {
     "variantOrder",
     JSON.stringify({
       id: variant.id,
+
       size: variant.size,
+
       model: variant.model,
+
       dimensions: variant.dimensions,
+
+      imageUrl: variant.imageUrl ?? "",
+
+      publicId: variant.publicId ?? "",
+
       sortOrder: index,
+
       isNew: variant.isNew,
+
       deleted: variant.deleted,
+
+      hasNewImage: !!variant.file,
     })
   );
+
+
+  if (variant.file) {
+    formData.append(
+      "variantImages",
+      variant.file
+    );
+  }
 });
+
 
 startTransition(async () => {
   await action(formData);

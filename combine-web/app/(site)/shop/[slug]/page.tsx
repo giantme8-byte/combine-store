@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
-import { getWhatsAppLink } from "@/lib/whatsapp";
 
 import Breadcrumb from "@/components/Breadcrumb";
 import ProductGallery from "@/components/ProductGallery";
@@ -14,6 +13,8 @@ import ProductInfo from "@/components/product/ProductInfo";
 import ProductMeta from "@/components/product/ProductMeta";
 import ProductActions from "@/components/product/ProductActions";
 import ProductAccordion from "@/components/product/ProductAccordion";
+import ProductDetailClient from "@/components/product/ProductDetailClient";
+import ProductOptions from "@/components/product/ProductOptions";
 
 type Props = {
   params: Promise<{
@@ -95,7 +96,8 @@ export default async function ProductPage({
 }: Props) {
   const { slug } = await params;
 
-  const product = await prisma.product.findUnique({
+const [product, settings] = await Promise.all([
+  prisma.product.findUnique({
     where: {
       slug,
     },
@@ -132,18 +134,34 @@ export default async function ProductPage({
         },
       },
 
-colors: {
+      colors: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+        },
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+
+variants: {
   select: {
     id: true,
-    name: true,
-    imageUrl: true,
+    size: true,
+    model: true,
+    dimensions: true,
+    imageUrl: true,      // ← 新增这一行
   },
   orderBy: {
     sortOrder: "asc",
   },
 },
     },
-  });
+  }),
+
+  prisma.setting.findFirst(),
+]);
 
   if (!product) {
     notFound();
@@ -155,33 +173,6 @@ colors: {
   const gallery = product.images
     .slice(1)
     .map((image) => image.url);
-
-  const whatsappMessage = `Hi COMBINE 👋
-
-I'm interested in this item.
-
-Brand:
-${product.brand}
-
-Reference:
-${product.sku ?? "-"}
-
-Product:
-${product.name}
-
-Model:
-${product.model ?? "-"}
-
-Item ID:
-#${product.id}
-
-Please provide the latest price and availability.
-
-Thank you.`;
-
-  const whatsappLink = await getWhatsAppLink(
-    whatsappMessage,
-  );
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
@@ -208,8 +199,13 @@ Thank you.`;
         ]}
       />
 
-      {/* Product Detail */}
-      <section className="mt-12 grid items-start gap-20 lg:grid-cols-[1.15fr_0.85fr]">
+{/* Product Detail */}
+
+<ProductDetailClient
+  colors={product.colors}
+  variants={product.variants}
+>
+  <section className="mt-12 grid items-start gap-20 lg:grid-cols-[1.15fr_0.85fr]">
         {/* Gallery */}
         <ProductGallery
           cover={cover}
@@ -234,6 +230,16 @@ Thank you.`;
             }}
           />
 
+          <ProductOptions />
+
+<ProductActions
+  productId={product.id}
+  brand={product.brand}
+  name={product.name}
+  sku={product.sku}
+  model={product.model}
+/>
+
           <ProductMeta
             sku={product.sku}
             model={product.model}
@@ -243,16 +249,12 @@ Thank you.`;
             dimensions={product.dimensions}
           />
 
-          <ProductActions
-            productId={product.id}
-            whatsappLink={whatsappLink}
-          />
-
           <ProductAccordion
             description={product.description}
           />
         </div>
       </section>
+</ProductDetailClient>
 
       {/* Related */}
       <section className="mt-40">

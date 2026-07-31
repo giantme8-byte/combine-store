@@ -11,8 +11,15 @@ export interface ProductImage {
 
 export interface ProductColor {
   id: number;
+
   name: string;
-  hexCode: string | null;
+
+  model: string | null;
+
+  imageUrl: string;
+  publicId: string | null;
+
+  sortOrder: number;
 }
 
 export interface Product {

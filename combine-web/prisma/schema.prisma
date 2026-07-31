@@ -16,7 +16,7 @@ model Product {
   name        String
   slug        String? @unique
 
-  model            String? // Deprecated: use ProductVariant.model
+  model            String? // Default model for the default colour
   shortDescription String?
   description      String
 
@@ -68,14 +68,20 @@ model ProductImage {
 
 model ProductColor {
   id        Int      @id @default(autoincrement())
-  productId Int
+
   name      String
+  model     String?
+
   imageUrl  String
-  publicId  String
+  publicId  String?
+
   sortOrder Int      @default(0)
+
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
 }
@@ -85,8 +91,13 @@ model ProductVariant {
   productId Int
 
   size       String
-  model      String?
+
+  model      String?   // ← 先加回来
+
   dimensions String?
+
+  imageUrl String?
+  publicId String?
 
   sortOrder Int @default(0)
 
