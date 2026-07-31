@@ -83,8 +83,8 @@ export const CATEGORY_OPTIONS = {
   ],
 
   Fragrance: [
-    "Men&apos;s Fragrance",
-    "Women&apos;s Fragrance",
+    "Men's Fragrance",
+    "Women's Fragrance",
     "Unisex Fragrance",
     "Home Fragrance",
     "Candles",

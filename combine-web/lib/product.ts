@@ -1,24 +1,36 @@
 import { Product } from "@prisma/client";
 
+type ProfitInput = Pick<
+  Product,
+  "costPriceCny" | "price"
+>;
+
 export function calculateProductProfit(
-  product: Product,
+  product: ProfitInput,
   exchangeRate: number
 ) {
-  const costMyr =
+  const costPrice =
     (product.costPriceCny ?? 0) *
     exchangeRate;
 
   const profit =
-    product.price - costMyr;
+    product.price - costPrice;
 
   const margin =
     product.price === 0
       ? 0
-      : (profit / product.price) * 100;
+      : Number(
+          (
+            (profit / product.price) *
+            100
+          ).toFixed(2)
+        );
 
   return {
-    costMyr,
+    costPrice,
     profit,
     margin,
+    isProfit: profit >= 0,
+    isLoss: profit < 0,
   };
 }

@@ -1,19 +1,25 @@
 import { getSettings } from "@/lib/settings";
 
-export async function getWhatsAppLink(message?: string) {
-  const settings = await getSettings();
+const DEFAULT_MESSAGE = `Hi COMBINE,
 
-  const defaultMessage =
-    message ??
-    `Hi COMBINE,
-
-I&apos;m interested in your products.
+I'm interested in your products.
 
 Could you please provide more information and the latest price?
 
 Thank you.`;
 
-  return `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(
-    defaultMessage
+export async function getWhatsAppLink(
+  message?: string
+) {
+  const settings = await getSettings();
+
+  const whatsappNumber =
+    settings.whatsappNumber.replace(/\D/g, "");
+
+  const text =
+    message ?? DEFAULT_MESSAGE;
+
+  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    text
   )}`;
 }

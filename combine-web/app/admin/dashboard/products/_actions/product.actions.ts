@@ -75,6 +75,7 @@ export async function createProduct(
 ) {
 
 try {
+  console.log("=== CREATE PRODUCT START ===");
 
   // Gallery Images
   const files =
@@ -82,25 +83,30 @@ try {
 
   const uploadedImages: UploadedImage[] = [];
 
-  for (let i = 0; i < files.length; i++) {
+for (let i = 0; i < files.length; i++) {
+  console.log(`Uploading Gallery ${i + 1}/${files.length}`);
 
-    const file = files[i];
+  const file = files[i];
 
-    if (!file || file.size === 0)
-      continue;
+  console.log(file.name, file.size);
 
-    const uploaded = await uploadImage(
-      file,
-      "combine-store/gallery"
-    );
+  if (!file || file.size === 0) continue;
 
-    uploadedImages.push({
-      url: uploaded.url,
-      publicId: uploaded.publicId,
-      sortOrder: i,
-    });
+  const uploaded = await uploadImage(
+    file,
+    "combine-store/gallery"
+  );
 
-  }
+  console.log(`Uploaded: ${uploaded.publicId}`);
+
+  uploadedImages.push({
+    url: uploaded.url,
+    publicId: uploaded.publicId,
+    sortOrder: i,
+  });
+}
+
+console.log("Gallery uploaded:", uploadedImages.length);
 
   // Product Colors
   const colorFiles =
@@ -177,7 +183,9 @@ const activeVariants = variantOrder.filter(
 
   }
 
-    await prisma.product.create({
+console.log("Before prisma.product.create");
+
+await prisma.product.create({
 
       data:{
 
@@ -336,18 +344,26 @@ variants: {
 
 
 
-    redirect(
-      "/admin/dashboard/products"
-    );
+console.log("After prisma.product.create");
+
+console.log("Before redirect");
+
+redirect(
+  "/admin/dashboard/products"
+);
 
 
-  } catch(err){
+} catch (err) {
+  console.error("========== CREATE PRODUCT ERROR ==========");
+  console.error(err);
 
-    console.error(err);
-
-    throw err;
-
+  if (err instanceof Error) {
+    console.error(err.message);
+    console.error(err.stack);
   }
+
+  throw err;
+}
 
 }
 export async function updateProduct(

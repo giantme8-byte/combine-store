@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { getSettings } from "@/lib/settings";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 
 import NavbarClient from "./NavbarClient";
@@ -7,7 +8,7 @@ import NavbarClient from "./NavbarClient";
 export default async function Navbar() {
   const [user, settings, whatsappLink] = await Promise.all([
     getCurrentUser(),
-    prisma.setting.findFirst(),
+    getSettings(),
     getWhatsAppLink(),
   ]);
 

@@ -4,16 +4,14 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 
-export async function createCategory(
+function getCategoryData(
   formData: FormData
 ) {
-  const name = (
-    formData.get("name") as string
-  ).trim();
+  const name =
+    formData.get("name")?.toString().trim() ?? "";
 
-  const slug = (
-    formData.get("slug") as string
-  ).trim();
+  const slug =
+    formData.get("slug")?.toString().trim() ?? "";
 
   const active =
     formData.get("active") === "on";
@@ -24,12 +22,24 @@ export async function createCategory(
     );
   }
 
+  return {
+    name,
+    slug,
+    active,
+  };
+}
+
+export async function createCategory(
+  formData: FormData
+) {
+  const data = getCategoryData(formData);
+
   const existingCategory =
     await prisma.category.findFirst({
       where: {
         OR: [
-          { name },
-          { slug },
+          { name: data.name },
+          { slug: data.slug },
         ],
       },
     });
@@ -41,11 +51,7 @@ export async function createCategory(
   }
 
   await prisma.category.create({
-    data: {
-      name,
-      slug,
-      active,
-    },
+    data,
   });
 
   redirect("/admin/dashboard/categories");
@@ -55,22 +61,7 @@ export async function updateCategory(
   id: number,
   formData: FormData
 ) {
-  const name = (
-    formData.get("name") as string
-  ).trim();
-
-  const slug = (
-    formData.get("slug") as string
-  ).trim();
-
-  const active =
-    formData.get("active") === "on";
-
-  if (!name || !slug) {
-    throw new Error(
-      "Category name and slug are required."
-    );
-  }
+  const data = getCategoryData(formData);
 
   const existingCategory =
     await prisma.category.findFirst({
@@ -79,8 +70,8 @@ export async function updateCategory(
           not: id,
         },
         OR: [
-          { name },
-          { slug },
+          { name: data.name },
+          { slug: data.slug },
         ],
       },
     });
@@ -95,11 +86,7 @@ export async function updateCategory(
     where: {
       id,
     },
-    data: {
-      name,
-      slug,
-      active,
-    },
+    data,
   });
 
   redirect("/admin/dashboard/categories");

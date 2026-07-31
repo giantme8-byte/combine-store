@@ -4,16 +4,12 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 
-export async function createBrand(
-  formData: FormData
-) {
-  const name = (
-    formData.get("name") as string
-  ).trim();
+function getBrandData(formData: FormData) {
+  const name =
+    formData.get("name")?.toString().trim() ?? "";
 
-  const slug = (
-    formData.get("slug") as string
-  ).trim();
+  const slug =
+    formData.get("slug")?.toString().trim() ?? "";
 
   const active =
     formData.get("active") === "on";
@@ -24,12 +20,24 @@ export async function createBrand(
     );
   }
 
+  return {
+    name,
+    slug,
+    active,
+  };
+}
+
+export async function createBrand(
+  formData: FormData
+) {
+  const data = getBrandData(formData);
+
   const existingBrand =
     await prisma.brand.findFirst({
       where: {
         OR: [
-          { name },
-          { slug },
+          { name: data.name },
+          { slug: data.slug },
         ],
       },
     });
@@ -41,11 +49,7 @@ export async function createBrand(
   }
 
   await prisma.brand.create({
-    data: {
-      name,
-      slug,
-      active,
-    },
+    data,
   });
 
   redirect("/admin/dashboard/brands");
@@ -55,22 +59,7 @@ export async function updateBrand(
   id: number,
   formData: FormData
 ) {
-  const name = (
-    formData.get("name") as string
-  ).trim();
-
-  const slug = (
-    formData.get("slug") as string
-  ).trim();
-
-  const active =
-    formData.get("active") === "on";
-
-  if (!name || !slug) {
-    throw new Error(
-      "Brand name and slug are required."
-    );
-  }
+  const data = getBrandData(formData);
 
   const existingBrand =
     await prisma.brand.findFirst({
@@ -79,8 +68,8 @@ export async function updateBrand(
           not: id,
         },
         OR: [
-          { name },
-          { slug },
+          { name: data.name },
+          { slug: data.slug },
         ],
       },
     });
@@ -95,11 +84,7 @@ export async function updateBrand(
     where: {
       id,
     },
-    data: {
-      name,
-      slug,
-      active,
-    },
+    data,
   });
 
   redirect("/admin/dashboard/brands");

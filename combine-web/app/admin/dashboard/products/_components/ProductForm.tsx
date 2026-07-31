@@ -164,9 +164,28 @@ async function handleSubmit(
 
   if (!formRef.current) return;
 
-const formData = new FormData(
-  formRef.current
-);
+  if (isPending) return;
+
+  const formData = new FormData(
+    formRef.current
+  );
+
+const MAX_IMAGES = 20;
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+const newImages = images.filter((image) => image.file);
+
+if (newImages.length > MAX_IMAGES) {
+  alert("Maximum 20 images.");
+  return;
+}
+
+for (const image of newImages) {
+  if (image.file!.size > MAX_SIZE) {
+    alert(`${image.file!.name} exceeds 10MB.`);
+    return;
+  }
+}
 
 images.forEach((image, index) => {
   formData.append(
@@ -225,6 +244,7 @@ variants.forEach((variant, index) => {
 startTransition(async () => {
   await action(formData);
 });
+
 }
 
 console.log(product?.colors);
