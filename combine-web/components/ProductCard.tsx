@@ -53,10 +53,11 @@ export default function ProductCard({
         hover:shadow-[0_30px_70px_rgba(0,0,0,0.08)]
       "
     >
-      <Link
-        href={productHref}
-        className="flex flex-1 flex-col"
-      >
+<Link
+  href={productHref}
+  prefetch={false}
+  className="flex flex-1 flex-col"
+>
         {/* Image */}
         <div className="relative aspect-[4/5] overflow-hidden bg-neutral-50">
           {/* Wishlist */}
@@ -120,6 +121,7 @@ export default function ProductCard({
             src={image}
             alt={`${brand} ${name}`}
             fill
+            quality={85}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             className="
               object-contain
@@ -182,9 +184,10 @@ export default function ProductCard({
 
       {/* Actions */}
       <div className="flex items-center justify-between border-t border-neutral-100 px-6 py-5">
-        <Link
-          href={productHref}
-          className="
+<Link
+  href={productHref}
+  prefetch={false}
+  className="
             inline-flex
             items-center
             gap-2

@@ -5,6 +5,13 @@ import { prisma } from "@/lib/prisma";
 type InquiryItemRequest = {
   productId: number;
   quantity: number;
+
+  color?: string;
+  variant?: string;
+  dimensions?: string;
+  packaging?: string;
+
+  notes?: string;
 };
 
 type InquiryRequest = {
@@ -58,12 +65,19 @@ export async function POST(request: NextRequest) {
         country,
         message,
 
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-          })),
-        },
+items: {
+  create: items.map((item) => ({
+    productId: item.productId,
+    quantity: item.quantity,
+
+    color: item.color,
+    variant: item.variant,
+    dimensions: item.dimensions,
+    packaging: item.packaging,
+
+    notes: item.notes,
+  })),
+},
       },
 
       include: {

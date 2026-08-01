@@ -119,4 +119,9 @@ export interface ProductWithRelations extends Product {
 export interface InquiryItem {
   productId: number;
   quantity: number;
+
+  color?: string;
+  variant?: string;
+  dimensions?: string;
+  packaging?: string;
 }

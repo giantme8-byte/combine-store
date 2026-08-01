@@ -22,7 +22,15 @@ type InquiryContextType = {
 
   totalItems: number;
 
-  addItem: (productId: number) => void;
+  addItem: (
+  productId: number,
+  options?: {
+    color?: string;
+    variant?: string;
+    dimensions?: string;
+    packaging?: string;
+  }
+) => void;
 
   removeItem: (productId: number) => void;
 
@@ -77,8 +85,16 @@ export function InquiryProvider({
 
 
 
-  const addItem = useCallback(
-    (productId: number) => {
+const addItem = useCallback(
+  (
+    productId: number,
+    options?: {
+      color?: string;
+      variant?: string;
+      dimensions?: string;
+      packaging?: string;
+    }
+  ) => {
 
       setItems((prev) => {
 
@@ -103,13 +119,18 @@ export function InquiryProvider({
         }
 
 
-        return [
-          ...prev,
-          {
-            productId,
-            quantity: 1,
-          },
-        ];
+return [
+  ...prev,
+  {
+    productId,
+    quantity: 1,
+
+    color: options?.color,
+    variant: options?.variant,
+    dimensions: options?.dimensions,
+    packaging: options?.packaging,
+  },
+];
 
       });
 

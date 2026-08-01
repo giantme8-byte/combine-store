@@ -65,6 +65,20 @@ useEffect(() => {
       return;
     }
 
+  await fetch("/api/inquiry", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "WhatsApp Customer",
+    whatsapp: "-",
+    message,
+
+    items,
+  }),
+});  
+
     const lines: string[] = [];
 
 lines.push("Hi COMBINE 👋");
@@ -79,9 +93,22 @@ lines.push("");
 
 lines.push(`${index + 1}.`);
 lines.push("");
-      lines.push(`Brand: ${product?.brand ?? "-"}`);
-      lines.push(`Product: ${product?.name ?? "-"}`);
+lines.push(`Brand: ${product?.brand ?? "-"}`);
+lines.push(`Product: ${product?.name ?? "-"}`);
 lines.push(`SKU: ${product?.sku ?? "-"}`);
+
+if (item.color) {
+  lines.push(`Colour: ${item.color}`);
+}
+
+if (item.variant) {
+  lines.push(`Size: ${item.variant}`);
+}
+
+if (item.dimensions) {
+  lines.push(`Dimensions: ${item.dimensions}`);
+}
+
 lines.push(`Quantity: ${item.quantity}`);
 
 if (product?.slug) {
@@ -204,13 +231,31 @@ const whatsappUrl =
                         {product?.name ?? `Product #${item.productId}`}
                       </p>
 
-                      <p className="mt-1 text-sm text-neutral-500">
-                        SKU: {product?.sku ?? "-"}
-                      </p>
+<p className="mt-1 text-sm text-neutral-500">
+  SKU: {product?.sku ?? "-"}
+</p>
 
-                      <p className="mt-1 text-sm text-neutral-500">
-                        Quantity: {item.quantity}
-                      </p>
+{item.color && (
+  <p className="mt-1 text-sm text-neutral-500">
+    Colour: {item.color}
+  </p>
+)}
+
+{item.variant && (
+  <p className="mt-1 text-sm text-neutral-500">
+    Size: {item.variant}
+  </p>
+)}
+
+{item.dimensions && (
+  <p className="mt-1 text-sm text-neutral-500">
+    Dimensions: {item.dimensions}
+  </p>
+)}
+
+<p className="mt-1 text-sm text-neutral-500">
+  Quantity: {item.quantity}
+</p>
                     </div>
                   </div>
                 );

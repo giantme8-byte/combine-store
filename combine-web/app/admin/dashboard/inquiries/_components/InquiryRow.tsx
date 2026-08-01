@@ -5,7 +5,14 @@ import ViewInquiryButton from "./ViewInquiryButton";
 type InquiryWithItems = Inquiry & {
   items: {
     product: Product;
+
     quantity: number;
+
+    color: string | null;
+    variant: string | null;
+    dimensions: string | null;
+    packaging: string | null;
+
     notes: string | null;
   }[];
 };

@@ -1207,10 +1207,11 @@ redirect(`/admin/dashboard/products/${newProduct.id}/edit`);
 }
 
 export async function deleteProduct(id: number) {
-  await requireRole([
-    UserRole.MANAGER,
-    UserRole.ADMIN,
-  ]);
+await requireRole([
+  UserRole.MANAGER,
+  UserRole.ADMIN,
+  UserRole.OWNER,
+]);
 
   const product = await prisma.product.findUnique({
     where: {
@@ -1322,6 +1323,33 @@ export async function updateProducts(
     },
     data,
   });
+
+  revalidatePath("/admin/dashboard/products");
+}
+
+export async function updateProductDisplayOrder(
+  items: {
+    id: number;
+    displayOrder: number;
+  }[]
+) {
+  await requireRole([
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+  ]);
+
+  await prisma.$transaction(
+    items.map((item) =>
+      prisma.product.update({
+        where: {
+          id: item.id,
+        },
+        data: {
+          displayOrder: item.displayOrder,
+        },
+      })
+    )
+  );
 
   revalidatePath("/admin/dashboard/products");
 }

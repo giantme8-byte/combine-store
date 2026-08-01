@@ -30,21 +30,43 @@ export default function StatCard({
 }: StatCardProps) {
 
   return (
-    <div
-      className="
-        group
-        rounded-3xl
-        border
-        border-neutral-200
-        bg-white
-        p-6
-        shadow-sm
-        transition-all
-        duration-300
-        hover:-translate-y-1
-        hover:shadow-xl
-      "
-    >
+<div
+  className="
+    group
+    relative
+    overflow-hidden
+    rounded-3xl
+    border
+    border-neutral-200
+    bg-white
+    p-6
+    shadow-sm
+    transition-all
+    duration-300
+    hover:-translate-y-1
+    hover:border-neutral-300
+    hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]
+  "
+>
+  {/* Top Accent Line */}
+  <div
+    className="
+      absolute
+      inset-x-0
+      top-0
+      h-1
+      origin-left
+      scale-x-0
+      rounded-t-3xl
+      bg-gradient-to-r
+      from-black
+      via-neutral-600
+      to-neutral-300
+      transition-transform
+      duration-500
+      group-hover:scale-x-100
+    "
+  />
 
       <div className="flex items-start justify-between">
 
@@ -64,18 +86,19 @@ export default function StatCard({
             {title}
           </p>
 
-
-
-          <h2
-            className="
-              mt-4
-              text-4xl
-              font-extralight
-              tracking-tight
-              text-neutral-900
-              lg:text-5xl
-            "
-          >
+<h2
+  className="
+    mt-4
+    text-5xl
+    font-extralight
+    tracking-[-0.04em]
+    text-neutral-900
+    transition-all
+    duration-300
+    group-hover:scale-[1.03]
+    lg:text-6xl
+  "
+>
             {value}
           </h2>
 
@@ -116,21 +139,28 @@ export default function StatCard({
 
 
         {icon && (
-          <div
-            className="
-              flex
-              h-14
-              w-14
-              items-center
-              justify-center
-              rounded-2xl
-              bg-neutral-100
-              text-2xl
-              transition-all
-              duration-300
-              group-hover:scale-105
-            "
-          >
+<div
+  className="
+    flex
+    h-16
+    w-16
+    items-center
+    justify-center
+    rounded-3xl
+    border
+    border-neutral-200
+    bg-gradient-to-br
+    from-neutral-50
+    to-neutral-100
+    text-2xl
+    shadow-sm
+    transition-all
+    duration-300
+    group-hover:-translate-y-1
+    group-hover:scale-105
+    group-hover:shadow-md
+  "
+>
             {icon}
           </div>
         )}

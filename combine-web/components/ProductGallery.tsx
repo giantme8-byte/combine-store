@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import Image from "next/image";
+import Lightbox from "@/components/Lightbox";
+import ZoomImage from "@/components/ZoomImage";
 
 import { useProduct } from "@/components/product/ProductContext";
 
@@ -39,6 +45,9 @@ const {
     useState(
       images[0] ?? "/placeholder.png"
     );
+
+  const [lightboxOpen, setLightboxOpen] =
+  useState(false);  
 
 
   /*
@@ -82,7 +91,8 @@ const {
   }
 
 
-  return (
+return (
+  <>
     <div className="flex flex-col-reverse gap-8 lg:flex-row">
 
 
@@ -132,40 +142,26 @@ const {
 
       <div className="flex-1">
 
-        <div
-          className="
-            group
-            relative
-            aspect-square
-            overflow-hidden
-            rounded-3xl
-            border
-            border-neutral-200
-            bg-white
-            shadow-[0_20px_60px_rgba(0,0,0,0.05)]
-            transition-all
-            duration-500
-            hover:shadow-[0_30px_80px_rgba(0,0,0,0.08)]
-          "
-        >
-
-          <Image
-            key={selectedImage}
-            src={selectedImage}
-            alt={name}
-            fill
-            priority
-            sizes="(max-width:1024px) 100vw, 60vw"
-            className="
-              object-contain
-              p-12
-              transition-transform
-              duration-500
-              group-hover:scale-[1.05]
-            "
-          />
-
-        </div>
+<div
+  onClick={() =>
+    setLightboxOpen(true)
+  }
+  className="
+    rounded-3xl
+    border
+    border-neutral-200
+    bg-white
+    shadow-[0_20px_60px_rgba(0,0,0,0.05)]
+    transition-all
+    duration-500
+    hover:shadow-[0_30px_80px_rgba(0,0,0,0.08)]
+  "
+>
+  <ZoomImage
+    src={selectedImage}
+    alt={name}
+  />
+</div>
 
 
 
@@ -246,5 +242,16 @@ const {
       </div>
 
     </div>
-  );
+
+<Lightbox
+  open={lightboxOpen}
+  images={images}
+  image={selectedImage}
+  name={name}
+  onClose={() => setLightboxOpen(false)}
+  onImageChange={setSelectedImage}
+/>
+
+  </>
+);
 }

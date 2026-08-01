@@ -7,10 +7,19 @@ import { useInquiry } from "@/components/providers/InquiryProvider";
 
 type Props = {
   productId: number;
+
+  color?: string;
+  variant?: string;
+  dimensions?: string;
+  packaging?: string;
 };
 
 export default function AddToInquiryButton({
   productId,
+  color,
+  variant,
+  dimensions,
+  packaging,
 }: Props) {
   const {
     addItem,
@@ -28,7 +37,12 @@ export default function AddToInquiryButton({
     setLoading(true);
 
     try {
-      addItem(productId);
+      addItem(productId, {
+  color,
+  variant,
+  dimensions,
+  packaging,
+});
 
       openDrawer();
 

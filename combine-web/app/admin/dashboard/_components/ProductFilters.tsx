@@ -38,9 +38,9 @@ const [availability, setAvailability] = useState(
   searchParams.get("availability") ?? ""
 );
 
-  const [sort, setSort] = useState(
-    searchParams.get("sort") ?? "latest"
-  );
+const [sort, setSort] = useState(
+  searchParams.get("sort") ?? "featured"
+);
 
   useEffect(() => {
   const timeout = setTimeout(() => {
@@ -133,7 +133,7 @@ if (availability) {
     setBrand("");
     setCategory("");
     setAvailability("");
-    setSort("latest");
+    setSort("featured");
 
     router.push("/admin/dashboard/products");
   }
@@ -249,35 +249,39 @@ onChange={(e) => {
 </select>
 
         {/* Sort */}
-        <select
-          value={sort}
-          onChange={(e) => {
-            const value = e.target.value;
+<select
+  value={sort}
+  onChange={(e) => {
+    const value = e.target.value;
 
-            setSort(value);
+    setSort(value);
 
-            updateFilters({
-              sort: value,
-            });
-          }}
-          className="rounded-lg border border-neutral-300 px-4 py-3"
-        >
-          <option value="latest">
-            Latest
-          </option>
+    updateFilters({
+      sort: value,
+    });
+  }}
+  className="rounded-lg border border-neutral-300 px-4 py-3"
+>
+  <option value="featured">
+    Featured Order
+  </option>
 
-          <option value="oldest">
-            Oldest
-          </option>
+  <option value="latest">
+    Latest
+  </option>
 
-          <option value="az">
-            Name A-Z
-          </option>
+  <option value="oldest">
+    Oldest
+  </option>
 
-          <option value="za">
-            Name Z-A
-          </option>
-        </select>
+  <option value="az">
+    Name A-Z
+  </option>
+
+  <option value="za">
+    Name Z-A
+  </option>
+</select>
 
       </div>
 

@@ -238,6 +238,8 @@ variants: {
   name={product.name}
   sku={product.sku}
   model={product.model}
+  mainColor={product.mainColor}
+  dimensions={product.dimensions}
 />
 
           <ProductMeta

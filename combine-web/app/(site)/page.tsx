@@ -1,4 +1,5 @@
 import Hero from "@/components/Hero";
+import Categories from "@/components/Categories";
 import CollectionSection from "@/components/collections/CollectionSection";
 import BrandShowcase from "@/components/BrandShowcase";
 import NewArrivals from "@/components/NewArrivals";
@@ -13,8 +14,14 @@ export default function Home() {
       <Hero />
 
       <MotionSection>
-        <CollectionSection />
+        <Categories />
       </MotionSection>
+
+{/* 
+<MotionSection>
+  <CollectionSection />
+</MotionSection>
+*/}
 
       <MotionSection delay={0.05}>
         <BrandShowcase />

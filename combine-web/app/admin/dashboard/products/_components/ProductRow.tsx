@@ -6,6 +6,9 @@ import { Prisma } from "@prisma/client";
 import Badge from "../../_components/Badge";
 import ProductActions from "./ProductActions";
 import { calculateProductProfit } from "@/lib/product";
+import { GripVertical } from "lucide-react";
+import { CSS } from "@dnd-kit/utilities";
+import { useSortable } from "@dnd-kit/sortable";
 
 type ProductWithImages = Prisma.ProductGetPayload<{
   include: {
@@ -29,31 +32,93 @@ export default function ProductRow({
   canDelete,
 }: ProductRowProps) {
   const result = calculateProductProfit(product, exchangeRate);
+  const {
+  attributes,
+  listeners,
+  setNodeRef,
+  transform,
+  transition,
+  isDragging,
+} = useSortable({
+  id: product.id,
+});
 
-  return (
-    <tr className="border-b border-neutral-200 transition-all duration-200 hover:bg-neutral-50 hover:shadow-sm">
-      <td className="w-12 px-4 py-6 align-top">
+const style = {
+  transform: CSS.Transform.toString(transform),
+  transition,
+};
+
+return (
+<tr
+  ref={setNodeRef}
+  style={style}
+  className={`
+    border-b
+    border-neutral-200
+    transition-[box-shadow,opacity,background-color]
+    duration-200
+    hover:bg-neutral-50
+    hover:shadow-sm
+    ${
+      isDragging
+        ? "relative z-20 bg-white opacity-70 shadow-xl"
+        : ""
+    }
+  `}
+>
+    <td className="w-16 px-4 py-6 align-top">
+      <div className="flex flex-col items-center gap-3">
+
+<GripVertical
+  {...attributes}
+  {...listeners}
+  size={18}
+  className="
+    cursor-grab
+    active:cursor-grabbing
+    text-neutral-400
+    transition
+    hover:text-neutral-700
+  "
+/>
+
         <input
           type="checkbox"
           checked={selected}
           onChange={onToggle}
-          className="mt-2 h-4 w-4 rounded border-neutral-300"
+          className="h-4 w-4 rounded border-neutral-300 accent-black"
         />
-      </td>
+
+      </div>
+    </td>
 
       {/* Product */}
       <td className="px-6 py-6 align-top">
         <div className="flex gap-5">
-          {product.images.length > 0 ? (
-            <Image
-              src={product.images[0].url}
-              alt={product.name}
-              width={100}
-              height={100}
-              sizes="100px"
-              className="h-[100px] w-[100px] rounded-2xl border border-neutral-200 bg-white object-contain p-2"
-            />
-          ) : (
+{product.images.length > 0 ? (
+  <div className="overflow-hidden rounded-2xl">
+    <Image
+      src={product.images[0].url}
+      alt={product.name}
+      width={96}
+      height={96}
+      sizes="100px"
+className="
+  h-24
+  w-24
+  rounded-2xl
+  border
+  border-neutral-200
+  bg-white
+  object-contain
+  p-2
+  transition-transform
+  duration-300
+  hover:scale-105
+"
+    />
+  </div>
+) : (
             <div className="flex h-[100px] w-[100px] items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-100 text-sm text-neutral-500">
               No Image
             </div>
@@ -64,7 +129,18 @@ export default function ProductRow({
               {product.brand}
             </p>
 
-            <h3 className="mt-2 text-lg font-semibold leading-tight text-neutral-900">
+            <h3
+  className="
+    mt-2
+    text-lg
+    font-semibold
+    leading-tight
+    text-neutral-900
+    transition-colors
+    duration-200
+    hover:text-black
+  "
+>
               {product.name}
             </h3>
 
@@ -171,15 +247,23 @@ export default function ProductRow({
             </p>
 
             <div className="mt-2">
-              {product.availability === "IN_STOCK" ? (
-                <Badge>In Stock</Badge>
-              ) : product.availability === "PRE_ORDER" ? (
-                <Badge>Pre Order</Badge>
-              ) : product.availability === "LIMITED" ? (
-                <Badge variant="warning">Limited</Badge>
-              ) : (
-                <Badge variant="danger">Sold Out</Badge>
-              )}
+{product.availability === "IN_STOCK" ? (
+  <Badge>
+    🟢 In Stock
+  </Badge>
+) : product.availability === "PRE_ORDER" ? (
+  <Badge>
+    🟡 Pre Order
+  </Badge>
+) : product.availability === "LIMITED" ? (
+  <Badge variant="warning">
+    🟠 Limited
+  </Badge>
+) : (
+  <Badge variant="danger">
+    🔴 Sold Out
+  </Badge>
+)}
             </div>
           </div>
 

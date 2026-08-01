@@ -14,6 +14,9 @@ type ProductActionsProps = {
   name: string;
   sku: string | null;
   model: string | null;
+
+  mainColor: string | null;
+  dimensions: string | null;
 };
 
 export default function ProductActions({
@@ -22,6 +25,8 @@ export default function ProductActions({
   name,
   sku,
   model,
+  mainColor,
+  dimensions,
 }: ProductActionsProps) {
   const {
     selectedColor,
@@ -31,40 +36,66 @@ export default function ProductActions({
 
   const [loading, setLoading] = useState(false);
 
+  // Use selected option first.
+  // If there is no selectable option,
+  // fallback to the product default.
+  const colour =
+    selectedColor?.name ??
+    mainColor ??
+    "-";
+
+  const size =
+    selectedVariant?.size ??
+    "-";
+
+  const itemDimensions =
+    selectedVariant?.dimensions ??
+    dimensions ??
+    "-";
+
   async function handleWhatsApp() {
     setLoading(true);
 
-    const message = `Hi COMBINE 👋
+const message = `Hi COMBINE 👋
 
 I'm interested in this item.
 
-Brand:
+━━━━━━━━━━━━━━
+
+Brand
 ${brand}
 
-Reference:
-${sku ?? "-"}
-
-Product:
+Product
 ${name}
 
-Model:
+Reference
+${sku ?? "-"}
+
+Model
 ${model ?? "-"}
 
-Colour:
-${selectedColor?.name ?? "-"}
+━━━━━━━━━━━━━━
 
-Size:
-${selectedVariant?.size ?? "-"}
+Colour
+${colour}
 
-Quantity:
+Size
+${size}
+
+Dimensions
+${itemDimensions}
+
+Quantity
 ${quantity}
 
-Item ID:
+━━━━━━━━━━━━━━
+
+Item ID
 #${productId}
 
 Please provide the latest price and availability.
 
-Thank you.`;
+Thank you 😊`;
 
     const response = await fetch(
       "/api/settings"
@@ -133,9 +164,12 @@ Thank you.`;
 
         <div className="mt-5 grid grid-cols-2 gap-4">
 
-          <AddToInquiryButton
-            productId={productId}
-          />
+<AddToInquiryButton
+  productId={productId}
+  color={selectedColor?.name}
+  variant={selectedVariant?.size}
+  dimensions={selectedVariant?.dimensions ?? undefined}
+/>
 
 
           <WishlistButton

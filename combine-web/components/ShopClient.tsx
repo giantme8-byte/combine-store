@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import SearchBar from "./SearchBar";
 import CategoryFilter from "./CategoryFilter";
@@ -21,6 +22,7 @@ type Product = {
   sku: string | null;
 
   price: number;
+  displayOrder: number;
 
   image: string;
 
@@ -43,21 +45,22 @@ type Props = {
 export default function ShopClient({
   products,
 }: Props) {
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
+  const category =
+  searchParams.get("category") ?? "All";
   const [brand, setBrand] = useState("All");
   const [subCategory, setSubCategory] = useState("All");
   const [color, setColor] = useState("All");
   const [sort, setSort] = useState("Newest");
 
-  function clearFilters() {
-    setSearch("");
-    setCategory("All");
-    setBrand("All");
-    setSubCategory("All");
-    setColor("All");
-    setSort("Newest");
-  }
+function clearFilters() {
+  setSearch("");
+  setBrand("All");
+  setSubCategory("All");
+  setColor("All");
+  setSort("Newest");
+}
 
   const brands = useMemo(() => {
     return [
@@ -126,24 +129,27 @@ export default function ShopClient({
       );
     });
 
-    switch (sort) {
-      case "Price Low":
-        result.sort((a, b) => a.price - b.price);
-        break;
+switch (sort) {
+  case "Price Low":
+    result.sort((a, b) => a.price - b.price);
+    break;
 
-      case "Price High":
-        result.sort((a, b) => b.price - a.price);
-        break;
+  case "Price High":
+    result.sort((a, b) => b.price - a.price);
+    break;
 
-      case "Brand":
-        result.sort((a, b) =>
-          a.brand.localeCompare(b.brand)
-        );
-        break;
+  case "Brand":
+    result.sort((a, b) =>
+      a.brand.localeCompare(b.brand)
+    );
+    break;
 
-      default:
-        result.sort((a, b) => b.id - a.id);
-    }
+  default:
+    result.sort(
+      (a, b) =>
+        a.displayOrder - b.displayOrder
+    );
+}
 
     return result;
   }, [
@@ -168,36 +174,44 @@ export default function ShopClient({
         <SearchAutocomplete query={search} />
       </div>
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
-        <CategoryFilter
-          selected={category}
-          onSelect={setCategory}
-        />
+{/* Filters */}
+<div
+  className={`grid gap-6 sm:grid-cols-2 ${
+    category === "All"
+      ? "xl:grid-cols-5"
+      : "xl:grid-cols-4"
+  }`}
+>
+  {category === "All" && (
+    <CategoryFilter
+      selected={category}
+      onSelect={() => {}}
+    />
+  )}
 
-        <BrandFilter
-          selected={brand}
-          onSelect={setBrand}
-          brands={brands}
-        />
+  <BrandFilter
+    selected={brand}
+    onSelect={setBrand}
+    brands={brands}
+  />
 
-        <SubCategoryFilter
-          selected={subCategory}
-          onSelect={setSubCategory}
-          subCategories={subCategories}
-        />
+  <SubCategoryFilter
+    selected={subCategory}
+    onSelect={setSubCategory}
+    subCategories={subCategories}
+  />
 
-        <ColorFilter
-          selected={color}
-          onSelect={setColor}
-          colors={colors}
-        />
+  <ColorFilter
+    selected={color}
+    onSelect={setColor}
+    colors={colors}
+  />
 
-        <SortDropdown
-          value={sort}
-          onChange={setSort}
-        />
-      </div>
+  <SortDropdown
+    value={sort}
+    onChange={setSort}
+  />
+</div>
 
       {/* Product Count */}
       <div className="flex items-center justify-between border-b border-neutral-200 pb-5">

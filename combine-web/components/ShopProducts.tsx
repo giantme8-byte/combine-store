@@ -3,20 +3,30 @@ import ShopClient from "./ShopClient";
 
 type ShopProductsProps = {
   brand?: string;
+  category?: string;
 };
 
 export default async function ShopProducts({
   brand,
+  category,
 }: ShopProductsProps) {
   const products = await prisma.product.findMany({
-    where: brand
-      ? {
-          brand,
-        }
-      : undefined,
+    where: {
+      ...(brand
+        ? {
+            brand,
+          }
+        : {}),
+
+      ...(category && category !== "All"
+        ? {
+            category,
+          }
+        : {}),
+    },
 
     orderBy: {
-      createdAt: "desc",
+      displayOrder: "asc",
     },
 
     select: {
@@ -29,6 +39,8 @@ export default async function ShopProducts({
       sku: true,
 
       price: true,
+
+      displayOrder: true,
 
       category: true,
       subCategory: true,
@@ -61,6 +73,8 @@ export default async function ShopProducts({
     sku: product.sku,
 
     price: product.price,
+
+    displayOrder: product.displayOrder,
 
     image: product.images[0]?.url ?? "/placeholder.png",
 

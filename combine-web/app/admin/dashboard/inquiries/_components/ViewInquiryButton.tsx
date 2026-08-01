@@ -11,11 +11,18 @@ import {
 import { updateInquiryStatus } from "../_actions/inquiry.actions";
 
 type InquiryWithItems = Inquiry & {
-  items: {
-    product: Product;
-    quantity: number;
-    notes: string | null;
-  }[];
+items: {
+  product: Product;
+
+  quantity: number;
+
+  color: string | null;
+  variant: string | null;
+  dimensions: string | null;
+  packaging: string | null;
+
+  notes: string | null;
+}[];
 };
 
 type ViewInquiryButtonProps = {
@@ -92,7 +99,18 @@ COMBINE`
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
-          <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-xl">
+          <div
+  className="
+    w-full
+    max-w-3xl
+    max-h-[90vh]
+    overflow-y-auto
+    rounded-3xl
+    bg-white
+    p-8
+    shadow-xl
+  "
+>
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-light">
                 Inquiry Details
@@ -116,68 +134,160 @@ COMBINE`
                   Customer
                 </h3>
 
-                <div className="space-y-1 text-sm">
-                  <p>
-                    <strong>Name:</strong>{" "}
-                    {inquiry.name}
-                  </p>
+<div className="mt-4 grid gap-3 text-sm text-neutral-600">
 
-                  <p>
-                    <strong>WhatsApp:</strong>{" "}
-                    {inquiry.whatsapp}
-                  </p>
+  <div className="flex justify-between gap-4">
+    <span className="font-medium text-neutral-500">
+      Name
+    </span>
 
-                  <p>
-                    <strong>Email:</strong>{" "}
-                    {inquiry.email ?? "-"}
-                  </p>
+    <span className="text-right">
+      {inquiry.name}
+    </span>
+  </div>
 
-                  <p>
-                    <strong>Country:</strong>{" "}
-                    {inquiry.country ?? "-"}
-                  </p>
+  <div className="flex justify-between gap-4">
+    <span className="font-medium text-neutral-500">
+      WhatsApp
+    </span>
 
-                  <div className="pt-4">
-                    <a
-                      href={`https://wa.me/${phone}?text=${whatsappMessage}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
-                    >
-                      Open WhatsApp
-                    </a>
-                  </div>
-                </div>
+    <span className="text-right">
+      {inquiry.whatsapp}
+    </span>
+  </div>
+
+  <div className="flex justify-between gap-4">
+    <span className="font-medium text-neutral-500">
+      Email
+    </span>
+
+    <span className="text-right">
+      {inquiry.email ?? "-"}
+    </span>
+  </div>
+
+  <div className="flex justify-between gap-4">
+    <span className="font-medium text-neutral-500">
+      Country
+    </span>
+
+    <span className="text-right">
+      {inquiry.country ?? "-"}
+    </span>
+  </div>
+
+  <div className="pt-4">
+    <a
+      href={`https://wa.me/${phone}?text=${whatsappMessage}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
+    >
+      💬 Open WhatsApp
+    </a>
+  </div>
+
+</div>
               </div>
 
               {/* Products */}
               <div>
-                <h3 className="mb-2 font-medium">
-                  Products
-                </h3>
+<h3 className="mb-4 text-lg font-medium">
+  Products
+</h3>
 
-                <div className="space-y-3">
-                  {inquiry.items.map((item) => (
-                    <div
-                      key={item.product.id}
-                      className="rounded-xl border p-4"
-                    >
-                      <p className="font-medium">
-                        {item.product.name}
-                      </p>
+<div className="space-y-4">
+  {inquiry.items.map((item) => (
+    <div
+      key={item.product.id}
+      className="rounded-2xl border border-neutral-200 bg-white p-5"
+    >
+      <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
+        {item.product.brand}
+      </p>
 
-                      <p className="text-sm text-neutral-500">
-                        Quantity: {item.quantity}
-                      </p>
+      <h4 className="mt-2 text-lg font-medium text-neutral-900">
+        {item.product.name}
+      </h4>
 
-                      {item.notes && (
-                        <p className="mt-1 text-sm">
-                          {item.notes}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
+      <div className="mt-5 grid gap-3 text-sm text-neutral-600">
+
+        <div className="flex justify-between gap-4">
+          <span className="font-medium text-neutral-500">
+            Reference
+          </span>
+
+          <span className="text-right">
+            {item.product.sku ?? "-"}
+          </span>
+        </div>
+
+        <div className="flex justify-between gap-4">
+          <span className="font-medium text-neutral-500">
+            Colour
+          </span>
+
+          <span className="text-right">
+            {item.color ?? "-"}
+          </span>
+        </div>
+
+        <div className="flex justify-between gap-4">
+          <span className="font-medium text-neutral-500">
+            Size
+          </span>
+
+          <span className="text-right">
+            {item.variant ?? "-"}
+          </span>
+        </div>
+
+        <div className="flex justify-between gap-4">
+          <span className="font-medium text-neutral-500">
+            Dimensions
+          </span>
+
+          <span className="text-right">
+            {item.dimensions ?? "-"}
+          </span>
+        </div>
+
+        <div className="flex justify-between gap-4">
+          <span className="font-medium text-neutral-500">
+            Packaging
+          </span>
+
+          <span className="text-right">
+            {item.packaging ?? "-"}
+          </span>
+        </div>
+
+        <div className="flex justify-between gap-4 border-t border-neutral-200 pt-3">
+          <span className="font-semibold text-neutral-700">
+            Quantity
+          </span>
+
+          <span className="font-semibold">
+            {item.quantity}
+          </span>
+        </div>
+
+      </div>
+
+      {item.notes && (
+        <div className="mt-5 rounded-xl bg-neutral-50 p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
+            Customer Notes
+          </p>
+
+          <p className="mt-2 text-sm text-neutral-700">
+            {item.notes}
+          </p>
+        </div>
+      )}
+    </div>
+  ))}
+</div>
               </div>
 
               {/* Customer Message */}
@@ -186,9 +296,11 @@ COMBINE`
                   Customer Message
                 </h3>
 
-                <p className="rounded-xl border p-4 text-sm">
-                  {inquiry.message || "-"}
-                </p>
+<div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+  <p className="whitespace-pre-wrap text-sm text-neutral-700">
+    {inquiry.message || "-"}
+  </p>
+</div>
               </div>
 
               {/* Status */}

@@ -59,39 +59,75 @@ export default function InquiryDrawer() {
 
   async function handleWhatsAppInquiry() {
 
-    const message = [
-      "Hello COMBINE,",
-      "",
-      "I would like to inquire about these products:",
-      "",
-      ...items.map((item, index) => {
+const message = [
+  "Hello COMBINE 👋",
+  "",
+  "I would like to inquire about these products:",
+  "",
 
-        const product = products.find(
-          (product) =>
-            product.id === item.productId
-        );
+  ...items.map((item, index) => {
+    const product = products.find(
+      (product) =>
+        product.id === item.productId
+    );
 
+    if (!product) {
+      return "";
+    }
 
-        if (!product) {
-          return "";
-        }
-
-
-        return `${index + 1}. ${product.brand} ${product.name}${
-          product.model
-            ? ` (${product.model})`
-            : ""
-        }
-Quantity: ${item.quantity}`;
-
-      }),
+    return [
+      `${index + 1}.`,
 
       "",
-      "Thank you.",
 
-    ]
-      .filter(Boolean)
-      .join("\n");
+      "Brand",
+      product.brand,
+
+      "",
+
+      "Product",
+      `${product.name}${
+        product.model
+          ? ` (${product.model})`
+          : ""
+      }`,
+
+      "",
+
+      "Colour",
+      item.color ?? "-",
+
+      "",
+
+      "Size",
+      item.variant ?? "-",
+
+      "",
+
+"Dimensions",
+item.dimensions ?? "-",
+
+"",
+
+"Packaging",
+item.packaging ?? "-",
+
+"",
+
+"Quantity",
+item.quantity,
+
+      "",
+
+      "━━━━━━━━━━━━━━",
+      "",
+    ].join("\n");
+  }),
+
+  "Thank you 😊",
+]
+  .filter(Boolean)
+  .join("\n");
 
 
 
@@ -516,6 +552,46 @@ window.open(
                         </p>
 
                       )}
+
+                      <div className="mt-3 space-y-1 text-xs text-neutral-500">
+
+  {item.color && (
+    <p>
+      <span className="font-medium text-neutral-700">
+        Colour:
+      </span>{" "}
+      {item.color}
+    </p>
+  )}
+
+  {item.variant && (
+    <p>
+      <span className="font-medium text-neutral-700">
+        Size:
+      </span>{" "}
+      {item.variant}
+    </p>
+  )}
+
+  {item.dimensions && (
+    <p>
+      <span className="font-medium text-neutral-700">
+        Dimensions:
+      </span>{" "}
+      {item.dimensions}
+    </p>
+  )}
+
+  {item.packaging && (
+  <p>
+    <span className="font-medium text-neutral-700">
+      Packaging:
+    </span>{" "}
+    {item.packaging}
+  </p>
+)}
+
+</div>
 
 
 

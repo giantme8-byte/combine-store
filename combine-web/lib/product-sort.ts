@@ -3,7 +3,14 @@ import { Prisma } from "@prisma/client";
 export function buildProductOrderBy(
   sort: string
 ): Prisma.ProductOrderByWithRelationInput {
+
   switch (sort) {
+
+    case "featured":
+      return {
+        displayOrder: "asc",
+      };
+
     case "oldest":
       return {
         id: "asc",
@@ -21,7 +28,9 @@ export function buildProductOrderBy(
 
     default:
       return {
-        id: "desc",
+        displayOrder: "asc",
       };
+
   }
+
 }
