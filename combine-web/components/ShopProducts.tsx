@@ -25,9 +25,14 @@ export default async function ShopProducts({
         : {}),
     },
 
-    orderBy: {
-      displayOrder: "asc",
-    },
+orderBy: [
+  {
+    displayOrder: "asc",
+  },
+  {
+    createdAt: "desc",
+  },
+],
 
     select: {
       id: true,
