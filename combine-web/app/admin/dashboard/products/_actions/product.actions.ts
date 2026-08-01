@@ -8,6 +8,7 @@ import { UploadApiResponse } from "cloudinary";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Buffer } from "buffer";
+import { generateProductSlug } from "@/lib/generate-product-slug";
 
 
 type UploadedImage = {
@@ -15,16 +16,6 @@ type UploadedImage = {
   publicId: string;
   sortOrder: number;
 };
-function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 async function uploadImage(
   file: File,
@@ -241,6 +232,11 @@ uploadedColors.push({
 
 console.log("Before prisma.product.create");
 
+const slug = await generateProductSlug(
+  formData.get("name") as string,
+  formData.get("model")?.toString() || null
+);
+
 await prisma.product.create({
 
       data:{
@@ -255,11 +251,7 @@ sku:
 name:
   formData.get("name") as string,
 
-slug:
-  (
-    formData.get("slug")?.toString().trim() ||
-    slugify(formData.get("name") as string)
-  ),
+slug,
 
 model:
           formData.get(
@@ -701,6 +693,11 @@ uploadedColors.push({
 
     }
 
+const slug = await generateProductSlug(
+  formData.get("name") as string,
+  formData.get("model")?.toString() || null,
+  id
+);
 
     await prisma.product.update({
 
@@ -721,11 +718,7 @@ sku:
 name:
   formData.get("name") as string,
 
-slug:
-  (
-    formData.get("slug")?.toString().trim() ||
-    slugify(formData.get("name") as string)
-  ),
+slug,
 
 model:
           formData.get(
@@ -1136,8 +1129,15 @@ variants: {
     redirect("/admin/dashboard/products");
   }
 
+const slug = await generateProductSlug(
+  `${product.name} (Copy)`,
+  product.model
+);
+
 const newProduct = await prisma.product.create({
   data: {
+    slug,
+
     sku: null,
 
     brand: product.brand,
