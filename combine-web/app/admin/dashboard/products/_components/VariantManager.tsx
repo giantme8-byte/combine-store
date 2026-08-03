@@ -32,7 +32,8 @@ export default function VariantManager({
   function updateVariant(
     index: number,
     field: keyof ProductVariantItem,
-    value: any
+    value:
+  ProductVariantItem[keyof ProductVariantItem]
   ) {
     const next = [...variants];
 

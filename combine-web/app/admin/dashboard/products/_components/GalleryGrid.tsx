@@ -4,6 +4,7 @@ import {
   DndContext,
   DragEndEvent,
   closestCenter,
+  useSensors,
 } from "@dnd-kit/core";
 
 import {
@@ -12,12 +13,13 @@ import {
 } from "@dnd-kit/sortable";
 
 import SortableImage from "@/components/SortableImage";
-import { ProductImageItem } from "@/types/product-image";
+import type { ProductImageItem } from "@/types/product-image";
+
 
 type GalleryGridProps = {
   images: ProductImageItem[];
 
-  sensors: any;
+  sensors: ReturnType<typeof useSensors>;
 
   onDragEnd: (
     event: DragEndEvent
@@ -27,6 +29,7 @@ type GalleryGridProps = {
     id: string
   ) => void;
 };
+
 
 export default function GalleryGrid({
   images,
@@ -58,6 +61,7 @@ export default function GalleryGrid({
               key={image.id}
               className="relative"
             >
+
               {index === 0 && (
                 <div
                   className="
@@ -86,6 +90,7 @@ export default function GalleryGrid({
                   onDelete(image.id)
                 }
               />
+
             </div>
           ))}
         </div>

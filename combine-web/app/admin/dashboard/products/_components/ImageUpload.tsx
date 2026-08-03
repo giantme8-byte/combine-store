@@ -71,7 +71,7 @@ const visibleImages = images.filter(
 
 
 
-const newImages = files.map((file, index) => ({
+const newImages: ProductImageItem[] = files.map((file, index) => ({
   id: crypto.randomUUID(),
 
   url: URL.createObjectURL(file),
@@ -85,6 +85,10 @@ const newImages = files.map((file, index) => ({
   sortOrder: images.length + index,
 
   deleted: false,
+
+  status: "idle",
+
+  progress: 0,
 }));
 
 

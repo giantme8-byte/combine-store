@@ -40,36 +40,56 @@ type Product = {
 
 type Props = {
   products: Product[];
+
+  featuredProducts: Product[];
 };
 
 export default function ShopClient({
   products,
+  featuredProducts,
 }: Props) {
-  const searchParams = useSearchParams();
-  const [search, setSearch] = useState("");
-  const category =
-  searchParams.get("category") ?? "All";
-  const [brand, setBrand] = useState("All");
-  const [subCategory, setSubCategory] = useState("All");
-  const [color, setColor] = useState("All");
-  const [sort, setSort] = useState("Newest");
 
-function clearFilters() {
-  setSearch("");
-  setBrand("All");
-  setSubCategory("All");
-  setColor("All");
-  setSort("Newest");
-}
+  const searchParams = useSearchParams();
+
+  const [search, setSearch] = useState("");
+
+  const category =
+    searchParams.get("category") ?? "All";
+
+  const [brand, setBrand] = useState("All");
+
+  const [subCategory, setSubCategory] =
+    useState("All");
+
+  const [color, setColor] =
+    useState("All");
+
+  const [sort, setSort] =
+    useState("Newest");
+
+  function clearFilters() {
+    setSearch("");
+    setBrand("All");
+    setSubCategory("All");
+    setColor("All");
+    setSort("Newest");
+  }
 
   const brands = useMemo(() => {
+
     return [
       "All",
-      ...Array.from(new Set(products.map((p) => p.brand))).sort(),
+      ...Array.from(
+        new Set(
+          products.map((p) => p.brand)
+        )
+      ).sort(),
     ];
+
   }, [products]);
 
   const subCategories = useMemo(() => {
+
     return [
       "All",
       ...Array.from(
@@ -77,14 +97,17 @@ function clearFilters() {
           products
             .map((p) => p.subCategory)
             .filter(
-              (item): item is string => item !== null
+              (item): item is string =>
+                item !== null
             )
         )
       ).sort(),
     ];
+
   }, [products]);
 
   const colors = useMemo(() => {
+
     return [
       "All",
       ...Array.from(
@@ -92,66 +115,91 @@ function clearFilters() {
           products
             .map((p) => p.mainColor)
             .filter(
-              (item): item is string => item !== null
+              (item): item is string =>
+                item !== null
             )
         )
       ).sort(),
     ];
+
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
 
-    const result = products.filter((product) => {
-      const keyword = [
-        product.brand,
-        product.name,
-        product.model,
-        product.sku,
-        product.category,
-        product.subCategory,
-        product.mainColor,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+    const normalizedSearch =
+      search.trim().toLowerCase();
 
-      return (
-        keyword.includes(normalizedSearch) &&
-        (category === "All" ||
-          product.category === category) &&
-        (brand === "All" ||
-          product.brand === brand) &&
-        (subCategory === "All" ||
-          product.subCategory === subCategory) &&
-        (color === "All" ||
-          product.mainColor === color)
-      );
-    });
+    const result = products.filter(
+      (product) => {
 
-switch (sort) {
-  case "Price Low":
-    result.sort((a, b) => a.price - b.price);
-    break;
+        const keyword = [
+          product.brand,
+          product.name,
+          product.model,
+          product.sku,
+          product.category,
+          product.subCategory,
+          product.mainColor,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-  case "Price High":
-    result.sort((a, b) => b.price - a.price);
-    break;
+        return (
+          keyword.includes(
+            normalizedSearch
+          ) &&
+          (category === "All" ||
+            product.category ===
+              category) &&
+          (brand === "All" ||
+            product.brand === brand) &&
+          (subCategory === "All" ||
+            product.subCategory ===
+              subCategory) &&
+          (color === "All" ||
+            product.mainColor ===
+              color)
+        );
 
-  case "Brand":
-    result.sort((a, b) =>
-      a.brand.localeCompare(b.brand)
+      }
     );
-    break;
 
-  default:
-    result.sort(
-      (a, b) =>
-        a.displayOrder - b.displayOrder
-    );
-}
+    switch (sort) {
+
+      case "Price Low":
+        result.sort(
+          (a, b) =>
+            a.price - b.price
+        );
+        break;
+
+      case "Price High":
+        result.sort(
+          (a, b) =>
+            b.price - a.price
+        );
+        break;
+
+      case "Brand":
+        result.sort((a, b) =>
+          a.brand.localeCompare(
+            b.brand
+          )
+        );
+        break;
+
+      default:
+        result.sort(
+          (a, b) =>
+            a.displayOrder -
+            b.displayOrder
+        );
+
+    }
 
     return result;
+
   }, [
     products,
     search,
@@ -164,72 +212,90 @@ switch (sort) {
 
   return (
     <div className="space-y-10">
-      {/* Search */}
+
       <div className="relative">
+
         <SearchBar
           value={search}
           onChange={setSearch}
         />
 
-        <SearchAutocomplete query={search} />
+        <SearchAutocomplete
+          query={search}
+        />
+
       </div>
 
-{/* Filters */}
-<div
-  className={`grid gap-6 sm:grid-cols-2 ${
-    category === "All"
-      ? "xl:grid-cols-5"
-      : "xl:grid-cols-4"
-  }`}
->
-  {category === "All" && (
-    <CategoryFilter
-      selected={category}
-      onSelect={() => {}}
-    />
-  )}
+      <div
+        className={`grid gap-6 sm:grid-cols-2 ${
+          category === "All"
+            ? "xl:grid-cols-5"
+            : "xl:grid-cols-4"
+        }`}
+      >
 
-  <BrandFilter
-    selected={brand}
-    onSelect={setBrand}
-    brands={brands}
-  />
+        {category === "All" && (
+          <CategoryFilter
+            selected={category}
+            onSelect={() => {}}
+          />
+        )}
 
-  <SubCategoryFilter
-    selected={subCategory}
-    onSelect={setSubCategory}
-    subCategories={subCategories}
-  />
+        <BrandFilter
+          selected={brand}
+          onSelect={setBrand}
+          brands={brands}
+        />
 
-  <ColorFilter
-    selected={color}
-    onSelect={setColor}
-    colors={colors}
-  />
+        <SubCategoryFilter
+          selected={subCategory}
+          onSelect={setSubCategory}
+          subCategories={subCategories}
+        />
 
-  <SortDropdown
-    value={sort}
-    onChange={setSort}
-  />
-</div>
+        <ColorFilter
+          selected={color}
+          onSelect={setColor}
+          colors={colors}
+        />
 
-      {/* Product Count */}
+        <SortDropdown
+          value={sort}
+          onChange={setSort}
+        />
+
+      </div>
+
       <div className="flex items-center justify-between border-b border-neutral-200 pb-5">
+
         <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">
+
           Showing{" "}
+
           <span className="font-semibold text-neutral-900">
             {filteredProducts.length}
           </span>{" "}
+
           Product
-          {filteredProducts.length !== 1 ? "s" : ""}
+          {filteredProducts.length !== 1
+            ? "s"
+            : ""}
+
         </p>
+
       </div>
 
-      {/* Product Grid */}
       <ProductGrid
         products={filteredProducts}
-        onClearFilters={clearFilters}
+        featuredProducts={
+          featuredProducts
+        }
+        searchKeyword={search}
+        onClearFilters={
+          clearFilters
+        }
       />
+
     </div>
   );
 }

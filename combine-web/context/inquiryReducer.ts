@@ -1,6 +1,7 @@
 // context/inquiryReducer.ts
 
-import { InquiryItem } from "@/types/inquiry";
+import type { InquiryItem } from "@/types/inquiry";
+
 
 export type InquiryAction =
   | {
@@ -13,65 +14,85 @@ export type InquiryAction =
     }
   | {
       type: "REMOVE_ITEM";
-      payload: string;
+      payload: number;
     }
   | {
       type: "CLEAR_ITEMS";
     }
   | {
       type: "INCREASE";
-      payload: string;
+      payload: number;
     }
   | {
       type: "DECREASE";
-      payload: string;
+      payload: number;
     }
   | {
       type: "UPDATE_NOTE";
       payload: {
-        id: string;
+        productId: number;
         notes: string;
       };
     };
+
 
 export function inquiryReducer(
   state: InquiryItem[],
   action: InquiryAction
 ): InquiryItem[] {
+
   switch (action.type) {
+
     case "SET_ITEMS":
       return action.payload;
 
+
     case "ADD_ITEM": {
+
       const existing = state.find(
-        (item) => item.id === action.payload.id
+        (item) =>
+          item.productId === action.payload.productId
       );
 
+
       if (existing) {
+
         return state.map((item) =>
-          item.id === existing.id
+          item.productId === existing.productId
             ? {
                 ...item,
                 quantity: item.quantity + 1,
               }
             : item
         );
+
       }
 
-      return [...state, action.payload];
+
+      return [
+        ...state,
+        action.payload,
+      ];
     }
 
+
     case "REMOVE_ITEM":
+
       return state.filter(
-        (item) => item.id !== action.payload
+        (item) =>
+          item.productId !== action.payload
       );
 
+
     case "CLEAR_ITEMS":
+
       return [];
 
+
     case "INCREASE":
+
       return state.map((item) =>
-        item.id === action.payload
+        item.productId === action.payload
           ? {
               ...item,
               quantity: item.quantity + 1,
@@ -79,27 +100,35 @@ export function inquiryReducer(
           : item
       );
 
+
     case "DECREASE":
+
       return state
         .map((item) =>
-          item.id === action.payload
+          item.productId === action.payload
             ? {
                 ...item,
                 quantity: item.quantity - 1,
               }
             : item
         )
-        .filter((item) => item.quantity > 0);
+        .filter(
+          (item) =>
+            item.quantity > 0
+        );
+
 
     case "UPDATE_NOTE":
+
       return state.map((item) =>
-        item.id === action.payload.id
+        item.productId === action.payload.productId
           ? {
               ...item,
               notes: action.payload.notes,
             }
           : item
       );
+
 
     default:
       return state;

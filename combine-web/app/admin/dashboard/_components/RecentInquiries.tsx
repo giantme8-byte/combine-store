@@ -268,11 +268,11 @@ export default async function RecentInquiries() {
 
 
                 <Badge
-                  variant={
-                    getStatusVariant(
-                      item.inquiry.status
-                    ) as any
-                  }
+variant={
+  getStatusVariant(
+    item.inquiry.status
+  )
+}
                 >
                   {item.inquiry.status}
                 </Badge>

@@ -17,7 +17,11 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
-import { Prisma, Availability } from "@prisma/client";
+import { Availability } from "@prisma/client";
+
+import type {
+  ProductWithImages,
+} from "@/types/product";
 
 import ProductRow from "./ProductRow";
 import SelectionToolbar from "./SelectionToolbar";
@@ -27,25 +31,25 @@ import {
   updateProductDisplayOrder,
 } from "../_actions/product.actions";
 
-type ProductWithImages = Prisma.ProductGetPayload<{
-  include: {
-    images: true;
-  };
-}>;
 
 type ProductTableProps = {
   products: ProductWithImages[];
+
   exchangeRate: number;
 
-  brands: {
-    id: number;
-    name: string;
-  }[];
+  page: number;
 
-  categories: {
-    id: number;
-    name: string;
-  }[];
+  pageSize: number;
+
+brands: {
+  id: number;
+  name: string;
+}[];
+
+categories: {
+  id: number;
+  name: string;
+}[];
 
   canDelete: boolean;
 };
@@ -53,6 +57,10 @@ type ProductTableProps = {
 export default function ProductTable({
   products,
   exchangeRate,
+
+  page,
+  pageSize,
+
   brands,
   categories,
   canDelete,
@@ -70,8 +78,8 @@ export default function ProductTable({
 
   const router = useRouter();
 
-  const [displayProducts, setDisplayProducts] =
-  useState(products);
+const [displayProducts, setDisplayProducts] =
+  useState<ProductWithImages[]>(products);
 
 const sensors = useSensors(
   useSensor(PointerSensor, {
@@ -198,12 +206,12 @@ useEffect(() => {
 
     setDisplayProducts(reordered);
 
-    await updateProductDisplayOrder(
-      reordered.map((product, index) => ({
-        id: product.id,
-        displayOrder: index,
-      }))
-    );
+await updateProductDisplayOrder(
+  reordered.map((product, index) => ({
+    id: product.id,
+    displayOrder: (page - 1) * pageSize + index,
+  }))
+);
 
     router.refresh();
   }

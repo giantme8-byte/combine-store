@@ -1,17 +1,18 @@
 import {
   LayoutDashboard,
   Package,
+  ShoppingBag,
   FolderTree,
   Tag,
   MessageCircle,
   Settings,
   Users,
   ChartColumn,
+  ArrowUpDown,
   type LucideIcon,
 } from "lucide-react";
 
 import { UserRole } from "@prisma/client";
-
 
 export type SidebarItem = {
   title: string;
@@ -20,7 +21,6 @@ export type SidebarItem = {
   disabled?: boolean;
   roles?: UserRole[];
 };
-
 
 export const sidebarSections: {
   title: string;
@@ -43,7 +43,6 @@ export const sidebarSections: {
         ],
       },
 
-
       {
         title: "Products",
         href: "/admin/dashboard/products",
@@ -56,6 +55,29 @@ export const sidebarSections: {
         ],
       },
 
+      {
+        title: "Orders",
+        href: "/admin/dashboard/orders",
+        icon: ShoppingBag,
+        roles: [
+          UserRole.OWNER,
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.STAFF,
+        ],
+      },
+
+      {
+        title: "Product Sorting",
+        href: "/admin/dashboard/products/sort",
+        icon: ArrowUpDown,
+        roles: [
+          UserRole.OWNER,
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.STAFF,
+        ],
+      },
 
       {
         title: "Categories",
@@ -67,7 +89,6 @@ export const sidebarSections: {
           UserRole.MANAGER,
         ],
       },
-
 
       {
         title: "Brands",
@@ -82,8 +103,6 @@ export const sidebarSections: {
 
     ],
   },
-
-
 
   {
     title: "CRM",
@@ -104,8 +123,6 @@ export const sidebarSections: {
     ],
   },
 
-
-
   {
     title: "SYSTEM",
     items: [
@@ -120,7 +137,6 @@ export const sidebarSections: {
         ],
       },
 
-
       {
         title: "Analytics",
         href: "",
@@ -131,7 +147,6 @@ export const sidebarSections: {
           UserRole.ADMIN,
         ],
       },
-
 
       {
         title: "Settings",

@@ -1,3 +1,9 @@
+export type UploadStatus =
+  | "idle"
+  | "uploading"
+  | "uploaded"
+  | "failed";
+
 export interface ProductImageItem {
   id: string;
 
@@ -16,4 +22,11 @@ export interface ProductImageItem {
 
   // 是否准备删除（Save 后才真正删除）
   deleted?: boolean;
+
+  // Upload V3（Phase 4）
+  status?: UploadStatus;
+
+  progress?: number;
+
+  error?: string;
 }

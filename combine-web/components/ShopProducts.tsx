@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+
 import ShopClient from "./ShopClient";
 
 type ShopProductsProps = {
@@ -10,90 +11,194 @@ export default async function ShopProducts({
   brand,
   category,
 }: ShopProductsProps) {
-  const products = await prisma.product.findMany({
-    where: {
-      ...(brand
-        ? {
-            brand,
-          }
-        : {}),
 
-      ...(category && category !== "All"
-        ? {
-            category,
-          }
-        : {}),
-    },
+  const [
+    products,
+    featuredProducts,
+  ] = await Promise.all([
 
-orderBy: [
-  {
-    displayOrder: "asc",
-  },
-  {
-    createdAt: "desc",
-  },
-],
+    prisma.product.findMany({
 
-    select: {
-      id: true,
-      slug: true,
+      where: {
+        ...(brand
+          ? {
+              brand,
+            }
+          : {}),
 
-      brand: true,
-      name: true,
-      model: true,
-      sku: true,
+        ...(category &&
+        category !== "All"
+          ? {
+              category,
+            }
+          : {}),
+      },
 
-      price: true,
-
-      displayOrder: true,
-
-      category: true,
-      subCategory: true,
-      mainColor: true,
-
-      featured: true,
-      newArrival: true,
-      bestSeller: true,
-      limited: true,
-      onSale: true,
-
-      images: {
-        select: {
-          url: true,
+      orderBy: [
+        {
+          displayOrder: "asc",
         },
-        orderBy: {
-          sortOrder: "asc",
+        {
+          createdAt: "desc",
+        },
+      ],
+
+      select: {
+        id: true,
+        slug: true,
+
+        brand: true,
+        name: true,
+        model: true,
+        sku: true,
+
+        price: true,
+
+        displayOrder: true,
+
+        category: true,
+        subCategory: true,
+        mainColor: true,
+
+        featured: true,
+        newArrival: true,
+        bestSeller: true,
+        limited: true,
+        onSale: true,
+
+        images: {
+          select: {
+            url: true,
+          },
+          orderBy: {
+            sortOrder: "asc",
+          },
         },
       },
-    },
-  });
 
-  const formattedProducts = products.map((product) => ({
-    id: product.id,
-    slug: product.slug ?? "",
+    }),
 
-    brand: product.brand,
-    name: product.name,
-    model: product.model,
-    sku: product.sku,
+    prisma.product.findMany({
 
-    price: product.price,
+      where: {
+        featured: true,
+      },
 
-    displayOrder: product.displayOrder,
+      orderBy: [
+        {
+          displayOrder: "asc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
 
-    image: product.images[0]?.url ?? "/placeholder.png",
+      take: 8,
 
-    category: product.category,
-    subCategory: product.subCategory,
+      select: {
+        id: true,
+        slug: true,
 
-    mainColor: product.mainColor,
+        brand: true,
+        name: true,
+        model: true,
+        sku: true,
 
-    featured: product.featured,
-    newArrival: product.newArrival,
-    bestSeller: product.bestSeller,
-    limited: product.limited,
-    onSale: product.onSale,
-  }));
+        price: true,
 
-  return <ShopClient products={formattedProducts} />;
+        displayOrder: true,
+
+        category: true,
+        subCategory: true,
+        mainColor: true,
+
+        featured: true,
+        newArrival: true,
+        bestSeller: true,
+        limited: true,
+        onSale: true,
+
+        images: {
+          select: {
+            url: true,
+          },
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
+      },
+
+    }),
+
+  ]);
+
+  const formattedProducts =
+    products.map((product) => ({
+      id: product.id,
+      slug: product.slug ?? "",
+
+      brand: product.brand,
+      name: product.name,
+      model: product.model,
+      sku: product.sku,
+
+      price: product.price,
+
+      displayOrder: product.displayOrder,
+
+      image:
+        product.images[0]?.url ??
+        "/placeholder.png",
+
+      category: product.category,
+      subCategory: product.subCategory,
+
+      mainColor: product.mainColor,
+
+      featured: product.featured,
+      newArrival: product.newArrival,
+      bestSeller: product.bestSeller,
+      limited: product.limited,
+      onSale: product.onSale,
+    }));
+
+  const formattedFeatured =
+    featuredProducts.map((product) => ({
+      id: product.id,
+      slug: product.slug ?? "",
+
+      brand: product.brand,
+      name: product.name,
+      model: product.model,
+      sku: product.sku,
+
+      price: product.price,
+
+      displayOrder: product.displayOrder,
+
+      image:
+        product.images[0]?.url ??
+        "/placeholder.png",
+
+      category: product.category,
+      subCategory: product.subCategory,
+
+      mainColor: product.mainColor,
+
+      featured: product.featured,
+      newArrival: product.newArrival,
+      bestSeller: product.bestSeller,
+      limited: product.limited,
+      onSale: product.onSale,
+    }));
+
+  return (
+    <ShopClient
+      products={formattedProducts}
+      featuredProducts={
+        formattedFeatured
+      }
+    />
+  );
+
 }

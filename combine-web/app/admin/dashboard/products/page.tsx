@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 import Link from "next/link";
 
-import ProductTable from "./_components/ProductTable";
+import ProductView from "./_components/ProductView";
 
 import PageHeader from "../_components/PageHeader";
 import Card from "../_components/Card";
@@ -228,28 +228,30 @@ const totalPages = Math.max(
       />
 
 
-      <Card className="overflow-hidden p-0">
+<Card className="overflow-hidden p-0">
 
-        {products.length === 0 ? (
+  {products.length === 0 ? (
 
-          <EmptyState
-            title="No Products"
-            description="Create your first product to get started."
-          />
+    <EmptyState
+      title="No Products"
+      description="Create your first product to get started."
+    />
 
-        ) : (
+  ) : (
 
-          <ProductTable
-            products={products}
-            exchangeRate={exchangeRate}
-            brands={brands}
-            categories={categories}
-            canDelete={canDelete}
-          />
+<ProductView
+  products={products}
+  exchangeRate={exchangeRate}
+  brands={brands}
+  categories={categories}
+  canDelete={canDelete}
+  page={page}
+  pageSize={pageSize}
+/>
 
-        )}
+  )}
 
-      </Card>
+</Card>
 
 
       <Pagination

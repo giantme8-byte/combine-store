@@ -1,127 +1,110 @@
-export type ProductAvailability =
-  | "PRE_ORDER"
-  | "READY_STOCK";
+import type { Prisma } from "@prisma/client";
+
+export type ProductWithImages =
+  Prisma.ProductGetPayload<{
+    include: {
+      images: true;
+    };
+  }>;
+
 
 export interface ProductImage {
   id: number;
   url: string;
-  alt: string | null;
   sortOrder: number;
 }
 
-export interface ProductColor {
-  id: number;
-
-  name: string;
-
-  model: string | null;
-
-  imageUrl: string;
-  publicId: string | null;
-
-  sortOrder: number;
-}
 
 export interface Product {
   id: number;
 
+  slug: string;
+
   sku: string | null;
 
   brand: string;
+
   category: string;
+
   subCategory: string | null;
 
   name: string;
-  slug: string | null;
+
   model: string | null;
 
   shortDescription: string | null;
-  description: string;
 
-  costPriceCny: number | null;
-  priceRemark: string | null;
+  description: string | null;
+
   price: number;
 
+  image: string;
+
+  gallery?: ProductImage[];
+
+  displayOrder: number;
+
   mainColor: string | null;
+
+  availableColors: string[];
+
   dimensions: string | null;
 
-  availability: ProductAvailability;
+  stock: number;
 
   featured: boolean;
+
   newArrival: boolean;
+
   bestSeller: boolean;
+
   limited: boolean;
+
   onSale: boolean;
 
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
 
-  images: ProductImage[];
-  colors: ProductColor[];
+  updatedAt?: Date;
 }
 
-/**
- * Product Card
- */
-export type ProductCardProps = Pick<
-  Product,
-  | "id"
-  | "slug"
-  | "brand"
-  | "name"
-  | "model"
-  | "featured"
-  | "newArrival"
-  | "bestSeller"
-  | "limited"
-  | "onSale"
-> & {
+
+export type ProductCardProps = {
+  id: number;
+
+  slug: string;
+
+  brand: string;
+
+  name: string;
+
+  model: string | null;
+
   image: string;
+
+  featured: boolean;
+
+  newArrival: boolean;
+
+  bestSeller: boolean;
+
+  limited: boolean;
+
+  onSale: boolean;
 };
 
-/**
- * Search Autocomplete
- */
-export type ProductSearchResult = Pick<
-  Product,
-  | "id"
-  | "slug"
-  | "brand"
-  | "name"
-  | "model"
-> & {
-  images: ProductImage[];
+
+export type ProductSearchResult = {
+  id: number;
+
+  slug: string;
+
+  brand: string;
+
+  name: string;
+
+  model: string | null;
+
+  images: {
+    url: string;
+  }[];
 };
-
-/**
- * Lightweight Product
- */
-export type ProductSummary = Pick<
-  Product,
-  | "id"
-  | "slug"
-  | "brand"
-  | "name"
-  | "model"
->;
-
-/**
- * Product with Relations
- */
-export interface ProductWithRelations extends Product {
-  images: ProductImage[];
-  colors: ProductColor[];
-}
-
-/**
- * Inquiry Item
- */
-export interface InquiryItem {
-  productId: number;
-  quantity: number;
-
-  color?: string;
-  variant?: string;
-  dimensions?: string;
-  packaging?: string;
-}

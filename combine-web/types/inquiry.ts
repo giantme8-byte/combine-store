@@ -1,19 +1,15 @@
-// types/inquiry.ts
-
 export interface InquiryItem {
-  id: string;
-
-  slug: string;
-
-  brand: string;
-
-  name: string;
-
-  model?: string;
-
-  image: string;
+  productId: number;
 
   quantity: number;
+
+  color?: string;
+
+  variant?: string;
+
+  dimensions?: string;
+
+  packaging?: string;
 
   notes?: string;
 }

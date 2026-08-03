@@ -1,20 +1,19 @@
 "use client";
 
-import Image from "next/image";
-import { Prisma } from "@prisma/client";
+import type { CSSProperties } from "react";
 
-import Badge from "../../_components/Badge";
-import ProductActions from "./ProductActions";
-import { calculateProductProfit } from "@/lib/product";
+import Image from "next/image";
+
 import { GripVertical } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 
-type ProductWithImages = Prisma.ProductGetPayload<{
-  include: {
-    images: true;
-  };
-}>;
+import type { ProductWithImages } from "@/types/product";
+
+import { calculateProductProfit } from "@/lib/product";
+
+import Badge from "../../_components/Badge";
+import ProductActions from "./ProductActions";
 
 type ProductRowProps = {
   product: ProductWithImages;
@@ -32,7 +31,7 @@ export default function ProductRow({
   canDelete,
 }: ProductRowProps) {
   const result = calculateProductProfit(product, exchangeRate);
-  const {
+const {
   attributes,
   listeners,
   setNodeRef,
@@ -43,13 +42,13 @@ export default function ProductRow({
   id: product.id,
 });
 
-const style = {
+const style: CSSProperties = {
   transform: CSS.Transform.toString(transform),
   transition,
 };
 
 return (
-<tr
+  <tr
   ref={setNodeRef}
   style={style}
   className={`
@@ -94,16 +93,17 @@ return (
 
       {/* Product */}
       <td className="px-6 py-6 align-top">
-        <div className="flex gap-5">
-{product.images.length > 0 ? (
+<div className="flex gap-5">
+
+  {product.images.length > 0 ? (
   <div className="overflow-hidden rounded-2xl">
-    <Image
-      src={product.images[0].url}
-      alt={product.name}
-      width={96}
-      height={96}
-      sizes="100px"
-className="
+<Image
+  src={product.images[0].url}
+  alt={product.name}
+  width={96}
+  height={96}
+  sizes="100px"
+  className="
   h-24
   w-24
   rounded-2xl
@@ -246,8 +246,9 @@ className="
               Status
             </p>
 
-            <div className="mt-2">
-{product.availability === "IN_STOCK" ? (
+<div className="mt-2">
+
+  {product.availability === "IN_STOCK" ? (
   <Badge>
     🟢 In Stock
   </Badge>
