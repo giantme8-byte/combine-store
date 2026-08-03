@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,6 +16,7 @@ export default function ProductCard({
   name,
   model,
   image,
+  createdAt,
   featured,
   newArrival,
   bestSeller,
@@ -24,6 +26,20 @@ export default function ProductCard({
   const { addItem, openDrawer } = useInquiry();
 
   const productHref = slug ? `/shop/${slug}` : "/shop";
+
+const isNewArrival = useMemo(() => {
+  if (!newArrival) {
+    return false;
+  }
+
+  const now = new Date();
+  const created = new Date(createdAt);
+
+  return (
+    now.getTime() - created.getTime() <
+    30 * 24 * 60 * 60 * 1000
+  );
+}, [createdAt, newArrival]);
 
   function handleInquiry(event: React.MouseEvent) {
     event.preventDefault();
@@ -86,11 +102,11 @@ export default function ProductCard({
 
           {/* Labels */}
           <div className="absolute left-4 top-4 z-10 flex flex-col gap-2">
-            {newArrival && (
-              <span className="rounded-full bg-black px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-white">
-                NEW
-              </span>
-            )}
+{isNewArrival && (
+  <span className="rounded-full bg-black px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-white">
+    NEW
+  </span>
+)}
 
             {featured && (
               <span className="rounded-full bg-[#C8A96A] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-white">

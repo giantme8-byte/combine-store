@@ -70,25 +70,18 @@ export interface Product {
 
 export type ProductCardProps = {
   id: number;
-
   slug: string;
-
   brand: string;
-
   name: string;
-
   model: string | null;
-
   image: string;
 
+  createdAt: Date;
+
   featured: boolean;
-
   newArrival: boolean;
-
   bestSeller: boolean;
-
   limited: boolean;
-
   onSale: boolean;
 };
 

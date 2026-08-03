@@ -13,6 +13,8 @@ type Product = {
   slug: string | null;
   model: string | null;
 
+  createdAt: Date;
+
   featured: boolean;
   newArrival: boolean;
   bestSeller: boolean;
@@ -79,6 +81,7 @@ export default function RecentlyViewed() {
       name={product.name}
       model={product.model}
       image={product.images[0]?.url ?? "/placeholder.png"}
+      createdAt={product.createdAt}
       featured={product.featured}
       newArrival={product.newArrival}
       bestSeller={product.bestSeller}

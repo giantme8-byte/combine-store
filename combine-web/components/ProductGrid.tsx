@@ -11,6 +11,8 @@ type Product = {
   price: number;
   image: string;
 
+  createdAt: Date;
+
   category: string;
   subCategory: string |null;
 
@@ -160,6 +162,7 @@ Don&apos;t worry — we can help you source it.
                   name={product.name}
                   model={product.model}
                   image={product.image}
+                  createdAt={product.createdAt}
                   featured={product.featured}
                   newArrival={product.newArrival}
                   bestSeller={product.bestSeller}
@@ -186,15 +189,16 @@ Don&apos;t worry — we can help you source it.
 
       {products.map((product) => (
 
-        <ProductCard
-          key={product.id}
-          id={product.id}
-          slug={product.slug}
-          brand={product.brand}
-          name={product.name}
-          model={product.model}
-          image={product.image}
-          featured={product.featured}
+<ProductCard
+  key={product.id}
+  id={product.id}
+  slug={product.slug}
+  brand={product.brand}
+  name={product.name}
+  model={product.model}
+  image={product.image}
+  createdAt={product.createdAt}
+  featured={product.featured}
           newArrival={product.newArrival}
           bestSeller={product.bestSeller}
           limited={product.limited}

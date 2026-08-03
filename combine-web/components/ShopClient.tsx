@@ -26,6 +26,8 @@ type Product = {
 
   image: string;
 
+  createdAt: Date;
+
   category: string;
   subCategory: string | null;
 

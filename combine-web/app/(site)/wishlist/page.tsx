@@ -35,6 +35,8 @@ export default async function WishlistPage() {
             name: true,
             model: true,
 
+            createdAt: true,
+
             featured: true,
             newArrival: true,
             bestSeller: true,
@@ -185,23 +187,24 @@ export default async function WishlistPage() {
 
             {wishlist.map((item) => (
 
-              <ProductCard
-                key={item.id}
-                id={item.product.id}
-                slug={item.product.slug ?? ""}
-                brand={item.product.brand}
-                name={item.product.name}
-                model={item.product.model}
-                image={
-                  item.product.images[0]?.url ??
-                  "/placeholder.png"
-                }
-                featured={item.product.featured}
-                newArrival={item.product.newArrival}
-                bestSeller={item.product.bestSeller}
-                limited={item.product.limited}
-                onSale={item.product.onSale}
-              />
+<ProductCard
+  key={item.id}
+  id={item.product.id}
+  slug={item.product.slug ?? ""}
+  brand={item.product.brand}
+  name={item.product.name}
+  model={item.product.model}
+  image={
+    item.product.images[0]?.url ??
+    "/placeholder.png"
+  }
+  createdAt={item.product.createdAt}
+  featured={item.product.featured}
+  newArrival={item.product.newArrival}
+  bestSeller={item.product.bestSeller}
+  limited={item.product.limited}
+  onSale={item.product.onSale}
+/>
 
             ))}
 

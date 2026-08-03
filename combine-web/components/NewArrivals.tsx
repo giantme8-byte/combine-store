@@ -10,13 +10,16 @@ export default async function NewArrivals() {
       createdAt: "desc",
     },
     take: 4,
-    select: {
-      id: true,
-      slug: true,
-      brand: true,
-      name: true,
-      model: true,
-      featured: true,
+select: {
+  id: true,
+  slug: true,
+  brand: true,
+  name: true,
+  model: true,
+
+  createdAt: true,
+
+  featured: true,
       newArrival: true,
       bestSeller: true,
       limited: true,
@@ -72,6 +75,7 @@ export default async function NewArrivals() {
               name={product.name}
               model={product.model}
               image={product.images[0]?.url ?? "/placeholder.png"}
+              createdAt={product.createdAt}
               featured={product.featured}
               newArrival={product.newArrival}
               bestSeller={product.bestSeller}

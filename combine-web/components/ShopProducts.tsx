@@ -11,14 +11,11 @@ export default async function ShopProducts({
   brand,
   category,
 }: ShopProductsProps) {
-
   const [
     products,
     featuredProducts,
   ] = await Promise.all([
-
     prisma.product.findMany({
-
       where: {
         ...(brand
           ? {
@@ -26,8 +23,7 @@ export default async function ShopProducts({
             }
           : {}),
 
-        ...(category &&
-        category !== "All"
+        ...(category && category !== "All"
           ? {
               category,
             }
@@ -60,6 +56,8 @@ export default async function ShopProducts({
         subCategory: true,
         mainColor: true,
 
+        createdAt: true,
+
         featured: true,
         newArrival: true,
         bestSeller: true,
@@ -75,11 +73,9 @@ export default async function ShopProducts({
           },
         },
       },
-
     }),
 
     prisma.product.findMany({
-
       where: {
         featured: true,
       },
@@ -112,6 +108,8 @@ export default async function ShopProducts({
         subCategory: true,
         mainColor: true,
 
+        createdAt: true,
+
         featured: true,
         newArrival: true,
         bestSeller: true,
@@ -127,78 +125,52 @@ export default async function ShopProducts({
           },
         },
       },
-
     }),
-
   ]);
 
+
+  const formatProduct = (product: typeof products[number]) => ({
+    id: product.id,
+    slug: product.slug ?? "",
+    brand: product.brand,
+    name: product.name,
+    model: product.model,
+    sku: product.sku,
+
+    price: product.price,
+
+    displayOrder: product.displayOrder,
+
+    image:
+      product.images[0]?.url ??
+      "/placeholder.png",
+
+category: product.category,
+subCategory: product.subCategory,
+mainColor: product.mainColor,
+
+createdAt: product.createdAt,
+
+    featured: product.featured,
+    newArrival: product.newArrival,
+    bestSeller: product.bestSeller,
+    limited: product.limited,
+    onSale: product.onSale,
+  });
+
+
   const formattedProducts =
-    products.map((product) => ({
-      id: product.id,
-      slug: product.slug ?? "",
+    products.map(formatProduct);
 
-      brand: product.brand,
-      name: product.name,
-      model: product.model,
-      sku: product.sku,
-
-      price: product.price,
-
-      displayOrder: product.displayOrder,
-
-      image:
-        product.images[0]?.url ??
-        "/placeholder.png",
-
-      category: product.category,
-      subCategory: product.subCategory,
-
-      mainColor: product.mainColor,
-
-      featured: product.featured,
-      newArrival: product.newArrival,
-      bestSeller: product.bestSeller,
-      limited: product.limited,
-      onSale: product.onSale,
-    }));
 
   const formattedFeatured =
-    featuredProducts.map((product) => ({
-      id: product.id,
-      slug: product.slug ?? "",
+    featuredProducts.map(formatProduct);
 
-      brand: product.brand,
-      name: product.name,
-      model: product.model,
-      sku: product.sku,
-
-      price: product.price,
-
-      displayOrder: product.displayOrder,
-
-      image:
-        product.images[0]?.url ??
-        "/placeholder.png",
-
-      category: product.category,
-      subCategory: product.subCategory,
-
-      mainColor: product.mainColor,
-
-      featured: product.featured,
-      newArrival: product.newArrival,
-      bestSeller: product.bestSeller,
-      limited: product.limited,
-      onSale: product.onSale,
-    }));
 
   return (
     <ShopClient
       products={formattedProducts}
-      featuredProducts={
-        formattedFeatured
-      }
+      featuredProducts={formattedFeatured}
     />
   );
-
 }

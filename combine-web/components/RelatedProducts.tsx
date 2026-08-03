@@ -24,6 +24,8 @@ export default async function RelatedProducts({
       name: true,
       model: true,
 
+      createdAt: true,
+
       images: {
         orderBy: {
           sortOrder: "asc",
@@ -71,6 +73,7 @@ export default async function RelatedProducts({
             name={product.name}
             model={product.model}
             image={product.images[0]?.url ?? "/placeholder.png"}
+            createdAt={product.createdAt}
             featured={product.featured}
             newArrival={product.newArrival}
             bestSeller={product.bestSeller}
