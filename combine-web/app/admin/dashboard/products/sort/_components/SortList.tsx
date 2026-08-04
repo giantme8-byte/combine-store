@@ -119,11 +119,12 @@ export default function SortList({
 
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
 
-          {products.map((product) => (
+          {products.map((product, index) => (
 
             <SortableProductCard
               key={product.id}
               product={product}
+              index={index}
             />
 
           ))}

@@ -15,15 +15,15 @@ type ProductViewProps = {
 
   exchangeRate: number;
 
-brands: {
-  id: number;
-  name: string;
-}[];
+  brands: {
+    id: number;
+    name: string;
+  }[];
 
-categories: {
-  id: number;
-  name: string;
-}[];
+  categories: {
+    id: number;
+    name: string;
+  }[];
 
   canDelete: boolean;
 
@@ -45,10 +45,37 @@ export default function ProductView({
   const [view, setView] =
     useState<"table" | "grid">("table");
 
+  const [selectedCount] =
+    useState(0);
+
   return (
     <div className="space-y-4">
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+
+        <div className="flex items-center gap-3">
+
+          <span className="text-sm text-neutral-500">
+            {selectedCount} selected
+          </span>
+
+          <button
+            type="button"
+            className="
+              rounded-lg
+              border
+              border-neutral-200
+              px-4
+              py-2
+              text-sm
+              transition
+              hover:bg-neutral-100
+            "
+          >
+            Bulk Actions
+          </button>
+
+        </div>
 
         <div className="flex rounded-xl border border-neutral-200 bg-white p-1">
 

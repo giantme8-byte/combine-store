@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
 
-import type {
-  ProductWithImages,
-} from "@/types/product";
+import type { ProductWithImages } from "@/types/product";
 
 import SortToolbar from "./SortToolbar";
 import SortList from "./SortList";
@@ -20,15 +18,15 @@ import {
 type ProductSortingProps = {
   products: ProductWithImages[];
 
-brands: {
-  id: number;
-  name: string;
-}[];
+  brands: {
+    id: number;
+    name: string;
+  }[];
 
-categories: {
-  id: number;
-  name: string;
-}[];
+  categories: {
+    id: number;
+    name: string;
+  }[];
 };
 
 export default function ProductSorting({
@@ -36,7 +34,6 @@ export default function ProductSorting({
   brands,
   categories,
 }: ProductSortingProps) {
-
   const router = useRouter();
 
   const [search, setSearch] =
@@ -65,7 +62,6 @@ export default function ProductSorting({
     useState(false);
 
   useEffect(() => {
-
     setSortedProducts([
       ...products,
     ]);
@@ -73,22 +69,18 @@ export default function ProductSorting({
     setOriginalProducts([
       ...products,
     ]);
-
   }, [products]);
 
   useEffect(() => {
-
     const handleBeforeUnload = (
       event: BeforeUnloadEvent
     ) => {
-
       if (!hasChanges) {
         return;
       }
 
       event.preventDefault();
       event.returnValue = "";
-
     };
 
     window.addEventListener(
@@ -97,19 +89,15 @@ export default function ProductSorting({
     );
 
     return () => {
-
       window.removeEventListener(
         "beforeunload",
         handleBeforeUnload
       );
-
     };
-
   }, [hasChanges]);
 
   const filteredProducts =
     sortedProducts.filter((product) => {
-
       const matchSearch =
         product.name
           .toLowerCase()
@@ -130,21 +118,49 @@ export default function ProductSorting({
         matchBrand &&
         matchCategory
       );
-
     });
 
   return (
     <main className="space-y-8">
 
-      <div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
 
-        <h1 className="text-3xl font-semibold">
-          Product Sorting
-        </h1>
+        <div>
 
-        <p className="mt-2 text-neutral-500">
-          Reorder products using drag &amp; drop.
-        </p>
+          <h1 className="text-3xl font-semibold">
+            Product Sorting
+          </h1>
+
+          <p className="mt-2 text-neutral-500">
+            Showing{" "}
+            <span className="font-semibold text-neutral-900">
+              {filteredProducts.length}
+            </span>{" "}
+            of{" "}
+            <span className="font-semibold text-neutral-900">
+              {products.length}
+            </span>{" "}
+            products
+          </p>
+
+        </div>
+
+        <div
+          className="
+            rounded-full
+            border
+            border-green-200
+            bg-green-50
+            px-4
+            py-2
+            text-sm
+            font-medium
+            text-green-700
+          "
+        >
+          ✓ Drag &amp; Drop Enabled
+        </div>
 
       </div>
 
@@ -169,24 +185,19 @@ export default function ProductSorting({
       />
 
       {hasChanges && (
-
         <SaveBar
           saving={saving}
           onCancel={() => {
-
             setSortedProducts([
               ...originalProducts,
             ]);
 
             setHasChanges(false);
-
           }}
           onSave={async () => {
-
             setSaving(true);
 
             try {
-
               await updateProductDisplayOrder(
                 sortedProducts.map(
                   (
@@ -212,7 +223,6 @@ export default function ProductSorting({
               router.refresh();
 
             } catch (error) {
-
               console.error(error);
 
               toast.error(
@@ -220,14 +230,10 @@ export default function ProductSorting({
               );
 
             } finally {
-
               setSaving(false);
-
             }
-
           }}
         />
-
       )}
 
     </main>

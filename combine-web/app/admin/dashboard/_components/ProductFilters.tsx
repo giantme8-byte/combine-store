@@ -267,19 +267,35 @@ onChange={(e) => {
   </option>
 
   <option value="latest">
-    Latest
+    Latest First
   </option>
 
   <option value="oldest">
-    Oldest
+    Oldest First
   </option>
 
-  <option value="az">
+  <option value="name_az">
     Name A-Z
   </option>
 
-  <option value="za">
+  <option value="name_za">
     Name Z-A
+  </option>
+
+  <option value="brand_az">
+    Brand A-Z
+  </option>
+
+  <option value="brand_za">
+    Brand Z-A
+  </option>
+
+  <option value="price_low">
+    Price Low - High
+  </option>
+
+  <option value="price_high">
+    Price High - Low
   </option>
 </select>
 
