@@ -1,53 +1,82 @@
 const features = [
   {
-    title: "Premium Quality",
+    title: "Exceptional Quality",
     description:
-      "Every piece is carefully selected with exceptional craftsmanship and premium finishing.",
-    icon: "✨",
+      "Every luxury piece is carefully selected with exceptional craftsmanship, refined materials and meticulous attention to detail.",
+    icon: "✦",
   },
   {
     title: "Luxury Experience",
     description:
-      "Designed to deliver an elegant shopping experience from browsing to delivery.",
-    icon: "👜",
+      "From product discovery to delivery, every step is thoughtfully designed to provide a seamless luxury shopping experience.",
+    icon: "◈",
   },
   {
     title: "Worldwide Shipping",
     description:
-      "Fast, secure and reliable international shipping with careful packaging.",
-    icon: "🌍",
+      "Secure worldwide delivery with careful packaging, ensuring every item arrives in pristine condition.",
+    icon: "◎",
   },
   {
-    title: "Dedicated Support",
+    title: "Dedicated Concierge",
     description:
-      "Professional customer service ready to assist you before and after your purchase.",
-    icon: "💬",
+      "Our team is ready to assist you with personalised recommendations before and after every purchase.",
+    icon: "✧",
   },
 ];
 
 export default function WhyChooseUs() {
   return (
     <section className="bg-[#fafafa] py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-
+      <div className="mx-auto max-w-[1440px] px-8 lg:px-12">
         {/* Header */}
-        <div className="mx-auto mb-20 max-w-3xl text-center">
-
-          <p className="text-xs uppercase tracking-[0.45em] text-gray-400">
-            WHY CHOOSE COMBINE
+        <div className="mx-auto mb-24 max-w-4xl text-center">
+          <p className="text-xs uppercase tracking-[0.55em] text-neutral-400">
+            WHY COMBINE
           </p>
 
-          <h2 className="mt-5 text-5xl font-extralight tracking-tight md:text-6xl">
-            Crafted For Those Who
+          <h2
+            className="
+              mt-6
+              text-5xl
+              font-extralight
+              tracking-[-0.04em]
+              text-neutral-900
+              md:text-6xl
+            "
+          >
+            Crafted For
             <br />
-            Appreciate Luxury
+            Modern Luxury
           </h2>
 
-          <p className="mt-8 text-lg leading-8 text-gray-500">
-            Every detail is thoughtfully curated to deliver an elevated
-            luxury shopping experience.
-          </p>
+          <div
+            className="
+              mx-auto
+              mt-8
+              h-px
+              w-20
+              bg-gradient-to-r
+              from-transparent
+              via-[#C8A96A]
+              to-transparent
+            "
+          />
 
+          <p
+            className="
+              mx-auto
+              mt-8
+              max-w-3xl
+              text-lg
+              leading-8
+              text-neutral-500
+            "
+          >
+            Every detail is thoughtfully curated to deliver an elevated
+            luxury shopping experience, combining timeless elegance,
+            exceptional quality and personalised service.
+          </p>
         </div>
 
         {/* Features */}
@@ -55,23 +84,103 @@ export default function WhyChooseUs() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-[32px] border border-gray-100 bg-white p-10 text-center shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+              className="
+                group
+                rounded-[32px]
+                border
+                border-neutral-200
+                bg-white
+                p-10
+                transition-all
+                duration-500
+                hover:-translate-y-2
+                hover:border-[#C8A96A]
+                hover:shadow-[0_30px_80px_rgba(0,0,0,.10)]
+              "
             >
-              <div className="text-5xl">
+              <div
+                className="
+                  text-5xl
+                  font-extralight
+                  text-[#C8A96A]
+                  transition-transform
+                  duration-500
+                  group-hover:scale-110
+                "
+              >
                 {feature.icon}
               </div>
 
-              <h3 className="mt-8 text-2xl font-light">
+              <h3
+                className="
+                  mt-10
+                  text-2xl
+                  font-light
+                  tracking-[-0.02em]
+                  text-neutral-900
+                "
+              >
                 {feature.title}
               </h3>
 
-              <p className="mt-5 leading-8 text-gray-500">
+              <div className="mt-5 h-px w-10 bg-[#C8A96A]" />
+
+              <p
+                className="
+                  mt-6
+                  leading-8
+                  text-neutral-500
+                "
+              >
                 {feature.description}
               </p>
             </div>
           ))}
         </div>
 
+        {/* Bottom Stats */}
+        <div
+          className="
+            mt-28
+            grid
+            gap-12
+            border-t
+            border-neutral-200
+            pt-16
+            text-center
+            md:grid-cols-3
+          "
+        >
+          <div>
+            <p className="text-5xl font-extralight text-neutral-900">
+              2000+
+            </p>
+
+            <p className="mt-3 text-xs uppercase tracking-[0.4em] text-neutral-400">
+              Luxury Products
+            </p>
+          </div>
+
+          <div>
+            <p className="text-5xl font-extralight text-neutral-900">
+              99%
+            </p>
+
+            <p className="mt-3 text-xs uppercase tracking-[0.4em] text-neutral-400">
+              Premium Quality
+            </p>
+          </div>
+
+          <div>
+            <p className="text-5xl font-extralight text-neutral-900">
+              Worldwide
+            </p>
+
+            <p className="mt-3 text-xs uppercase tracking-[0.4em] text-neutral-400">
+              Shipping
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -1,6 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import {
+  ArrowRight,
+  ChevronDown,
+} from "lucide-react";
+
 export default function Hero() {
   return (
     <section
@@ -13,26 +18,58 @@ export default function Hero() {
       "
     >
       {/* Background */}
-      <Image
-        src="/images/hero-luxury.png"
-        alt="COMBINE Luxury Collection"
-        fill
-        priority
-        className="
-          object-cover
-          object-[68%_center]
-          md:object-center
-        "
-      />
+<Image
+  src="/images/hero-luxury.png"
+  alt="COMBINE Luxury Collection"
+  fill
+  priority
+  quality={100}
+  className="
+    object-cover
+    object-[68%_center]
+    md:object-center
+    scale-105
+    animate-[heroZoom_18s_ease-in-out_infinite_alternate]
+  "
+/>
 
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/30" />
+{/* Dark Overlay */}
+<div className="absolute inset-0 bg-black/45" />
 
-      {/* Luxury Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+{/* Luxury Gradient */}
+<div
+  className="
+    absolute
+    inset-0
+    bg-gradient-to-r
+    from-black/80
+    via-black/35
+    to-black/10
+  "
+ />
 
-      {/* Bottom Fade */}
-      <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-white via-white/5 to-transparent md:h-72" />
+{/* Bottom Fade */}
+<div
+  className="
+    absolute
+    inset-x-0
+    bottom-0
+    h-56
+    bg-gradient-to-t
+    from-white
+    via-white/10
+    to-transparent
+    md:h-80
+  "
+ />
+
+<div
+  className="
+    absolute
+    inset-0
+    bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.18),transparent_40%)]
+  "
+ />
 
       {/* Content */}
       <div
@@ -50,135 +87,244 @@ export default function Hero() {
           xl:px-14
         "
       >
-        <div className="max-w-md text-white md:max-w-2xl">
+        <div className="max-w-xl text-white md:max-w-3xl">
           {/* Small Title */}
-          <p
-            className="
-              mb-5
-              text-[10px]
-              font-medium
-              uppercase
-              tracking-[0.45em]
-              text-white/70
-              md:mb-8
-              md:text-[11px]
-              md:tracking-[0.55em]
-            "
-          >
-            COMBINE · Luxury Collection
-          </p>
+<p
+  className="
+    mb-6
+    inline-flex
+    items-center
+    gap-3
+    rounded-full
+    border
+    border-white/20
+    bg-white/10
+    px-5
+    py-2
+    text-[10px]
+    font-medium
+    uppercase
+    tracking-[0.45em]
+    text-white/90
+    backdrop-blur-xl
+    md:mb-10
+    md:text-[11px]
+  "
+>
+  COMBINE
+
+  <span className="h-1 w-1 rounded-full bg-[#D5B47F]" />
+
+  Luxury Collection
+</p>
 
           {/* Title */}
-          <h1
-            className="
-              text-4xl
-              font-light
-              leading-[0.92]
-              tracking-[-0.04em]
-              text-white
-              md:text-8xl
-              md:leading-[0.88]
-            "
-          >
-            Discover
-            <br />
-            Luxury
+<h1
+  className="
+    text-[48px]
+    font-extralight
+    leading-[0.9]
+    tracking-[-0.06em]
+    text-white
+    drop-shadow-2xl
+    md:text-[108px]
+  "
+>
+Discover
+
+<br />
+
+Timeless Luxury
           </h1>
 
           {/* Description */}
-          <p
-            className="
-              mt-6
-              max-w-sm
-              text-sm
-              leading-6
-              text-white/80
-              md:mt-10
-              md:max-w-xl
-              md:text-lg
-              md:leading-8
-            "
-          >
-            Curated luxury handbags, watches and jewellery,
-            crafted with exceptional attention to detail for
-            timeless sophistication.
+<p
+  className="
+    mt-8
+    max-w-2xl
+    text-[15px]
+    leading-8
+    text-white/80
+    md:text-xl
+    md:leading-10
+  "
+>
+Curated luxury handbags, watches and jewellery with exceptional craftsmanship, timeless elegance and worldwide shipping.
           </p>
 
-          {/* Buttons */}
-          <div
-            className="
-              mt-8
-              flex
-              flex-wrap
-              gap-3
-              md:mt-16
-              md:gap-5
-            "
-          >
-            <Link
-              href="/shop"
-              className="
-                rounded-full
-                bg-white
-                px-6
-                py-3
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-[0.25em]
-                text-black
-                transition-all
-                duration-300
-                hover:-translate-y-0.5
-                hover:bg-neutral-100
-                md:px-10
-                md:py-4
-                md:text-[12px]
-              "
-            >
-              Discover Collection
-            </Link>
+{/* Buttons */}
+<div
+  className="
+    mt-12
+    flex
+    flex-wrap
+    items-center
+    gap-4
+    md:mt-16
+  "
+>
+  <Link
+    href="/shop"
+    className="
+      group
+      inline-flex
+      items-center
+      gap-3
+      overflow-hidden
+      rounded-full
+      bg-white
+      px-8
+      py-4
+      text-[11px]
+      font-semibold
+      uppercase
+      tracking-[0.28em]
+      text-black
+      shadow-2xl
+      transition-all
+      duration-500
+      hover:-translate-y-1
+      hover:shadow-white/20
+    "
+  >
+    Discover Collection
 
-            <Link
-              href="/contact"
-              className="
-                rounded-full
-                border
-                border-white/40
-                px-6
-                py-3
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-[0.25em]
-                text-white
-                transition-all
-                duration-300
-                hover:border-white
-                hover:bg-white
-                hover:text-black
-                md:px-10
-                md:py-4
-                md:text-[12px]
-              "
-            >
-              WhatsApp Us
-            </Link>
-          </div>
+    <ArrowRight
+      size={18}
+      className="
+        transition-transform
+        duration-300
+        group-hover:translate-x-1
+      "
+    />
+  </Link>
+
+  <Link
+    href="/contact"
+    className="
+      group
+      inline-flex
+      items-center
+      rounded-full
+      border
+      border-white/30
+      bg-white/10
+      px-8
+      py-4
+      text-[11px]
+      font-medium
+      uppercase
+      tracking-[0.28em]
+      text-white
+      backdrop-blur-xl
+      transition-all
+      duration-500
+      hover:border-[#D5B47F]
+      hover:bg-[#D5B47F]
+      hover:text-black
+    "
+  >
+    WhatsApp Us
+  </Link>
+</div>
+
+{/* Luxury Stats */}
+<div
+  className="
+    mt-14
+    grid
+    max-w-xl
+    grid-cols-3
+    gap-8
+  "
+>
+  <div>
+    <p className="text-3xl font-extralight text-white md:text-4xl">
+      2000+
+    </p>
+
+    <p
+      className="
+        mt-2
+        text-[10px]
+        uppercase
+        tracking-[0.35em]
+        text-white/60
+      "
+    >
+      Products
+    </p>
+  </div>
+
+  <div>
+    <p className="text-3xl font-extralight text-white md:text-4xl">
+      99%
+    </p>
+
+    <p
+      className="
+        mt-2
+        text-[10px]
+        uppercase
+        tracking-[0.35em]
+        text-white/60
+      "
+    >
+      Premium Quality
+    </p>
+  </div>
+
+  <div>
+    <p className="text-3xl font-extralight text-white md:text-4xl">
+      Worldwide
+    </p>
+
+    <p
+      className="
+        mt-2
+        text-[10px]
+        uppercase
+        tracking-[0.35em]
+        text-white/60
+      "
+    >
+      Shipping
+    </p>
+  </div>
+</div>
+
         </div>
       </div>
 
-      {/* Desktop Scroll Indicator */}
-      <div className="absolute bottom-10 left-1/2 hidden -translate-x-1/2 md:block">
-        <div className="flex flex-col items-center">
-          <span className="text-[10px] uppercase tracking-[0.45em] text-white/70">
-            Scroll
-          </span>
+      {/* Scroll Indicator */}
+      <div
+        className="
+          absolute
+          bottom-10
+          left-1/2
+          hidden
+          -translate-x-1/2
+          md:flex
+          flex-col
+          items-center
+          text-white/70
+        "
+      >
+        <ChevronDown
+          size={18}
+          className="animate-bounce"
+        />
 
-          <div className="mt-4 h-16 w-px bg-gradient-to-b from-white to-transparent" />
-
-          <div className="mt-2 h-2 w-2 animate-bounce rounded-full bg-white/70" />
-        </div>
+        <span
+          className="
+            mt-3
+            text-[10px]
+            uppercase
+            tracking-[0.45em]
+          "
+        >
+          Scroll
+        </span>
       </div>
     </section>
   );

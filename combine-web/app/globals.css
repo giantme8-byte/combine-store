@@ -22,7 +22,6 @@ body.quick-view-open #__next {
   transition: transform 0.35s ease;
 }
 
-/* 先把下面两段全部注释掉 */
 /*
 a {
   color: inherit;
@@ -32,3 +31,59 @@ button {
   cursor: pointer;
 }
 */
+
+/* ------------------------------ */
+/* Product Gallery Animation */
+/* ------------------------------ */
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ------------------------------ */
+/* Hero Animations */
+/* ------------------------------ */
+
+@keyframes heroZoom {
+  from {
+    transform: scale(1.05);
+  }
+
+  to {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}

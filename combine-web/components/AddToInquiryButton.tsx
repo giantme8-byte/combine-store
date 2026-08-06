@@ -27,9 +27,11 @@ export default function AddToInquiryButton({
     openDrawer,
   } = useInquiry();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const added = isInInquiry(productId);
+  const added =
+    isInInquiry(productId);
 
   function handleAdd() {
     if (loading) return;
@@ -38,18 +40,17 @@ export default function AddToInquiryButton({
 
     try {
       addItem(productId, {
-  color,
-  variant,
-  dimensions,
-  packaging,
-});
+        color,
+        variant,
+        dimensions,
+        packaging,
+      });
 
       openDrawer();
 
       toast.success(
         "Added to inquiry."
       );
-
     } catch (error) {
       console.error(
         "Failed to add inquiry:",
@@ -59,7 +60,6 @@ export default function AddToInquiryButton({
       toast.error(
         "Something went wrong."
       );
-
     } finally {
       setLoading(false);
     }
@@ -71,34 +71,67 @@ export default function AddToInquiryButton({
       onClick={handleAdd}
       disabled={loading}
       className={`
+        group
+        relative
         inline-flex
         w-full
         items-center
         justify-center
+        overflow-hidden
         rounded-full
         border
         px-8
         py-4
         text-sm
-        font-medium
+        font-semibold
         uppercase
-        tracking-[0.25em]
+        tracking-[0.28em]
         transition-all
-        duration-300
+        duration-500
         disabled:cursor-not-allowed
         disabled:opacity-50
         ${
           added
-            ? "border-green-600 bg-green-600 text-white"
-            : "border-black text-black hover:bg-black hover:text-white"
+            ? "border-green-600 bg-green-600 text-white shadow-lg"
+            : "border-neutral-300 bg-white text-black hover:-translate-y-1 hover:border-black hover:shadow-xl"
         }
       `}
     >
-      {loading
-        ? "Adding..."
-        : added
-        ? "✓ Added"
-        : "Add to Inquiry"}
+      {!added && (
+        <span
+          className="
+            absolute
+            inset-0
+            bg-gradient-to-r
+            from-neutral-900
+            via-neutral-700
+            to-neutral-900
+            opacity-0
+            transition-opacity
+            duration-500
+            group-hover:opacity-100
+          "
+        />
+      )}
+
+      <span
+        className={`
+          relative
+          z-10
+          transition-colors
+          duration-300
+          ${
+            !added &&
+            "group-hover:text-white"
+          }
+        `}
+      >
+        {loading
+          ? "Adding..."
+          : added
+          ? "✓ Added"
+          : "+ Add Inquiry"}
+      </span>
     </button>
   );
 }

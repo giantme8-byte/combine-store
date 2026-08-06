@@ -18,31 +18,46 @@ export default function ProductOptions() {
   } = useProduct();
 
   return (
-    <div className="mt-10 space-y-10">
+    <div className="mt-12 space-y-12">
       {/* Colour */}
       {colors.length > 0 && (
         <div>
-          <p className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-400">
+          <p className="mb-3 text-[11px] uppercase tracking-[0.38em] text-neutral-400">
             Colour
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-3">
-            {colors.map((color) => (
-              <button
-                key={color.id}
-                type="button"
-                onClick={() =>
-                  setSelectedColor(color)
-                }
-                className={`rounded-full border px-5 py-2 text-sm transition ${
-                  selectedColor?.id === color.id
-                    ? "border-black bg-black text-white"
-                    : "border-neutral-300 hover:border-black"
-                }`}
-              >
-                {color.name}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-4">
+            {colors.map((color) => {
+              const active =
+                selectedColor?.id === color.id;
+
+              return (
+                <button
+                  key={color.id}
+                  type="button"
+                  onClick={() =>
+                    setSelectedColor(color)
+                  }
+                  className={`
+                    rounded-full
+                    border
+                    px-6
+                    py-3
+                    text-sm
+                    font-medium
+                    transition-all
+                    duration-300
+                    ${
+                      active
+                        ? "border-black bg-black text-white shadow-xl scale-105"
+                        : "border-neutral-300 bg-white hover:-translate-y-0.5 hover:border-black hover:shadow-md"
+                    }
+                  `}
+                >
+                  {color.name}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -50,66 +65,109 @@ export default function ProductOptions() {
       {/* Size */}
       {variants.length > 0 && (
         <div>
-          <p className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-400">
+          <p className="mb-3 text-[11px] uppercase tracking-[0.38em] text-neutral-400">
             Size
           </p>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {variants.map((variant) => (
-              <button
-                key={variant.id}
-                type="button"
-                onClick={() =>
-                  setSelectedVariant(variant)
-                }
-                className={`rounded-2xl border p-4 text-left transition ${
-                  selectedVariant?.id === variant.id
-                    ? "border-black bg-black text-white"
-                    : "border-neutral-300 hover:border-black"
-                }`}
-              >
-                <p className="font-medium">
-                  {variant.size}
-                </p>
+          <div className="grid grid-cols-2 gap-4">
+            {variants.map((variant) => {
+              const active =
+                selectedVariant?.id ===
+                variant.id;
 
-                {variant.dimensions && (
-                  <p
-                    className={`mt-1 text-xs ${
-                      selectedVariant?.id ===
-                      variant.id
-                        ? "text-neutral-300"
-                        : "text-neutral-500"
-                    }`}
-                  >
-                    {variant.dimensions}
-                  </p>
-                )}
-              </button>
-            ))}
+              return (
+                <button
+                  key={variant.id}
+                  type="button"
+                  onClick={() =>
+                    setSelectedVariant(
+                      variant
+                    )
+                  }
+                  className={`
+                    rounded-3xl
+                    border
+                    p-5
+                    text-left
+                    transition-all
+                    duration-300
+                    ${
+                      active
+                        ? "border-black bg-black text-white shadow-xl scale-[1.02]"
+                        : "border-neutral-200 bg-white hover:-translate-y-1 hover:border-black hover:shadow-lg"
+                    }
+                  `}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-base font-medium">
+                      {variant.size}
+                    </p>
+
+                    {active && (
+                      <span className="text-xs uppercase tracking-[0.2em]">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+
+                  {variant.dimensions && (
+                    <p
+                      className={`mt-2 text-xs ${
+                        active
+                          ? "text-neutral-300"
+                          : "text-neutral-500"
+                      }`}
+                    >
+                      {variant.dimensions}
+                    </p>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
 
       {/* Quantity */}
       <div>
-        <p className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-400">
+        <p className="mb-3 text-[11px] uppercase tracking-[0.38em] text-neutral-400">
           Quantity
         </p>
 
-        <div className="mt-4 inline-flex items-center overflow-hidden rounded-full border border-neutral-300">
+        <div
+          className="
+            inline-flex
+            items-center
+            overflow-hidden
+            rounded-full
+            border
+            border-neutral-300
+            bg-white
+            shadow-sm
+          "
+        >
           <button
             type="button"
             onClick={() =>
               setQuantity(
-                Math.max(1, quantity - 1)
+                Math.max(
+                  1,
+                  quantity - 1
+                )
               )
             }
-            className="px-5 py-3 transition hover:bg-neutral-100"
+            className="
+              px-6
+              py-3
+              text-xl
+              transition
+              hover:bg-neutral-100
+            "
           >
             −
           </button>
 
-          <div className="min-w-16 px-4 text-center font-medium">
+          <div className="min-w-16 px-6 text-center text-base font-medium">
             {quantity}
           </div>
 
@@ -118,7 +176,13 @@ export default function ProductOptions() {
             onClick={() =>
               setQuantity(quantity + 1)
             }
-            className="px-5 py-3 transition hover:bg-neutral-100"
+            className="
+              px-6
+              py-3
+              text-xl
+              transition
+              hover:bg-neutral-100
+            "
           >
             +
           </button>

@@ -90,48 +90,157 @@ setProducts(data);
   }, [items, products]);
 
 return (
-  <main className="mx-auto max-w-7xl px-6 py-20">
-    <div className="mb-16 text-center">
-      <p className="text-sm uppercase tracking-[0.35em] text-neutral-400">
-        COMBINE
-      </p>
+  <main className="mx-auto max-w-[1440px] px-8 pb-32 pt-36 lg:px-12">
+<div className="mx-auto mb-24 max-w-4xl text-center">
+  <p className="text-xs uppercase tracking-[0.55em] text-neutral-400">
+    INQUIRY LIST
+  </p>
 
-      <h1 className="mt-4 text-5xl font-light">
-        Inquiry List
-      </h1>
+  <h1
+    className="
+      mt-6
+      text-5xl
+      font-extralight
+      tracking-[-0.04em]
+      text-neutral-900
+      md:text-6xl
+    "
+  >
+    Your Inquiry
+  </h1>
 
-      <p className="mt-4 text-sm uppercase tracking-[0.3em] text-neutral-400">
-        {items.length} Item
-        {items.length === 1 ? "" : "s"}
-      </p>
+  <div
+    className="
+      mx-auto
+      mt-8
+      h-px
+      w-20
+      bg-gradient-to-r
+      from-transparent
+      via-[#C8A96A]
+      to-transparent
+    "
+  />
 
-      <p className="mt-6 text-neutral-500">
-        Add your favourite products and submit an inquiry.
-      </p>
-    </div>
+  <p
+    className="
+      mx-auto
+      mt-8
+      max-w-3xl
+      text-lg
+      leading-8
+      text-neutral-500
+    "
+  >
+    Save the luxury pieces you're interested in and send us
+    an enquiry. Our team will prepare availability, pricing
+    and shipping details for you.
+  </p>
+
+  <p
+    className="
+      mt-10
+      text-xs
+      uppercase
+      tracking-[0.35em]
+      text-neutral-400
+    "
+  >
+    {items.length} Selected Item
+    {items.length === 1 ? "" : "s"}
+  </p>
+</div>
 
     {loading ? (
       <div className="py-24 text-center text-neutral-500">
         Loading...
       </div>
-    ) : items.length === 0 ? (
-      <div className="py-24 text-center">
-        <h2 className="text-2xl font-light">
-          Your inquiry list is empty.
-        </h2>
+) : items.length === 0 ? (
+  <div
+    className="
+      mx-auto
+      flex
+      max-w-3xl
+      flex-col
+      items-center
+      rounded-[36px]
+      border
+      border-neutral-200
+      bg-gradient-to-b
+      from-white
+      to-neutral-50
+      px-12
+      py-20
+      text-center
+      shadow-[0_30px_80px_rgba(0,0,0,.05)]
+    "
+  >
+    <div
+      className="
+        flex
+        h-28
+        w-28
+        items-center
+        justify-center
+        rounded-full
+        bg-neutral-100
+        text-5xl
+      "
+    >
+      👜
+    </div>
 
-        <p className="mt-4 text-neutral-500">
-          Browse our collection and add products you like.
-        </p>
+    <h2
+      className="
+        mt-10
+        text-5xl
+        font-extralight
+        tracking-[-0.04em]
+      "
+    >
+      Your Inquiry
+      <br />
+      is Empty
+    </h2>
 
-        <Link
-          href="/shop"
-          className="mt-10 inline-flex rounded-full border border-black px-8 py-3 transition hover:bg-black hover:text-white"
-        >
-          Browse Products
-        </Link>
-      </div>
-    ) : (
+    <p
+      className="
+        mt-8
+        max-w-xl
+        text-lg
+        leading-9
+        text-neutral-500
+      "
+    >
+      Add your favourite luxury pieces to your inquiry list.
+      When you're ready, we'll prepare pricing, availability
+      and shipping details for you.
+    </p>
+
+    <Link
+      href="/shop"
+      className="
+        mt-12
+        inline-flex
+        rounded-full
+        bg-black
+        px-10
+        py-4
+        text-sm
+        uppercase
+        tracking-[0.3em]
+        text-white
+        transition-all
+        duration-300
+        hover:-translate-y-1
+        hover:bg-[#C8A96A]
+        hover:shadow-xl
+      "
+    >
+      Browse Collection
+    </Link>
+  </div>
+): (
       <>
         <div className="space-y-6">
           {inquiryProducts.map((item) => {
@@ -140,18 +249,52 @@ return (
             return (
               <div
                 key={item.productId}
-                className="flex items-center justify-between rounded-2xl border p-6"
+                className="
+  flex
+  flex-col
+  gap-8
+  rounded-[32px]
+  border
+  border-neutral-200
+  bg-white
+  p-8
+  shadow-sm
+  transition-all
+  duration-300
+  hover:-translate-y-1
+  hover:shadow-[0_25px_70px_rgba(0,0,0,.06)]
+  lg:flex-row
+  lg:items-center
+"
               >
                 <div className="flex flex-1 items-center gap-6">
-                  <div className="h-28 w-28 overflow-hidden rounded-xl border bg-neutral-100">
+                  <div
+  className="
+    h-40
+    w-40
+    overflow-hidden
+    rounded-[24px]
+    border
+    border-neutral-200
+    bg-gradient-to-b
+    from-white
+    to-neutral-100
+    p-4
+    shrink-0
+  "
+>
                     {product?.images?.[0]?.url ? (
 <Image
   src={product.images[0].url}
   alt={product.name}
-  width={112}
-  height={112}
-  sizes="112px"
-  className="h-full w-full object-cover"
+  width={160}
+  height={160}
+  sizes="160px"
+  className="
+  h-full
+  w-full
+  object-contain
+"
 />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-neutral-400">
@@ -161,15 +304,37 @@ return (
                   </div>
 
                   <div className="flex-1">
-                    <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
+                    <p className="
+  text-[11px]
+  uppercase
+  tracking-[0.4em]
+  text-neutral-400
+">
                       {product?.brand}
                     </p>
 
-                    <h2 className="mt-1 text-xl font-medium">
+<h2
+  className="
+    mt-3
+    mb-4
+    text-3xl
+    font-extralight
+    tracking-[-0.03em]
+    text-neutral-900
+  "
+>
                       {product?.name}
                     </h2>
 
-                    <div className="mt-3 space-y-1 text-sm text-neutral-500">
+                    <div
+  className="
+    mt-6
+    space-y-2
+    text-sm
+    leading-7
+    text-neutral-500
+  "
+>
                       <p>SKU: {product?.sku ?? "-"}</p>
 
                       <p>Model: {product?.model ?? "-"}</p>
@@ -177,9 +342,17 @@ return (
                       <p>Status: {product?.availability}</p>
                     </div>
 
-                    <p className="mt-4 text-sm text-neutral-500">
-                      Quantity
-                    </p>
+<p
+  className="
+    mt-8
+    text-[11px]
+    uppercase
+    tracking-[0.3em]
+    text-neutral-400
+  "
+>
+  Quantity
+</p>
 
                     <div className="mt-2 flex items-center gap-2">
                       <button
@@ -213,33 +386,107 @@ return (
                   </div>
                 </div>
 
-                <button
-                  onClick={() =>
-                    removeItem(item.productId)
-                  }
-                  className="rounded-full border border-red-500 px-5 py-2 text-red-500 transition hover:bg-red-500 hover:text-white"
-                >
-                  Remove
-                </button>
+<button
+  type="button"
+  onClick={() => removeItem(item.productId)}
+  className="
+    inline-flex
+    items-center
+    justify-center
+    self-center
+    rounded-full
+    border
+    border-neutral-300
+    px-6
+    py-3
+    text-[11px]
+    font-medium
+    uppercase
+    tracking-[0.25em]
+    text-neutral-600
+    transition-all
+    duration-300
+    hover:-translate-y-1
+    hover:border-red-500
+    hover:bg-red-500
+    hover:text-white
+    hover:shadow-lg
+  "
+>
+  Remove
+</button>
+
               </div>
             );
           })}
         </div>
 
-        <div className="mt-12 flex flex-wrap gap-4">
-<button
-  onClick={clearInquiry}
-  className="rounded-full border border-neutral-300 px-8 py-3 transition hover:bg-neutral-100"
->
-  Clear Inquiry
-</button>
+        <div
+          className="
+            mt-16
+            flex
+            flex-wrap
+            items-center
+            justify-end
+            gap-4
+            border-t
+            border-neutral-200
+            pt-10
+          "
+        >
+          <button
+            type="button"
+            onClick={clearInquiry}
+            className="
+              inline-flex
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-neutral-300
+              px-8
+              py-4
+              text-[11px]
+              font-medium
+              uppercase
+              tracking-[0.3em]
+              text-neutral-700
+              transition-all
+              duration-300
+              hover:-translate-y-1
+              hover:border-red-500
+              hover:bg-red-500
+              hover:text-white
+              hover:shadow-lg
+            "
+          >
+            Clear Inquiry
+          </button>
 
-<Link
-  href="/inquiry/checkout"
-  className="rounded-full bg-black px-8 py-3 text-white transition hover:bg-neutral-800"
->
-  Continue
-</Link>
+          <Link
+            href="/inquiry/checkout"
+            className="
+              inline-flex
+              items-center
+              justify-center
+              rounded-full
+              bg-black
+              px-10
+              py-4
+              text-[11px]
+              font-medium
+              uppercase
+              tracking-[0.3em]
+              text-white
+              transition-all
+              duration-300
+              hover:-translate-y-1
+              hover:bg-[#C8A96A]
+              hover:shadow-xl
+            "
+          >
+            Continue →
+          </Link>
         </div>
       </>
     )}

@@ -1,41 +1,62 @@
 export default function Loading() {
   return (
-    <main className="mx-auto max-w-[1440px] px-8 pb-32 pt-36 lg:px-12">
-      <div className="animate-pulse">
+    <main className="flex min-h-screen items-center justify-center bg-white px-8">
+      <div className="text-center">
 
-        <div className="h-10 w-64 rounded bg-neutral-200" />
+        <p
+          className="
+            text-xs
+            uppercase
+            tracking-[0.55em]
+            text-neutral-400
+          "
+        >
+          COMBINE
+        </p>
 
-        <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <h1
+          className="
+            mt-6
+            text-6xl
+            font-extralight
+            tracking-[-0.04em]
+            text-neutral-900
+          "
+        >
+          Loading
+        </h1>
 
-          {Array.from({ length: 12 }).map((_, index) => (
-            <div
-              key={index}
-              className="overflow-hidden rounded-[28px] border border-neutral-200 bg-white"
-            >
-              <div className="aspect-[4/5] bg-neutral-200" />
-
-              <div className="space-y-4 p-5">
-
-                <div className="h-3 w-20 rounded bg-neutral-200" />
-
-                <div className="h-8 w-3/4 rounded bg-neutral-200" />
-
-                <div className="h-4 w-24 rounded bg-neutral-200" />
-
-                <div className="flex justify-between pt-6">
-
-                  <div className="h-3 w-24 rounded bg-neutral-200" />
-
-                  <div className="h-5 w-5 rounded-full bg-neutral-200" />
-
-                </div>
-
-              </div>
-
-            </div>
-          ))}
-
+        <div
+          className="
+            mx-auto
+            mt-10
+            h-px
+            w-28
+            overflow-hidden
+            bg-neutral-200
+          "
+        >
+          <div
+            className="
+              h-full
+              w-1/2
+              animate-pulse
+              bg-[#C8A96A]
+            "
+          />
         </div>
+
+        <p
+          className="
+            mt-8
+            text-sm
+            tracking-[0.25em]
+            uppercase
+            text-neutral-400
+          "
+        >
+          Please Wait
+        </p>
 
       </div>
     </main>

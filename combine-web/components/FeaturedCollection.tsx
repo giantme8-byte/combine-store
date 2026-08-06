@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 
@@ -20,35 +22,123 @@ export default async function FeaturedCollection() {
   });
 
   return (
-    <section className="mx-auto max-w-7xl px-8 py-24">
-      <div className="mb-14 text-center">
-        <p className="text-sm uppercase tracking-[0.4em] text-gray-400">
-          Editor&apos;s Picks
+    <section className="mx-auto max-w-[1440px] px-8 py-32 lg:px-12">
+      {/* Header */}
+      <div className="mx-auto mb-24 max-w-4xl text-center">
+        <p className="text-xs uppercase tracking-[0.55em] text-neutral-400">
+          FEATURED COLLECTION
         </p>
 
-        <h2 className="mt-4 text-5xl font-light">
-          Featured Collection
+        <h2
+          className="
+            mt-6
+            text-5xl
+            font-extralight
+            tracking-[-0.04em]
+            text-neutral-900
+            md:text-6xl
+          "
+        >
+          Editor's Selection
         </h2>
 
-        <p className="mx-auto mt-6 max-w-2xl text-gray-500">
-          Explore our handpicked selection of standout pieces,
-          chosen for their timeless design and refined elegance.
+        <div
+          className="
+            mx-auto
+            mt-8
+            h-px
+            w-20
+            bg-gradient-to-r
+            from-transparent
+            via-[#C8A96A]
+            to-transparent
+          "
+        />
+
+        <p
+          className="
+            mx-auto
+            mt-8
+            max-w-3xl
+            text-lg
+            leading-8
+            text-neutral-500
+          "
+        >
+          Discover our carefully curated collection of exceptional
+          luxury pieces, selected for their timeless aesthetics,
+          superior craftsmanship and iconic appeal.
         </p>
+
+        <Link
+          href="/shop"
+          className="
+            mt-12
+            inline-flex
+            items-center
+            rounded-full
+            border
+            border-black
+            px-8
+            py-4
+            text-[11px]
+            font-medium
+            uppercase
+            tracking-[0.3em]
+            transition-all
+            duration-300
+            hover:-translate-y-1
+            hover:border-[#C8A96A]
+            hover:bg-[#C8A96A]
+            hover:text-white
+            hover:shadow-lg
+          "
+        >
+          Explore Collection
+        </Link>
       </div>
 
       {products.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-gray-300 py-20 text-center">
-          <h3 className="text-2xl font-light">
-            No Featured Collection
+        <div
+  className="
+    mx-auto
+    flex
+    max-w-3xl
+    flex-col
+    items-center
+    rounded-[36px]
+    border
+    border-neutral-200
+    bg-gradient-to-b
+    from-white
+    to-neutral-50
+    px-12
+    py-20
+    text-center
+    shadow-[0_30px_80px_rgba(0,0,0,.05)]
+  "
+>
+          <h3 className="text-3xl font-extralight tracking-[-0.02em] text-neutral-900">
+            Featured Collection Coming Soon
           </h3>
 
-          <p className="mt-4 text-gray-500">
-            Go to the Admin Dashboard and mark a product as
-            <strong> Featured</strong>.
+          <p className="mx-auto mt-6 max-w-xl leading-8 text-neutral-500">
+            We are preparing our featured collection. Please check
+            back soon to discover our editor's finest selections.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+  className="
+    grid
+    grid-cols-1
+    gap-x-10
+    gap-y-16
+    sm:grid-cols-2
+    xl:grid-cols-3
+    2xl:grid-cols-4
+  "
+>
           {products.map((product) => (
             <ProductCard
               key={product.id}
@@ -58,7 +148,7 @@ export default async function FeaturedCollection() {
               name={product.name}
               model={product.model}
               image={product.images[0]?.url ?? "/placeholder.png"}
-secondImage={product.images[1]?.url}
+              secondImage={product.images[1]?.url}
               createdAt={product.createdAt}
               featured={product.featured}
               newArrival={product.newArrival}

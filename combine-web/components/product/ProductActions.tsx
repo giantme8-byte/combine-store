@@ -119,34 +119,57 @@ Thank you 😊`;
         </p>
 
         {/* WhatsApp */}
-        <button
-          type="button"
-          onClick={handleWhatsApp}
-          disabled={loading}
-          className="
-            flex
-            w-full
-            items-center
-            justify-center
-            rounded-full
-            bg-black
-            px-8
-            py-5
-            text-sm
-            font-medium
-            uppercase
-            tracking-[0.22em]
-            text-white
-            transition-all
-            duration-300
-            hover:-translate-y-0.5
-            hover:bg-[#B08D57]
-            disabled:cursor-not-allowed
-            disabled:opacity-50
-          "
-        >
-          {loading ? "Opening..." : "Request Price"}
-        </button>
+<button
+  type="button"
+  onClick={handleWhatsApp}
+  disabled={loading}
+  className="
+    group
+    relative
+    flex
+    w-full
+    items-center
+    justify-center
+    overflow-hidden
+    rounded-full
+    bg-black
+    px-8
+    py-5
+    text-sm
+    font-semibold
+    uppercase
+    tracking-[0.28em]
+    text-white
+    shadow-xl
+    transition-all
+    duration-500
+    hover:-translate-y-1
+    hover:shadow-2xl
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+  "
+>
+  <span
+    className="
+      absolute
+      inset-0
+      bg-gradient-to-r
+      from-[#A88755]
+      via-[#D5B47F]
+      to-[#A88755]
+      opacity-0
+      transition-opacity
+      duration-500
+      group-hover:opacity-100
+    "
+  />
+
+  <span className="relative z-10">
+    {loading
+      ? "Opening..."
+      : "Request Price"}
+  </span>
+</button>
 
         {/* Secondary Actions */}
         <div className="mt-6 grid grid-cols-2 gap-4">

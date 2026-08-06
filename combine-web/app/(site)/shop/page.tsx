@@ -6,24 +6,48 @@ export const revalidate = 300;
 export default async function ShopPage({
   searchParams,
 }: {
-searchParams: Promise<{
-  brand?: string;
-  category?: string;
-}>;
+  searchParams: Promise<{
+    brand?: string;
+    category?: string;
+  }>;
 }) {
   const {
-  brand,
-  category,
-} = await searchParams;
+    brand,
+    category,
+  } = await searchParams;
 
   return (
-<main className="mx-auto max-w-[1440px] px-8 pb-32 pt-36 lg:px-12">
-  {!category && <ShopHeader />}
+    <main
+      className="
+        min-h-screen
+        bg-gradient-to-b
+        from-white
+        via-[#fafafa]
+        to-white
+      "
+    >
+      <div
+        className="
+          mx-auto
+          max-w-[1440px]
+          px-6
+          pb-32
+          pt-32
+          lg:px-12
+          xl:px-14
+        "
+      >
+        {!category && (
+          <ShopHeader />
+        )}
 
-  <ShopProducts
-    brand={brand}
-    category={category}
-  />
-</main>
+        <div className="mt-16">
+          <ShopProducts
+            brand={brand}
+            category={category}
+          />
+        </div>
+      </div>
+    </main>
   );
 }

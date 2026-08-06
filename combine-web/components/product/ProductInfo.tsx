@@ -15,9 +15,17 @@ export default function ProductInfo({
   product,
 }: ProductInfoProps) {
   return (
-    <div>
+    <div className="space-y-2">
       {/* Brand */}
-      <p className="text-[11px] font-light uppercase tracking-[0.55em] text-neutral-500">
+      <p
+        className="
+          text-[11px]
+          font-medium
+          uppercase
+          tracking-[0.6em]
+          text-neutral-500
+        "
+      >
         {product.brand}
       </p>
 
@@ -27,9 +35,9 @@ export default function ProductInfo({
           mt-5
           text-[42px]
           font-extralight
-          leading-[1.08]
-          tracking-[-0.04em]
-          text-neutral-900
+          leading-[1.02]
+          tracking-[-0.045em]
+          text-neutral-950
           md:text-[52px]
           xl:text-[60px]
         "
@@ -38,7 +46,17 @@ export default function ProductInfo({
       </h1>
 
       {/* Divider */}
-      <div className="mt-8 h-px w-28 bg-gradient-to-r from-neutral-900 to-transparent" />
+      <div
+        className="
+          mt-8
+          h-px
+          w-36
+          bg-gradient-to-r
+          from-neutral-900
+          via-neutral-400
+          to-transparent
+        "
+      />
 
       {/* Short Description */}
       {product.shortDescription && (
@@ -48,8 +66,8 @@ export default function ProductInfo({
             max-w-xl
             text-[17px]
             font-light
-            leading-9
-            text-neutral-600
+            leading-[2]
+            text-neutral-500
           "
         >
           {product.shortDescription}
@@ -62,17 +80,25 @@ export default function ProductInfo({
           <span
             className="
               rounded-full
-              bg-black
+              border
+              border-black/10
+              bg-white/70
               px-5
               py-2
               text-[10px]
-              font-medium
+              font-semibold
               uppercase
-              tracking-[0.28em]
-              text-white
+              tracking-[0.32em]
+              text-black
+              shadow-sm
+              backdrop-blur-md
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:shadow-lg
             "
           >
-            NEW
+            NEW ARRIVAL
           </span>
         )}
 
@@ -80,14 +106,21 @@ export default function ProductInfo({
           <span
             className="
               rounded-full
-              bg-[#C8A96A]
+              border
+              border-[#D6BE86]
+              bg-[#FFF8E7]
               px-5
               py-2
               text-[10px]
-              font-medium
+              font-semibold
               uppercase
-              tracking-[0.28em]
-              text-white
+              tracking-[0.32em]
+              text-[#9C6B11]
+              shadow-sm
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:shadow-lg
             "
           >
             FEATURED
@@ -98,14 +131,21 @@ export default function ProductInfo({
           <span
             className="
               rounded-full
-              bg-neutral-800
+              border
+              border-neutral-300
+              bg-neutral-100
               px-5
               py-2
               text-[10px]
-              font-medium
+              font-semibold
               uppercase
-              tracking-[0.28em]
-              text-white
+              tracking-[0.32em]
+              text-neutral-800
+              shadow-sm
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:shadow-lg
             "
           >
             BEST SELLER
@@ -117,14 +157,20 @@ export default function ProductInfo({
             className="
               rounded-full
               border
-              border-neutral-900
+              border-black
+              bg-white
               px-5
               py-2
               text-[10px]
-              font-medium
+              font-semibold
               uppercase
-              tracking-[0.28em]
-              text-neutral-900
+              tracking-[0.32em]
+              text-black
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:bg-black
+              hover:text-white
             "
           >
             LIMITED
@@ -135,14 +181,21 @@ export default function ProductInfo({
           <span
             className="
               rounded-full
-              bg-[#7A4E2C]
+              border
+              border-[#8B5A2B]
+              bg-[#FDF3E8]
               px-5
               py-2
               text-[10px]
-              font-medium
+              font-semibold
               uppercase
-              tracking-[0.28em]
-              text-white
+              tracking-[0.32em]
+              text-[#8B5A2B]
+              shadow-sm
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:shadow-lg
             "
           >
             SALE

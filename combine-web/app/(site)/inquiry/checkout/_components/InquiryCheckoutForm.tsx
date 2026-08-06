@@ -18,7 +18,11 @@ type InquiryProduct = {
 };
 
 export default function InquiryCheckoutForm() {
-  const { items, clearInquiry } = useInquiry();
+  const {
+  items,
+  removeItem,
+  clearInquiry,
+} = useInquiry();
 
   const [message, setMessage] = useState("");
   const [products, setProducts] = useState<InquiryProduct[]>([]);
@@ -167,27 +171,100 @@ const whatsappUrl =
 
   return (
     <div className="space-y-12">
-      <div className="text-center">
-        <p className="text-sm uppercase tracking-[0.35em] text-neutral-400">
-          COMBINE
-        </p>
+<div className="mx-auto mb-24 max-w-4xl text-center">
+  <p className="text-xs uppercase tracking-[0.55em] text-neutral-400">
+    CHECKOUT
+  </p>
 
-        <h1 className="mt-4 text-5xl font-light">
-          Inquiry Details
-        </h1>
+  <h1
+    className="
+      mt-6
+      text-5xl
+      font-extralight
+      tracking-[-0.04em]
+      text-neutral-900
+      md:text-6xl
+    "
+  >
+    Inquiry Checkout
+  </h1>
 
-        <p className="mt-4 text-neutral-500">
-          Review your selected products and continue your inquiry via WhatsApp.
-        </p>
-      </div>
+  <div
+    className="
+      mx-auto
+      mt-8
+      h-px
+      w-20
+      bg-gradient-to-r
+      from-transparent
+      via-[#C8A96A]
+      to-transparent
+    "
+  />
+
+  <p
+    className="
+      mx-auto
+      mt-8
+      max-w-3xl
+      text-lg
+      leading-8
+      text-neutral-500
+    "
+  >
+    Review your selected luxury pieces before continuing to
+    WhatsApp. We'll prepare pricing, availability and shipping
+    information for you.
+  </p>
+
+  <p
+    className="
+      mt-10
+      text-xs
+      uppercase
+      tracking-[0.35em]
+      text-neutral-400
+    "
+  >
+    {items.length} Selected Item
+    {items.length === 1 ? "" : "s"}
+  </p>
+</div>
 
       <div className="space-y-10">
-        <section className="rounded-3xl border border-neutral-200 p-8">
-          <h2 className="text-xl font-medium">
-            Selected Products
-          </h2>
+<section
+  className="
+    rounded-[36px]
+    border
+    border-neutral-200
+    bg-white
+    p-10
+    shadow-[0_20px_60px_rgba(0,0,0,.04)]
+  "
+>
+  <h2
+    className="
+      text-3xl
+      font-extralight
+      tracking-[-0.03em]
+      text-neutral-900
+    "
+  >
+    Selected Products
+  </h2>
 
-          {loadingProducts ? (
+  <div
+    className="
+      mt-6
+      h-px
+      w-16
+      bg-gradient-to-r
+      from-[#C8A96A]
+      to-transparent
+    "
+  />
+
+  {loadingProducts ? (
             <div className="mt-6 text-neutral-500">
               Loading products...
             </div>
@@ -196,69 +273,146 @@ const whatsappUrl =
               Your inquiry list is empty.
             </div>
           ) : (
-            <div className="mt-6 space-y-4">
+            <div className="mt-10 space-y-6">
               {items.map((item) => {
                 const product = productMap.get(item.productId);
 
                 return (
-                  <div
-                    key={item.productId}
-                    className="flex items-center gap-5 rounded-xl border p-4"
-                  >
-                    <div className="h-28 w-28 overflow-hidden rounded-xl border bg-neutral-100">
+<div
+  key={item.productId}
+  className="
+    flex
+    items-center
+    gap-6
+    rounded-[28px]
+    border
+    border-neutral-200
+    bg-gradient-to-b
+    from-white
+    to-neutral-50
+    p-6
+    transition-all
+    duration-300
+    hover:-translate-y-1
+    hover:shadow-lg
+  "
+>
+                    <div
+  className="
+    h-36
+    w-36
+    shrink-0
+    overflow-hidden
+    rounded-[24px]
+    border
+    border-neutral-200
+    bg-gradient-to-b
+    from-white
+    to-neutral-100
+    p-4
+  "
+>
                       {product?.images?.[0]?.url ? (
-                        <Image
-                          src={product.images[0].url}
-                          alt={product.name}
-                          width={112}
-                          height={112}
-                          sizes="112px"
-                          className="h-28 w-28 object-contain"
-                        />
+<Image
+  src={product.images[0].url}
+  alt={product.name}
+  width={144}
+  height={144}
+  sizes="144px"
+  className="h-full w-full object-contain"
+/>
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-neutral-400">
                           No Image
                         </div>
                       )}
-                    </div>
+</div>
 
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
-                        {product?.brand}
-                      </p>
+<div className="flex-1">
+  <p
+    className="
+      text-[11px]
+      uppercase
+      tracking-[0.4em]
+      text-neutral-400
+    "
+  >
+    {product?.brand}
+  </p>
 
-                      <p className="mt-1 font-medium">
-                        {product?.name ?? `Product #${item.productId}`}
-                      </p>
+<h3
+  className="
+    mt-3
+    mb-4
+    text-2xl
+    font-extralight
+    tracking-[-0.03em]
+    text-neutral-900
+  "
+>
+  {product?.name ?? `Product #${item.productId}`}
+</h3>
 
-<p className="mt-1 text-sm text-neutral-500">
+<p className="text-sm leading-7 text-neutral-500">
   SKU: {product?.sku ?? "-"}
 </p>
 
 {item.color && (
-  <p className="mt-1 text-sm text-neutral-500">
+  <p className="text-sm leading-7 text-neutral-500">
     Colour: {item.color}
   </p>
 )}
 
 {item.variant && (
-  <p className="mt-1 text-sm text-neutral-500">
+  <p className="text-sm leading-7 text-neutral-500">
     Size: {item.variant}
   </p>
 )}
 
 {item.dimensions && (
-  <p className="mt-1 text-sm text-neutral-500">
+  <p className="text-sm leading-7 text-neutral-500">
     Dimensions: {item.dimensions}
   </p>
 )}
 
-<p className="mt-1 text-sm text-neutral-500">
+<p className="text-sm leading-7 text-neutral-500">
   Quantity: {item.quantity}
 </p>
-                    </div>
+
                   </div>
-                );
+
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.productId)}
+                    className="
+                      inline-flex
+                      items-center
+                      justify-center
+                      self-center
+                      rounded-full
+                      border
+                      border-neutral-300
+                      px-6
+                      py-3
+                      text-[11px]
+                      font-medium
+                      uppercase
+                      tracking-[0.25em]
+                      text-neutral-600
+                      transition-all
+                      duration-300
+                      hover:-translate-y-1
+                      hover:border-red-500
+                      hover:bg-red-500
+                      hover:text-white
+                      hover:shadow-lg
+                    "
+                  >
+                    Remove
+                  </button>
+
+                </div>
+              );
               })}
             </div>
           )}
@@ -266,48 +420,145 @@ const whatsappUrl =
 
         {items.length > 0 && (
           <>
-            <section className="rounded-3xl border border-neutral-200 p-8">
-<h2 className="text-xl font-medium">
-  Additional Notes (Optional)
+            <section
+  className="
+    rounded-[36px]
+    border
+    border-neutral-200
+    bg-white
+    p-10
+    shadow-[0_20px_60px_rgba(0,0,0,.04)]
+  "
+>
+<h2
+  className="
+    text-3xl
+    font-extralight
+    tracking-[-0.03em]
+    text-neutral-900
+  "
+>
+  Additional Notes
 </h2>
+
+<div
+  className="
+    mt-6
+    h-px
+    w-16
+    bg-gradient-to-r
+    from-[#C8A96A]
+    to-transparent
+  "
+/>
 
 <p className="mt-2 text-sm text-neutral-500">
   Add any special requests, preferred colour, size, quantity or other details
   you&apos;d like us to know.
 </p>
 
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={5}
-                maxLength={500}
-                placeholder={`Example:
+<textarea
+  value={message}
+  onChange={(e) => setMessage(e.target.value)}
+  rows={6}
+  maxLength={500}
+  placeholder={`Example:
 • Looking for black colour.
 • Need 2 pieces.
 • Please send more photos.`}
-                className="mt-6 w-full rounded-xl border px-4 py-3 outline-none focus:border-black"
-              />
+  className="
+    mt-8
+    w-full
+    rounded-[24px]
+    border
+    border-neutral-200
+    bg-neutral-50
+    px-6
+    py-5
+    text-[15px]
+    leading-8
+    text-neutral-700
+    outline-none
+    transition-all
+    duration-300
+    focus:border-[#C8A96A]
+    focus:bg-white
+    focus:shadow-lg
+  "
+/>
             </section>
 
-            <div className="flex flex-wrap justify-between gap-4">
-              <Link
-                href="/inquiry"
-                className="rounded-full border px-8 py-3 transition hover:bg-neutral-100"
-              >
-                Back
-              </Link>
+<div
+  className="
+    mt-16
+    flex
+    flex-wrap
+    items-center
+    justify-between
+    gap-4
+    border-t
+    border-neutral-200
+    pt-10
+  "
+>
+  <Link
+    href="/inquiry"
+    className="
+      inline-flex
+      items-center
+      justify-center
+      rounded-full
+      border
+      border-neutral-300
+      px-8
+      py-4
+      text-[11px]
+      font-medium
+      uppercase
+      tracking-[0.3em]
+      text-neutral-700
+      transition-all
+      duration-300
+      hover:-translate-y-1
+      hover:border-black
+      hover:bg-neutral-100
+      hover:shadow-lg
+    "
+  >
+    ← Back
+  </Link>
 
-              <button
-                type="button"
-                onClick={handleWhatsApp}
-                disabled={loadingProducts}
-                className="rounded-full bg-black px-10 py-3 text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {loadingProducts
-                  ? "Loading..."
-                  : "Continue on WhatsApp"}
-              </button>
-            </div>
+  <button
+    type="button"
+    onClick={handleWhatsApp}
+    disabled={loadingProducts}
+    className="
+      inline-flex
+      items-center
+      justify-center
+      rounded-full
+      bg-black
+      px-10
+      py-4
+      text-[11px]
+      font-medium
+      uppercase
+      tracking-[0.3em]
+      text-white
+      transition-all
+      duration-300
+      hover:-translate-y-1
+      hover:bg-[#C8A96A]
+      hover:shadow-xl
+      disabled:cursor-not-allowed
+      disabled:opacity-50
+    "
+  >
+    {loadingProducts
+      ? "Loading..."
+      : "Continue on WhatsApp →"}
+  </button>
+</div>
           </>
         )}
       </div>

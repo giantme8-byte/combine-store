@@ -91,10 +91,10 @@ const isNewArrival = useMemo(() => {
     shadow-sm
     transition-all
     duration-700
-    hover:-translate-y-2
-    hover:scale-[1.015]
-    hover:border-[#C8A96A]/60
-    hover:shadow-[0_40px_100px_rgba(0,0,0,.14)]
+hover:-translate-y-3
+hover:scale-[1.02]
+hover:border-[#C8A96A]/60
+hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
   "
 >
 <Link
@@ -110,8 +110,9 @@ const isNewArrival = useMemo(() => {
     overflow-hidden
     rounded-[24px]
     bg-gradient-to-b
-    from-white
-    to-neutral-100
+from-[#ffffff]
+via-[#fbfbfb]
+to-[#f4f4f4]
   "
 >
 
@@ -128,10 +129,11 @@ const isNewArrival = useMemo(() => {
     shadow-lg
     backdrop-blur-xl
     opacity-0
+translate-y-2
     transition-all
     duration-300
-    group-hover:scale-110
-    group-hover:opacity-100
+group-hover:translate-y-0
+group-hover:opacity-100
   "
 >
     <WishlistButton
@@ -262,12 +264,13 @@ const isNewArrival = useMemo(() => {
   quality={88}
   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
   loading="lazy"
-  className={`
-    pointer-events-none
-    object-contain
-    p-8
-    transition-all
-    duration-700
+className={`
+  pointer-events-none
+  object-contain
+  p-8
+  will-change-transform
+  transition-all
+  duration-700
     ease-[cubic-bezier(0.22,1,0.36,1)]
     ${
       secondImage
@@ -289,12 +292,13 @@ const isNewArrival = useMemo(() => {
     className="
       absolute
       inset-0
-      pointer-events-none
-      object-contain
-      p-8
-      opacity-0
-      scale-110
-      blur-sm
+pointer-events-none
+object-contain
+p-8
+will-change-transform
+opacity-0
+scale-110
+blur-sm
       transition-all
       duration-700
       ease-[cubic-bezier(0.22,1,0.36,1)]
@@ -304,6 +308,22 @@ const isNewArrival = useMemo(() => {
     "
   />
 )}
+
+{/* Luxury Shine */}
+<div
+  className="
+    pointer-events-none
+    absolute
+    inset-0
+    translate-x-[-120%]
+    bg-[linear-gradient(120deg,transparent_25%,rgba(255,255,255,.12)_50%,transparent_75%)]
+    opacity-0
+    transition-all
+    duration-1000
+    group-hover:translate-x-[120%]
+    group-hover:opacity-100
+  "
+/>
 
 {/* Dark Overlay */}
 <div
@@ -351,20 +371,22 @@ const isNewArrival = useMemo(() => {
       border
       border-white/40
       bg-white/90
-      px-6
+      px-7
       py-3
       text-xs
       font-medium
       uppercase
-      tracking-[0.25em]
+      tracking-[0.3em]
       shadow-2xl
       backdrop-blur-xl
       transition-all
       duration-300
-      hover:scale-105
+hover:-translate-y-0.5
+hover:scale-105
 hover:bg-[#C8A96A]
 hover:border-[#C8A96A]
 hover:text-white
+hover:shadow-xl
     "
   >
     Quick View
@@ -384,22 +406,30 @@ hover:text-white
     pt-7
   "
 >
-  <p className="text-[11px] font-medium uppercase tracking-[0.4em] text-neutral-500">
-    {brand}
-  </p>
+<p
+  className="
+    text-[11px]
+    font-medium
+    uppercase
+    tracking-[0.4em]
+    text-neutral-400
+  "
+>
+  {brand}
+</p>
 
           <h3
-            className="
-              mt-3
-              min-h-[3.5rem]
-              line-clamp-2
-              text-xl
-              font-light
-              leading-7
-              tracking-[-0.02em]
-              text-neutral-900
-            "
-          >
+  className="
+    mt-3
+    min-h-[3.8rem]
+    line-clamp-2
+    text-[22px]
+    font-light
+    leading-[1.35]
+    tracking-[-0.03em]
+    text-neutral-900
+  "
+>
             {name}
           </h3>
 
@@ -457,9 +487,15 @@ hover:text-white
     >
       <span>Discover</span>
 
-      <span className="transition-transform duration-300 group-hover:translate-x-1.5">
-        →
-      </span>
+<span
+  className="
+    transition-all
+    duration-300
+    group-hover:translate-x-2
+  "
+>
+  →
+</span>
     </Link>
 
     <button
@@ -480,11 +516,13 @@ className="
   uppercase
   tracking-[0.18em]
   whitespace-nowrap
-  transition-all
-  duration-300
-  hover:border-[#C8A96A]
-  hover:bg-[#C8A96A]
-  hover:text-white
+transition-all
+duration-300
+hover:-translate-y-0.5
+hover:border-[#C8A96A]
+hover:bg-[#C8A96A]
+hover:text-white
+hover:shadow-lg
 "
     >
       Request Price

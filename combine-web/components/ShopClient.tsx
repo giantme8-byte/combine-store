@@ -25,14 +25,12 @@ type Product = {
   displayOrder: number;
 
   image: string;
+  secondImage?: string;
 
   createdAt: Date;
 
-  secondImage?: string;
-
   category: string;
   subCategory: string | null;
-
   mainColor: string | null;
 
   featured: boolean;
@@ -44,7 +42,6 @@ type Product = {
 
 type Props = {
   products: Product[];
-
   featuredProducts: Product[];
 };
 
@@ -52,15 +49,16 @@ export default function ShopClient({
   products,
   featuredProducts,
 }: Props) {
-
   const searchParams = useSearchParams();
-
-  const [search, setSearch] = useState("");
 
   const category =
     searchParams.get("category") ?? "All";
 
-  const [brand, setBrand] = useState("All");
+  const [search, setSearch] =
+    useState("");
+
+  const [brand, setBrand] =
+    useState("All");
 
   const [subCategory, setSubCategory] =
     useState("All");
@@ -79,146 +77,147 @@ export default function ShopClient({
     setSort("Newest");
   }
 
-  const brands = useMemo(() => {
-
-    return [
+  const brands = useMemo(
+    () => [
       "All",
       ...Array.from(
         new Set(
           products.map((p) => p.brand)
         )
       ).sort(),
-    ];
+    ],
+    [products]
+  );
 
-  }, [products]);
-
-  const subCategories = useMemo(() => {
-
-    return [
+  const subCategories = useMemo(
+    () => [
       "All",
       ...Array.from(
         new Set(
           products
             .map((p) => p.subCategory)
             .filter(
-              (item): item is string =>
-                item !== null
+              (v): v is string =>
+                v !== null
             )
         )
       ).sort(),
-    ];
+    ],
+    [products]
+  );
 
-  }, [products]);
-
-  const colors = useMemo(() => {
-
-    return [
+  const colors = useMemo(
+    () => [
       "All",
       ...Array.from(
         new Set(
           products
             .map((p) => p.mainColor)
             .filter(
-              (item): item is string =>
-                item !== null
+              (v): v is string =>
+                v !== null
             )
         )
       ).sort(),
-    ];
+    ],
+    [products]
+  );
 
-  }, [products]);
+  const filteredProducts =
+    useMemo(() => {
+      const keyword =
+        search.trim().toLowerCase();
 
-  const filteredProducts = useMemo(() => {
+      const result = products.filter(
+        (product) => {
+          const searchable = [
+            product.brand,
+            product.name,
+            product.model,
+            product.sku,
+            product.category,
+            product.subCategory,
+            product.mainColor,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
 
-    const normalizedSearch =
-      search.trim().toLowerCase();
+          return (
+            searchable.includes(
+              keyword
+            ) &&
+            (category === "All" ||
+              product.category ===
+                category) &&
+            (brand === "All" ||
+              product.brand ===
+                brand) &&
+            (subCategory === "All" ||
+              product.subCategory ===
+                subCategory) &&
+            (color === "All" ||
+              product.mainColor ===
+                color)
+          );
+        }
+      );
 
-    const result = products.filter(
-      (product) => {
+      switch (sort) {
+        case "Newest":
+          result.sort(
+            (a, b) =>
+              b.createdAt.getTime() -
+              a.createdAt.getTime()
+          );
+          break;
 
-        const keyword = [
-          product.brand,
-          product.name,
-          product.model,
-          product.sku,
-          product.category,
-          product.subCategory,
-          product.mainColor,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
+        case "Price Low":
+          result.sort(
+            (a, b) =>
+              a.price - b.price
+          );
+          break;
 
-        return (
-          keyword.includes(
-            normalizedSearch
-          ) &&
-          (category === "All" ||
-            product.category ===
-              category) &&
-          (brand === "All" ||
-            product.brand === brand) &&
-          (subCategory === "All" ||
-            product.subCategory ===
-              subCategory) &&
-          (color === "All" ||
-            product.mainColor ===
-              color)
-        );
+        case "Price High":
+          result.sort(
+            (a, b) =>
+              b.price - a.price
+          );
+          break;
 
+        case "Brand":
+          result.sort((a, b) =>
+            a.brand.localeCompare(
+              b.brand
+            )
+          );
+          break;
+
+        default:
+          result.sort(
+            (a, b) =>
+              a.displayOrder -
+              b.displayOrder
+          );
       }
-    );
 
-    switch (sort) {
-
-      case "Price Low":
-        result.sort(
-          (a, b) =>
-            a.price - b.price
-        );
-        break;
-
-      case "Price High":
-        result.sort(
-          (a, b) =>
-            b.price - a.price
-        );
-        break;
-
-      case "Brand":
-        result.sort((a, b) =>
-          a.brand.localeCompare(
-            b.brand
-          )
-        );
-        break;
-
-      default:
-        result.sort(
-          (a, b) =>
-            a.displayOrder -
-            b.displayOrder
-        );
-
-    }
-
-    return result;
-
-  }, [
-    products,
-    search,
-    category,
-    brand,
-    subCategory,
-    color,
-    sort,
-  ]);
+      return result;
+    }, [
+      products,
+      search,
+      category,
+      brand,
+      subCategory,
+      color,
+      sort,
+    ]);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-14">
 
+      {/* Search */}
       <div className="relative">
-
         <SearchBar
           value={search}
           onChange={setSearch}
@@ -227,70 +226,137 @@ export default function ShopClient({
         <SearchAutocomplete
           query={search}
         />
-
       </div>
 
+      {/* Filters */}
       <div
-        className={`grid gap-6 sm:grid-cols-2 ${
-          category === "All"
-            ? "xl:grid-cols-5"
-            : "xl:grid-cols-4"
-        }`}
+        className="
+          rounded-[30px]
+          border
+          border-neutral-200
+          bg-white
+          p-7
+          shadow-sm
+        "
       >
+        <div
+          className={`grid gap-6 ${
+            category === "All"
+              ? "xl:grid-cols-5"
+              : "xl:grid-cols-4"
+          }`}
+        >
+          {category === "All" && (
+            <CategoryFilter
+              selected={category}
+              onSelect={() => {}}
+            />
+          )}
 
-        {category === "All" && (
-          <CategoryFilter
-            selected={category}
-            onSelect={() => {}}
+          <BrandFilter
+            selected={brand}
+            onSelect={setBrand}
+            brands={brands}
           />
-        )}
 
-        <BrandFilter
-          selected={brand}
-          onSelect={setBrand}
-          brands={brands}
-        />
+          <SubCategoryFilter
+            selected={subCategory}
+            onSelect={
+              setSubCategory
+            }
+            subCategories={
+              subCategories
+            }
+          />
 
-        <SubCategoryFilter
-          selected={subCategory}
-          onSelect={setSubCategory}
-          subCategories={subCategories}
-        />
+          <ColorFilter
+            selected={color}
+            onSelect={setColor}
+            colors={colors}
+          />
 
-        <ColorFilter
-          selected={color}
-          onSelect={setColor}
-          colors={colors}
-        />
-
-        <SortDropdown
-          value={sort}
-          onChange={setSort}
-        />
-
+          <SortDropdown
+            value={sort}
+            onChange={setSort}
+          />
+        </div>
       </div>
 
-      <div className="flex items-center justify-between border-b border-neutral-200 pb-5">
+      {/* Result Header */}
+      <div
+        className="
+          flex
+          flex-col
+          gap-5
+          border-b
+          border-neutral-200
+          pb-6
+          md:flex-row
+          md:items-end
+          md:justify-between
+        "
+      >
+        <div>
+          <p
+            className="
+              text-[11px]
+              uppercase
+              tracking-[0.35em]
+              text-neutral-400
+            "
+          >
+            COLLECTION
+          </p>
 
-        <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">
+          <h2
+            className="
+              mt-2
+              text-3xl
+              font-extralight
+              tracking-[-0.03em]
+              text-neutral-900
+            "
+          >
+            {filteredProducts.length} Product
+            {filteredProducts.length !==
+            1
+              ? "s"
+              : ""}
+          </h2>
+        </div>
 
-          Showing{" "}
-
-          <span className="font-semibold text-neutral-900">
-            {filteredProducts.length}
-          </span>{" "}
-
-          Product
-          {filteredProducts.length !== 1
-            ? "s"
-            : ""}
-
-        </p>
-
+        {(search ||
+          brand !== "All" ||
+          subCategory !== "All" ||
+          color !== "All") && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="
+              rounded-full
+              border
+              border-neutral-300
+              px-6
+              py-3
+              text-[11px]
+              uppercase
+              tracking-[0.3em]
+              transition-all
+              duration-300
+              hover:border-black
+              hover:bg-black
+              hover:text-white
+            "
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
 
       <ProductGrid
-        products={filteredProducts}
+        products={
+          filteredProducts
+        }
         featuredProducts={
           featuredProducts
         }
@@ -299,7 +365,6 @@ export default function ShopClient({
           clearFilters
         }
       />
-
     </div>
   );
 }

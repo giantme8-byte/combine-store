@@ -1,164 +1,121 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main>
+    <main className="mx-auto flex min-h-screen max-w-[1440px] items-center justify-center px-8 lg:px-12">
+      <div className="max-w-3xl text-center">
 
-      {/* Hero */}
-      <section className="relative h-[70vh] overflow-hidden">
+        <p className="text-xs uppercase tracking-[0.55em] text-neutral-400">
+          ERROR
+        </p>
 
-        <Image
-          src="/about/hero-v2.png"
-          alt="404 Not Found"
-          fill
-          priority
-          className="object-cover"
+        <h1
+          className="
+            mt-6
+            text-8xl
+            font-extralight
+            tracking-[-0.06em]
+            text-neutral-900
+            md:text-9xl
+          "
+        >
+          404
+        </h1>
+
+        <div
+          className="
+            mx-auto
+            mt-8
+            h-px
+            w-20
+            bg-gradient-to-r
+            from-transparent
+            via-[#C8A96A]
+            to-transparent
+          "
         />
 
-        <div className="absolute inset-0 bg-black/55" />
+        <h2
+          className="
+            mt-10
+            text-4xl
+            font-extralight
+            tracking-[-0.03em]
+            text-neutral-900
+          "
+        >
+          Page Not Found
+        </h2>
 
-        <div className="absolute inset-0 flex items-center justify-center text-center text-white">
+        <p
+          className="
+            mx-auto
+            mt-8
+            max-w-2xl
+            text-lg
+            leading-8
+            text-neutral-500
+          "
+        >
+          The page you're looking for doesn't exist or may have been moved.
+          Explore our collections or return to the homepage.
+        </p>
 
-          <div className="max-w-4xl px-6">
+        <div className="mt-14 flex flex-wrap justify-center gap-5">
 
-            <p className="text-xs uppercase tracking-[0.5em] text-white/70">
-              ERROR 404
-            </p>
-
-            <h1 className="mt-6 text-7xl font-extralight tracking-[-0.05em] md:text-9xl">
-              Page Not
-              <br />
-              Found
-            </h1>
-
-            <p className="mx-auto mt-10 max-w-2xl text-lg leading-8 text-white/80">
-              The page you&apos;re looking for doesn&apos;t exist, has been moved,
-              or is temporarily unavailable.
-            </p>
-
-            <div className="mt-12 flex flex-col justify-center gap-4 sm:flex-row">
-
-              <Link
-                href="/"
-                className="rounded-full bg-white px-10 py-4 text-sm font-medium uppercase tracking-[0.3em] text-black transition-all duration-300 hover:scale-105 hover:bg-neutral-100"
-              >
-                Back to Home
-              </Link>
-
-              <Link
-                href="/shop"
-                className="rounded-full border border-white/50 px-10 py-4 text-sm uppercase tracking-[0.3em] text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-black"
-              >
-                Browse Collection
-              </Link>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* Helpful Links */}
-      <section className="bg-white py-28">
-
-        <div className="mx-auto max-w-6xl px-6 text-center">
-
-          <p className="text-xs uppercase tracking-[0.45em] text-neutral-400">
-            CONTINUE EXPLORING
-          </p>
-
-          <h2 className="mt-5 text-5xl font-extralight tracking-[-0.03em]">
-            Discover COMBINE
-          </h2>
-
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-neutral-600">
-            Continue exploring our carefully curated collections and discover timeless luxury pieces.
-          </p>
-
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
-
-            <Link
-              href="/shop"
-              className="rounded-3xl border border-neutral-200 p-10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="text-5xl">👜</div>
-
-              <h3 className="mt-6 text-2xl font-light">
-                Bags
-              </h3>
-
-              <p className="mt-4 text-neutral-600">
-                Explore our signature handbag collection.
-              </p>
-            </Link>
-
-            <Link
-              href="/shop?category=watches"
-              className="rounded-3xl border border-neutral-200 p-10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="text-5xl">⌚</div>
-
-              <h3 className="mt-6 text-2xl font-light">
-                Watches
-              </h3>
-
-              <p className="mt-4 text-neutral-600">
-                Timeless craftsmanship for every occasion.
-              </p>
-            </Link>
-
-            <Link
-              href="/shop?category=jewelry"
-              className="rounded-3xl border border-neutral-200 p-10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="text-5xl">💍</div>
-
-              <h3 className="mt-6 text-2xl font-light">
-                Jewellery
-              </h3>
-
-              <p className="mt-4 text-neutral-600">
-                Elegant pieces to complete your style.
-              </p>
-            </Link>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* CTA */}
-      <section className="bg-black text-white">
-
-        <div className="mx-auto max-w-5xl px-8 py-32 text-center">
-
-          <p className="text-xs uppercase tracking-[0.5em] text-white/60">
-            COMBINE
-          </p>
-
-          <h2 className="mt-6 text-5xl font-extralight tracking-[-0.03em] md:text-6xl">
-            Explore Our Collection
-          </h2>
-
-          <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-white/70">
-            Discover luxury handbags, watches and jewellery curated with timeless elegance.
-          </p>
+          <Link
+            href="/"
+            className="
+              inline-flex
+              items-center
+              rounded-full
+              bg-black
+              px-10
+              py-4
+              text-[11px]
+              font-medium
+              uppercase
+              tracking-[0.3em]
+              text-white
+              transition-all
+              duration-300
+              hover:-translate-y-1
+              hover:bg-[#C8A96A]
+              hover:shadow-xl
+            "
+          >
+            Return Home
+          </Link>
 
           <Link
             href="/shop"
-            className="mt-12 inline-flex rounded-full bg-white px-10 py-4 text-sm uppercase tracking-[0.3em] text-black transition-all duration-300 hover:scale-105 hover:bg-neutral-100"
+            className="
+              inline-flex
+              items-center
+              rounded-full
+              border
+              border-neutral-300
+              px-10
+              py-4
+              text-[11px]
+              font-medium
+              uppercase
+              tracking-[0.3em]
+              text-neutral-700
+              transition-all
+              duration-300
+              hover:-translate-y-1
+              hover:border-[#C8A96A]
+              hover:text-[#C8A96A]
+              hover:shadow-lg
+            "
           >
             Browse Collection
           </Link>
 
         </div>
 
-      </section>
-
+      </div>
     </main>
   );
 }

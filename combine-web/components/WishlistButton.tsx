@@ -18,8 +18,11 @@ export default function WishlistButton({
   productId,
   variant = "button",
 }: Props) {
-  const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
+
+  const [saved, setSaved] =
+    useState(false);
 
   useEffect(() => {
     async function loadWishlist() {
@@ -30,10 +33,10 @@ export default function WishlistButton({
 
         if (!res.ok) return;
 
-        const data = await res.json();
+        const data =
+          await res.json();
 
         setSaved(data.saved);
-
       } catch (error) {
         console.error(
           "Failed to load wishlist:",
@@ -44,7 +47,6 @@ export default function WishlistButton({
 
     loadWishlist();
   }, [productId]);
-
 
   async function handleWishlist(
     e: MouseEvent<HTMLButtonElement>
@@ -62,7 +64,8 @@ export default function WishlistButton({
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
           },
           body: JSON.stringify({
             productId,
@@ -70,7 +73,8 @@ export default function WishlistButton({
         }
       );
 
-      const data = await res.json();
+      const data =
+        await res.json();
 
       if (data.success) {
         setSaved(data.saved);
@@ -80,11 +84,9 @@ export default function WishlistButton({
             ? "Added to wishlist."
             : "Removed from wishlist."
         );
-
       } else if (data.message) {
         toast.error(data.message);
       }
-
     } catch (error) {
       console.error(
         "Failed to update wishlist:",
@@ -94,12 +96,10 @@ export default function WishlistButton({
       toast.error(
         "Something went wrong."
       );
-
     } finally {
       setLoading(false);
     }
   }
-
 
   if (variant === "icon") {
     return (
@@ -111,32 +111,34 @@ export default function WishlistButton({
         aria-pressed={saved}
         className="
           flex
-          h-10
-          w-10
+          h-11
+          w-11
           items-center
           justify-center
           rounded-full
-          bg-white/90
+          border
+          border-white/30
+          bg-white/80
           shadow-lg
-          backdrop-blur
+          backdrop-blur-md
           transition-all
           duration-300
           hover:scale-110
+          hover:shadow-xl
           disabled:opacity-50
         "
       >
         <Heart
           size={20}
-          className={
+          className={`transition-all duration-300 ${
             saved
-              ? "fill-red-500 text-red-500"
+              ? "fill-red-500 text-red-500 scale-110"
               : "text-neutral-700"
-          }
+          }`}
         />
       </button>
     );
   }
-
 
   return (
     <button
@@ -145,43 +147,70 @@ export default function WishlistButton({
       disabled={loading}
       aria-pressed={saved}
       className={`
+        group
+        relative
         inline-flex
         w-full
         items-center
         justify-center
-        gap-2
+        gap-3
+        overflow-hidden
         rounded-full
         border
         px-8
         py-4
         text-sm
-        font-medium
+        font-semibold
         uppercase
-        tracking-[0.25em]
+        tracking-[0.28em]
         transition-all
-        duration-300
+        duration-500
         disabled:opacity-50
         ${
           saved
-            ? "border-red-500 bg-red-500 text-white"
-            : "border-black hover:bg-black hover:text-white"
+            ? "border-red-500 bg-red-500 text-white shadow-lg"
+            : "border-neutral-300 bg-white text-black hover:-translate-y-1 hover:border-black hover:shadow-xl"
         }
       `}
     >
+      {!saved && (
+        <span
+          className="
+            absolute
+            inset-0
+            bg-gradient-to-r
+            from-neutral-900
+            via-neutral-700
+            to-neutral-900
+            opacity-0
+            transition-opacity
+            duration-500
+            group-hover:opacity-100
+          "
+        />
+      )}
+
       <Heart
         size={18}
-        className={
+        className={`relative z-10 transition-all duration-300 ${
           saved
-            ? "fill-white"
-            : ""
-        }
+            ? "fill-white text-white"
+            : "group-hover:fill-white group-hover:text-white"
+        }`}
       />
 
-      {loading
-        ? "Loading..."
-        : saved
-        ? "Saved"
-        : "Add to Wishlist"}
+      <span
+        className={`relative z-10 transition-colors duration-300 ${
+          !saved &&
+          "group-hover:text-white"
+        }`}
+      >
+        {loading
+          ? "Loading..."
+          : saved
+          ? "Saved"
+          : "Save"}
+      </span>
     </button>
   );
 }

@@ -12,47 +12,78 @@ export default function ColorFilter({
   colors,
 }: Props) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Label */}
       <label
         htmlFor="color-filter"
-        className="block text-xs uppercase tracking-[0.35em] text-neutral-400"
+        className="
+          block
+          text-[11px]
+          font-medium
+          uppercase
+          tracking-[0.45em]
+          text-neutral-400
+        "
       >
         Color
       </label>
 
-      <select
-        id="color-filter"
-        aria-label="Filter by color"
-        value={selected}
-        onChange={(e) => onSelect(e.target.value)}
-        className="
-          w-full
-          rounded-2xl
-          border
-          border-neutral-200
-          bg-white
-          px-6
-          py-5
-          text-base
-          text-neutral-900
-          shadow-sm
-          outline-none
-          transition-all
-          duration-300
-          focus:border-black
-          focus:ring-4
-          focus:ring-black/5
-        "
-      >
-        {colors.map((color) => (
-          <option
-            key={color}
-            value={color}
-          >
-            {color}
-          </option>
-        ))}
-      </select>
+      {/* Select */}
+      <div className="relative">
+        <select
+          id="color-filter"
+          aria-label="Filter by color"
+          value={selected}
+          onChange={(e) =>
+            onSelect(e.target.value)
+          }
+          className="
+            w-full
+            appearance-none
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            px-6
+            py-5
+            pr-14
+            text-[15px]
+            font-light
+            text-neutral-900
+            shadow-[0_8px_24px_rgba(0,0,0,.03)]
+            outline-none
+            transition-all
+            duration-500
+            hover:border-[#C8A96A]
+            focus:border-[#C8A96A]
+            focus:ring-4
+            focus:ring-[#C8A96A]/10
+          "
+        >
+          {colors.map((color) => (
+            <option
+              key={color}
+              value={color}
+            >
+              {color}
+            </option>
+          ))}
+        </select>
+
+        {/* Arrow */}
+        <div
+          className="
+            pointer-events-none
+            absolute
+            right-6
+            top-1/2
+            -translate-y-1/2
+            text-neutral-400
+          "
+        >
+          ▼
+        </div>
+      </div>
     </div>
   );
 }

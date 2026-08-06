@@ -57,28 +57,78 @@ I'm looking for a product that I couldn't find on your website.
 Can you help me source it?`;
 
     window.open(
-      `https://wa.me/60168848453?text=${encodeURIComponent(message)}`,
+      `https://wa.me/60168848453?text=${encodeURIComponent(
+        message
+      )}`,
       "_blank"
     );
   }
 
   if (products.length === 0) {
     return (
-      <div className="space-y-16">
-        <div className="mx-auto flex max-w-2xl flex-col items-center py-12 text-center">
-          <div className="mb-6 text-6xl">🔍</div>
+      <div className="space-y-20">
+        {/* Empty State */}
+        <div
+          className="
+            mx-auto
+            flex
+            max-w-3xl
+            flex-col
+            items-center
+            rounded-[36px]
+            border
+            border-neutral-200
+            bg-gradient-to-b
+            from-white
+            to-neutral-50
+            px-12
+            py-20
+            text-center
+            shadow-[0_30px_80px_rgba(0,0,0,.05)]
+          "
+        >
+          <div
+            className="
+              mb-8
+              flex
+              h-24
+              w-24
+              items-center
+              justify-center
+              rounded-full
+              bg-neutral-100
+              text-5xl
+            "
+          >
+            🔍
+          </div>
 
-          <h2 className="text-4xl font-light tracking-tight">
-            Don&apos;t worry — we can help you source it.
+          <h2
+            className="
+              text-5xl
+              font-extralight
+              tracking-[-0.04em]
+              text-neutral-900
+            "
+          >
+            We Couldn't Find It
           </h2>
 
-          <p className="mt-5 max-w-xl leading-8 text-neutral-500">
-            We couldn&apos;t find any products matching your search.
-            <br />
-            Don&apos;t worry — we can help you source it.
+          <p
+            className="
+              mt-8
+              max-w-xl
+              text-lg
+              leading-9
+              text-neutral-500
+            "
+          >
+            We couldn't find a matching
+            product, but our concierge team
+            can help source it for you.
           </p>
 
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+          <div className="mt-12 flex flex-col gap-4 sm:flex-row">
             <button
               type="button"
               onClick={handleWhatsApp}
@@ -90,10 +140,13 @@ Can you help me source it?`;
                 text-sm
                 font-medium
                 uppercase
-                tracking-[0.2em]
+                tracking-[0.25em]
                 text-white
-                transition
-                hover:bg-neutral-800
+                transition-all
+                duration-300
+                hover:-translate-y-1
+                hover:bg-[#C8A96A]
+                hover:shadow-xl
               "
             >
               Ask on WhatsApp
@@ -110,10 +163,15 @@ Can you help me source it?`;
                   px-8
                   py-4
                   text-sm
+                  font-medium
                   uppercase
-                  tracking-[0.2em]
-                  transition
-                  hover:bg-neutral-100
+                  tracking-[0.25em]
+                  transition-all
+                  duration-300
+                  hover:-translate-y-1
+                  hover:border-black
+                  hover:bg-black
+                  hover:text-white
                 "
               >
                 Clear Filters
@@ -122,47 +180,78 @@ Can you help me source it?`;
           </div>
         </div>
 
+        {/* Featured */}
         {featuredProducts.length > 0 && (
           <div>
-            <div className="mb-10 text-center">
-              <p className="text-xs uppercase tracking-[0.35em] text-neutral-500">
-                Featured Collection
+            <div className="mb-14 text-center">
+              <p
+                className="
+                  text-[11px]
+                  uppercase
+                  tracking-[0.45em]
+                  text-neutral-400
+                "
+              >
+                FEATURED COLLECTION
               </p>
 
-              <h3 className="mt-3 text-3xl font-light">
-                You may also like
+              <h3
+                className="
+                  mt-5
+                  text-5xl
+                  font-extralight
+                  tracking-[-0.03em]
+                "
+              >
+                You May Also Like
               </h3>
             </div>
 
             <div
-  className="
-    grid
-    grid-cols-1
-    gap-x-10
-    gap-y-16
-    sm:grid-cols-2
-    xl:grid-cols-3
-    2xl:grid-cols-4
-  "
->
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  slug={product.slug}
-                  brand={product.brand}
-                  name={product.name}
-                  model={product.model}
-                  image={product.image}
-                  secondImage={product.secondImage}
-                  createdAt={product.createdAt}
-                  featured={product.featured}
-                  newArrival={product.newArrival}
-                  bestSeller={product.bestSeller}
-                  limited={product.limited}
-                  onSale={product.onSale}
-                />
-              ))}
+              className="
+                grid
+                grid-cols-1
+                gap-x-8
+                gap-y-14
+                sm:grid-cols-2
+                xl:grid-cols-3
+                2xl:grid-cols-4
+              "
+            >
+              {featuredProducts.map(
+                (product) => (
+                  <ProductCard
+                    key={product.id}
+                    id={product.id}
+                    slug={product.slug}
+                    brand={product.brand}
+                    name={product.name}
+                    model={product.model}
+                    image={product.image}
+                    secondImage={
+                      product.secondImage
+                    }
+                    createdAt={
+                      product.createdAt
+                    }
+                    featured={
+                      product.featured
+                    }
+                    newArrival={
+                      product.newArrival
+                    }
+                    bestSeller={
+                      product.bestSeller
+                    }
+                    limited={
+                      product.limited
+                    }
+                    onSale={
+                      product.onSale
+                    }
+                  />
+                )
+              )}
             </div>
           </div>
         )}
@@ -172,16 +261,16 @@ Can you help me source it?`;
 
   return (
     <div
-  className="
-    grid
-    grid-cols-1
-    gap-x-10
-    gap-y-16
-    sm:grid-cols-2
-    xl:grid-cols-3
-    2xl:grid-cols-4
-  "
->
+      className="
+        grid
+        grid-cols-1
+        gap-x-8
+        gap-y-14
+        sm:grid-cols-2
+        xl:grid-cols-3
+        2xl:grid-cols-4
+      "
+    >
       {products.map((product) => (
         <ProductCard
           key={product.id}
@@ -191,11 +280,19 @@ Can you help me source it?`;
           name={product.name}
           model={product.model}
           image={product.image}
-          secondImage={product.secondImage}
-          createdAt={product.createdAt}
+          secondImage={
+            product.secondImage
+          }
+          createdAt={
+            product.createdAt
+          }
           featured={product.featured}
-          newArrival={product.newArrival}
-          bestSeller={product.bestSeller}
+          newArrival={
+            product.newArrival
+          }
+          bestSeller={
+            product.bestSeller
+          }
           limited={product.limited}
           onSale={product.onSale}
         />

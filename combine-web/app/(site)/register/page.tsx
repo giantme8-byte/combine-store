@@ -1,8 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,7 +15,9 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    e: FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
 
     if (loading) return;
@@ -52,37 +54,101 @@ export default function RegisterPage() {
       router.push("/login");
       router.refresh();
     } catch (error) {
-      console.error("Registration failed:", error);
-      setError("Something went wrong. Please try again.");
+      console.error(error);
+      setError(
+        "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-50 px-6">
-      <div className="w-full max-w-md rounded-3xl bg-white p-10 shadow-xl">
-        <div className="mb-10 text-center">
-          <Link
-            href="/"
-            className="inline-block text-4xl font-extralight tracking-[0.35em] transition-opacity hover:opacity-70"
-          >
-            COMBINE
-          </Link>
+    <main className="mx-auto flex min-h-screen max-w-[1440px] items-center justify-center px-8 py-24 lg:px-12">
 
-          <p className="mt-4 text-sm uppercase tracking-[0.25em] text-neutral-500">
-            Create Account
+      <div
+        className="
+          w-full
+          max-w-xl
+          rounded-[40px]
+          border
+          border-neutral-200
+          bg-white
+          p-12
+          shadow-[0_30px_80px_rgba(0,0,0,.05)]
+        "
+      >
+
+        <div className="text-center">
+
+          <p
+            className="
+              text-xs
+              uppercase
+              tracking-[0.55em]
+              text-neutral-400
+            "
+          >
+            ACCOUNT
           </p>
+
+          <h1
+            className="
+              mt-6
+              text-5xl
+              font-extralight
+              tracking-[-0.04em]
+              text-neutral-900
+            "
+          >
+            Create Account
+          </h1>
+
+          <div
+            className="
+              mx-auto
+              mt-8
+              h-px
+              w-20
+              bg-gradient-to-r
+              from-transparent
+              via-[#C8A96A]
+              to-transparent
+            "
+          />
+
+          <p
+            className="
+              mx-auto
+              mt-8
+              max-w-md
+              text-lg
+              leading-8
+              text-neutral-500
+            "
+          >
+            Join COMBINE to save your favourite
+            collections, manage enquiries and enjoy
+            a personalised luxury shopping experience.
+          </p>
+
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-5"
+          className="mt-14 space-y-8"
         >
-          <div className="space-y-2">
+
+          <div>
+
             <label
               htmlFor="name"
-              className="text-xs uppercase tracking-[0.2em] text-neutral-500"
+              className="
+                text-[11px]
+                uppercase
+                tracking-[0.35em]
+                text-neutral-400
+              "
             >
               Full Name
             </label>
@@ -92,17 +158,40 @@ export default function RegisterPage() {
               type="text"
               required
               autoComplete="name"
-              placeholder="Full Name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-2xl border border-neutral-200 px-5 py-4 outline-none transition focus:border-black focus:ring-4 focus:ring-black/5"
+              onChange={(e) =>
+                setName(e.target.value)
+              }
+              placeholder="Enter your full name"
+              className="
+                mt-3
+                w-full
+                rounded-2xl
+                border
+                border-neutral-200
+                px-6
+                py-4
+                outline-none
+                transition-all
+                duration-300
+                focus:border-[#C8A96A]
+                focus:ring-4
+                focus:ring-[#C8A96A]/10
+              "
             />
+
           </div>
 
-          <div className="space-y-2">
+          <div>
+
             <label
               htmlFor="email"
-              className="text-xs uppercase tracking-[0.2em] text-neutral-500"
+              className="
+                text-[11px]
+                uppercase
+                tracking-[0.35em]
+                text-neutral-400
+              "
             >
               Email
             </label>
@@ -112,17 +201,40 @@ export default function RegisterPage() {
               type="email"
               required
               autoComplete="email"
-              placeholder="Email Address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-2xl border border-neutral-200 px-5 py-4 outline-none transition focus:border-black focus:ring-4 focus:ring-black/5"
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
+              placeholder="Enter your email"
+              className="
+                mt-3
+                w-full
+                rounded-2xl
+                border
+                border-neutral-200
+                px-6
+                py-4
+                outline-none
+                transition-all
+                duration-300
+                focus:border-[#C8A96A]
+                focus:ring-4
+                focus:ring-[#C8A96A]/10
+              "
             />
+
           </div>
 
-          <div className="space-y-2">
+          <div>
+
             <label
               htmlFor="password"
-              className="text-xs uppercase tracking-[0.2em] text-neutral-500"
+              className="
+                text-[11px]
+                uppercase
+                tracking-[0.35em]
+                text-neutral-400
+              "
             >
               Password
             </label>
@@ -132,17 +244,40 @@ export default function RegisterPage() {
               type="password"
               required
               autoComplete="new-password"
-              placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-2xl border border-neutral-200 px-5 py-4 outline-none transition focus:border-black focus:ring-4 focus:ring-black/5"
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
+              placeholder="Create a password"
+              className="
+                mt-3
+                w-full
+                rounded-2xl
+                border
+                border-neutral-200
+                px-6
+                py-4
+                outline-none
+                transition-all
+                duration-300
+                focus:border-[#C8A96A]
+                focus:ring-4
+                focus:ring-[#C8A96A]/10
+              "
             />
+
           </div>
 
-          <div className="space-y-2">
+          <div>
+
             <label
               htmlFor="confirmPassword"
-              className="text-xs uppercase tracking-[0.2em] text-neutral-500"
+              className="
+                text-[11px]
+                uppercase
+                tracking-[0.35em]
+                text-neutral-400
+              "
             >
               Confirm Password
             </label>
@@ -152,38 +287,114 @@ export default function RegisterPage() {
               type="password"
               required
               autoComplete="new-password"
-              placeholder="Confirm Password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-2xl border border-neutral-200 px-5 py-4 outline-none transition focus:border-black focus:ring-4 focus:ring-black/5"
+              onChange={(e) =>
+                setConfirmPassword(e.target.value)
+              }
+              placeholder="Confirm your password"
+              className="
+                mt-3
+                w-full
+                rounded-2xl
+                border
+                border-neutral-200
+                px-6
+                py-4
+                outline-none
+                transition-all
+                duration-300
+                focus:border-[#C8A96A]
+                focus:ring-4
+                focus:ring-[#C8A96A]/10
+              "
             />
+
           </div>
 
           {error && (
-            <p className="text-sm text-red-500">
+            <div
+              className="
+                rounded-2xl
+                border
+                border-red-200
+                bg-red-50
+                px-5
+                py-4
+                text-sm
+                text-red-600
+              "
+            >
               {error}
-            </p>
+            </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-2xl bg-black py-4 text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="
+              inline-flex
+              w-full
+              items-center
+              justify-center
+              rounded-full
+              bg-black
+              px-8
+              py-4
+              text-[11px]
+              font-medium
+              uppercase
+              tracking-[0.3em]
+              text-white
+              transition-all
+              duration-300
+              hover:-translate-y-1
+              hover:bg-[#C8A96A]
+              hover:shadow-xl
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading
+              ? "Creating Account..."
+              : "Create Account"}
           </button>
+
         </form>
 
-        <div className="mt-8 text-center text-sm text-neutral-500">
-          Already have an account?{" "}
+        <div
+          className="
+            mt-12
+            border-t
+            border-neutral-200
+            pt-10
+            text-center
+          "
+        >
+
+          <p className="text-neutral-500">
+            Already have an account?
+          </p>
+
           <Link
             href="/login"
-            className="font-medium text-black hover:underline"
+            className="
+              mt-4
+              inline-flex
+              text-sm
+              uppercase
+              tracking-[0.3em]
+              text-[#C8A96A]
+              transition
+              hover:opacity-70
+            "
           >
-            Login
+            Sign In
           </Link>
+
         </div>
+
       </div>
+
     </main>
   );
 }
