@@ -36,9 +36,6 @@ export default function ProductActions({
 
   const [loading, setLoading] = useState(false);
 
-  // Use selected option first.
-  // If there is no selectable option,
-  // fallback to the product default.
   const colour =
     selectedColor?.name ??
     mainColor ??
@@ -56,7 +53,7 @@ export default function ProductActions({
   async function handleWhatsApp() {
     setLoading(true);
 
-const message = `Hi COMBINE 👋
+    const message = `Hi COMBINE 👋
 
 I'm interested in this item.
 
@@ -97,41 +94,31 @@ Please provide the latest price and availability.
 
 Thank you 😊`;
 
-    const response = await fetch(
-      "/api/settings"
-    );
+    const response = await fetch("/api/settings");
 
-    const settings =
-      await response.json();
+    const settings = await response.json();
 
     const whatsappNumber =
-      settings.whatsappNumber.replace(
-        /\D/g,
-        ""
-      );
+      settings.whatsappNumber.replace(/\D/g, "");
 
-    const url =
-      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        message
-      )}`;
+    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+      message
+    )}`;
 
-    window.open(
-      url,
-      "_blank"
-    );
+    window.open(url, "_blank");
 
     setLoading(false);
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-8">
       <div className="border-t border-neutral-200 pt-8">
-
-        <p className="mb-5 text-[11px] uppercase tracking-[0.35em] text-neutral-400">
-          Contact Us
+        {/* Section Title */}
+        <p className="mb-6 text-[11px] uppercase tracking-[0.35em] text-neutral-400">
+          Luxury Concierge
         </p>
 
-
+        {/* WhatsApp */}
         <button
           type="button"
           onClick={handleWhatsApp}
@@ -150,34 +137,33 @@ Thank you 😊`;
             uppercase
             tracking-[0.22em]
             text-white
-            transition
+            transition-all
             duration-300
-            hover:bg-neutral-800
+            hover:-translate-y-0.5
+            hover:bg-[#B08D57]
+            disabled:cursor-not-allowed
             disabled:opacity-50
           "
         >
-          {loading
-            ? "Opening..."
-            : "WhatsApp Inquiry →"}
+          {loading ? "Opening..." : "Request Price"}
         </button>
 
-
-        <div className="mt-5 grid grid-cols-2 gap-4">
-
-<AddToInquiryButton
-  productId={productId}
-  color={selectedColor?.name}
-  variant={selectedVariant?.size}
-  dimensions={selectedVariant?.dimensions ?? undefined}
-/>
-
+        {/* Secondary Actions */}
+        <div className="mt-6 grid grid-cols-2 gap-4">
+          <AddToInquiryButton
+            productId={productId}
+            color={selectedColor?.name}
+            variant={selectedVariant?.size}
+            dimensions={
+              selectedVariant?.dimensions ??
+              undefined
+            }
+          />
 
           <WishlistButton
             productId={productId}
           />
-
         </div>
-
       </div>
     </div>
   );

@@ -49,6 +49,8 @@ const {
   const [lightboxOpen, setLightboxOpen] =
   useState(false);  
 
+  const currentIndex = images.indexOf(selectedImage);
+
 
   /*
     When colour changes from ProductOptions,
@@ -93,12 +95,22 @@ const {
 
 return (
   <>
-    <div className="flex flex-col-reverse gap-8 lg:flex-row">
+    <div className="flex flex-col gap-6 lg:flex-row">
 
 
       {/* Thumbnails */}
 
-      <div className="flex gap-4 overflow-x-auto lg:flex-col lg:overflow-visible">
+      <div
+  className="
+    flex
+    gap-3
+    overflow-x-auto
+    pb-2
+    lg:flex-col
+    lg:gap-4
+    lg:overflow-visible
+  "
+>
 
         {images.map(
           (img, index) => (
@@ -108,11 +120,11 @@ return (
               onClick={() =>
                 setSelectedImage(img)
               }
-              className={`overflow-hidden rounded-2xl transition-all duration-300 ${
-                selectedImage === img
-                  ? "scale-105 ring-2 ring-black shadow-xl"
-                  : "ring-1 ring-neutral-200 hover:-translate-y-1 hover:ring-neutral-400"
-              }`}
+className={`overflow-hidden rounded-xl lg:rounded-2xl transition-all duration-300 ${
+  selectedImage === img
+    ? "scale-105 ring-2 ring-black shadow-md"
+    : "ring-1 ring-neutral-200 hover:-translate-y-1 hover:ring-neutral-400"
+}`}
             >
               <Image
                 src={img}
@@ -120,11 +132,14 @@ return (
                 width={110}
                 height={110}
                 className="
-                  h-24
-                  w-24
+h-14
+w-14
+lg:h-24
+lg:w-24
                   bg-white
                   object-contain
-                  p-3
+p-2
+lg:p-3
                   transition-transform
                   duration-300
                   hover:scale-105
@@ -139,37 +154,50 @@ return (
 
 
       {/* Main */}
-
       <div className="flex-1">
+        <div
+          onClick={() => setLightboxOpen(true)}
+          className="
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            shadow-lg
+            transition-all
+            duration-500
+            hover:shadow-[0_30px_80px_rgba(0,0,0,0.08)]
+            lg:rounded-3xl
+            lg:shadow-[0_20px_60px_rgba(0,0,0,0.05)]
+          "
+        >
+          <ZoomImage
+            src={selectedImage}
+            alt={name}
+          />
+        </div>
 
-<div
-  onClick={() =>
-    setLightboxOpen(true)
-  }
-  className="
-    rounded-3xl
-    border
-    border-neutral-200
-    bg-white
-    shadow-[0_20px_60px_rgba(0,0,0,0.05)]
-    transition-all
-    duration-500
-    hover:shadow-[0_30px_80px_rgba(0,0,0,0.08)]
-  "
->
-  <ZoomImage
-    src={selectedImage}
-    alt={name}
-  />
-</div>
-
-
+        {/* Mobile Dot Indicator */}
+        <div className="mt-5 flex justify-center gap-2 lg:hidden">
+          {images.map((img, index) => (
+            <button
+              key={img}
+              type="button"
+              aria-label={`View image ${index + 1}`}
+              onClick={() => setSelectedImage(img)}
+              className={`h-2 rounded-full transition-all duration-300 ease-out ${
+                index === currentIndex
+                  ? "w-6 bg-black"
+                  : "w-2 bg-neutral-300"
+              }`}
+            />
+          ))}
+        </div>
 
         {/* Colour */}
 
         {colors.length > 0 && (
 
-          <div className="mt-10">
+          <div className="mt-8 lg:mt-10">
 
             <p className="mb-2 text-xs uppercase tracking-[0.3em] text-neutral-500">
               Colour

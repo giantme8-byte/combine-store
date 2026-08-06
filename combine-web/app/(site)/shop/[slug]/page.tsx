@@ -175,7 +175,7 @@ variants: {
     .map((image) => image.url);
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+    <main className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
       <RecentlyViewedTracker
         slug={product.slug ?? ""}
       />
@@ -205,7 +205,17 @@ variants: {
   colors={product.colors}
   variants={product.variants}
 >
-  <section className="mt-12 grid items-start gap-20 lg:grid-cols-[1.15fr_0.85fr]">
+  <section
+  className="
+    mt-8
+    grid
+    items-start
+    gap-12
+    lg:mt-12
+    lg:gap-20
+    lg:grid-cols-[1.15fr_0.85fr]
+  "
+>
         {/* Gallery */}
         <ProductGallery
           cover={cover}
@@ -215,7 +225,15 @@ variants: {
         />
 
         {/* Info */}
-        <div className="sticky top-28 self-start flex flex-col">
+        <div
+  className="
+    flex
+    flex-col
+    self-start
+    lg:sticky
+    lg:top-28
+  "
+>
           <ProductInfo
             product={{
               brand: product.brand,
@@ -259,7 +277,7 @@ variants: {
 </ProductDetailClient>
 
       {/* Related */}
-      <section className="mt-40">
+      <section className="mt-24 lg:mt-40">
         <div className="mb-16 text-center">
           <p className="text-xs uppercase tracking-[0.45em] text-neutral-400">
             YOU MAY ALSO LIKE
