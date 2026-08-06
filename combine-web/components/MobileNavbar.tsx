@@ -5,6 +5,7 @@ import { Menu, X, ClipboardList, Heart } from "lucide-react";
 import { useState } from "react";
 
 import { useInquiry } from "@/components/providers/InquiryProvider";
+import { useQuickView } from "@/components/providers/QuickViewProvider";
 
 
 const navigation = [
@@ -32,21 +33,20 @@ export default function MobileNavbar() {
   const [open, setOpen] = useState(false);
 
 
-  const {
-    totalItems,
-    openDrawer,
-  } = useInquiry();
+const {
+  totalItems,
+  openDrawer,
+} = useInquiry();
 
+const { close } = useQuickView();
 
+function handleInquiry() {
+  close();
 
-  function handleInquiry() {
+  openDrawer();
 
-    setOpen(false);
-
-    openDrawer();
-
-  }
-
+  setOpen(false);
+}
 
 
   return (

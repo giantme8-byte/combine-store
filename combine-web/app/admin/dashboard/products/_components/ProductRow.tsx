@@ -15,6 +15,14 @@ import { calculateProductProfit } from "@/lib/product";
 import Badge from "../../_components/Badge";
 import ProductActions from "./ProductActions";
 
+import EditableField from "./EditableField";
+
+import {
+  quickUpdateProductPrice,
+} from "../_actions/product.actions";
+
+import { toast } from "sonner";
+
 type ProductRowProps = {
   product: ProductWithImages;
   exchangeRate: number;
@@ -211,9 +219,25 @@ return (
               Selling
             </p>
 
-            <p className="mt-2 font-semibold tabular-nums">
-              RM {product.price.toFixed(2)}
-            </p>
+<EditableField
+  value={product.price.toFixed(2)}
+  className="mt-2 font-semibold tabular-nums"
+  onSave={async (value) => {
+    const price = Number(value);
+
+    if (Number.isNaN(price)) {
+      toast.error("Invalid price");
+      return;
+    }
+
+    await quickUpdateProductPrice(
+      product.id,
+      price
+    );
+
+    toast.success("Price updated");
+  }}
+/>
           </div>
 
           <div className="border-t border-neutral-200 pt-4">

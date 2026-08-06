@@ -7,8 +7,11 @@ import { prisma } from "@/lib/prisma";
 import "./globals.css";
 
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import QuickViewModal from "@/components/quick-view/QuickViewModal";
 import InquiryDrawer from "@/components/inquiry/InquiryDrawer";
+
 import { InquiryProvider } from "@/components/providers/InquiryProvider";
+import { QuickViewProvider } from "@/components/providers/QuickViewProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -137,23 +140,27 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <body>
-        <InquiryProvider>
-          {children}
+<body>
+  <InquiryProvider>
+    <QuickViewProvider>
+      {children}
 
-          <InquiryDrawer />
+      <InquiryDrawer />
 
-          <FloatingWhatsApp />
+      <QuickViewModal />
 
-          <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            duration={3000}
-            expand
-          />
-        </InquiryProvider>
-      </body>
+      <FloatingWhatsApp />
+
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        duration={3000}
+        expand
+      />
+    </QuickViewProvider>
+  </InquiryProvider>
+</body>
     </html>
   );
 }

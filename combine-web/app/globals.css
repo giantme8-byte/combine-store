@@ -11,6 +11,17 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Quick View */
+body.quick-view-open {
+  overflow: hidden;
+}
+
+body.quick-view-open main,
+body.quick-view-open #__next {
+  transform: scale(0.985);
+  transition: transform 0.35s ease;
+}
+
 /* 先把下面两段全部注释掉 */
 /*
 a {

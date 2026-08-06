@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LayoutGrid, Table } from "lucide-react";
 
 import type {
@@ -43,10 +43,27 @@ export default function ProductView({
 }: ProductViewProps) {
 
   const [view, setView] =
-    useState<"table" | "grid">("table");
+    useState<"table" | "grid">(() => {
+      if (typeof window === "undefined") {
+        return "table";
+      }
+
+      return (
+        (localStorage.getItem("product-view") as
+          | "table"
+          | "grid") ?? "table"
+      );
+    });
 
   const [selectedCount] =
     useState(0);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "product-view",
+      view
+    );
+  }, [view]);
 
   return (
     <div className="space-y-4">

@@ -75,6 +75,7 @@ export type ProductCardProps = {
   name: string;
   model: string | null;
   image: string;
+  secondImage?: string;
 
   createdAt: Date;
 

@@ -194,10 +194,13 @@ export default async function WishlistPage() {
   brand={item.product.brand}
   name={item.product.name}
   model={item.product.model}
-  image={
-    item.product.images[0]?.url ??
-    "/placeholder.png"
-  }
+image={
+  item.product.images[0]?.url ??
+  "/placeholder.png"
+}
+secondImage={
+  item.product.images[1]?.url
+}
   createdAt={item.product.createdAt}
   featured={item.product.featured}
   newArrival={item.product.newArrival}

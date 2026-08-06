@@ -81,6 +81,7 @@ export default function RecentlyViewed() {
       name={product.name}
       model={product.model}
       image={product.images[0]?.url ?? "/placeholder.png"}
+secondImage={product.images[1]?.url}
       createdAt={product.createdAt}
       featured={product.featured}
       newArrival={product.newArrival}

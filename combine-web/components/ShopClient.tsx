@@ -28,6 +28,8 @@ type Product = {
 
   createdAt: Date;
 
+  secondImage?: string;
+
   category: string;
   subCategory: string | null;
 

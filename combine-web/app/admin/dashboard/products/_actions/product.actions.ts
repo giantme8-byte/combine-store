@@ -55,11 +55,28 @@ const result = await new Promise<UploadApiResponse>(
   };
 }
 
+export async function quickUpdateProductPrice(
+  productId: number,
+  price: number
+) {
+  await requireRole([
+    UserRole.STAFF,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  ]);
 
+  await prisma.product.update({
+    where: {
+      id: productId,
+    },
+    data: {
+      price,
+    },
+  });
 
-
-
-
+  revalidatePath("/admin/dashboard/products");
+}
 
 export async function createProduct(
   formData: FormData

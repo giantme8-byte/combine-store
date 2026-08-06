@@ -129,34 +129,40 @@ export default async function ShopProducts({
   ]);
 
 
-  const formatProduct = (product: typeof products[number]) => ({
-    id: product.id,
-    slug: product.slug ?? "",
-    brand: product.brand,
-    name: product.name,
-    model: product.model,
-    sku: product.sku,
+const formatProduct = (
+  product: typeof products[number]
+) => ({
+  id: product.id,
+  slug: product.slug ?? "",
 
-    price: product.price,
+  brand: product.brand,
+  name: product.name,
+  model: product.model,
+  sku: product.sku,
 
-    displayOrder: product.displayOrder,
+  price: product.price,
 
-    image:
-      product.images[0]?.url ??
-      "/placeholder.png",
+  displayOrder: product.displayOrder,
 
-category: product.category,
-subCategory: product.subCategory,
-mainColor: product.mainColor,
+  image:
+    product.images[0]?.url ??
+    "/placeholder.png",
 
-createdAt: product.createdAt,
+  secondImage:
+    product.images[1]?.url,
 
-    featured: product.featured,
-    newArrival: product.newArrival,
-    bestSeller: product.bestSeller,
-    limited: product.limited,
-    onSale: product.onSale,
-  });
+  category: product.category,
+  subCategory: product.subCategory,
+  mainColor: product.mainColor,
+
+  createdAt: product.createdAt,
+
+  featured: product.featured,
+  newArrival: product.newArrival,
+  bestSeller: product.bestSeller,
+  limited: product.limited,
+  onSale: product.onSale,
+});
 
 
   const formattedProducts =
