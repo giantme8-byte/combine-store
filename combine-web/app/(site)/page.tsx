@@ -13,15 +13,13 @@ export default function Home() {
     <main className="overflow-x-hidden bg-white">
       <Hero />
 
-      <MotionSection>
-        <Categories />
-      </MotionSection>
+      <Categories />
 
-{/* 
-<MotionSection>
-  <CollectionSection />
-</MotionSection>
-*/}
+      {/*
+      <MotionSection>
+        <CollectionSection />
+      </MotionSection>
+      */}
 
       <MotionSection delay={0.05}>
         <BrandShowcase />
