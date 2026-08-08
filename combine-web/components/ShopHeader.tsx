@@ -5,14 +5,23 @@ export default function ShopHeader() {
     <section
       className="
         relative
-        mb-24
+        mb-12
         overflow-hidden
-        rounded-[36px]
+        rounded-[24px]
+        sm:mb-20
+        sm:rounded-[36px]
+        lg:mb-24
         lg:rounded-[44px]
       "
     >
-      <div className="relative h-[340px] md:h-[720px]">
-
+      <div
+        className="
+          relative
+          h-[520px]
+          sm:h-[600px]
+          md:h-[720px]
+        "
+      >
         {/* Background */}
         <Image
           src="/images/shop-banner-v2.png"
@@ -23,9 +32,9 @@ export default function ShopHeader() {
           className="
             object-cover
             object-[65%_center]
-            md:object-center
             scale-105
             animate-[heroZoom_20s_ease-in-out_infinite_alternate]
+            md:object-center
           "
         />
 
@@ -59,10 +68,11 @@ export default function ShopHeader() {
             absolute
             inset-x-0
             bottom-0
-            h-44
+            h-36
             bg-gradient-to-t
             from-white/20
             to-transparent
+            sm:h-44
           "
         />
 
@@ -74,7 +84,8 @@ export default function ShopHeader() {
             flex
             items-center
             justify-center
-            px-6
+            px-5
+            sm:px-6
           "
         >
           <div className="max-w-4xl text-center text-white">
@@ -84,19 +95,24 @@ export default function ShopHeader() {
               className="
                 inline-flex
                 items-center
-                gap-3
+                gap-2
                 rounded-full
                 border
                 border-white/20
                 bg-white/10
-                px-5
-                py-2
-                text-[10px]
+                px-4
+                py-1.5
+                text-[8px]
                 font-medium
                 uppercase
-                tracking-[0.45em]
+                tracking-[0.32em]
                 text-white/90
                 backdrop-blur-xl
+                sm:gap-3
+                sm:px-5
+                sm:py-2
+                sm:text-[10px]
+                sm:tracking-[0.45em]
                 md:text-[11px]
               "
             >
@@ -110,12 +126,14 @@ export default function ShopHeader() {
             {/* Title */}
             <h1
               className="
-                mt-8
-                text-[48px]
+                mt-6
+                text-[42px]
                 font-extralight
                 leading-[0.92]
                 tracking-[-0.06em]
                 drop-shadow-2xl
+                sm:mt-8
+                sm:text-[54px]
                 md:text-[92px]
               "
             >
@@ -128,13 +146,15 @@ export default function ShopHeader() {
             <div
               className="
                 mx-auto
-                mt-8
+                mt-6
                 h-px
-                w-24
+                w-16
                 bg-gradient-to-r
                 from-transparent
                 via-[#D5B47F]
                 to-transparent
+                sm:mt-8
+                sm:w-24
               "
             />
 
@@ -142,11 +162,14 @@ export default function ShopHeader() {
             <p
               className="
                 mx-auto
-                mt-8
+                mt-6
                 max-w-3xl
-                text-[15px]
-                leading-8
+                text-[12px]
+                leading-6
                 text-white/80
+                sm:mt-8
+                sm:text-[15px]
+                sm:leading-8
                 md:text-xl
                 md:leading-10
               "
@@ -160,26 +183,31 @@ export default function ShopHeader() {
             {/* Stats */}
             <div
               className="
-                mt-14
+                mx-auto
+                mt-9
                 grid
                 grid-cols-3
-                gap-8
-                md:max-w-2xl
-                md:mx-auto
+                gap-3
+                sm:mt-14
+                sm:max-w-2xl
+                sm:gap-8
               "
             >
               <div>
-                <p className="text-3xl font-extralight md:text-4xl">
+                <p className="text-2xl font-extralight sm:text-3xl md:text-4xl">
                   2000+
                 </p>
 
                 <p
                   className="
-                    mt-2
-                    text-[10px]
+                    mt-1.5
+                    text-[8px]
                     uppercase
-                    tracking-[0.35em]
+                    tracking-[0.22em]
                     text-white/60
+                    sm:mt-2
+                    sm:text-[10px]
+                    sm:tracking-[0.35em]
                   "
                 >
                   Products
@@ -187,17 +215,20 @@ export default function ShopHeader() {
               </div>
 
               <div>
-                <p className="text-3xl font-extralight md:text-4xl">
+                <p className="text-2xl font-extralight sm:text-3xl md:text-4xl">
                   Premium
                 </p>
 
                 <p
                   className="
-                    mt-2
-                    text-[10px]
+                    mt-1.5
+                    text-[8px]
                     uppercase
-                    tracking-[0.35em]
+                    tracking-[0.22em]
                     text-white/60
+                    sm:mt-2
+                    sm:text-[10px]
+                    sm:tracking-[0.35em]
                   "
                 >
                   Quality
@@ -205,17 +236,20 @@ export default function ShopHeader() {
               </div>
 
               <div>
-                <p className="text-3xl font-extralight md:text-4xl">
+                <p className="text-2xl font-extralight sm:text-3xl md:text-4xl">
                   Global
                 </p>
 
                 <p
                   className="
-                    mt-2
-                    text-[10px]
+                    mt-1.5
+                    text-[8px]
                     uppercase
-                    tracking-[0.35em]
+                    tracking-[0.22em]
                     text-white/60
+                    sm:mt-2
+                    sm:text-[10px]
+                    sm:tracking-[0.35em]
                   "
                 >
                   Shipping

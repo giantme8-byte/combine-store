@@ -84,6 +84,8 @@ export type ProductCardProps = {
   bestSeller: boolean;
   limited: boolean;
   onSale: boolean;
+
+  buttonSize?: "default" | "small";
 };
 
 

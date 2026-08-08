@@ -15,12 +15,40 @@ function MetaItem({
   value: string;
 }) {
   return (
-    <div className="border-t border-neutral-200 py-5 first:border-t-0 first:pt-0">
-      <p className="text-[11px] uppercase tracking-[0.35em] text-neutral-400">
+    <div
+      className="
+        border-t
+        border-neutral-200
+        py-4
+        first:border-t-0
+        first:pt-0
+        sm:py-5
+        sm:first:pt-0
+      "
+    >
+      <p
+        className="
+          text-[10px]
+          uppercase
+          tracking-[0.3em]
+          text-neutral-400
+          sm:text-[11px]
+          sm:tracking-[0.35em]
+        "
+      >
         {label}
       </p>
 
-      <p className="mt-2 text-base font-medium text-neutral-900">
+      <p
+        className="
+          mt-1.5
+          text-sm
+          font-medium
+          text-neutral-900
+          sm:mt-2
+          sm:text-base
+        "
+      >
         {value}
       </p>
     </div>
@@ -36,7 +64,7 @@ export default function ProductMeta({
   dimensions,
 }: ProductMetaProps) {
   return (
-    <div className="mt-12">
+    <div className="mt-8 sm:mt-12">
       {sku && (
         <MetaItem
           label="Reference"
@@ -44,14 +72,14 @@ export default function ProductMeta({
         />
       )}
 
-{/*
-{model && (
-  <MetaItem
-    label="Model"
-    value={model}
-  />
-)}
-*/}
+      {/*
+      {model && (
+        <MetaItem
+          label="Model"
+          value={model}
+        />
+      )}
+      */}
 
       <MetaItem
         label="Collection"

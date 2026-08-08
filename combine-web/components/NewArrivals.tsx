@@ -40,17 +40,18 @@ export default async function NewArrivals() {
   });
 
   return (
-    <section className="mx-auto max-w-[1600px] px-6 py-36 lg:px-14">
+    <section className="mx-auto max-w-[1600px] px-4 py-20 sm:px-8 sm:py-32 lg:px-14 lg:py-36">
 
       {/* Header */}
-      <div className="mx-auto mb-24 max-w-5xl text-center">
+      <div className="mx-auto mb-16 max-w-5xl text-center sm:mb-24">
 
         <p
           className="
-            text-[11px]
+            text-[10px]
             uppercase
             tracking-[0.55em]
             text-neutral-400
+            sm:text-[11px]
           "
         >
           NEW ARRIVALS
@@ -58,11 +59,13 @@ export default async function NewArrivals() {
 
         <h2
           className="
-            mt-7
-            text-5xl
+            mt-5
+            text-4xl
             font-extralight
             tracking-[-0.05em]
             text-neutral-950
+            sm:mt-7
+            sm:text-5xl
             md:text-7xl
           "
         >
@@ -72,24 +75,29 @@ export default async function NewArrivals() {
         <div
           className="
             mx-auto
-            mt-10
+            mt-7
             h-px
-            w-28
+            w-20
             bg-gradient-to-r
             from-transparent
             via-[#C9A86A]
             to-transparent
+            sm:mt-10
+            sm:w-28
           "
         />
 
         <p
           className="
             mx-auto
-            mt-10
+            mt-7
             max-w-3xl
-            text-lg
-            leading-9
+            text-[15px]
+            leading-7
             text-neutral-500
+            sm:mt-10
+            sm:text-lg
+            sm:leading-9
           "
         >
           Discover the newest luxury arrivals carefully selected
@@ -102,21 +110,24 @@ export default async function NewArrivals() {
       {products.length === 0 ? (
         <div
           className="
-            rounded-[36px]
+            rounded-[28px]
             border
             border-dashed
             border-neutral-300
             bg-[#fafafa]
-            py-28
+            py-20
             text-center
+            sm:rounded-[36px]
+            sm:py-28
           "
         >
           <h3
             className="
-              text-4xl
+              text-3xl
               font-extralight
               tracking-[-0.04em]
               text-neutral-900
+              sm:text-4xl
             "
           >
             New Arrivals Coming Soon
@@ -125,11 +136,16 @@ export default async function NewArrivals() {
           <p
             className="
               mx-auto
-              mt-8
+              mt-6
               max-w-xl
-              text-lg
-              leading-9
+              px-6
+              text-[15px]
+              leading-7
               text-neutral-500
+              sm:mt-8
+              sm:px-0
+              sm:text-lg
+              sm:leading-9
             "
           >
             Our latest collection is currently being curated.
@@ -138,7 +154,8 @@ export default async function NewArrivals() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Products */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-8 lg:grid-cols-4">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -165,7 +182,7 @@ export default async function NewArrivals() {
           </div>
 
           {/* View All */}
-          <div className="mt-20 flex justify-center">
+          <div className="mt-14 flex justify-center sm:mt-20">
 
             <Link
               href="/shop?filter=new"
@@ -177,17 +194,21 @@ export default async function NewArrivals() {
                 rounded-full
                 border
                 border-neutral-300
-                px-8
-                py-4
-                text-[11px]
+                px-6
+                py-3.5
+                text-[10px]
                 font-semibold
                 uppercase
-                tracking-[0.3em]
+                tracking-[0.25em]
                 transition-all
                 duration-500
                 hover:border-[#C9A86A]
                 hover:bg-[#C9A86A]
                 hover:text-white
+                sm:px-8
+                sm:py-4
+                sm:text-[11px]
+                sm:tracking-[0.3em]
               "
             >
               View All New Arrivals

@@ -19,11 +19,13 @@ export default function ProductInfo({
       {/* Brand */}
       <p
         className="
-          text-[11px]
+          text-[10px]
           font-medium
           uppercase
-          tracking-[0.6em]
+          tracking-[0.45em]
           text-neutral-500
+          sm:text-[11px]
+          sm:tracking-[0.6em]
         "
       >
         {product.brand}
@@ -32,12 +34,15 @@ export default function ProductInfo({
       {/* Product Name */}
       <h1
         className="
-          mt-5
-          text-[42px]
+          mt-3
+          text-[32px]
           font-extralight
-          leading-[1.02]
-          tracking-[-0.045em]
+          leading-[1.05]
+          tracking-[-0.04em]
           text-neutral-950
+          sm:mt-5
+          sm:text-[42px]
+          sm:leading-[1.02]
           md:text-[52px]
           xl:text-[60px]
         "
@@ -48,13 +53,15 @@ export default function ProductInfo({
       {/* Divider */}
       <div
         className="
-          mt-8
+          mt-5
           h-px
-          w-36
+          w-24
           bg-gradient-to-r
           from-neutral-900
           via-neutral-400
           to-transparent
+          sm:mt-8
+          sm:w-36
         "
       />
 
@@ -62,12 +69,15 @@ export default function ProductInfo({
       {product.shortDescription && (
         <p
           className="
-            mt-8
+            mt-5
             max-w-xl
-            text-[17px]
+            text-[14px]
             font-light
-            leading-[2]
+            leading-7
             text-neutral-500
+            sm:mt-8
+            sm:text-[17px]
+            sm:leading-[2]
           "
         >
           {product.shortDescription}
@@ -75,7 +85,16 @@ export default function ProductInfo({
       )}
 
       {/* Badges */}
-      <div className="mt-10 flex flex-wrap gap-3">
+      <div
+        className="
+          mt-6
+          flex
+          flex-wrap
+          gap-2
+          sm:mt-10
+          sm:gap-3
+        "
+      >
         {product.newArrival && (
           <span
             className="
@@ -83,12 +102,12 @@ export default function ProductInfo({
               border
               border-black/10
               bg-white/70
-              px-5
-              py-2
-              text-[10px]
+              px-3
+              py-1.5
+              text-[8px]
               font-semibold
               uppercase
-              tracking-[0.32em]
+              tracking-[0.2em]
               text-black
               shadow-sm
               backdrop-blur-md
@@ -96,6 +115,10 @@ export default function ProductInfo({
               duration-300
               hover:-translate-y-0.5
               hover:shadow-lg
+              sm:px-5
+              sm:py-2
+              sm:text-[10px]
+              sm:tracking-[0.32em]
             "
           >
             NEW ARRIVAL
@@ -109,18 +132,22 @@ export default function ProductInfo({
               border
               border-[#D6BE86]
               bg-[#FFF8E7]
-              px-5
-              py-2
-              text-[10px]
+              px-3
+              py-1.5
+              text-[8px]
               font-semibold
               uppercase
-              tracking-[0.32em]
+              tracking-[0.2em]
               text-[#9C6B11]
               shadow-sm
               transition-all
               duration-300
               hover:-translate-y-0.5
               hover:shadow-lg
+              sm:px-5
+              sm:py-2
+              sm:text-[10px]
+              sm:tracking-[0.32em]
             "
           >
             FEATURED
@@ -134,18 +161,22 @@ export default function ProductInfo({
               border
               border-neutral-300
               bg-neutral-100
-              px-5
-              py-2
-              text-[10px]
+              px-3
+              py-1.5
+              text-[8px]
               font-semibold
               uppercase
-              tracking-[0.32em]
+              tracking-[0.2em]
               text-neutral-800
               shadow-sm
               transition-all
               duration-300
               hover:-translate-y-0.5
               hover:shadow-lg
+              sm:px-5
+              sm:py-2
+              sm:text-[10px]
+              sm:tracking-[0.32em]
             "
           >
             BEST SELLER
@@ -159,18 +190,22 @@ export default function ProductInfo({
               border
               border-black
               bg-white
-              px-5
-              py-2
-              text-[10px]
+              px-3
+              py-1.5
+              text-[8px]
               font-semibold
               uppercase
-              tracking-[0.32em]
+              tracking-[0.2em]
               text-black
               transition-all
               duration-300
               hover:-translate-y-0.5
               hover:bg-black
               hover:text-white
+              sm:px-5
+              sm:py-2
+              sm:text-[10px]
+              sm:tracking-[0.32em]
             "
           >
             LIMITED
@@ -184,18 +219,22 @@ export default function ProductInfo({
               border
               border-[#8B5A2B]
               bg-[#FDF3E8]
-              px-5
-              py-2
-              text-[10px]
+              px-3
+              py-1.5
+              text-[8px]
               font-semibold
               uppercase
-              tracking-[0.32em]
+              tracking-[0.2em]
               text-[#8B5A2B]
               shadow-sm
               transition-all
               duration-300
               hover:-translate-y-0.5
               hover:shadow-lg
+              sm:px-5
+              sm:py-2
+              sm:text-[10px]
+              sm:tracking-[0.32em]
             "
           >
             SALE

@@ -12,17 +12,19 @@ export default function BrandFilter({
   brands,
 }: Props) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Label */}
       <label
         htmlFor="brand-filter"
         className="
           block
-          text-[11px]
+          text-[10px]
           font-medium
           uppercase
-          tracking-[0.45em]
+          tracking-[0.35em]
           text-neutral-400
+          sm:text-[11px]
+          sm:tracking-[0.45em]
         "
       >
         Brand
@@ -40,14 +42,14 @@ export default function BrandFilter({
           className="
             w-full
             appearance-none
-            rounded-2xl
+            rounded-xl
             border
             border-neutral-200
             bg-white
-            px-6
-            py-5
-            pr-14
-            text-[15px]
+            px-4
+            py-3.5
+            pr-10
+            text-[12px]
             font-light
             text-neutral-900
             shadow-[0_8px_24px_rgba(0,0,0,.03)]
@@ -58,6 +60,11 @@ export default function BrandFilter({
             focus:border-[#C8A96A]
             focus:ring-4
             focus:ring-[#C8A96A]/10
+            sm:rounded-2xl
+            sm:px-6
+            sm:py-5
+            sm:pr-14
+            sm:text-[15px]
           "
         >
           {brands.map((brand) => (
@@ -75,10 +82,13 @@ export default function BrandFilter({
           className="
             pointer-events-none
             absolute
-            right-6
+            right-4
             top-1/2
             -translate-y-1/2
+            text-[9px]
             text-neutral-400
+            sm:right-6
+            sm:text-[11px]
           "
         >
           ▼

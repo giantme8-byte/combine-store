@@ -52,18 +52,54 @@ export default async function RelatedProducts({
   }
 
   return (
-    <section className="mt-40">
-      <div className="mb-12 text-center">
-<p className="text-xs uppercase tracking-[0.45em] text-neutral-400">
-  DISCOVER MORE
-</p>
+    <section className="mt-24 sm:mt-40">
+      {/* Header */}
+      <div
+        className="
+          mb-10
+          text-center
+          sm:mb-12
+        "
+      >
+        <p
+          className="
+            text-[10px]
+            uppercase
+            tracking-[0.4em]
+            text-neutral-400
+            sm:text-xs
+            sm:tracking-[0.45em]
+          "
+        >
+          DISCOVER MORE
+        </p>
 
-<h2 className="mt-5 text-5xl font-extralight tracking-[-0.03em]">
-  You May Also Like
-</h2>
+        <h2
+          className="
+            mt-4
+            text-3xl
+            font-extralight
+            tracking-[-0.03em]
+            text-neutral-900
+            sm:mt-5
+            sm:text-5xl
+          "
+        >
+          You May Also Like
+        </h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Products */}
+      <div
+        className="
+          grid
+          grid-cols-2
+          gap-3
+          sm:gap-6
+          lg:grid-cols-4
+          lg:gap-8
+        "
+      >
         {products.map((product) => (
           <ProductCard
             key={product.id}
@@ -72,14 +108,20 @@ export default async function RelatedProducts({
             brand={product.brand}
             name={product.name}
             model={product.model}
-            image={product.images[0]?.url ?? "/placeholder.png"}
-secondImage={product.images[1]?.url}
+            image={
+              product.images[0]?.url ??
+              "/placeholder.png"
+            }
+            secondImage={
+              product.images[1]?.url
+            }
             createdAt={product.createdAt}
             featured={product.featured}
             newArrival={product.newArrival}
             bestSeller={product.bestSeller}
             limited={product.limited}
             onSale={product.onSale}
+            buttonSize="small"
           />
         ))}
       </div>

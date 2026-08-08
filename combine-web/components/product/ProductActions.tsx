@@ -34,7 +34,8 @@ export default function ProductActions({
     quantity,
   } = useProduct();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
   const colour =
     selectedColor?.name ??
@@ -94,16 +95,21 @@ Please provide the latest price and availability.
 
 Thank you 😊`;
 
-    const response = await fetch("/api/settings");
+    const response =
+      await fetch("/api/settings");
 
-    const settings = await response.json();
+    const settings =
+      await response.json();
 
     const whatsappNumber =
-      settings.whatsappNumber.replace(/\D/g, "");
+      settings.whatsappNumber.replace(
+        /\D/g,
+        ""
+      );
 
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-      message
-    )}`;
+    const url =
+      `https://wa.me/${whatsappNumber}` +
+      `?text=${encodeURIComponent(message)}`;
 
     window.open(url, "_blank");
 
@@ -111,72 +117,108 @@ Thank you 😊`;
   }
 
   return (
-    <div className="mt-8">
-      <div className="border-t border-neutral-200 pt-8">
+    <div className="mt-6 sm:mt-8">
+      <div
+        className="
+          border-t
+          border-neutral-200
+          pt-6
+          sm:pt-8
+        "
+      >
         {/* Section Title */}
-        <p className="mb-6 text-[11px] uppercase tracking-[0.35em] text-neutral-400">
+        <p
+          className="
+            mb-4
+            text-[10px]
+            uppercase
+            tracking-[0.3em]
+            text-neutral-400
+            sm:mb-6
+            sm:text-[11px]
+            sm:tracking-[0.35em]
+          "
+        >
           Luxury Concierge
         </p>
 
-        {/* WhatsApp */}
-<button
-  type="button"
-  onClick={handleWhatsApp}
-  disabled={loading}
-  className="
-    group
-    relative
-    flex
-    w-full
-    items-center
-    justify-center
-    overflow-hidden
-    rounded-full
-    bg-black
-    px-8
-    py-5
-    text-sm
-    font-semibold
-    uppercase
-    tracking-[0.28em]
-    text-white
-    shadow-xl
-    transition-all
-    duration-500
-    hover:-translate-y-1
-    hover:shadow-2xl
-    disabled:cursor-not-allowed
-    disabled:opacity-50
-  "
->
-  <span
-    className="
-      absolute
-      inset-0
-      bg-gradient-to-r
-      from-[#A88755]
-      via-[#D5B47F]
-      to-[#A88755]
-      opacity-0
-      transition-opacity
-      duration-500
-      group-hover:opacity-100
-    "
-  />
+        {/* WhatsApp / Request Price */}
+        <button
+          type="button"
+          onClick={handleWhatsApp}
+          disabled={loading}
+          className="
+            group
+            relative
+            flex
+            h-14
+            w-full
+            items-center
+            justify-center
+            overflow-hidden
+            rounded-full
+            bg-black
+            px-6
+            text-[11px]
+            font-semibold
+            uppercase
+            tracking-[0.22em]
+            text-white
+            shadow-xl
+            transition-all
+            duration-500
+            hover:-translate-y-1
+            hover:shadow-2xl
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+            sm:h-auto
+            sm:px-8
+            sm:py-5
+            sm:text-sm
+            sm:tracking-[0.28em]
+          "
+        >
+          <span
+            className="
+              absolute
+              inset-0
+              bg-gradient-to-r
+              from-[#A88755]
+              via-[#D5B47F]
+              to-[#A88755]
+              opacity-0
+              transition-opacity
+              duration-500
+              group-hover:opacity-100
+            "
+          />
 
-  <span className="relative z-10">
-    {loading
-      ? "Opening..."
-      : "Request Price"}
-  </span>
-</button>
+          <span className="relative z-10">
+            {loading
+              ? "Opening..."
+              : "Request Price"}
+          </span>
+        </button>
 
         {/* Secondary Actions */}
-        <div className="mt-6 grid grid-cols-2 gap-4">
+        <div
+          className="
+            mt-4
+            grid
+            grid-cols-2
+            gap-2.5
+            sm:mt-6
+            sm:gap-4
+          "
+        >
           <AddToInquiryButton
             productId={productId}
-            color={selectedColor?.name}
-            variant={selectedVariant?.size}
+            color={
+              selectedColor?.name
+            }
+            variant={
+              selectedVariant?.size
+            }
             dimensions={
               selectedVariant?.dimensions ??
               undefined

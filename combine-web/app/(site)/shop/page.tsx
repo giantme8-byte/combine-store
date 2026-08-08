@@ -30,10 +30,14 @@ export default async function ShopPage({
         className="
           mx-auto
           max-w-[1440px]
-          px-6
-          pb-32
-          pt-32
+          px-4
+          pb-20
+          pt-24
+          sm:px-6
+          sm:pb-32
+          sm:pt-28
           lg:px-12
+          lg:pt-32
           xl:px-14
         "
       >
@@ -41,7 +45,12 @@ export default async function ShopPage({
           <ShopHeader />
         )}
 
-        <div className="mt-16">
+        <div
+          className="
+            mt-10
+            sm:mt-16
+          "
+        >
           <ShopProducts
             brand={brand}
             category={category}

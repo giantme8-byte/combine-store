@@ -259,44 +259,38 @@ Can you help me source it?`;
     );
   }
 
-  return (
-    <div
-      className="
-        grid
-        grid-cols-1
-        gap-x-8
-        gap-y-14
-        sm:grid-cols-2
-        xl:grid-cols-3
-        2xl:grid-cols-4
-      "
-    >
-      {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          id={product.id}
-          slug={product.slug}
-          brand={product.brand}
-          name={product.name}
-          model={product.model}
-          image={product.image}
-          secondImage={
-            product.secondImage
-          }
-          createdAt={
-            product.createdAt
-          }
-          featured={product.featured}
-          newArrival={
-            product.newArrival
-          }
-          bestSeller={
-            product.bestSeller
-          }
-          limited={product.limited}
-          onSale={product.onSale}
-        />
-      ))}
-    </div>
-  );
+return (
+  <div
+    className="
+      grid
+      grid-cols-2
+      gap-x-4
+      gap-y-10
+      sm:grid-cols-2
+      sm:gap-x-8
+      sm:gap-y-14
+      xl:grid-cols-3
+      2xl:grid-cols-4
+    "
+  >
+    {products.map((product) => (
+      <ProductCard
+        key={product.id}
+        id={product.id}
+        slug={product.slug}
+        brand={product.brand}
+        name={product.name}
+        model={product.model}
+        image={product.image}
+        secondImage={product.secondImage}
+        createdAt={product.createdAt}
+        featured={product.featured}
+        newArrival={product.newArrival}
+        bestSeller={product.bestSeller}
+        limited={product.limited}
+        onSale={product.onSale}
+      />
+    ))}
+  </div>
+);
 }

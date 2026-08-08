@@ -26,26 +26,27 @@ export default function CategoryFilter({
   onSelect,
 }: Props) {
   const router = useRouter();
-  const searchParams =
-    useSearchParams();
+  const searchParams = useSearchParams();
 
   return (
-    <div className="space-y-4">
+    <div className="col-span-2 space-y-3 xl:col-span-1 xl:space-y-4">
       {/* Label */}
       <p
         className="
-          text-[11px]
+          text-[10px]
           font-medium
           uppercase
-          tracking-[0.45em]
+          tracking-[0.35em]
           text-neutral-400
+          sm:text-[11px]
+          sm:tracking-[0.45em]
         "
       >
         Category
       </p>
 
       {/* Pills */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-2 sm:gap-3">
         {categories.map((category) => {
           const active =
             selected === category;
@@ -62,9 +63,7 @@ export default function CategoryFilter({
                     searchParams.toString()
                   );
 
-                if (
-                  category === "All"
-                ) {
+                if (category === "All") {
                   params.delete(
                     "category"
                   );
@@ -82,13 +81,17 @@ export default function CategoryFilter({
               className={`
                 rounded-full
                 border
-                px-6
-                py-3
-                text-[13px]
+                px-3.5
+                py-2
+                text-[10px]
                 font-medium
-                tracking-[0.08em]
+                tracking-[0.06em]
                 transition-all
                 duration-500
+                sm:px-6
+                sm:py-3
+                sm:text-[13px]
+                sm:tracking-[0.08em]
                 ${
                   active
                     ? `

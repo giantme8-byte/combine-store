@@ -213,158 +213,160 @@ export default function ShopClient({
       sort,
     ]);
 
-  return (
-    <div className="space-y-14">
+return (
+  <div className="space-y-8 sm:space-y-10">
+    {/* Search */}
+    <div className="relative">
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+      />
 
-      {/* Search */}
-      <div className="relative">
-        <SearchBar
-          value={search}
-          onChange={setSearch}
-        />
-
-        <SearchAutocomplete
-          query={search}
-        />
-      </div>
-
-      {/* Filters */}
-      <div
-        className="
-          rounded-[30px]
-          border
-          border-neutral-200
-          bg-white
-          p-7
-          shadow-sm
-        "
-      >
-        <div
-          className={`grid gap-6 ${
-            category === "All"
-              ? "xl:grid-cols-5"
-              : "xl:grid-cols-4"
-          }`}
-        >
-          {category === "All" && (
-            <CategoryFilter
-              selected={category}
-              onSelect={() => {}}
-            />
-          )}
-
-          <BrandFilter
-            selected={brand}
-            onSelect={setBrand}
-            brands={brands}
-          />
-
-          <SubCategoryFilter
-            selected={subCategory}
-            onSelect={
-              setSubCategory
-            }
-            subCategories={
-              subCategories
-            }
-          />
-
-          <ColorFilter
-            selected={color}
-            onSelect={setColor}
-            colors={colors}
-          />
-
-          <SortDropdown
-            value={sort}
-            onChange={setSort}
-          />
-        </div>
-      </div>
-
-      {/* Result Header */}
-      <div
-        className="
-          flex
-          flex-col
-          gap-5
-          border-b
-          border-neutral-200
-          pb-6
-          md:flex-row
-          md:items-end
-          md:justify-between
-        "
-      >
-        <div>
-          <p
-            className="
-              text-[11px]
-              uppercase
-              tracking-[0.35em]
-              text-neutral-400
-            "
-          >
-            COLLECTION
-          </p>
-
-          <h2
-            className="
-              mt-2
-              text-3xl
-              font-extralight
-              tracking-[-0.03em]
-              text-neutral-900
-            "
-          >
-            {filteredProducts.length} Product
-            {filteredProducts.length !==
-            1
-              ? "s"
-              : ""}
-          </h2>
-        </div>
-
-        {(search ||
-          brand !== "All" ||
-          subCategory !== "All" ||
-          color !== "All") && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="
-              rounded-full
-              border
-              border-neutral-300
-              px-6
-              py-3
-              text-[11px]
-              uppercase
-              tracking-[0.3em]
-              transition-all
-              duration-300
-              hover:border-black
-              hover:bg-black
-              hover:text-white
-            "
-          >
-            Clear Filters
-          </button>
-        )}
-      </div>
-
-      <ProductGrid
-        products={
-          filteredProducts
-        }
-        featuredProducts={
-          featuredProducts
-        }
-        searchKeyword={search}
-        onClearFilters={
-          clearFilters
-        }
+      <SearchAutocomplete
+        query={search}
       />
     </div>
-  );
+
+    {/* Filters */}
+    <div
+      className="
+        rounded-[24px]
+        border
+        border-neutral-200
+        bg-white
+        p-4
+        shadow-sm
+        sm:rounded-[30px]
+        sm:p-7
+      "
+    >
+      <div
+        className={`grid grid-cols-2 gap-3 sm:gap-4 xl:gap-6 ${
+          category === "All"
+            ? "xl:grid-cols-5"
+            : "xl:grid-cols-4"
+        }`}
+      >
+        {category === "All" && (
+          <CategoryFilter
+            selected={category}
+            onSelect={() => {}}
+          />
+        )}
+
+        <BrandFilter
+          selected={brand}
+          onSelect={setBrand}
+          brands={brands}
+        />
+
+        <SubCategoryFilter
+          selected={subCategory}
+          onSelect={setSubCategory}
+          subCategories={subCategories}
+        />
+
+        <ColorFilter
+          selected={color}
+          onSelect={setColor}
+          colors={colors}
+        />
+
+        <SortDropdown
+          value={sort}
+          onChange={setSort}
+        />
+      </div>
+    </div>
+
+    {/* Result Header */}
+    <div
+      className="
+        flex
+        flex-col
+        gap-4
+        border-b
+        border-neutral-200
+        pb-5
+        md:flex-row
+        md:items-end
+        md:justify-between
+        md:gap-5
+        md:pb-6
+      "
+    >
+      <div>
+        <p
+          className="
+            text-[10px]
+            uppercase
+            tracking-[0.3em]
+            text-neutral-400
+            sm:text-[11px]
+            sm:tracking-[0.35em]
+          "
+        >
+          COLLECTION
+        </p>
+
+        <h2
+          className="
+            mt-2
+            text-2xl
+            font-extralight
+            tracking-[-0.03em]
+            text-neutral-900
+            sm:text-3xl
+          "
+        >
+          {filteredProducts.length} Product
+          {filteredProducts.length !== 1
+            ? "s"
+            : ""}
+        </h2>
+      </div>
+
+      {(search ||
+        brand !== "All" ||
+        subCategory !== "All" ||
+        color !== "All") && (
+        <button
+          type="button"
+          onClick={clearFilters}
+          className="
+            self-start
+            rounded-full
+            border
+            border-neutral-300
+            px-5
+            py-2.5
+            text-[10px]
+            uppercase
+            tracking-[0.25em]
+            transition-all
+            duration-300
+            hover:border-black
+            hover:bg-black
+            hover:text-white
+            sm:px-6
+            sm:py-3
+            sm:text-[11px]
+            sm:tracking-[0.3em]
+            md:self-auto
+          "
+        >
+          Clear Filters
+        </button>
+      )}
+    </div>
+
+    {/* Products */}
+    <ProductGrid
+      products={filteredProducts}
+      featuredProducts={featuredProducts}
+      searchKeyword={search}
+      onClearFilters={clearFilters}
+    />
+  </div>
+);
 }

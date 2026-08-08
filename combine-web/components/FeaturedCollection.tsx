@@ -12,8 +12,26 @@ export default async function FeaturedCollection() {
       createdAt: "desc",
     },
     take: 4,
-    include: {
+
+    select: {
+      id: true,
+      slug: true,
+      brand: true,
+      name: true,
+      model: true,
+      createdAt: true,
+
+      featured: true,
+      newArrival: true,
+      bestSeller: true,
+      limited: true,
+      onSale: true,
+
       images: {
+        take: 2,
+        select: {
+          url: true,
+        },
         orderBy: {
           sortOrder: "asc",
         },
@@ -22,20 +40,30 @@ export default async function FeaturedCollection() {
   });
 
   return (
-    <section className="mx-auto max-w-[1440px] px-8 py-32 lg:px-12">
+    <section className="mx-auto max-w-[1440px] px-4 py-20 sm:px-8 sm:py-32 lg:px-12">
       {/* Header */}
-      <div className="mx-auto mb-24 max-w-4xl text-center">
-        <p className="text-xs uppercase tracking-[0.55em] text-neutral-400">
+      <div className="mx-auto mb-16 max-w-4xl text-center sm:mb-24">
+        <p
+          className="
+            text-[10px]
+            uppercase
+            tracking-[0.55em]
+            text-neutral-400
+            sm:text-xs
+          "
+        >
           FEATURED COLLECTION
         </p>
 
         <h2
           className="
-            mt-6
-            text-5xl
+            mt-5
+            text-4xl
             font-extralight
             tracking-[-0.04em]
             text-neutral-900
+            sm:mt-6
+            sm:text-5xl
             md:text-6xl
           "
         >
@@ -45,24 +73,30 @@ export default async function FeaturedCollection() {
         <div
           className="
             mx-auto
-            mt-8
+            mt-7
             h-px
             w-20
             bg-gradient-to-r
             from-transparent
             via-[#C8A96A]
             to-transparent
+            sm:mt-8
           "
         />
 
         <p
           className="
             mx-auto
-            mt-8
+            mt-7
             max-w-3xl
-            text-lg
-            leading-8
+            px-2
+            text-[15px]
+            leading-7
             text-neutral-500
+            sm:mt-8
+            sm:px-0
+            sm:text-lg
+            sm:leading-8
           "
         >
           Discover our carefully curated collection of exceptional
@@ -73,18 +107,18 @@ export default async function FeaturedCollection() {
         <Link
           href="/shop"
           className="
-            mt-12
+            mt-9
             inline-flex
             items-center
             rounded-full
             border
             border-black
-            px-8
-            py-4
-            text-[11px]
+            px-6
+            py-3.5
+            text-[10px]
             font-medium
             uppercase
-            tracking-[0.3em]
+            tracking-[0.25em]
             transition-all
             duration-300
             hover:-translate-y-1
@@ -92,6 +126,11 @@ export default async function FeaturedCollection() {
             hover:bg-[#C8A96A]
             hover:text-white
             hover:shadow-lg
+            sm:mt-12
+            sm:px-8
+            sm:py-4
+            sm:text-[11px]
+            sm:tracking-[0.3em]
           "
         >
           Explore Collection
@@ -100,45 +139,65 @@ export default async function FeaturedCollection() {
 
       {products.length === 0 ? (
         <div
-  className="
-    mx-auto
-    flex
-    max-w-3xl
-    flex-col
-    items-center
-    rounded-[36px]
-    border
-    border-neutral-200
-    bg-gradient-to-b
-    from-white
-    to-neutral-50
-    px-12
-    py-20
-    text-center
-    shadow-[0_30px_80px_rgba(0,0,0,.05)]
-  "
->
-          <h3 className="text-3xl font-extralight tracking-[-0.02em] text-neutral-900">
+          className="
+            mx-auto
+            flex
+            max-w-3xl
+            flex-col
+            items-center
+            rounded-[28px]
+            border
+            border-neutral-200
+            bg-gradient-to-b
+            from-white
+            to-neutral-50
+            px-6
+            py-16
+            text-center
+            shadow-[0_30px_80px_rgba(0,0,0,.05)]
+            sm:rounded-[36px]
+            sm:px-12
+            sm:py-20
+          "
+        >
+          <h3
+            className="
+              text-2xl
+              font-extralight
+              tracking-[-0.02em]
+              text-neutral-900
+              sm:text-3xl
+            "
+          >
             Featured Collection Coming Soon
           </h3>
 
-          <p className="mx-auto mt-6 max-w-xl leading-8 text-neutral-500">
+          <p
+            className="
+              mx-auto
+              mt-5
+              max-w-xl
+              text-[15px]
+              leading-7
+              text-neutral-500
+              sm:mt-6
+              sm:leading-8
+            "
+          >
             We are preparing our featured collection. Please check
             back soon to discover our editor's finest selections.
           </p>
         </div>
       ) : (
         <div
-  className="
-    grid
-    grid-cols-1
-    gap-x-10
-    gap-y-16
-    sm:grid-cols-2
-    xl:grid-cols-3
-    2xl:grid-cols-4
-  "
->
+          className="
+            grid
+            grid-cols-2
+            gap-3
+            sm:gap-8
+            lg:grid-cols-4
+          "
+        >
           {products.map((product) => (
             <ProductCard
               key={product.id}
@@ -147,8 +206,13 @@ export default async function FeaturedCollection() {
               brand={product.brand}
               name={product.name}
               model={product.model}
-              image={product.images[0]?.url ?? "/placeholder.png"}
-              secondImage={product.images[1]?.url}
+              image={
+                product.images[0]?.url ??
+                "/placeholder.png"
+              }
+              secondImage={
+                product.images[1]?.url
+              }
               createdAt={product.createdAt}
               featured={product.featured}
               newArrival={product.newArrival}

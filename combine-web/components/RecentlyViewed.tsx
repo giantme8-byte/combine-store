@@ -60,37 +60,43 @@ export default function RecentlyViewed() {
   }
 
   return (
-    <section className="mt-40">
-      <div className="mb-16 text-center">
+    <section className="mt-24 sm:mt-40">
+      <div className="mb-12 text-center sm:mb-16">
         <p className="text-xs uppercase tracking-[0.45em] text-neutral-400">
           RECENTLY VIEWED
         </p>
 
-        <h2 className="mt-5 text-5xl font-extralight tracking-[-0.03em]">
+        <h2 className="mt-5 text-4xl font-extralight tracking-[-0.03em] sm:text-5xl">
           Recently Viewed
         </h2>
       </div>
 
-<div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-  {products.map((product) => (
-    <ProductCard
-      key={product.id}
-      id={product.id}
-      slug={product.slug ?? ""}
-      brand={product.brand}
-      name={product.name}
-      model={product.model}
-      image={product.images[0]?.url ?? "/placeholder.png"}
-secondImage={product.images[1]?.url}
-      createdAt={product.createdAt}
-      featured={product.featured}
-      newArrival={product.newArrival}
-      bestSeller={product.bestSeller}
-      limited={product.limited}
-      onSale={product.onSale}
-    />
-  ))}
-</div>
+      <div className="grid grid-cols-2 gap-3 sm:gap-10 lg:grid-cols-4">
+        {products.map((product) => (
+          <ProductCard
+            key={product.id}
+            id={product.id}
+            slug={product.slug ?? ""}
+            brand={product.brand}
+            name={product.name}
+            model={product.model}
+            image={
+              product.images[0]?.url ??
+              "/placeholder.png"
+            }
+            secondImage={
+              product.images[1]?.url
+            }
+            createdAt={product.createdAt}
+            featured={product.featured}
+            newArrival={product.newArrival}
+            bestSeller={product.bestSeller}
+            limited={product.limited}
+            onSale={product.onSale}
+            buttonSize="small"
+          />
+        ))}
+      </div>
     </section>
   );
 }

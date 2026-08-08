@@ -17,35 +17,40 @@ export default function ProductCard({
   brand,
   name,
   model,
-image,
-secondImage,
-createdAt,
+  image,
+  secondImage,
+  createdAt,
   featured,
   newArrival,
   bestSeller,
   limited,
   onSale,
+  buttonSize = "default",
 }: ProductCardProps) {
   const { addItem, openDrawer } = useInquiry();
   const { open } = useQuickView();
 
-  const productHref = slug ? `/shop/${slug}` : "/shop";
+  const productHref = slug
+    ? `/shop/${slug}`
+    : "/shop";
 
-const isNewArrival = useMemo(() => {
-  if (!newArrival) {
-    return false;
-  }
+  const isNewArrival = useMemo(() => {
+    if (!newArrival) {
+      return false;
+    }
 
-  const now = new Date();
-  const created = new Date(createdAt);
+    const now = new Date();
+    const created = new Date(createdAt);
 
-  return (
-    now.getTime() - created.getTime() <
-    30 * 24 * 60 * 60 * 1000
-  );
-}, [createdAt, newArrival]);
+    return (
+      now.getTime() - created.getTime() <
+      30 * 24 * 60 * 60 * 1000
+    );
+  }, [createdAt, newArrival]);
 
-  function handleInquiry(event: React.MouseEvent) {
+  function handleInquiry(
+    event: React.MouseEvent
+  ) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -54,482 +59,561 @@ const isNewArrival = useMemo(() => {
   }
 
   function handleQuickView(
-  event: React.MouseEvent
-) {
-  event.preventDefault();
-  event.stopPropagation();
+    event: React.MouseEvent
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
 
-  open({
-    id,
-    slug,
-    brand,
-    name,
-    model,
-    image,
-    secondImage,
-    createdAt,
-    featured,
-    newArrival,
-    bestSeller,
-    limited,
-    onSale,
-  });
-}
+    open({
+      id,
+      slug,
+      brand,
+      name,
+      model,
+      image,
+      secondImage,
+      createdAt,
+      featured,
+      newArrival,
+      bestSeller,
+      limited,
+      onSale,
+    });
+  }
 
   return (
-<article
-  className="
-    group
-    flex
-    h-full
-    flex-col
-    overflow-hidden
-    rounded-[32px]
-    border
-    border-neutral-100
-    bg-white
-    shadow-sm
-    transition-all
-    duration-700
-hover:-translate-y-3
-hover:scale-[1.02]
-hover:border-[#C8A96A]/60
-hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
-  "
->
-<Link
-  href={productHref}
-  prefetch={false}
-  className="flex flex-1 flex-col"
->
-{/* Image */}
-<div
-  className="
-    relative
-    aspect-[4/5]
-    overflow-hidden
-    rounded-[24px]
-    bg-gradient-to-b
-from-[#ffffff]
-via-[#fbfbfb]
-to-[#f4f4f4]
-  "
->
+    <article
+      className="
+        group
+        flex
+        h-full
+        flex-col
+        overflow-hidden
+        rounded-[22px]
+        border
+        border-neutral-100
+        bg-white
+        shadow-sm
+        transition-all
+        duration-700
+        sm:rounded-[32px]
+        hover:-translate-y-3
+        hover:scale-[1.02]
+        hover:border-[#C8A96A]/60
+        hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
+      "
+    >
+      <Link
+        href={productHref}
+        prefetch={false}
+        className="flex flex-1 flex-col"
+      >
+        {/* Image */}
+        <div
+          className="
+            relative
+            aspect-[4/5]
+            overflow-hidden
+            rounded-[18px]
+            bg-gradient-to-b
+            from-[#ffffff]
+            via-[#fbfbfb]
+            to-[#f4f4f4]
+            sm:rounded-[24px]
+          "
+        >
+          {/* Wishlist */}
+          <div
+            className="
+              absolute
+              right-2.5
+              top-2.5
+              z-30
+              rounded-full
+              bg-white/90
+              p-1
+              shadow-lg
+              backdrop-blur-xl
+              opacity-100
+              translate-y-0
+              transition-all
+              duration-300
+              sm:right-4
+              sm:top-4
+              sm:p-1.5
+              sm:opacity-0
+              sm:translate-y-2
+              sm:group-hover:translate-y-0
+              sm:group-hover:opacity-100
+            "
+          >
+            <WishlistButton
+              productId={id}
+              variant="icon"
+            />
+          </div>
 
-  {/* Wishlist */}
-<div
-  className="
-    absolute
-    right-4
-    top-4
-    z-30
-    rounded-full
-    bg-white/90
-    p-1.5
-    shadow-lg
-    backdrop-blur-xl
-    opacity-0
-translate-y-2
-    transition-all
-    duration-300
-group-hover:translate-y-0
-group-hover:opacity-100
-  "
->
-    <WishlistButton
-      productId={id}
-      variant="icon"
-    />
-  </div>
+          {/* Labels */}
+          <div
+            className="
+              absolute
+              left-2.5
+              top-2.5
+              z-20
+              flex
+              flex-col
+              gap-1.5
+              sm:left-4
+              sm:top-4
+              sm:gap-2
+            "
+          >
+            {isNewArrival && (
+              <span
+                className="
+                  rounded-full
+                  bg-black
+                  px-2
+                  py-0.5
+                  text-[8px]
+                  font-medium
+                  uppercase
+                  tracking-[0.15em]
+                  text-white
+                  transition-all
+                  duration-300
+                  group-hover:-translate-y-1
+                  group-hover:scale-105
+                  sm:px-3
+                  sm:py-1
+                  sm:text-[10px]
+                  sm:tracking-[0.2em]
+                "
+              >
+                NEW
+              </span>
+            )}
 
-  {/* Labels */}
-  <div className="absolute left-4 top-4 z-20 flex flex-col gap-2">
-    {isNewArrival && (
-      <span
-  className="
-    rounded-full
-    bg-black
-    px-3
-    py-1
-    text-[10px]
-    font-medium
-    uppercase
-    tracking-[0.2em]
-    text-white
-    transition-all
-    duration-300
-    group-hover:-translate-y-1
-    group-hover:scale-105
-  "
->
-        NEW
-      </span>
-    )}
+            {featured && (
+              <span
+                className="
+                  rounded-full
+                  bg-[#C8A96A]
+                  px-2
+                  py-0.5
+                  text-[8px]
+                  font-medium
+                  uppercase
+                  tracking-[0.15em]
+                  text-white
+                  transition-all
+                  duration-300
+                  group-hover:-translate-y-1
+                  group-hover:scale-105
+                  sm:px-3
+                  sm:py-1
+                  sm:text-[10px]
+                  sm:tracking-[0.2em]
+                "
+              >
+                FEATURED
+              </span>
+            )}
 
-    {featured && (
-      <span
-  className="
-    rounded-full
-    bg-[#C8A96A]
-    px-3
-    py-1
-    text-[10px]
-    font-medium
-    uppercase
-    tracking-[0.2em]
-    text-white
-    transition-all
-    duration-300
-    group-hover:-translate-y-1
-    group-hover:scale-105
-  "
->
-        FEATURED
-      </span>
-    )}
+            {bestSeller && (
+              <span
+                className="
+                  rounded-full
+                  bg-neutral-800
+                  px-2
+                  py-0.5
+                  text-[8px]
+                  font-medium
+                  uppercase
+                  tracking-[0.15em]
+                  text-white
+                  transition-all
+                  duration-300
+                  group-hover:-translate-y-1
+                  group-hover:scale-105
+                  sm:px-3
+                  sm:py-1
+                  sm:text-[10px]
+                  sm:tracking-[0.2em]
+                "
+              >
+                BEST SELLER
+              </span>
+            )}
 
-    {bestSeller && (
-      <span
-  className="
-    rounded-full
-    bg-neutral-800
-    px-3
-    py-1
-    text-[10px]
-    font-medium
-    uppercase
-    tracking-[0.2em]
-    text-white
-    transition-all
-    duration-300
-    group-hover:-translate-y-1
-    group-hover:scale-105
-  "
->
-        BEST SELLER
-      </span>
-    )}
+            {limited && (
+              <span
+                className="
+                  rounded-full
+                  border
+                  border-black
+                  bg-white
+                  px-2
+                  py-0.5
+                  text-[8px]
+                  font-medium
+                  uppercase
+                  tracking-[0.15em]
+                  transition-all
+                  duration-300
+                  group-hover:-translate-y-1
+                  group-hover:scale-105
+                  sm:px-3
+                  sm:py-1
+                  sm:text-[10px]
+                  sm:tracking-[0.2em]
+                "
+              >
+                LIMITED
+              </span>
+            )}
 
-    {limited && (
-      <span
-  className="
-    rounded-full
-    border
-    border-black
-    bg-white
-    px-3
-    py-1
-    text-[10px]
-    font-medium
-    uppercase
-    tracking-[0.2em]
-    transition-all
-    duration-300
-    group-hover:-translate-y-1
-    group-hover:scale-105
-  "
->
-        LIMITED
-      </span>
-    )}
+            {onSale && (
+              <span
+                className="
+                  rounded-full
+                  bg-[#7A4E2C]
+                  px-2
+                  py-0.5
+                  text-[8px]
+                  font-medium
+                  uppercase
+                  tracking-[0.16em]
+                  text-white
+                  transition-all
+                  duration-300
+                  group-hover:-translate-y-1
+                  group-hover:scale-105
+                  sm:px-2.5
+                  sm:py-1
+                  sm:text-[9px]
+                  sm:tracking-[0.22em]
+                "
+              >
+                SALE
+              </span>
+            )}
+          </div>
 
-    {onSale && (
-      <span
-  className="
-    rounded-full
-    bg-[#7A4E2C]
-    px-3
-    py-1
-    text-[10px]
-    font-medium
-    uppercase
-    tracking-[0.2em]
-    text-white
-    transition-all
-    duration-300
-    group-hover:-translate-y-1
-    group-hover:scale-105
-  "
->
-        SALE
-      </span>
-    )}
-  </div>
+          {/* Main Image */}
+          <div
+            className="
+              relative
+              h-full
+              w-full
+            "
+          >
+            <Image
+              src={image}
+              alt={`${brand} ${name}`}
+              fill
+              quality={88}
+              sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+              loading="lazy"
+              className={`
+                pointer-events-none
+                object-contain
+                p-4
+                sm:p-8
+                will-change-transform
+                transition-all
+                duration-700
+                ease-[cubic-bezier(0.22,1,0.36,1)]
+                ${
+                  secondImage
+                    ? "opacity-100 group-hover:opacity-0 group-hover:scale-105"
+                    : "group-hover:scale-105"
+                }
+              `}
+            />
 
-{/* Main Image */}
-<Image
-  src={image}
-  alt={`${brand} ${name}`}
-  fill
-  quality={88}
-  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-  loading="lazy"
-className={`
-  pointer-events-none
-  object-contain
-  p-8
-  will-change-transform
-  transition-all
-  duration-700
-    ease-[cubic-bezier(0.22,1,0.36,1)]
-    ${
-      secondImage
-        ? "opacity-100 group-hover:opacity-0 group-hover:scale-105"
-        : "group-hover:scale-105"
-    }
-  `}
-/>
+            {/* Hover Image */}
+            {secondImage && (
+              <Image
+                src={secondImage}
+                alt={`${brand} ${name}`}
+                fill
+                quality={88}
+                sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                loading="lazy"
+                className="
+                  absolute
+                  inset-0
+                  pointer-events-none
+                  object-contain
+                  p-4
+                  sm:p-8
+                  will-change-transform
+                  opacity-0
+                  scale-110
+                  blur-sm
+                  transition-all
+                  duration-700
+                  ease-[cubic-bezier(0.22,1,0.36,1)]
+                  group-hover:scale-100
+                  group-hover:opacity-100
+                  group-hover:blur-0
+                "
+              />
+            )}
+          </div>
 
-{/* Hover Image */}
-{secondImage && (
-  <Image
-    src={secondImage}
-    alt={`${brand} ${name}`}
-    fill
-    quality={88}
-    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-    loading="lazy"
-    className="
-      absolute
-      inset-0
-pointer-events-none
-object-contain
-p-8
-will-change-transform
-opacity-0
-scale-110
-blur-sm
-      transition-all
-      duration-700
-      ease-[cubic-bezier(0.22,1,0.36,1)]
-      group-hover:scale-100
-      group-hover:opacity-100
-      group-hover:blur-0
-    "
-  />
-)}
+          {/* Luxury Shine */}
+          <div
+            className="
+              pointer-events-none
+              absolute
+              inset-0
+              translate-x-[-120%]
+              bg-[linear-gradient(120deg,transparent_25%,rgba(255,255,255,.12)_50%,transparent_75%)]
+              opacity-0
+              transition-all
+              duration-1000
+              group-hover:translate-x-[120%]
+              group-hover:opacity-100
+            "
+          />
 
-{/* Luxury Shine */}
-<div
-  className="
-    pointer-events-none
-    absolute
-    inset-0
-    translate-x-[-120%]
-    bg-[linear-gradient(120deg,transparent_25%,rgba(255,255,255,.12)_50%,transparent_75%)]
-    opacity-0
-    transition-all
-    duration-1000
-    group-hover:translate-x-[120%]
-    group-hover:opacity-100
-  "
-/>
+          {/* Dark Overlay */}
+          <div
+            className="
+              pointer-events-none
+              absolute
+              inset-0
+              rounded-[18px]
+              bg-gradient-to-t
+              from-black/15
+              via-black/5
+              to-transparent
+              opacity-0
+              transition-opacity
+              duration-500
+              group-hover:opacity-100
+              sm:rounded-[24px]
+            "
+          />
 
-{/* Dark Overlay */}
-<div
-  className="
-    pointer-events-none
-    absolute
-    inset-0
-    rounded-[24px]
-    bg-gradient-to-t
-    from-black/15
-    via-black/5
-    to-transparent
-    opacity-0
-    transition-opacity
-    duration-500
-    group-hover:opacity-100
-  "
-/>
+          {/* Quick View */}
+          <div
+            className="
+              absolute
+              left-1/2
+              top-1/2
+              z-30
+              hidden
+              -translate-x-1/2
+              -translate-y-1/2
+              scale-90
+              opacity-0
+              transition-all
+              duration-700
+              ease-[cubic-bezier(0.22,1,0.36,1)]
+              group-hover:scale-100
+              group-hover:opacity-100
+              sm:block
+            "
+          >
+            <button
+              type="button"
+              onClick={handleQuickView}
+              className="
+                rounded-full
+                border
+                border-white/40
+                bg-white/90
+                px-7
+                py-3
+                text-xs
+                font-medium
+                uppercase
+                tracking-[0.3em]
+                shadow-2xl
+                backdrop-blur-xl
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:scale-105
+                hover:border-[#C8A96A]
+                hover:bg-[#C8A96A]
+                hover:text-white
+                hover:shadow-xl
+              "
+            >
+              Quick View
+            </button>
+          </div>
+        </div>
 
-{/* Quick View */}
-<div
-  className="
-    absolute
-    left-1/2
-    top-1/2
-    z-30
-    -translate-x-1/2
-    -translate-y-1/2
-    translate-y-5
-    scale-90
-    opacity-0
-    transition-all
-    duration-700
-    ease-[cubic-bezier(0.22,1,0.36,1)]
-    group-hover:translate-y-0
-    group-hover:scale-100
-    group-hover:opacity-100
-  "
->
-  <button
-    type="button"
-    onClick={handleQuickView}
-    className="
-      rounded-full
-      border
-      border-white/40
-      bg-white/90
-      px-7
-      py-3
-      text-xs
-      font-medium
-      uppercase
-      tracking-[0.3em]
-      shadow-2xl
-      backdrop-blur-xl
-      transition-all
-      duration-300
-hover:-translate-y-0.5
-hover:scale-105
-hover:bg-[#C8A96A]
-hover:border-[#C8A96A]
-hover:text-white
-hover:shadow-xl
-    "
-  >
-    Quick View
-  </button>
-</div>
-
-</div> {/* End Image Container */}
-
-{/* Content */}
-<div
-  className="
-    flex
-    flex-1
-    flex-col
-    px-6
-    pb-5
-    pt-7
-  "
->
-<p
-  className="
-    text-[11px]
-    font-medium
-    uppercase
-    tracking-[0.4em]
-    text-neutral-400
-  "
->
-  {brand}
-</p>
+        {/* Content */}
+        <div
+          className="
+            flex
+            flex-1
+            flex-col
+            px-3.5
+            pb-4
+            pt-4
+            sm:px-6
+            sm:pb-5
+            sm:pt-7
+          "
+        >
+          <p
+            className="
+              text-[8px]
+              font-medium
+              uppercase
+              tracking-[0.28em]
+              text-neutral-400
+              sm:text-[11px]
+              sm:tracking-[0.4em]
+            "
+          >
+            {brand}
+          </p>
 
           <h3
-  className="
-    mt-3
-    min-h-[3.8rem]
-    line-clamp-2
-    text-[22px]
-    font-light
-    leading-[1.35]
-    tracking-[-0.03em]
-    text-neutral-900
-  "
->
+            className="
+              mt-2
+              min-h-[2.6rem]
+              line-clamp-2
+              text-[14px]
+              font-light
+              leading-[1.3]
+              tracking-[-0.02em]
+              text-neutral-900
+              sm:mt-3
+              sm:min-h-[3.8rem]
+              sm:text-[20px]
+              sm:leading-[1.35]
+              sm:tracking-[-0.03em]
+            "
+          >
             {name}
           </h3>
 
-<div
-  className="
-    mt-5
-    flex-1
-    min-h-[56px]
-  "
->
-            <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-400">
+          <div
+            className="
+              mt-3
+              flex-1
+              min-h-[42px]
+              sm:mt-5
+              sm:min-h-[56px]
+            "
+          >
+            <p
+              className="
+                text-[8px]
+                uppercase
+                tracking-[0.22em]
+                text-neutral-400
+                sm:text-[11px]
+                sm:tracking-[0.3em]
+              "
+            >
               Model
             </p>
 
-            <p className="mt-1 text-sm text-neutral-600">
+            <p
+              className="
+                mt-1
+                line-clamp-1
+                text-[9px]
+                text-neutral-600
+                sm:text-sm
+              "
+            >
               {model ?? "—"}
             </p>
           </div>
         </div>
       </Link>
 
-{/* Actions */}
-<div
-  className="
-    border-t
-    border-neutral-100
-    px-6
-    py-5
-  "
->
-  <div
-    className="
-      flex
-      items-center
-      justify-between
-      gap-4
-    "
-  >
-    <Link
-      href={productHref}
-      prefetch={false}
-      className="
-        inline-flex
-        items-center
-        gap-2
-        text-[11px]
-        font-medium
-        uppercase
-        tracking-[0.35em]
-        text-neutral-500
-        transition-all
-        duration-300
-        hover:text-[#C8A96A]
-      "
-    >
-      <span>Discover</span>
+      {/* Actions */}
+      <div
+        className="
+          border-t
+          border-neutral-100
+          px-3.5
+          py-3.5
+          sm:px-7
+          sm:py-6
+        "
+      >
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <Link
+            href={productHref}
+            prefetch={false}
+            className="
+              flex-1
+              inline-flex
+              items-center
+              gap-1
+              text-[8px]
+              font-medium
+              uppercase
+              tracking-[0.12em]
+              text-neutral-500
+              transition-all
+              duration-300
+              hover:text-[#C8A96A]
+              sm:gap-2
+              sm:text-[11px]
+              sm:tracking-[0.24em]
+            "
+          >
+            <span>Discover</span>
 
-<span
-  className="
-    transition-all
-    duration-300
-    group-hover:translate-x-2
-  "
->
-  →
-</span>
-    </Link>
+            <span
+              className="
+                hidden
+                transition-transform
+                duration-300
+                group-hover:translate-x-1.5
+                sm:inline
+              "
+            >
+              →
+            </span>
+          </Link>
 
-    <button
-      type="button"
-      onClick={handleInquiry}
-className="
-  shrink-0
-  inline-flex
-  items-center
-  justify-center
-  rounded-full
-  border
-  border-black
-  px-4
-  py-2
-  text-[10px]
-  font-medium
-  uppercase
-  tracking-[0.18em]
-  whitespace-nowrap
-transition-all
-duration-300
-hover:-translate-y-0.5
-hover:border-[#C8A96A]
-hover:bg-[#C8A96A]
-hover:text-white
-hover:shadow-lg
-"
-    >
-      Request Price
-    </button>
-  </div>
-</div>
+          <button
+            type="button"
+            onClick={handleInquiry}
+            className={`
+              inline-flex
+              shrink-0
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-black
+              bg-white
+              whitespace-nowrap
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:border-[#C8A96A]
+              hover:bg-[#C8A96A]
+              hover:text-white
+              hover:shadow-xl
 
-</article>
-);
+              ${
+                buttonSize === "small"
+                  ? "h-8 min-w-0 px-2.5 text-[8px] tracking-[0.05em] sm:h-9 sm:min-w-[122px] sm:px-4 sm:text-[10px] sm:tracking-[0.14em]"
+                  : "h-8 min-w-0 px-2.5 text-[8px] tracking-[0.05em] sm:h-10 sm:min-w-[138px] sm:px-5 sm:text-[10px] sm:tracking-[0.16em]"
+              }
+            `}
+          >
+            Request Price
+          </button>
+        </div>
+      </div>
+    </article>
+  );
 }

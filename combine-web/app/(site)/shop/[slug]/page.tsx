@@ -96,90 +96,102 @@ export default async function ProductPage({
 }: Props) {
   const { slug } = await params;
 
-const [product, settings] = await Promise.all([
-  prisma.product.findUnique({
-    where: {
-      slug,
-    },
-    select: {
-      id: true,
-      slug: true,
+  const [product, settings] = await Promise.all([
+    prisma.product.findUnique({
+      where: {
+        slug,
+      },
+      select: {
+        id: true,
+        slug: true,
 
-      brand: true,
-      name: true,
-      model: true,
-      sku: true,
+        brand: true,
+        name: true,
+        model: true,
+        sku: true,
 
-      shortDescription: true,
-      description: true,
+        shortDescription: true,
+        description: true,
 
-      category: true,
-      subCategory: true,
+        category: true,
+        subCategory: true,
 
-      mainColor: true,
-      dimensions: true,
+        mainColor: true,
+        dimensions: true,
 
-      featured: true,
-      newArrival: true,
-      bestSeller: true,
-      limited: true,
-      onSale: true,
+        featured: true,
+        newArrival: true,
+        bestSeller: true,
+        limited: true,
+        onSale: true,
 
-      images: {
-        select: {
-          url: true,
+        images: {
+          select: {
+            url: true,
+          },
+          orderBy: {
+            sortOrder: "asc",
+          },
         },
-        orderBy: {
-          sortOrder: "asc",
+
+        colors: {
+          select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+          },
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
+
+        variants: {
+          select: {
+            id: true,
+            size: true,
+            model: true,
+            dimensions: true,
+            imageUrl: true,
+          },
+          orderBy: {
+            sortOrder: "asc",
+          },
         },
       },
+    }),
 
-      colors: {
-        select: {
-          id: true,
-          name: true,
-          imageUrl: true,
-        },
-        orderBy: {
-          sortOrder: "asc",
-        },
-      },
-
-variants: {
-  select: {
-    id: true,
-    size: true,
-    model: true,
-    dimensions: true,
-    imageUrl: true,      // ← 新增这一行
-  },
-  orderBy: {
-    sortOrder: "asc",
-  },
-},
-    },
-  }),
-
-  prisma.setting.findFirst(),
-]);
+    prisma.setting.findFirst(),
+  ]);
 
   if (!product) {
     notFound();
   }
 
   const cover =
-    product.images[0]?.url ?? "/placeholder.png";
+    product.images[0]?.url ??
+    "/placeholder.png";
 
   const gallery = product.images
     .slice(1)
     .map((image) => image.url);
 
   return (
-    <main className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+    <main
+      className="
+        mx-auto
+        max-w-7xl
+        px-5
+        py-16
+        lg:px-8
+        lg:py-20
+      "
+    >
+      {/* Recently Viewed Tracker */}
       <RecentlyViewedTracker
         slug={product.slug ?? ""}
       />
 
+      {/* Breadcrumb */}
       <Breadcrumb
         items={[
           {
@@ -199,101 +211,106 @@ variants: {
         ]}
       />
 
-{/* Product Detail */}
-
-<ProductDetailClient
-  colors={product.colors}
-  variants={product.variants}
->
-  <section
-  className="
-    mt-8
-    grid
-    items-start
-    gap-12
-    lg:mt-12
-    lg:gap-20
-    lg:grid-cols-[1.15fr_0.85fr]
-  "
->
-        {/* Gallery */}
-        <ProductGallery
-          cover={cover}
-          gallery={gallery}
-          colors={product.colors}
-          name={product.name}
-        />
-
-        {/* Info */}
-        <div
-  className="
-    flex
-    flex-col
-    self-start
-    lg:sticky
-    lg:top-28
-  "
->
-          <ProductInfo
-            product={{
-              brand: product.brand,
-              name: product.name,
-              shortDescription:
-                product.shortDescription,
-              newArrival: product.newArrival,
-              featured: product.featured,
-              bestSeller: product.bestSeller,
-              limited: product.limited,
-              onSale: product.onSale,
-            }}
+      {/* Product Detail */}
+      <ProductDetailClient
+        colors={product.colors}
+        variants={product.variants}
+      >
+        <section
+          className="
+            mt-8
+            grid
+            items-start
+            gap-12
+            lg:mt-12
+            lg:grid-cols-[1.15fr_0.85fr]
+            lg:gap-20
+          "
+        >
+          {/* Gallery */}
+          <ProductGallery
+            cover={cover}
+            gallery={gallery}
+            colors={product.colors}
+            name={product.name}
           />
 
-          <ProductOptions />
+          {/* Info */}
+          <div
+            className="
+              flex
+              flex-col
+              self-start
+              lg:sticky
+              lg:top-28
+            "
+          >
+            <ProductInfo
+              product={{
+                brand: product.brand,
+                name: product.name,
+                shortDescription:
+                  product.shortDescription,
+                newArrival:
+                  product.newArrival,
+                featured:
+                  product.featured,
+                bestSeller:
+                  product.bestSeller,
+                limited:
+                  product.limited,
+                onSale:
+                  product.onSale,
+              }}
+            />
 
-<ProductActions
-  productId={product.id}
-  brand={product.brand}
-  name={product.name}
-  sku={product.sku}
-  model={product.model}
-  mainColor={product.mainColor}
-  dimensions={product.dimensions}
-/>
+            {/* Product Options */}
+            <ProductOptions />
 
-          <ProductMeta
-            sku={product.sku}
-            model={product.model}
-            category={product.category}
-            subCategory={product.subCategory}
-            mainColor={product.mainColor}
-            dimensions={product.dimensions}
-          />
+            {/* Product Actions */}
+            <ProductActions
+              productId={product.id}
+              brand={product.brand}
+              name={product.name}
+              sku={product.sku}
+              model={product.model}
+              mainColor={product.mainColor}
+              dimensions={product.dimensions}
+            />
 
-          <ProductAccordion
-            description={product.description}
-          />
-        </div>
-      </section>
-</ProductDetailClient>
+            {/* Product Meta */}
+            <ProductMeta
+              sku={product.sku}
+              model={product.model}
+              category={product.category}
+              subCategory={
+                product.subCategory
+              }
+              mainColor={
+                product.mainColor
+              }
+              dimensions={
+                product.dimensions
+              }
+            />
 
-      {/* Related */}
-      <section className="mt-24 lg:mt-40">
-        <div className="mb-16 text-center">
-          <p className="text-xs uppercase tracking-[0.45em] text-neutral-400">
-            YOU MAY ALSO LIKE
-          </p>
+            {/* Description */}
+            <ProductAccordion
+              description={
+                product.description
+              }
+            />
+          </div>
+        </section>
+      </ProductDetailClient>
 
-          <h2 className="mt-5 text-5xl font-extralight tracking-[-0.03em]">
-            Related Products
-          </h2>
-        </div>
+      {/* Related Products */}
+      <RelatedProducts
+        currentId={product.id}
+        category={product.category}
+      />
 
-        <RelatedProducts
-          currentId={product.id}
-          category={product.category}
-        />
-      </section>
-
+      {/* Recently Viewed */}
       <RecentlyViewed />
     </main>
   );

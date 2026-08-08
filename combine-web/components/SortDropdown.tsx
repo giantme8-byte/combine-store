@@ -10,15 +10,17 @@ export default function SortDropdown({
   onChange,
 }: Props) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Label */}
       <p
         className="
-          text-[11px]
+          text-[10px]
           font-medium
           uppercase
-          tracking-[0.45em]
+          tracking-[0.35em]
           text-neutral-400
+          sm:text-[11px]
+          sm:tracking-[0.45em]
         "
       >
         Sort By
@@ -34,19 +36,19 @@ export default function SortDropdown({
             onChange(e.target.value)
           }
           className="
-            h-16
+            h-12
             w-full
             appearance-none
-            rounded-[24px]
+            rounded-xl
             border
             border-neutral-200
             bg-white
-            px-6
-            pr-14
-            text-[15px]
+            px-4
+            pr-10
+            text-[12px]
             font-light
             text-neutral-900
-            shadow-[0_12px_35px_rgba(0,0,0,.04)]
+            shadow-[0_8px_24px_rgba(0,0,0,.03)]
             outline-none
             transition-all
             duration-500
@@ -54,6 +56,11 @@ export default function SortDropdown({
             hover:shadow-[0_18px_45px_rgba(0,0,0,.06)]
             focus:border-[#C8A96A]
             focus:shadow-[0_25px_60px_rgba(200,169,106,.18)]
+            sm:h-16
+            sm:rounded-[24px]
+            sm:px-6
+            sm:pr-14
+            sm:text-[15px]
           "
         >
           <option value="Newest">
@@ -78,17 +85,19 @@ export default function SortDropdown({
           className="
             pointer-events-none
             absolute
-            right-6
+            right-4
             top-1/2
             -translate-y-1/2
             text-neutral-400
+            sm:right-6
           "
         >
           <svg
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 20 20"
             fill="none"
+            className="sm:h-4 sm:w-4"
           >
             <path
               d="M5 7L10 12L15 7"
@@ -104,10 +113,12 @@ export default function SortDropdown({
       {/* Hint */}
       <p
         className="
-          text-[11px]
+          text-[9px]
           uppercase
-          tracking-[0.3em]
+          tracking-[0.22em]
           text-neutral-400
+          sm:text-[11px]
+          sm:tracking-[0.3em]
         "
       >
         Display Order

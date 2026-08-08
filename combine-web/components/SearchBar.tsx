@@ -20,16 +20,19 @@ export default function SearchBar({
   onKeyDown,
 }: SearchBarProps) {
   return (
-    <div className="mb-14">
+    <div className="mb-8 sm:mb-14">
       {/* Label */}
       <p
         className="
-          mb-4
-          text-[11px]
+          mb-3
+          text-[10px]
           font-medium
           uppercase
-          tracking-[0.45em]
+          tracking-[0.35em]
           text-neutral-400
+          sm:mb-4
+          sm:text-[11px]
+          sm:tracking-[0.45em]
         "
       >
         Search Collection
@@ -40,7 +43,7 @@ export default function SearchBar({
           group
           relative
           overflow-hidden
-          rounded-[28px]
+          rounded-[22px]
           border
           border-neutral-200
           bg-white
@@ -51,6 +54,7 @@ export default function SearchBar({
           hover:shadow-[0_25px_70px_rgba(0,0,0,.08)]
           focus-within:border-[#C8A96A]
           focus-within:shadow-[0_30px_80px_rgba(200,169,106,.18)]
+          sm:rounded-[28px]
         "
       >
         {/* Luxury Glow */}
@@ -65,17 +69,19 @@ export default function SearchBar({
 
         {/* Search Icon */}
         <Search
-          size={22}
+          size={19}
           className="
             pointer-events-none
             absolute
-            left-7
+            left-5
             top-1/2
             -translate-y-1/2
             text-neutral-400
             transition-colors
             duration-300
             group-focus-within:text-[#C8A96A]
+            sm:left-7
+            sm:size-[22px]
           "
         />
 
@@ -92,16 +98,20 @@ export default function SearchBar({
           onFocus={onFocus}
           onKeyDown={onKeyDown}
           className="
-            h-20
+            h-16
             w-full
             bg-transparent
-            pl-16
-            pr-16
-            text-lg
+            pl-14
+            pr-14
+            text-base
             font-light
             text-neutral-900
             outline-none
             placeholder:text-neutral-400
+            sm:h-20
+            sm:pl-16
+            sm:pr-16
+            sm:text-lg
           "
         />
 
@@ -113,11 +123,11 @@ export default function SearchBar({
             onClick={() => onChange("")}
             className="
               absolute
-              right-6
+              right-4
               top-1/2
               flex
-              h-10
-              w-10
+              h-9
+              w-9
               -translate-y-1/2
               items-center
               justify-center
@@ -128,9 +138,12 @@ export default function SearchBar({
               hover:scale-110
               hover:bg-neutral-100
               hover:text-black
+              sm:right-6
+              sm:h-10
+              sm:w-10
             "
           >
-            <X size={18} />
+            <X size={17} className="sm:size-[18px]" />
           </button>
         )}
       </div>
@@ -138,11 +151,14 @@ export default function SearchBar({
       {/* Hint */}
       <p
         className="
-          mt-4
-          text-[11px]
+          mt-3
+          text-[9px]
           uppercase
-          tracking-[0.3em]
+          tracking-[0.22em]
           text-neutral-400
+          sm:mt-4
+          sm:text-[11px]
+          sm:tracking-[0.3em]
         "
       >
         Search by Brand · Model · SKU · Category
