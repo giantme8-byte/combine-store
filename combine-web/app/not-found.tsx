@@ -57,7 +57,7 @@ export default function NotFound() {
             text-neutral-500
           "
         >
-          The page you're looking for doesn't exist or may have been moved.
+          The page you&apos;re looking for doesn&apos;t exist or may have been moved.
           Explore our collections or return to the homepage.
         </p>
 

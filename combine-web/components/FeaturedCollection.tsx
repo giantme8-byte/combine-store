@@ -67,7 +67,7 @@ export default async function FeaturedCollection() {
             md:text-6xl
           "
         >
-          Editor's Selection
+          Editor&apos;s Selection
         </h2>
 
         <div
@@ -185,7 +185,7 @@ export default async function FeaturedCollection() {
             "
           >
             We are preparing our featured collection. Please check
-            back soon to discover our editor's finest selections.
+            back soon to discover our editor&apos;s finest selections.
           </p>
         </div>
       ) : (

@@ -21,18 +21,15 @@ async function uploadImage(
   file: File,
   folder: string
 ) {
-  const bytes =
-    await file.arrayBuffer();
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
 
-  const buffer =
-    Buffer.from(bytes);
-
-const result = await new Promise<UploadApiResponse>(
-  (resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
+  const result = await new Promise<UploadApiResponse>(
+    (resolve, reject) => {
+      cloudinary.uploader.upload_stream(
         {
           folder,
+          resource_type: "image",
         },
         (error, result) => {
           if (error) {
@@ -40,19 +37,116 @@ const result = await new Promise<UploadApiResponse>(
           } else if (result) {
             resolve(result);
           } else {
-            reject(new Error("Cloudinary upload returned no result."));
+            reject(
+              new Error(
+                "Cloudinary upload returned no result."
+              )
+            );
           }
         }
-      )
-      .end(buffer);
-  }
-);
-
+      ).end(buffer);
+    }
+  );
 
   return {
     url: result.secure_url,
     publicId: result.public_id,
   };
+}
+
+/**
+ * Upload one image with automatic retry.
+ *
+ * A failed upload is retried up to 3 times so a temporary
+ * network/Cloudinary error does not fail the whole product.
+ */
+async function uploadImageWithRetry(
+  file: File,
+  folder: string,
+  maxRetries = 3
+) {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(
+        `Uploading ${file.name} - attempt ${attempt}/${maxRetries}`
+      );
+
+      return await uploadImage(file, folder);
+    } catch (error) {
+      lastError = error;
+
+      console.error(
+        `Upload failed: ${file.name} - attempt ${attempt}`,
+        error
+      );
+
+      if (attempt < maxRetries) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 500 * attempt)
+        );
+      }
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`Failed to upload ${file.name}`);
+}
+
+/**
+ * Upload files with controlled concurrency.
+ *
+ * 9 images become:
+ * 3 uploads -> 3 uploads -> 3 uploads
+ *
+ * This is faster than uploading one-by-one while being much
+ * more stable than opening 9 Cloudinary uploads at once.
+ */
+async function uploadImages(
+  files: File[],
+  folder: string,
+  concurrency = 3
+) {
+  const validFiles = files
+    .map((file, index) => ({ file, index }))
+    .filter(({ file }) => file && file.size > 0);
+
+  const results: {
+    index: number;
+    url: string;
+    publicId: string;
+  }[] = [];
+
+  for (let i = 0; i < validFiles.length; i += concurrency) {
+    const batch = validFiles.slice(i, i + concurrency);
+
+    console.log(
+      `Uploading batch ${
+        Math.floor(i / concurrency) + 1
+      }/${Math.ceil(validFiles.length / concurrency)}`
+    );
+
+    const batchResults = await Promise.all(
+      batch.map(async ({ file, index }) => {
+        const uploaded = await uploadImageWithRetry(
+          file,
+          folder
+        );
+
+        return {
+          index,
+          url: uploaded.url,
+          publicId: uploaded.publicId,
+        };
+      })
+    );
+
+    results.push(...batchResults);
+  }
+
+  return results.sort((a, b) => a.index - b.index);
 }
 
 export async function quickUpdateProductPrice(
@@ -91,30 +185,24 @@ try {
 
   const uploadedImages: UploadedImage[] = [];
 
-for (let i = 0; i < files.length; i++) {
-  console.log(`Uploading Gallery ${i + 1}/${files.length}`);
+const galleryUploads = await uploadImages(
+  files,
+  "combine-store/gallery",
+  3
+);
 
-  const file = files[i];
-
-  console.log(file.name, file.size);
-
-  if (!file || file.size === 0) continue;
-
-  const uploaded = await uploadImage(
-    file,
-    "combine-store/gallery"
-  );
-
-  console.log(`Uploaded: ${uploaded.publicId}`);
-
+for (const uploaded of galleryUploads) {
   uploadedImages.push({
     url: uploaded.url,
     publicId: uploaded.publicId,
-    sortOrder: i,
+    sortOrder: uploaded.index,
   });
 }
 
-console.log("Gallery uploaded:", uploadedImages.length);
+console.log(
+  "Gallery uploaded:",
+  uploadedImages.length
+);
 
   // Product Colors
   const colorFiles =
@@ -184,22 +272,17 @@ const uploadedVariants: {
 }[] = [];
 
 
-for (const file of variantFiles) {
+const variantUploads = await uploadImages(
+  variantFiles,
+  "combine-store/variants",
+  3
+);
 
-  if (!file || file.size === 0) continue;
-
-
-  const uploaded = await uploadImage(
-    file,
-    "combine-store/variants"
-  );
-
-
+for (const uploaded of variantUploads) {
   uploadedVariants.push({
     imageUrl: uploaded.url,
     publicId: uploaded.publicId,
   });
-
 }
 
   const newColorOrder =
@@ -221,30 +304,24 @@ const uploadedColors: {
   sortOrder: number;
 }[] = [];
 
-  for (let i = 0; i < colorFiles.length; i++) {
+  const colorUploads = await uploadImages(
+    colorFiles,
+    "combine-store/colors",
+    3
+  );
 
-    const file = colorFiles[i];
+  for (const uploaded of colorUploads) {
+    const color = newColorOrder[uploaded.index];
 
-    if (!file || file.size === 0)
-      continue;
+    if (!color) continue;
 
-    const uploaded = await uploadImage(
-      file,
-      "combine-store/colors"
-    );
-
-uploadedColors.push({
-  name: newColorOrder[i].name,
-
-  model: newColorOrder[i].model,
-
-  imageUrl: uploaded.url,
-
-  publicId: uploaded.publicId,
-
-  sortOrder: newColorOrder[i].sortOrder,
-});
-
+    uploadedColors.push({
+      name: color.name,
+      model: color.model,
+      imageUrl: uploaded.url,
+      publicId: uploaded.publicId,
+      sortOrder: color.sortOrder,
+    });
   }
 
 console.log("Before prisma.product.create");
@@ -614,100 +691,58 @@ const uploadedVariants: {
 }[] = [];
 
 
-for (
-  let i = 0;
-  i < variantFiles.length;
-  i++
-) {
+const variantUploads = await uploadImages(
+  variantFiles,
+  "combine-store/variants",
+  3
+);
 
-  const file = variantFiles[i];
-
-
-  if (!file || file.size === 0)
-    continue;
-
-
-  const uploaded =
-    await uploadImage(
-      file,
-      "combine-store/variants"
-    );
-
-
+for (const uploaded of variantUploads) {
   uploadedVariants.push({
     imageUrl: uploaded.url,
     publicId: uploaded.publicId,
   });
+}
 
-}  
+    if (files.length > 0) {
+      const galleryUploads = await uploadImages(
+        files,
+        "combine-store/gallery",
+        3
+      );
 
-    if(files.length > 0){
+      for (const uploaded of galleryUploads) {
+        const image = newImageOrder[uploaded.index];
 
-      for(
-        let i = 0;
-        i < files.length;
-        i++
-      ){
+        if (!image) continue;
 
-        const file =
-          files[i];
-
-        if(
-          !file ||
-          file.size === 0
-        )
-          continue;
-
-        const uploaded =
-          await uploadImage(
-            file,
-            "combine-store/gallery"
-          );
-
-uploadedImages.push({
-  url: uploaded.url,
-  publicId: uploaded.publicId,
-  sortOrder: newImageOrder[i].sortOrder,
-});
-
+        uploadedImages.push({
+          url: uploaded.url,
+          publicId: uploaded.publicId,
+          sortOrder: image.sortOrder,
+        });
       }
-
     }
 
 
-    for(
-      let i = 0;
-      i < colorFiles.length;
-      i++
-    ){
+    const colorUploads = await uploadImages(
+      colorFiles,
+      "combine-store/colors",
+      3
+    );
 
-      const file =
-        colorFiles[i];
+    for (const uploaded of colorUploads) {
+      const color = newColorOrder[uploaded.index];
 
-      if(
-        !file ||
-        file.size === 0
-      )
-        continue;
+      if (!color) continue;
 
-      const uploaded =
-        await uploadImage(
-          file,
-          "combine-store/colors"
-        );
-
-uploadedColors.push({
-  name: newColorOrder[i].name,
-
-  model: newColorOrder[i].model,
-
-  imageUrl: uploaded.url,
-
-  publicId: uploaded.publicId,
-
-  sortOrder: newColorOrder[i].sortOrder,
-});
-
+      uploadedColors.push({
+        name: color.name,
+        model: color.model,
+        imageUrl: uploaded.url,
+        publicId: uploaded.publicId,
+        sortOrder: color.sortOrder,
+      });
     }
 
 const slug = await generateProductSlug(

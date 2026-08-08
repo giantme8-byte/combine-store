@@ -111,7 +111,7 @@ Can you help me source it?`;
               text-neutral-900
             "
           >
-            We Couldn't Find It
+            We Couldn&apos;t Find It
           </h2>
 
           <p
@@ -123,7 +123,7 @@ Can you help me source it?`;
               text-neutral-500
             "
           >
-            We couldn't find a matching
+            We couldn&apos;t find a matching
             product, but our concierge team
             can help source it for you.
           </p>
@@ -259,38 +259,38 @@ Can you help me source it?`;
     );
   }
 
-return (
-  <div
-    className="
-      grid
-      grid-cols-2
-      gap-x-4
-      gap-y-10
-      sm:grid-cols-2
-      sm:gap-x-8
-      sm:gap-y-14
-      xl:grid-cols-3
-      2xl:grid-cols-4
-    "
-  >
-    {products.map((product) => (
-      <ProductCard
-        key={product.id}
-        id={product.id}
-        slug={product.slug}
-        brand={product.brand}
-        name={product.name}
-        model={product.model}
-        image={product.image}
-        secondImage={product.secondImage}
-        createdAt={product.createdAt}
-        featured={product.featured}
-        newArrival={product.newArrival}
-        bestSeller={product.bestSeller}
-        limited={product.limited}
-        onSale={product.onSale}
-      />
-    ))}
-  </div>
-);
+  return (
+    <div
+      className="
+        grid
+        grid-cols-2
+        gap-x-4
+        gap-y-10
+        sm:grid-cols-2
+        sm:gap-x-8
+        sm:gap-y-14
+        xl:grid-cols-3
+        2xl:grid-cols-4
+      "
+    >
+      {products.map((product) => (
+        <ProductCard
+          key={product.id}
+          id={product.id}
+          slug={product.slug}
+          brand={product.brand}
+          name={product.name}
+          model={product.model}
+          image={product.image}
+          secondImage={product.secondImage}
+          createdAt={product.createdAt}
+          featured={product.featured}
+          newArrival={product.newArrival}
+          bestSeller={product.bestSeller}
+          limited={product.limited}
+          onSale={product.onSale}
+        />
+      ))}
+    </div>
+  );
 }

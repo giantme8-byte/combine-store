@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { prisma } from "@/lib/prisma";
 
@@ -15,6 +16,15 @@ import ProductActions from "@/components/product/ProductActions";
 import ProductAccordion from "@/components/product/ProductAccordion";
 import ProductDetailClient from "@/components/product/ProductDetailClient";
 import ProductOptions from "@/components/product/ProductOptions";
+
+/*
+ * Cache product pages for 5 minutes.
+ *
+ * This means returning visitors can receive
+ * the already-rendered page instead of waiting
+ * for Prisma on every request.
+ */
+export const revalidate = 300;
 
 type Props = {
   params: Promise<{
@@ -96,11 +106,18 @@ export default async function ProductPage({
 }: Props) {
   const { slug } = await params;
 
-  const [product, settings] = await Promise.all([
-    prisma.product.findUnique({
+  /*
+   * Only query what this page actually needs.
+   *
+   * settings was previously queried here but
+   * was never used anywhere on the page.
+   */
+  const product =
+    await prisma.product.findUnique({
       where: {
         slug,
       },
+
       select: {
         id: true,
         slug: true,
@@ -129,6 +146,7 @@ export default async function ProductPage({
           select: {
             url: true,
           },
+
           orderBy: {
             sortOrder: "asc",
           },
@@ -140,6 +158,7 @@ export default async function ProductPage({
             name: true,
             imageUrl: true,
           },
+
           orderBy: {
             sortOrder: "asc",
           },
@@ -153,15 +172,13 @@ export default async function ProductPage({
             dimensions: true,
             imageUrl: true,
           },
+
           orderBy: {
             sortOrder: "asc",
           },
         },
       },
-    }),
-
-    prisma.setting.findFirst(),
-  ]);
+    });
 
   if (!product) {
     notFound();
@@ -305,13 +322,17 @@ export default async function ProductPage({
       </ProductDetailClient>
 
       {/* Related Products */}
-      <RelatedProducts
-        currentId={product.id}
-        category={product.category}
-      />
+      <Suspense fallback={null}>
+        <RelatedProducts
+          currentId={product.id}
+          category={product.category}
+        />
+      </Suspense>
 
       {/* Recently Viewed */}
-      <RecentlyViewed />
+      <Suspense fallback={null}>
+        <RecentlyViewed />
+      </Suspense>
     </main>
   );
 }

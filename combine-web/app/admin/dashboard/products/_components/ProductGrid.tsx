@@ -16,14 +16,15 @@ export default function ProductGrid({
 }: ProductGridProps) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-
       {products.map((product) => (
-
         <Link
           key={product.id}
           href={`/admin/dashboard/products/${product.id}/edit`}
           className="
             group
+            flex
+            h-full
+            flex-col
             overflow-hidden
             rounded-2xl
             border
@@ -36,9 +37,8 @@ export default function ProductGrid({
             hover:shadow-xl
           "
         >
-
-          <div className="relative aspect-square overflow-hidden bg-neutral-50">
-
+          {/* Image */}
+          <div className="relative aspect-square shrink-0 overflow-hidden bg-neutral-50">
             <Image
               src={
                 product.images[0]?.url ??
@@ -54,8 +54,8 @@ export default function ProductGrid({
               "
             />
 
+            {/* Badges */}
             <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-
               {product.newArrival && (
                 <span className="rounded-full bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white">
                   NEW
@@ -85,58 +85,53 @@ export default function ProductGrid({
                   SALE
                 </span>
               )}
-
             </div>
-
           </div>
 
-          <div className="space-y-3 p-5">
-
+          {/* Product Info */}
+          <div className="flex flex-1 flex-col p-5">
+            {/* Name + Brand */}
             <div>
-
-              <h3 className="line-clamp-2 font-semibold text-neutral-900">
+              <h3 className="font-semibold leading-6 text-neutral-900">
                 {product.name}
               </h3>
 
               <p className="mt-1 text-sm text-neutral-500">
                 {product.brand}
               </p>
-
             </div>
 
-            <div className="flex items-center justify-between">
-
-              <p className="text-lg font-bold">
+            {/* Price + Availability */}
+            <div className="mt-auto flex items-center justify-between gap-3 pt-6">
+              <p className="shrink-0 text-lg font-bold text-neutral-900">
                 RM {product.price.toFixed(2)}
               </p>
 
               <span
                 className={`
+                  shrink-0
                   rounded-full
                   px-3
                   py-1
                   text-xs
                   font-medium
                   ${
-                    product.availability === Availability.IN_STOCK
+                    product.availability ===
+                    Availability.IN_STOCK
                       ? "bg-green-100 text-green-700"
                       : "bg-red-100 text-red-700"
                   }
                 `}
               >
-                {product.availability === Availability.IN_STOCK
+                {product.availability ===
+                Availability.IN_STOCK
                   ? "In Stock"
                   : "Out of Stock"}
               </span>
-
             </div>
-
           </div>
-
         </Link>
-
       ))}
-
     </div>
   );
 }

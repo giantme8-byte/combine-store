@@ -1,15 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
+import {
+  useMemo,
+} from "react";
+
 import Image from "next/image";
 import Link from "next/link";
 
 import WishlistButton from "@/components/WishlistButton";
 import { useInquiry } from "@/components/providers/InquiryProvider";
+import { useQuickView } from "@/components/providers/QuickViewProvider";
 
 import type { ProductCardProps } from "@/types";
 
-import { useQuickView } from "@/components/providers/QuickViewProvider";
+import { optimizeCloudinaryImage } from "@/lib/cloudinary-image";
 
 export default function ProductCard({
   id,
@@ -34,6 +38,9 @@ export default function ProductCard({
     ? `/shop/${slug}`
     : "/shop";
 
+  /*
+   * NEW badge
+   */
   const isNewArrival = useMemo(() => {
     if (!newArrival) {
       return false;
@@ -43,11 +50,15 @@ export default function ProductCard({
     const created = new Date(createdAt);
 
     return (
-      now.getTime() - created.getTime() <
+      now.getTime() -
+        created.getTime() <
       30 * 24 * 60 * 60 * 1000
     );
   }, [createdAt, newArrival]);
 
+  /*
+   * Inquiry
+   */
   function handleInquiry(
     event: React.MouseEvent
   ) {
@@ -58,6 +69,9 @@ export default function ProductCard({
     openDrawer();
   }
 
+  /*
+   * Quick View
+   */
   function handleQuickView(
     event: React.MouseEvent
   ) {
@@ -80,6 +94,35 @@ export default function ProductCard({
       onSale,
     });
   }
+
+  /*
+   * Cloudinary optimized URLs.
+   *
+   * Product cards do not need the original
+   * full-resolution image.
+   *
+   * Main image:
+   * - automatic format
+   * - automatic quality
+   * - max 800px
+   *
+   * Hover image:
+   * - same optimisation
+   * - loaded lazily
+   */
+  const optimizedImage =
+    optimizeCloudinaryImage(
+      image,
+      800
+    );
+
+  const optimizedSecondImage =
+    secondImage
+      ? optimizeCloudinaryImage(
+          secondImage,
+          800
+        )
+      : undefined;
 
   return (
     <article
@@ -105,10 +148,13 @@ export default function ProductCard({
     >
       <Link
         href={productHref}
-        prefetch={false}
+        prefetch
         className="flex flex-1 flex-col"
       >
+        {/* ================================================= */}
         {/* Image */}
+        {/* ================================================= */}
+
         <div
           className="
             relative
@@ -123,6 +169,7 @@ export default function ProductCard({
           "
         >
           {/* Wishlist */}
+
           <div
             className="
               absolute
@@ -154,6 +201,7 @@ export default function ProductCard({
           </div>
 
           {/* Labels */}
+
           <div
             className="
               absolute
@@ -300,7 +348,10 @@ export default function ProductCard({
             )}
           </div>
 
-          {/* Main Image */}
+          {/* ================================================= */}
+          {/* Product Images */}
+          {/* ================================================= */}
+
           <div
             className="
               relative
@@ -308,12 +359,18 @@ export default function ProductCard({
               w-full
             "
           >
+            {/* Main Image */}
+
             <Image
-              src={image}
+              src={optimizedImage}
               alt={`${brand} ${name}`}
               fill
-              quality={88}
-              sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+              quality={80}
+              sizes="
+                (max-width: 640px) 50vw,
+                (max-width: 1280px) 33vw,
+                25vw
+              "
               loading="lazy"
               className={`
                 pointer-events-none
@@ -333,13 +390,18 @@ export default function ProductCard({
             />
 
             {/* Hover Image */}
-            {secondImage && (
+
+            {optimizedSecondImage && (
               <Image
-                src={secondImage}
+                src={optimizedSecondImage}
                 alt={`${brand} ${name}`}
                 fill
-                quality={88}
-                sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                quality={80}
+                sizes="
+                  (max-width: 640px) 50vw,
+                  (max-width: 1280px) 33vw,
+                  25vw
+                "
                 loading="lazy"
                 className="
                   absolute
@@ -364,6 +426,7 @@ export default function ProductCard({
           </div>
 
           {/* Luxury Shine */}
+
           <div
             className="
               pointer-events-none
@@ -380,6 +443,7 @@ export default function ProductCard({
           />
 
           {/* Dark Overlay */}
+
           <div
             className="
               pointer-events-none
@@ -399,6 +463,7 @@ export default function ProductCard({
           />
 
           {/* Quick View */}
+
           <div
             className="
               absolute
@@ -449,7 +514,10 @@ export default function ProductCard({
           </div>
         </div>
 
+        {/* ================================================= */}
         {/* Content */}
+        {/* ================================================= */}
+
         <div
           className="
             flex
@@ -500,8 +568,8 @@ export default function ProductCard({
           <div
             className="
               mt-3
-              flex-1
               min-h-[42px]
+              flex-1
               sm:mt-5
               sm:min-h-[56px]
             "
@@ -534,7 +602,10 @@ export default function ProductCard({
         </div>
       </Link>
 
+      {/* ================================================= */}
       {/* Actions */}
+      {/* ================================================= */}
+
       <div
         className="
           border-t
@@ -546,12 +617,13 @@ export default function ProductCard({
         "
       >
         <div className="flex items-center justify-between gap-2 sm:gap-3">
+
           <Link
             href={productHref}
-            prefetch={false}
+            prefetch
             className="
-              flex-1
               inline-flex
+              flex-1
               items-center
               gap-1
               text-[8px]
@@ -567,7 +639,9 @@ export default function ProductCard({
               sm:tracking-[0.24em]
             "
           >
-            <span>Discover</span>
+            <span>
+              Discover
+            </span>
 
             <span
               className="
@@ -590,11 +664,11 @@ export default function ProductCard({
               shrink-0
               items-center
               justify-center
+              whitespace-nowrap
               rounded-full
               border
               border-black
               bg-white
-              whitespace-nowrap
               transition-all
               duration-300
               hover:-translate-y-0.5
@@ -612,6 +686,7 @@ export default function ProductCard({
           >
             Request Price
           </button>
+
         </div>
       </div>
     </article>

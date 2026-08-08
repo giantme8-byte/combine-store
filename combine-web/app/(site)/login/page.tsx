@@ -57,90 +57,30 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[1440px] items-center justify-center px-8 py-24 lg:px-12">
-
-      <div
-        className="
-          w-full
-          max-w-xl
-          rounded-[40px]
-          border
-          border-neutral-200
-          bg-white
-          p-12
-          shadow-[0_30px_80px_rgba(0,0,0,.05)]
-        "
-      >
-
+      <div className="w-full max-w-xl rounded-[40px] border border-neutral-200 bg-white p-12 shadow-[0_30px_80px_rgba(0,0,0,.05)]">
         <div className="text-center">
-
-          <p
-            className="
-              text-xs
-              uppercase
-              tracking-[0.55em]
-              text-neutral-400
-            "
-          >
+          <p className="text-xs uppercase tracking-[0.55em] text-neutral-400">
             ACCOUNT
           </p>
 
-          <h1
-            className="
-              mt-6
-              text-5xl
-              font-extralight
-              tracking-[-0.04em]
-              text-neutral-900
-            "
-          >
+          <h1 className="mt-6 text-5xl font-extralight tracking-[-0.04em] text-neutral-900">
             Sign In
           </h1>
 
-          <div
-            className="
-              mx-auto
-              mt-8
-              h-px
-              w-20
-              bg-gradient-to-r
-              from-transparent
-              via-[#C8A96A]
-              to-transparent
-            "
-          />
+          <div className="mx-auto mt-8 h-px w-20 bg-gradient-to-r from-transparent via-[#C8A96A] to-transparent" />
 
-          <p
-            className="
-              mx-auto
-              mt-8
-              max-w-md
-              text-lg
-              leading-8
-              text-neutral-500
-            "
-          >
+          <p className="mx-auto mt-8 max-w-md text-lg leading-8 text-neutral-500">
             Welcome back to COMBINE.
             Sign in to access your wishlist,
             enquiry history and account.
           </p>
-
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-14 space-y-8"
-        >
-
+        <form onSubmit={handleSubmit} className="mt-14 space-y-8">
           <div>
-
             <label
               htmlFor="email"
-              className="
-                text-[11px]
-                uppercase
-                tracking-[0.35em]
-                text-neutral-400
-              "
+              className="text-[11px] uppercase tracking-[0.35em] text-neutral-400"
             >
               Email
             </label>
@@ -151,58 +91,27 @@ export default function LoginPage() {
               required
               autoComplete="email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="
-                mt-3
-                w-full
-                rounded-2xl
-                border
-                border-neutral-200
-                px-6
-                py-4
-                text-neutral-900
-                outline-none
-                transition-all
-                duration-300
-                focus:border-[#C8A96A]
-                focus:ring-4
-                focus:ring-[#C8A96A]/10
-              "
+              className="mt-3 w-full rounded-2xl border border-neutral-200 px-6 py-4 text-neutral-900 outline-none transition-all duration-300 focus:border-[#C8A96A] focus:ring-4 focus:ring-[#C8A96A]/10"
             />
-
           </div>
 
           <div>
-
             <div className="flex items-center justify-between">
-
               <label
                 htmlFor="password"
-                className="
-                  text-[11px]
-                  uppercase
-                  tracking-[0.35em]
-                  text-neutral-400
-                "
+                className="text-[11px] uppercase tracking-[0.35em] text-neutral-400"
               >
                 Password
               </label>
 
               <Link
                 href="#"
-                className="
-                  text-xs
-                  text-neutral-500
-                  transition
-                  hover:text-[#C8A96A]
-                "
+                className="text-xs text-neutral-500 transition hover:text-[#C8A96A]"
               >
                 Forgot Password?
               </Link>
-
             </div>
 
             <input
@@ -211,43 +120,14 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
               value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
-              }
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="
-                mt-3
-                w-full
-                rounded-2xl
-                border
-                border-neutral-200
-                px-6
-                py-4
-                text-neutral-900
-                outline-none
-                transition-all
-                duration-300
-                focus:border-[#C8A96A]
-                focus:ring-4
-                focus:ring-[#C8A96A]/10
-              "
+              className="mt-3 w-full rounded-2xl border border-neutral-200 px-6 py-4 text-neutral-900 outline-none transition-all duration-300 focus:border-[#C8A96A] focus:ring-4 focus:ring-[#C8A96A]/10"
             />
-
           </div>
 
           {error && (
-            <div
-              className="
-                rounded-2xl
-                border
-                border-red-200
-                bg-red-50
-                px-5
-                py-4
-                text-sm
-                text-red-600
-              "
-            >
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600">
               {error}
             </div>
           )}
@@ -255,70 +135,25 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="
-              inline-flex
-              w-full
-              items-center
-              justify-center
-              rounded-full
-              bg-black
-              px-8
-              py-4
-              text-[11px]
-              font-medium
-              uppercase
-              tracking-[0.3em]
-              text-white
-              transition-all
-              duration-300
-              hover:-translate-y-1
-              hover:bg-[#C8A96A]
-              hover:shadow-xl
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            className="inline-flex w-full items-center justify-center rounded-full bg-black px-8 py-4 text-[11px] font-medium uppercase tracking-[0.3em] text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#C8A96A] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading
-              ? "Signing In..."
-              : "Sign In"}
+            {loading ? "Signing In..." : "Sign In"}
           </button>
-
         </form>
 
-        <div
-          className="
-            mt-12
-            border-t
-            border-neutral-200
-            pt-10
-            text-center
-          "
-        >
-
+        <div className="mt-12 border-t border-neutral-200 pt-10 text-center">
           <p className="text-neutral-500">
-            Don't have an account?
+            Don&apos;t have an account?
           </p>
 
           <Link
             href="/register"
-            className="
-              mt-4
-              inline-flex
-              text-sm
-              uppercase
-              tracking-[0.3em]
-              text-[#C8A96A]
-              transition
-              hover:opacity-70
-            "
+            className="mt-4 inline-flex text-sm uppercase tracking-[0.3em] text-[#C8A96A] transition hover:opacity-70"
           >
             Create Account
           </Link>
-
         </div>
-
       </div>
-
     </main>
   );
 }
