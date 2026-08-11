@@ -16,23 +16,27 @@ export default async function EditProductPage({
     product,
     brands,
     categories,
+    packagingProfiles,
     settings,
   ] = await Promise.all([
     prisma.product.findUnique({
       where: {
         id: Number(id),
       },
+
       include: {
         images: {
           orderBy: {
             sortOrder: "asc",
           },
         },
+
         colors: {
           orderBy: {
             sortOrder: "asc",
           },
         },
+
         variants: {
           orderBy: {
             sortOrder: "asc",
@@ -45,6 +49,7 @@ export default async function EditProductPage({
       where: {
         active: true,
       },
+
       orderBy: {
         name: "asc",
       },
@@ -54,9 +59,22 @@ export default async function EditProductPage({
       where: {
         active: true,
       },
+
       orderBy: {
         name: "asc",
       },
+    }),
+
+    prisma.packagingProfile.findMany({
+      orderBy: [
+        {
+          brand: "asc",
+        },
+
+        {
+          name: "asc",
+        },
+      ],
     }),
 
     prisma.setting.findFirst(),
@@ -68,12 +86,20 @@ export default async function EditProductPage({
 
   return (
     <ProductForm
-      action={updateProduct.bind(null, product.id)}
+      action={updateProduct.bind(
+        null,
+        product.id
+      )}
       product={product}
       submitText="Update Product"
       categories={categories}
       brands={brands}
-      exchangeRate={settings?.exchangeRate ?? 0.59}
+      packagingProfiles={
+        packagingProfiles
+      }
+      exchangeRate={
+        settings?.exchangeRate ?? 0.59
+      }
     />
   );
 }

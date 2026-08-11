@@ -17,22 +17,35 @@ function AccordionItem({
     useState(defaultOpen);
 
   return (
-    <div className="border-t border-neutral-200">
+    <div
+      className="
+        border-t
+        border-neutral-200
+      "
+    >
+      {/* ================================================= */}
+      {/* Accordion Header */}
+      {/* ================================================= */}
+
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={() =>
+          setOpen(!open)
+        }
         className="
           flex
+          min-h-14
           w-full
           items-center
           justify-between
           gap-6
           rounded-sm
-          py-5
+          py-4
           text-left
           transition-all
           duration-300
           hover:bg-neutral-50
+          sm:min-h-0
           sm:py-6
         "
         aria-expanded={open}
@@ -66,6 +79,7 @@ function AccordionItem({
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -74,6 +88,10 @@ function AccordionItem({
           />
         </svg>
       </button>
+
+      {/* ================================================= */}
+      {/* Accordion Content */}
+      {/* ================================================= */}
 
       <div
         className={`
@@ -92,6 +110,7 @@ function AccordionItem({
         <div className="overflow-hidden">
           <div
             className="
+              max-w-2xl
               whitespace-pre-line
               text-[14px]
               leading-7
@@ -118,13 +137,16 @@ export default function ProductAccordion({
   return (
     <div
       className="
-        mt-12
+        mt-10
         border-b
         border-neutral-200
         sm:mt-20
       "
     >
+      {/* ================================================= */}
       {/* Description */}
+      {/* ================================================= */}
+
       <AccordionItem
         title="Description"
         defaultOpen
@@ -132,8 +154,13 @@ export default function ProductAccordion({
         {description}
       </AccordionItem>
 
+      {/* ================================================= */}
       {/* Shipping */}
-      <AccordionItem title="Shipping & Delivery">
+      {/* ================================================= */}
+
+      <AccordionItem
+        title="Shipping & Delivery"
+      >
         All items are carefully prepared upon order.
 
         {"\n\n"}
@@ -147,8 +174,13 @@ export default function ProductAccordion({
         placing your inquiry.
       </AccordionItem>
 
+      {/* ================================================= */}
       {/* Care Guide */}
-      <AccordionItem title="Care Guide">
+      {/* ================================================= */}
+
+      <AccordionItem
+        title="Care Guide"
+      >
         Store in a cool and dry place.
 
         {"\n\n"}

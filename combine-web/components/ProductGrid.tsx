@@ -64,10 +64,19 @@ Can you help me source it?`;
     );
   }
 
+  /*
+   * =========================================================
+   * Empty State
+   * =========================================================
+   */
+
   if (products.length === 0) {
     return (
-      <div className="space-y-20">
+      <div className="space-y-16 sm:space-y-20">
+        {/* ================================================= */}
         {/* Empty State */}
+        {/* ================================================= */}
+
         <div
           className="
             mx-auto
@@ -75,52 +84,70 @@ Can you help me source it?`;
             max-w-3xl
             flex-col
             items-center
-            rounded-[36px]
+            rounded-[24px]
             border
             border-neutral-200
             bg-gradient-to-b
             from-white
             to-neutral-50
-            px-12
-            py-20
+            px-5
+            py-12
             text-center
             shadow-[0_30px_80px_rgba(0,0,0,.05)]
+            sm:rounded-[36px]
+            sm:px-12
+            sm:py-20
           "
         >
+          {/* Search Icon */}
+
           <div
             className="
-              mb-8
+              mb-6
               flex
-              h-24
-              w-24
+              h-18
+              w-18
               items-center
               justify-center
               rounded-full
               bg-neutral-100
-              text-5xl
+              text-4xl
+              sm:mb-8
+              sm:h-24
+              sm:w-24
+              sm:text-5xl
             "
           >
             🔍
           </div>
 
+          {/* Title */}
+
           <h2
             className="
-              text-5xl
+              text-[32px]
               font-extralight
+              leading-tight
               tracking-[-0.04em]
               text-neutral-900
+              sm:text-5xl
             "
           >
             We Couldn&apos;t Find It
           </h2>
 
+          {/* Description */}
+
           <p
             className="
-              mt-8
+              mt-5
               max-w-xl
-              text-lg
-              leading-9
+              text-[14px]
+              leading-7
               text-neutral-500
+              sm:mt-8
+              sm:text-lg
+              sm:leading-9
             "
           >
             We couldn&apos;t find a matching
@@ -128,16 +155,33 @@ Can you help me source it?`;
             can help source it for you.
           </p>
 
-          <div className="mt-12 flex flex-col gap-4 sm:flex-row">
+          {/* Actions */}
+
+          <div
+            className="
+              mt-8
+              flex
+              w-full
+              flex-col
+              gap-3
+              sm:mt-12
+              sm:w-auto
+              sm:flex-row
+              sm:gap-4
+            "
+          >
             <button
               type="button"
-              onClick={handleWhatsApp}
+              onClick={
+                handleWhatsApp
+              }
               className="
+                w-full
                 rounded-full
                 bg-black
                 px-8
                 py-4
-                text-sm
+                text-[11px]
                 font-medium
                 uppercase
                 tracking-[0.25em]
@@ -147,6 +191,8 @@ Can you help me source it?`;
                 hover:-translate-y-1
                 hover:bg-[#C8A96A]
                 hover:shadow-xl
+                sm:w-auto
+                sm:text-sm
               "
             >
               Ask on WhatsApp
@@ -155,14 +201,17 @@ Can you help me source it?`;
             {onClearFilters && (
               <button
                 type="button"
-                onClick={onClearFilters}
+                onClick={
+                  onClearFilters
+                }
                 className="
+                  w-full
                   rounded-full
                   border
                   border-neutral-300
                   px-8
                   py-4
-                  text-sm
+                  text-[11px]
                   font-medium
                   uppercase
                   tracking-[0.25em]
@@ -172,6 +221,8 @@ Can you help me source it?`;
                   hover:border-black
                   hover:bg-black
                   hover:text-white
+                  sm:w-auto
+                  sm:text-sm
                 "
               >
                 Clear Filters
@@ -180,16 +231,30 @@ Can you help me source it?`;
           </div>
         </div>
 
-        {/* Featured */}
-        {featuredProducts.length > 0 && (
-          <div>
-            <div className="mb-14 text-center">
+        {/* ================================================= */}
+        {/* Featured Products */}
+        {/* ================================================= */}
+
+        {featuredProducts.length >
+          0 && (
+          <section>
+            {/* Header */}
+
+            <div
+              className="
+                mb-10
+                text-center
+                sm:mb-14
+              "
+            >
               <p
                 className="
-                  text-[11px]
+                  text-[9px]
                   uppercase
-                  tracking-[0.45em]
+                  tracking-[0.4em]
                   text-neutral-400
+                  sm:text-[11px]
+                  sm:tracking-[0.45em]
                 "
               >
                 FEATURED COLLECTION
@@ -197,23 +262,29 @@ Can you help me source it?`;
 
               <h3
                 className="
-                  mt-5
-                  text-5xl
+                  mt-4
+                  text-3xl
                   font-extralight
                   tracking-[-0.03em]
+                  sm:mt-5
+                  sm:text-5xl
                 "
               >
                 You May Also Like
               </h3>
             </div>
 
+            {/* Featured Grid */}
+
             <div
               className="
                 grid
-                grid-cols-1
-                gap-x-8
-                gap-y-14
+                grid-cols-2
+                gap-x-3
+                gap-y-10
                 sm:grid-cols-2
+                sm:gap-x-8
+                sm:gap-y-14
                 xl:grid-cols-3
                 2xl:grid-cols-4
               "
@@ -223,11 +294,21 @@ Can you help me source it?`;
                   <ProductCard
                     key={product.id}
                     id={product.id}
-                    slug={product.slug}
-                    brand={product.brand}
-                    name={product.name}
-                    model={product.model}
-                    image={product.image}
+                    slug={
+                      product.slug
+                    }
+                    brand={
+                      product.brand
+                    }
+                    name={
+                      product.name
+                    }
+                    model={
+                      product.model
+                    }
+                    image={
+                      product.image
+                    }
                     secondImage={
                       product.secondImage
                     }
@@ -253,18 +334,24 @@ Can you help me source it?`;
                 )
               )}
             </div>
-          </div>
+          </section>
         )}
       </div>
     );
   }
+
+  /*
+   * =========================================================
+   * Product Grid
+   * =========================================================
+   */
 
   return (
     <div
       className="
         grid
         grid-cols-2
-        gap-x-4
+        gap-x-3
         gap-y-10
         sm:grid-cols-2
         sm:gap-x-8
@@ -273,24 +360,40 @@ Can you help me source it?`;
         2xl:grid-cols-4
       "
     >
-      {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          id={product.id}
-          slug={product.slug}
-          brand={product.brand}
-          name={product.name}
-          model={product.model}
-          image={product.image}
-          secondImage={product.secondImage}
-          createdAt={product.createdAt}
-          featured={product.featured}
-          newArrival={product.newArrival}
-          bestSeller={product.bestSeller}
-          limited={product.limited}
-          onSale={product.onSale}
-        />
-      ))}
+      {products.map(
+        (product) => (
+          <ProductCard
+            key={product.id}
+            id={product.id}
+            slug={product.slug}
+            brand={product.brand}
+            name={product.name}
+            model={product.model}
+            image={product.image}
+            secondImage={
+              product.secondImage
+            }
+            createdAt={
+              product.createdAt
+            }
+            featured={
+              product.featured
+            }
+            newArrival={
+              product.newArrival
+            }
+            bestSeller={
+              product.bestSeller
+            }
+            limited={
+              product.limited
+            }
+            onSale={
+              product.onSale
+            }
+          />
+        )
+      )}
     </div>
   );
 }

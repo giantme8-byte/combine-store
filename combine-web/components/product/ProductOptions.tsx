@@ -18,8 +18,18 @@ export default function ProductOptions() {
   } = useProduct();
 
   return (
-    <div className="mt-8 space-y-8 sm:mt-12 sm:space-y-12">
+    <div
+      className="
+        mt-7
+        space-y-7
+        sm:mt-12
+        sm:space-y-12
+      "
+    >
+      {/* ================================================= */}
       {/* Colour */}
+      {/* ================================================= */}
+
       {colors.length > 0 && (
         <div>
           <p
@@ -36,7 +46,14 @@ export default function ProductOptions() {
             Colour
           </p>
 
-          <div className="flex flex-wrap gap-2.5 sm:gap-4">
+          <div
+            className="
+              flex
+              flex-wrap
+              gap-2
+              sm:gap-4
+            "
+          >
             {colors.map((color) => {
               const active =
                 selectedColor?.id === color.id;
@@ -49,6 +66,7 @@ export default function ProductOptions() {
                     setSelectedColor(color)
                   }
                   className={`
+                    min-h-11
                     rounded-full
                     border
                     px-4
@@ -57,12 +75,13 @@ export default function ProductOptions() {
                     font-medium
                     transition-all
                     duration-300
+                    sm:min-h-12
                     sm:px-6
                     sm:py-3
                     sm:text-sm
                     ${
                       active
-                        ? "border-black bg-black text-white shadow-lg scale-[1.02]"
+                        ? "scale-[1.02] border-black bg-black text-white shadow-lg"
                         : "border-neutral-300 bg-white hover:-translate-y-0.5 hover:border-black hover:shadow-md"
                     }
                   `}
@@ -75,7 +94,10 @@ export default function ProductOptions() {
         </div>
       )}
 
+      {/* ================================================= */}
       {/* Size */}
+      {/* ================================================= */}
+
       {variants.length > 0 && (
         <div>
           <p
@@ -92,7 +114,14 @@ export default function ProductOptions() {
             Size
           </p>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+          <div
+            className="
+              grid
+              grid-cols-2
+              gap-2.5
+              sm:gap-4
+            "
+          >
             {variants.map((variant) => {
               const active =
                 selectedVariant?.id ===
@@ -108,33 +137,57 @@ export default function ProductOptions() {
                     )
                   }
                   className={`
+                    min-h-[100px]
                     rounded-2xl
                     border
                     p-4
                     text-left
                     transition-all
                     duration-300
+                    sm:min-h-[120px]
                     sm:rounded-3xl
                     sm:p-5
                     ${
                       active
-                        ? "border-black bg-black text-white shadow-lg scale-[1.01]"
+                        ? "scale-[1.01] border-black bg-black text-white shadow-lg"
                         : "border-neutral-200 bg-white hover:-translate-y-1 hover:border-black hover:shadow-lg"
                     }
                   `}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium sm:text-base">
+                  {/* Size + Check */}
+                  <div
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                      gap-2
+                    "
+                  >
+                    <p
+                      className="
+                        text-sm
+                        font-medium
+                        sm:text-base
+                      "
+                    >
                       {variant.size}
                     </p>
 
                     {active && (
-                      <span className="text-[10px] uppercase tracking-[0.2em] sm:text-xs">
+                      <span
+                        className="
+                          text-[10px]
+                          uppercase
+                          tracking-[0.2em]
+                          sm:text-xs
+                        "
+                      >
                         ✓
                       </span>
                     )}
                   </div>
 
+                  {/* Dimensions */}
                   {variant.dimensions && (
                     <p
                       className={`
@@ -152,6 +205,25 @@ export default function ProductOptions() {
                       {variant.dimensions}
                     </p>
                   )}
+
+                  {/* Size Variation Notice */}
+                  <p
+                    className={`
+                      mt-2
+                      text-[9px]
+                      leading-4
+                      sm:mt-2.5
+                      sm:text-[10px]
+                      sm:leading-5
+                      ${
+                        active
+                          ? "text-neutral-400"
+                          : "text-neutral-400"
+                      }
+                    `}
+                  >
+                    * Size may vary by 1–3 cm
+                  </p>
                 </button>
               );
             })}
@@ -159,7 +231,10 @@ export default function ProductOptions() {
         </div>
       )}
 
+      {/* ================================================= */}
       {/* Quantity */}
+      {/* ================================================= */}
+
       <div>
         <p
           className="
@@ -178,6 +253,7 @@ export default function ProductOptions() {
         <div
           className="
             inline-flex
+            min-h-11
             items-center
             overflow-hidden
             rounded-full
@@ -185,6 +261,7 @@ export default function ProductOptions() {
             border-neutral-300
             bg-white
             shadow-sm
+            sm:min-h-12
           "
         >
           <button
@@ -199,13 +276,16 @@ export default function ProductOptions() {
               )
             }
             className="
-              px-5
-              py-2.5
+              flex
+              min-h-11
+              min-w-11
+              items-center
+              justify-center
               text-lg
               transition
               hover:bg-neutral-100
-              sm:px-6
-              sm:py-3
+              sm:min-h-12
+              sm:min-w-12
               sm:text-xl
             "
           >
@@ -215,7 +295,7 @@ export default function ProductOptions() {
           <div
             className="
               min-w-12
-              px-4
+              px-3
               text-center
               text-sm
               font-medium
@@ -231,16 +311,21 @@ export default function ProductOptions() {
             type="button"
             aria-label="Increase quantity"
             onClick={() =>
-              setQuantity(quantity + 1)
+              setQuantity(
+                quantity + 1
+              )
             }
             className="
-              px-5
-              py-2.5
+              flex
+              min-h-11
+              min-w-11
+              items-center
+              justify-center
               text-lg
               transition
               hover:bg-neutral-100
-              sm:px-6
-              sm:py-3
+              sm:min-h-12
+              sm:min-w-12
               sm:text-xl
             "
           >

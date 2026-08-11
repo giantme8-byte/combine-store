@@ -9,6 +9,7 @@ import {
   Users,
   ChartColumn,
   ArrowUpDown,
+  Box,
   type LucideIcon,
 } from "lucide-react";
 
@@ -26,11 +27,9 @@ export const sidebarSections: {
   title: string;
   items: SidebarItem[];
 }[] = [
-
   {
     title: "MAIN",
     items: [
-
       {
         title: "Dashboard",
         href: "/admin/dashboard",
@@ -68,14 +67,13 @@ export const sidebarSections: {
       },
 
       {
-        title: "Product Sorting",
-        href: "/admin/dashboard/products/sort",
-        icon: ArrowUpDown,
+        title: "Brands",
+        href: "/admin/dashboard/brands",
+        icon: Tag,
         roles: [
           UserRole.OWNER,
           UserRole.ADMIN,
           UserRole.MANAGER,
-          UserRole.STAFF,
         ],
       },
 
@@ -91,9 +89,9 @@ export const sidebarSections: {
       },
 
       {
-        title: "Brands",
-        href: "/admin/dashboard/brands",
-        icon: Tag,
+        title: "Packaging",
+        href: "/admin/dashboard/packaging",
+        icon: Box,
         roles: [
           UserRole.OWNER,
           UserRole.ADMIN,
@@ -101,13 +99,23 @@ export const sidebarSections: {
         ],
       },
 
+      {
+        title: "Product Sorting",
+        href: "/admin/dashboard/products/sort",
+        icon: ArrowUpDown,
+        roles: [
+          UserRole.OWNER,
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.STAFF,
+        ],
+      },
     ],
   },
 
   {
     title: "CRM",
     items: [
-
       {
         title: "Inquiries",
         href: "/admin/dashboard/inquiries",
@@ -119,14 +127,12 @@ export const sidebarSections: {
           UserRole.STAFF,
         ],
       },
-
     ],
   },
 
   {
     title: "SYSTEM",
     items: [
-
       {
         title: "Users",
         href: "/admin/dashboard/users",
@@ -157,8 +163,6 @@ export const sidebarSections: {
           UserRole.ADMIN,
         ],
       },
-
     ],
   },
-
 ];

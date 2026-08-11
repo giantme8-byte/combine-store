@@ -10,8 +10,16 @@ export default function SortDropdown({
   onChange,
 }: Props) {
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div
+      className="
+        space-y-3
+        sm:space-y-4
+      "
+    >
+      {/* ================================================= */}
       {/* Label */}
+      {/* ================================================= */}
+
       <p
         className="
           text-[10px]
@@ -26,17 +34,22 @@ export default function SortDropdown({
         Sort By
       </p>
 
+      {/* ================================================= */}
+      {/* Select */}
+      {/* ================================================= */}
+
       <div className="relative">
-        {/* Select */}
         <select
           id="sort-dropdown"
           aria-label="Sort products"
           value={value}
           onChange={(e) =>
-            onChange(e.target.value)
+            onChange(
+              e.target.value
+            )
           }
           className="
-            h-12
+            min-h-11
             w-full
             appearance-none
             rounded-xl
@@ -44,6 +57,7 @@ export default function SortDropdown({
             border-neutral-200
             bg-white
             px-4
+            py-2.5
             pr-10
             text-[12px]
             font-light
@@ -52,13 +66,15 @@ export default function SortDropdown({
             outline-none
             transition-all
             duration-500
-            hover:border-neutral-300
+            hover:border-[#C8A96A]
             hover:shadow-[0_18px_45px_rgba(0,0,0,.06)]
             focus:border-[#C8A96A]
-            focus:shadow-[0_25px_60px_rgba(200,169,106,.18)]
-            sm:h-16
-            sm:rounded-[24px]
+            focus:ring-4
+            focus:ring-[#C8A96A]/10
+            sm:min-h-12
+            sm:rounded-2xl
             sm:px-6
+            sm:py-4
             sm:pr-14
             sm:text-[15px]
           "
@@ -80,24 +96,34 @@ export default function SortDropdown({
           </option>
         </select>
 
+        {/* ================================================= */}
         {/* Custom Arrow */}
+        {/* ================================================= */}
+
         <div
           className="
             pointer-events-none
             absolute
             right-4
             top-1/2
+            flex
             -translate-y-1/2
+            items-center
+            justify-center
             text-neutral-400
             sm:right-6
           "
+          aria-hidden="true"
         >
           <svg
             width="14"
             height="14"
             viewBox="0 0 20 20"
             fill="none"
-            className="sm:h-4 sm:w-4"
+            className="
+              sm:h-4
+              sm:w-4
+            "
           >
             <path
               d="M5 7L10 12L15 7"
@@ -110,7 +136,10 @@ export default function SortDropdown({
         </div>
       </div>
 
+      {/* ================================================= */}
       {/* Hint */}
+      {/* ================================================= */}
+
       <p
         className="
           text-[9px]

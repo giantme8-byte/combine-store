@@ -16,7 +16,10 @@ export default function ProductInfo({
 }: ProductInfoProps) {
   return (
     <div className="space-y-2">
+      {/* ================================================= */}
       {/* Brand */}
+      {/* ================================================= */}
+
       <p
         className="
           text-[10px]
@@ -31,10 +34,16 @@ export default function ProductInfo({
         {product.brand}
       </p>
 
+      {/* ================================================= */}
       {/* Product Name */}
+      {/* ================================================= */}
+
       <h1
         className="
           mt-3
+          line-clamp-2
+          max-w-full
+          overflow-hidden
           text-[32px]
           font-extralight
           leading-[1.05]
@@ -50,7 +59,10 @@ export default function ProductInfo({
         {product.name}
       </h1>
 
+      {/* ================================================= */}
       {/* Divider */}
+      {/* ================================================= */}
+
       <div
         className="
           mt-5
@@ -65,7 +77,10 @@ export default function ProductInfo({
         "
       />
 
+      {/* ================================================= */}
       {/* Short Description */}
+      {/* ================================================= */}
+
       {product.shortDescription && (
         <p
           className="
@@ -84,7 +99,10 @@ export default function ProductInfo({
         </p>
       )}
 
+      {/* ================================================= */}
       {/* Badges */}
+      {/* ================================================= */}
+
       <div
         className="
           mt-6
@@ -95,6 +113,8 @@ export default function ProductInfo({
           sm:gap-3
         "
       >
+        {/* NEW ARRIVAL */}
+
         {product.newArrival && (
           <span
             className="
@@ -125,6 +145,8 @@ export default function ProductInfo({
           </span>
         )}
 
+        {/* FEATURED */}
+
         {product.featured && (
           <span
             className="
@@ -153,6 +175,8 @@ export default function ProductInfo({
             FEATURED
           </span>
         )}
+
+        {/* BEST SELLER */}
 
         {product.bestSeller && (
           <span
@@ -183,6 +207,8 @@ export default function ProductInfo({
           </span>
         )}
 
+        {/* LIMITED */}
+
         {product.limited && (
           <span
             className="
@@ -211,6 +237,8 @@ export default function ProductInfo({
             LIMITED
           </span>
         )}
+
+        {/* SALE */}
 
         {product.onSale && (
           <span

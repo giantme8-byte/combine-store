@@ -9,12 +9,49 @@ export default async function ShopPage({
   searchParams: Promise<{
     brand?: string;
     category?: string;
+
+    /*
+     * Sub Category supports multiple selections.
+     *
+     * Example:
+     * /shop?subCategory=Shoulder%20Bags&subCategory=Crossbody%20Bags
+     */
+    subCategory?: string | string[];
+
+    color?: string;
+    search?: string;
+    sort?: string;
+    page?: string;
   }>;
 }) {
   const {
     brand,
     category,
+    subCategory,
+    color,
+    search,
+    sort,
+    page,
   } = await searchParams;
+
+  /*
+   * Normalize subCategory into string[].
+   *
+   * URL can provide:
+   *
+   * subCategory=Bags
+   *
+   * or:
+   *
+   * subCategory=Bags&subCategory=Wallets
+   */
+
+  const selectedSubCategories =
+    Array.isArray(subCategory)
+      ? subCategory
+      : subCategory
+        ? [subCategory]
+        : [];
 
   return (
     <main
@@ -54,6 +91,13 @@ export default async function ShopPage({
           <ShopProducts
             brand={brand}
             category={category}
+            subCategory={
+              selectedSubCategories
+            }
+            color={color}
+            search={search}
+            sort={sort}
+            page={page}
           />
         </div>
       </div>

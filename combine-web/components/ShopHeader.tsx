@@ -5,7 +5,7 @@ export default function ShopHeader() {
     <section
       className="
         relative
-        mb-12
+        mb-10
         overflow-hidden
         rounded-[24px]
         sm:mb-20
@@ -17,18 +17,22 @@ export default function ShopHeader() {
       <div
         className="
           relative
-          h-[520px]
+          h-[500px]
           sm:h-[600px]
           md:h-[720px]
         "
       >
+        {/* ================================================= */}
         {/* Background */}
+        {/* ================================================= */}
+
         <Image
           src="/images/shop-banner-v2.png"
           alt="COMBINE Collection"
           fill
           priority
           quality={100}
+          sizes="100vw"
           className="
             object-cover
             object-[65%_center]
@@ -38,10 +42,22 @@ export default function ShopHeader() {
           "
         />
 
+        {/* ================================================= */}
         {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black/45" />
+        {/* ================================================= */}
 
+        <div
+          className="
+            absolute
+            inset-0
+            bg-black/45
+          "
+        />
+
+        {/* ================================================= */}
         {/* Luxury Gradient */}
+        {/* ================================================= */}
+
         <div
           className="
             absolute
@@ -53,7 +69,10 @@ export default function ShopHeader() {
           "
         />
 
+        {/* ================================================= */}
         {/* Light Glow */}
+        {/* ================================================= */}
+
         <div
           className="
             absolute
@@ -62,13 +81,16 @@ export default function ShopHeader() {
           "
         />
 
+        {/* ================================================= */}
         {/* Bottom Fade */}
+        {/* ================================================= */}
+
         <div
           className="
             absolute
             inset-x-0
             bottom-0
-            h-36
+            h-32
             bg-gradient-to-t
             from-white/20
             to-transparent
@@ -76,7 +98,10 @@ export default function ShopHeader() {
           "
         />
 
+        {/* ================================================= */}
         {/* Content */}
+        {/* ================================================= */}
+
         <div
           className="
             absolute
@@ -88,9 +113,17 @@ export default function ShopHeader() {
             sm:px-6
           "
         >
-          <div className="max-w-4xl text-center text-white">
-
+          <div
+            className="
+              max-w-4xl
+              text-center
+              text-white
+            "
+          >
+            {/* ================================================= */}
             {/* Small Badge */}
+            {/* ================================================= */}
+
             <p
               className="
                 inline-flex
@@ -118,22 +151,33 @@ export default function ShopHeader() {
             >
               COMBINE
 
-              <span className="h-1 w-1 rounded-full bg-[#D5B47F]" />
+              <span
+                className="
+                  h-1
+                  w-1
+                  rounded-full
+                  bg-[#D5B47F]
+                "
+              />
 
               COLLECTION
             </p>
 
+            {/* ================================================= */}
             {/* Title */}
+            {/* ================================================= */}
+
             <h1
               className="
-                mt-6
-                text-[42px]
+                mt-5
+                text-[40px]
                 font-extralight
-                leading-[0.92]
+                leading-[0.94]
                 tracking-[-0.06em]
                 drop-shadow-2xl
                 sm:mt-8
                 sm:text-[54px]
+                sm:leading-[0.92]
                 md:text-[92px]
               "
             >
@@ -142,11 +186,14 @@ export default function ShopHeader() {
               Collection
             </h1>
 
+            {/* ================================================= */}
             {/* Divider */}
+            {/* ================================================= */}
+
             <div
               className="
                 mx-auto
-                mt-6
+                mt-5
                 h-px
                 w-16
                 bg-gradient-to-r
@@ -158,16 +205,20 @@ export default function ShopHeader() {
               "
             />
 
+            {/* ================================================= */}
             {/* Description */}
+            {/* ================================================= */}
+
             <p
               className="
                 mx-auto
-                mt-6
-                max-w-3xl
-                text-[12px]
-                leading-6
+                mt-5
+                max-w-[340px]
+                text-[11px]
+                leading-5
                 text-white/80
                 sm:mt-8
+                sm:max-w-3xl
                 sm:text-[15px]
                 sm:leading-8
                 md:text-xl
@@ -180,30 +231,42 @@ export default function ShopHeader() {
               timeless elegance and exceptional craftsmanship.
             </p>
 
+            {/* ================================================= */}
             {/* Stats */}
+            {/* ================================================= */}
+
             <div
               className="
                 mx-auto
-                mt-9
+                mt-7
                 grid
                 grid-cols-3
-                gap-3
+                gap-2
                 sm:mt-14
                 sm:max-w-2xl
                 sm:gap-8
               "
             >
+              {/* Products */}
+
               <div>
-                <p className="text-2xl font-extralight sm:text-3xl md:text-4xl">
-                  2000+
+                <p
+                  className="
+                    text-xl
+                    font-extralight
+                    sm:text-3xl
+                    md:text-4xl
+                  "
+                >
+                  10,000+
                 </p>
 
                 <p
                   className="
                     mt-1.5
-                    text-[8px]
+                    text-[7px]
                     uppercase
-                    tracking-[0.22em]
+                    tracking-[0.18em]
                     text-white/60
                     sm:mt-2
                     sm:text-[10px]
@@ -214,17 +277,26 @@ export default function ShopHeader() {
                 </p>
               </div>
 
+              {/* Quality */}
+
               <div>
-                <p className="text-2xl font-extralight sm:text-3xl md:text-4xl">
+                <p
+                  className="
+                    text-xl
+                    font-extralight
+                    sm:text-3xl
+                    md:text-4xl
+                  "
+                >
                   Premium
                 </p>
 
                 <p
                   className="
                     mt-1.5
-                    text-[8px]
+                    text-[7px]
                     uppercase
-                    tracking-[0.22em]
+                    tracking-[0.18em]
                     text-white/60
                     sm:mt-2
                     sm:text-[10px]
@@ -235,17 +307,26 @@ export default function ShopHeader() {
                 </p>
               </div>
 
+              {/* Shipping */}
+
               <div>
-                <p className="text-2xl font-extralight sm:text-3xl md:text-4xl">
+                <p
+                  className="
+                    text-xl
+                    font-extralight
+                    sm:text-3xl
+                    md:text-4xl
+                  "
+                >
                   Global
                 </p>
 
                 <p
                   className="
                     mt-1.5
-                    text-[8px]
+                    text-[7px]
                     uppercase
-                    tracking-[0.22em]
+                    tracking-[0.18em]
                     text-white/60
                     sm:mt-2
                     sm:text-[10px]
@@ -256,7 +337,6 @@ export default function ShopHeader() {
                 </p>
               </div>
             </div>
-
           </div>
         </div>
       </div>

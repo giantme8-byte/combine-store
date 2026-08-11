@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import Button from "../../_components/Button";
@@ -18,6 +20,10 @@ export default function ProductActions({
   return (
     <div className="flex justify-end gap-2">
 
+      {/* ================================================= */}
+      {/* View */}
+      {/* ================================================= */}
+
       <Link
         href={`/admin/dashboard/products/${productId}`}
       >
@@ -26,6 +32,9 @@ export default function ProductActions({
         </Button>
       </Link>
 
+      {/* ================================================= */}
+      {/* Edit */}
+      {/* ================================================= */}
 
       <Link
         href={`/admin/dashboard/products/${productId}/edit`}
@@ -35,11 +44,17 @@ export default function ProductActions({
         </Button>
       </Link>
 
+      {/* ================================================= */}
+      {/* Duplicate */}
+      {/* ================================================= */}
 
       <DuplicateProductButton
         productId={productId}
       />
 
+      {/* ================================================= */}
+      {/* Delete */}
+      {/* ================================================= */}
 
       {canDelete && (
         <DeleteProductButton

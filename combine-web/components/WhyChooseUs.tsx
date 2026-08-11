@@ -243,7 +243,7 @@ export default function WhyChooseUs() {
                 lg:text-5xl
               "
             >
-              2000+
+              10,000+
             </p>
 
             <p

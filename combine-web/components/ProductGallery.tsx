@@ -65,14 +65,18 @@ export default function ProductGallery({
   /*
    * Selected image.
    */
-  const [selectedImage, setSelectedImage] =
-    useState(initialImage);
+  const [
+    selectedImage,
+    setSelectedImage,
+  ] = useState(initialImage);
 
   /*
    * Lightbox.
    */
-  const [lightboxOpen, setLightboxOpen] =
-    useState(false);
+  const [
+    lightboxOpen,
+    setLightboxOpen,
+  ] = useState(false);
 
   /*
    * Current image index.
@@ -282,6 +286,9 @@ export default function ProductGallery({
     }
   }
 
+  const hasMultipleImages =
+    images.length > 1;
+
   return (
     <>
       <div className="flex flex-col gap-6 lg:flex-row">
@@ -306,6 +313,9 @@ export default function ProductGallery({
               <button
                 key={img}
                 type="button"
+                aria-label={`View image ${
+                  index + 1
+                }`}
                 onClick={() =>
                   changeImage(index)
                 }
@@ -327,7 +337,9 @@ export default function ProductGallery({
                     img,
                     240
                   )}
-                  alt={`${name} ${index + 1}`}
+                  alt={`${name} ${
+                    index + 1
+                  }`}
                   width={110}
                   height={110}
                   loading={
@@ -378,6 +390,7 @@ export default function ProductGallery({
               handleTouchEnd
             }
             className="
+              relative
               touch-pan-y
               rounded-2xl
               border
@@ -392,45 +405,56 @@ export default function ProductGallery({
             "
           >
 
-            {/* Previous */}
+            {/* ================================================= */}
+            {/* Previous Arrow */}
+            {/* ================================================= */}
 
-            <button
-              type="button"
-              aria-label="Previous image"
-              onClick={(event) => {
-                event.stopPropagation();
+            {hasMultipleImages && (
+              <button
+                type="button"
+                aria-label="Previous image"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  previousImage();
+                }}
+                className="
+                  absolute
+                  left-3
+                  top-1/2
+                  z-30
+                  flex
+                  h-10
+                  w-10
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-neutral-200
+                  bg-white/90
+                  text-black
+                  shadow-md
+                  backdrop-blur-md
+                  transition-all
+                  duration-300
+                  hover:scale-110
+                  hover:bg-white
+                  active:scale-95
+                  sm:left-5
+                  sm:h-12
+                  sm:w-12
+                "
+              >
+                <ChevronLeft
+                  size={22}
+                  strokeWidth={1.8}
+                />
+              </button>
+            )}
 
-                previousImage();
-              }}
-              className="
-                absolute
-                left-5
-                top-1/2
-                z-20
-                hidden
-                -translate-y-1/2
-                rounded-full
-                bg-white/80
-                p-3
-                text-black
-                opacity-0
-                shadow-lg
-                backdrop-blur-md
-                transition-all
-                duration-300
-                hover:scale-110
-                hover:bg-white
-                group-hover:scale-100
-                group-hover:opacity-100
-                lg:flex
-              "
-            >
-              <ChevronLeft
-                size={22}
-              />
-            </button>
-
+            {/* ================================================= */}
             {/* Main Image */}
+            {/* ================================================= */}
 
             <div
               key={selectedImage}
@@ -448,47 +472,58 @@ export default function ProductGallery({
               />
             </div>
 
-            {/* Next */}
+            {/* ================================================= */}
+            {/* Next Arrow */}
+            {/* ================================================= */}
 
-            <button
-              type="button"
-              aria-label="Next image"
-              onClick={(event) => {
-                event.stopPropagation();
-
-                nextImage();
-              }}
-              className="
-                absolute
-                right-5
-                top-1/2
-                z-20
-                hidden
-                -translate-y-1/2
-                rounded-full
-                bg-white/80
-                p-3
-                text-black
-                opacity-0
-                shadow-lg
-                backdrop-blur-md
-                transition-all
-                duration-300
-                hover:scale-110
-                hover:bg-white
-                group-hover:scale-100
-                group-hover:opacity-100
-                lg:flex
-              "
-            >
-              <ChevronRight
-                size={22}
-              />
-            </button>
+            {hasMultipleImages && (
+              <button
+                type="button"
+                aria-label="Next image"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  nextImage();
+                }}
+                className="
+                  absolute
+                  right-3
+                  top-1/2
+                  z-30
+                  flex
+                  h-10
+                  w-10
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-neutral-200
+                  bg-white/90
+                  text-black
+                  shadow-md
+                  backdrop-blur-md
+                  transition-all
+                  duration-300
+                  hover:scale-110
+                  hover:bg-white
+                  active:scale-95
+                  sm:right-5
+                  sm:h-12
+                  sm:w-12
+                "
+              >
+                <ChevronRight
+                  size={22}
+                  strokeWidth={1.8}
+                />
+              </button>
+            )}
 
           </div>
 
+          {/* ================================================= */}
           {/* Image Counter */}
+          {/* ================================================= */}
 
           <div className="mt-5 flex items-center justify-between px-1">
             <span className="text-xs tracking-[0.25em] text-neutral-400">
@@ -501,37 +536,76 @@ export default function ProductGallery({
             </span>
           </div>
 
-          {/* Mobile Dots */}
+          {/* ================================================= */}
+          {/* Mobile Swipe Hint */}
+          {/* ================================================= */}
 
-          <div className="mt-5 flex justify-center gap-2 lg:hidden">
-            {images.map(
-              (img, index) => (
-                <button
-                  key={img}
-                  type="button"
-                  aria-label={`View image ${
-                    index + 1
-                  }`}
-                  onClick={() =>
-                    changeImage(index)
-                  }
-                  className={`
-                    h-2
-                    rounded-full
-                    transition-all
-                    duration-300
-                    ease-out
-                    ${
-                      index ===
-                      currentIndex
-                        ? "w-6 bg-black"
-                        : "w-2 bg-neutral-300"
+          {hasMultipleImages && (
+            <div
+              className="
+                mt-3
+                flex
+                items-center
+                justify-center
+                gap-2
+                text-[10px]
+                uppercase
+                tracking-[0.25em]
+                text-neutral-400
+                lg:hidden
+              "
+            >
+              <ChevronLeft
+                size={13}
+                strokeWidth={1.5}
+              />
+
+              <span>
+                Swipe to explore
+              </span>
+
+              <ChevronRight
+                size={13}
+                strokeWidth={1.5}
+              />
+            </div>
+          )}
+
+          {/* ================================================= */}
+          {/* Mobile Dots */}
+          {/* ================================================= */}
+
+          {hasMultipleImages && (
+            <div className="mt-4 flex justify-center gap-2 lg:hidden">
+              {images.map(
+                (img, index) => (
+                  <button
+                    key={img}
+                    type="button"
+                    aria-label={`View image ${
+                      index + 1
+                    }`}
+                    onClick={() =>
+                      changeImage(index)
                     }
-                  `}
-                />
-              )
-            )}
-          </div>
+                    className={`
+                      h-2
+                      rounded-full
+                      transition-all
+                      duration-300
+                      ease-out
+                      ${
+                        index ===
+                        currentIndex
+                          ? "w-6 bg-black"
+                          : "w-2 bg-neutral-300"
+                      }
+                    `}
+                  />
+                )
+              )}
+            </div>
+          )}
 
           {/* ================================================= */}
           {/* Colour */}

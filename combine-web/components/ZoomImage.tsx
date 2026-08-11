@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -32,9 +33,49 @@ export default function ZoomImage({
   const [zoom, setZoom] =
     useState(false);
 
+  const [isDesktop, setIsDesktop] =
+    useState(false);
+
+  /*
+   * Only enable hover zoom on desktop.
+   */
+  useEffect(() => {
+    const mediaQuery =
+      window.matchMedia(
+        "(min-width: 1024px)"
+      );
+
+    function updateScreen() {
+      setIsDesktop(
+        mediaQuery.matches
+      );
+    }
+
+    updateScreen();
+
+    mediaQuery.addEventListener(
+      "change",
+      updateScreen
+    );
+
+    return () => {
+      mediaQuery.removeEventListener(
+        "change",
+        updateScreen
+      );
+    };
+  }, []);
+
+  /*
+   * Mouse position for desktop zoom.
+   */
   function handleMouseMove(
     event: React.MouseEvent<HTMLDivElement>
   ) {
+    if (!isDesktop) {
+      return;
+    }
+
     if (!containerRef.current) {
       return;
     }
@@ -58,39 +99,54 @@ export default function ZoomImage({
     });
   }
 
+  function handleMouseEnter() {
+    if (!isDesktop) {
+      return;
+    }
+
+    setZoom(true);
+  }
+
+  function handleMouseLeave() {
+    if (!isDesktop) {
+      return;
+    }
+
+    setZoom(false);
+
+    setPosition({
+      x: 50,
+      y: 50,
+    });
+  }
+
   /*
-   * Cloudinary delivery optimisation.
+   * Cloudinary optimization.
    *
-   * Original image stays untouched.
-   * Customers receive:
-   *
-   * - automatic format
-   * - automatic quality
-   * - max width suitable for product display
+   * The product detail main image is displayed
+   * much larger than thumbnails, so use a larger
+   * but still optimized image.
    */
   const optimizedSrc =
     optimizeCloudinaryImage(
       src,
-      1600
+      1200
     );
 
   return (
     <div
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() =>
-        setZoom(true)
-      }
-      onMouseLeave={() =>
-        setZoom(false)
-      }
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className="
         relative
         aspect-square
         overflow-hidden
         rounded-2xl
         bg-white
-        cursor-zoom-in
+        cursor-default
+        lg:cursor-zoom-in
         lg:rounded-3xl
       "
     >
@@ -104,7 +160,7 @@ export default function ZoomImage({
           (max-width: 1024px) 58vw,
           55vw
         "
-        quality={85}
+        quality={82}
         className="
           object-contain
           p-6
@@ -114,10 +170,13 @@ export default function ZoomImage({
           lg:p-12
         "
         style={{
-          transformOrigin: `${position.x}% ${position.y}%`,
-          transform: zoom
-            ? "scale(1.65)"
-            : "scale(1)",
+          transformOrigin:
+            `${position.x}% ${position.y}%`,
+
+          transform:
+            isDesktop && zoom
+              ? "scale(1.65)"
+              : "scale(1)",
         }}
       />
     </div>

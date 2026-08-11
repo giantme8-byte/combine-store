@@ -1,44 +1,93 @@
 import { prisma } from "@/lib/prisma";
-import { createProduct } from "../_actions/product.actions";
+
 import ProductForm from "../_components/ProductForm";
+import { createProduct } from "../_actions/product.actions";
 
 export default async function NewProductPage() {
-  const categories = await prisma.category.findMany({
-    where: {
-      active: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
+  const [
+    brands,
+    categories,
+    packagingProfiles,
+    settings,
+  ] = await Promise.all([
+    /*
+     * Active Brands
+     */
+    prisma.brand.findMany({
+      where: {
+        active: true,
+      },
 
-  const brands = await prisma.brand.findMany({
-    where: {
-      active: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
+      orderBy: {
+        name: "asc",
+      },
+    }),
 
-  const settings = await prisma.setting.findFirst();
+    /*
+     * Active Categories
+     */
+    prisma.category.findMany({
+      where: {
+        active: true,
+      },
 
-const exchangeRate =
-  settings?.exchangeRate ?? 0.60;
+      orderBy: {
+        name: "asc",
+      },
+    }),
+
+    /*
+     * Packaging Profiles
+     *
+     * Includes:
+     * - Default Packaging
+     * - Brand Packaging
+     *
+     * ProductForm will only show
+     * active profiles.
+     */
+    prisma.packagingProfile.findMany({
+      orderBy: [
+        {
+          brand: "asc",
+        },
+
+        {
+          name: "asc",
+        },
+      ],
+    }),
+
+    /*
+     * Website Settings
+     */
+    prisma.setting.findFirst(),
+  ]);
 
   return (
-    <main className="mx-auto w-full max-w-[1500px] px-10 py-10">
-      <h1 className="mb-10 text-4xl font-light">
-        Add New Product
-      </h1>
+    <ProductForm
+      action={
+        createProduct
+      }
 
-<ProductForm
-  action={createProduct}
-  submitText="Create Product"
-  categories={categories}
-  brands={brands}
-  exchangeRate={exchangeRate}
-/>
-    </main>
+      submitText="Create Product"
+
+      categories={
+        categories
+      }
+
+      brands={
+        brands
+      }
+
+      packagingProfiles={
+        packagingProfiles
+      }
+
+      exchangeRate={
+        settings?.exchangeRate ??
+        0.59
+      }
+    />
   );
 }

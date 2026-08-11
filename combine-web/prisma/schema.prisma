@@ -16,7 +16,7 @@ model Product {
   name        String
   slug        String? @unique
 
-  model            String? // Default model for the default colour
+  model            String?
   shortDescription String?
   description      String
 
@@ -25,15 +25,15 @@ model Product {
   price        Float
 
   mainColor  String?
-  dimensions String? // Deprecated: use ProductVariant.dimensions
+  dimensions String?
 
   availability Availability @default(PRE_ORDER)
 
-  featured     Boolean @default(false)
-  newArrival   Boolean @default(false)
-  bestSeller   Boolean @default(false)
-  limited      Boolean @default(false)
-  onSale       Boolean @default(false)
+  featured   Boolean @default(false)
+  newArrival Boolean @default(false)
+  bestSeller Boolean @default(false)
+  limited    Boolean @default(false)
+  onSale     Boolean @default(false)
 
   displayOrder Int @default(9999)
 
@@ -46,27 +46,33 @@ model Product {
   variants      ProductVariant[]
   wishlistItems WishlistItem[]
 
+  // Product-specific packaging override.
+  // If null, use Brand Packaging,
+  // then Default Packaging.
+  customPackagingId Int?
+  customPackaging   PackagingProfile? @relation("ProductCustomPackaging", fields: [customPackagingId], references: [id], onDelete: SetNull)
+
   @@index([brand])
   @@index([category])
+  @@index([subCategory])
   @@index([availability])
   @@index([name])
   @@index([displayOrder])
+  @@index([customPackagingId])
 }
 
 model ProductImage {
-  id        Int      @id @default(autoincrement())
-
+  id        Int @id @default(autoincrement())
   productId Int
 
-  url       String
-  publicId  String
+  url      String
+  publicId String
 
-  type      ImageType @default(GALLERY)
+  type ImageType @default(GALLERY)
 
   altText   String?
   caption   String?
-
-  sortOrder Int @default(1)
+  sortOrder Int     @default(1)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,18 +85,17 @@ model ProductImage {
 }
 
 model ProductColor {
-  id        Int      @id @default(autoincrement())
+  id    Int     @id @default(autoincrement())
+  name  String
+  model String?
 
-  name      String
-  model     String?
+  imageUrl String
+  publicId String?
 
-  imageUrl  String
-  publicId  String?
-
-  sortOrder Int      @default(0)
+  sortOrder Int @default(0)
 
   productId Int
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -103,9 +108,7 @@ model ProductVariant {
   productId Int
 
   size       String
-
-  model      String?   // ← 先加回来
-
+  model      String?
   dimensions String?
 
   imageUrl String?
@@ -129,6 +132,33 @@ model Category {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Sub Categories belonging to this Category.
+  subCategories SubCategory[]
+
+  @@index([active])
+}
+
+model SubCategory {
+  id Int @id @default(autoincrement())
+
+  name String
+  slug String @unique
+
+  // Optional parent Category.
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  active    Boolean @default(true)
+  sortOrder Int     @default(9999)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([active])
+  @@index([sortOrder])
 }
 
 model Brand {
@@ -138,19 +168,114 @@ model Brand {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  packagingProfiles PackagingProfile[]
+
+  @@index([active])
+}
+
+model PackagingProfile {
+  id Int @id @default(autoincrement())
+
+  /**
+   * Examples:
+   * __DEFAULT__
+   * brand:Louis Vuitton
+   * brand:Gucci
+   * brand:Dior
+   */
+
+  key String @unique
+
+  /**
+   * Display name.
+   * Default Packaging
+   * Louis Vuitton
+   * Gucci
+   * Dior
+   */
+
+  name String
+
+  /**
+   * Null = Default Packaging.
+   * Otherwise matches Product.brand.
+   */
+
+  brand String?
+
+  title       String?
+  description String?
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  images PackagingImage[]
+  items  PackagingItem[]
+
+  // Products using this packaging as a custom override.
+  customProducts Product[] @relation("ProductCustomPackaging")
+
+  // Connects packaging to the existing Brand.name.
+  brandRecord Brand? @relation(fields: [brand], references: [name], onDelete: SetNull)
+
+  @@index([brand])
+  @@index([active])
+}
+
+model PackagingImage {
+  id Int @id @default(autoincrement())
+
+  packagingId Int
+
+  url      String
+  publicId String
+
+  altText String?
+  caption String?
+
+  sortOrder Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  packaging PackagingProfile @relation(fields: [packagingId], references: [id], onDelete: Cascade)
+
+  @@index([packagingId])
+  @@index([sortOrder])
+}
+
+model PackagingItem {
+  id Int @id @default(autoincrement())
+
+  packagingId Int
+
+  name String
+
+  sortOrder Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  packaging PackagingProfile @relation(fields: [packagingId], references: [id], onDelete: Cascade)
+
+  @@index([packagingId])
+  @@index([sortOrder])
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
   name     String
-  email    String   @unique
+  email    String @unique
   password String
 
   image String?
 
   active Boolean @default(true)
 
-  role     UserRole
+  role UserRole
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -164,6 +289,7 @@ model Session {
   token     String   @unique
   userId    Int
   expiresAt DateTime
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -175,12 +301,14 @@ model Session {
 }
 
 model WishlistItem {
-  id        Int      @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   userId    Int
   productId Int
+
   createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }
@@ -193,10 +321,10 @@ model InquiryItem {
 
   quantity Int @default(1)
 
-  color String?
-  variant String?
+  color      String?
+  variant    String?
   dimensions String?
-  packaging String?
+  packaging  String?
 
   notes String?
 
@@ -213,14 +341,11 @@ model InquiryItem {
 model Inquiry {
   id Int @id @default(autoincrement())
 
-  name String
-
+  name     String
   whatsapp String
 
-  email String?
-
+  email   String?
   country String?
-
   message String?
 
   status InquiryStatus @default(PENDING)

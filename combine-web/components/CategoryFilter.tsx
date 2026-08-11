@@ -1,36 +1,43 @@
 "use client";
 
-import {
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
-
 type Props = {
   selected: string;
   onSelect: (category: string) => void;
+  categories: string[];
 };
-
-const categories = [
-  "All",
-  "Bags",
-  "Shoes",
-  "Clothing",
-  "Watches",
-  "Jewelry",
-  "Accessories",
-  "Fragrance",
-];
 
 export default function CategoryFilter({
   selected,
   onSelect,
+  categories,
 }: Props) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  function handleCategoryChange(
+    category: string
+  ) {
+    /*
+     * ShopClient is responsible for
+     * updating the URL and resetting
+     * pagination.
+     *
+     * This component only reports
+     * the selected category.
+     */
+    onSelect(category);
+  }
 
   return (
-    <div className="col-span-2 space-y-3 xl:col-span-1 xl:space-y-4">
+    <div
+      className="
+        col-span-2
+        space-y-3
+        xl:col-span-1
+        xl:space-y-4
+      "
+    >
+      {/* ================================================= */}
       {/* Label */}
+      {/* ================================================= */}
+
       <p
         className="
           text-[10px]
@@ -45,80 +52,84 @@ export default function CategoryFilter({
         Category
       </p>
 
+      {/* ================================================= */}
       {/* Pills */}
-      <div className="flex flex-wrap gap-2 sm:gap-3">
-        {categories.map((category) => {
-          const active =
-            selected === category;
+      {/* ================================================= */}
 
-          return (
-            <button
-              key={category}
-              type="button"
-              onClick={() => {
-                onSelect(category);
+      <div
+        className="
+          flex
+          flex-wrap
+          gap-2
+          sm:gap-3
+        "
+      >
+        {categories.map(
+          (category) => {
+            const active =
+              selected ===
+              category;
 
-                const params =
-                  new URLSearchParams(
-                    searchParams.toString()
-                  );
-
-                if (category === "All") {
-                  params.delete(
-                    "category"
-                  );
-                } else {
-                  params.set(
-                    "category",
+            return (
+              <button
+                key={category}
+                type="button"
+                aria-pressed={active}
+                onClick={() =>
+                  handleCategoryChange(
                     category
-                  );
+                  )
                 }
+                className={`
+                  min-h-10
+                  rounded-full
+                  border
+                  px-4
+                  py-2
+                  text-[10px]
+                  font-medium
+                  tracking-[0.06em]
+                  transition-all
+                  duration-500
+                  active:scale-[0.97]
 
-                router.push(
-                  `/shop?${params.toString()}`
-                );
-              }}
-              className={`
-                rounded-full
-                border
-                px-3.5
-                py-2
-                text-[10px]
-                font-medium
-                tracking-[0.06em]
-                transition-all
-                duration-500
-                sm:px-6
-                sm:py-3
-                sm:text-[13px]
-                sm:tracking-[0.08em]
-                ${
-                  active
-                    ? `
-                      border-[#C8A96A]
-                      bg-[#C8A96A]
-                      text-white
-                      shadow-[0_15px_35px_rgba(200,169,106,.35)]
-                    `
-                    : `
-                      border-neutral-200
-                      bg-white
-                      text-neutral-700
-                      hover:-translate-y-0.5
-                      hover:border-[#C8A96A]
-                      hover:text-[#A88755]
-                      hover:shadow-lg
-                    `
-                }
-              `}
-            >
-              {category}
-            </button>
-          );
-        })}
+                  sm:min-h-12
+                  sm:px-6
+                  sm:py-3
+                  sm:text-[13px]
+                  sm:tracking-[0.08em]
+
+                  ${
+                    active
+                      ? `
+                        border-[#C8A96A]
+                        bg-[#C8A96A]
+                        text-white
+                        shadow-[0_15px_35px_rgba(200,169,106,.35)]
+                      `
+                      : `
+                        border-neutral-200
+                        bg-white
+                        text-neutral-700
+                        hover:-translate-y-0.5
+                        hover:border-[#C8A96A]
+                        hover:text-[#A88755]
+                        hover:shadow-lg
+                      `
+                  }
+                `}
+              >
+                {category}
+              </button>
+            );
+          }
+        )}
       </div>
 
+      {/* ================================================= */}
       {/* Bottom Divider */}
+      {/* ================================================= */}
+
       <div
         className="
           h-px

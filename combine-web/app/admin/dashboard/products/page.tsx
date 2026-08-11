@@ -16,7 +16,6 @@ import EmptyState from "../_components/EmptyState";
 import ProductFilters from "../_components/ProductFilters";
 import Pagination from "../_components/Pagination";
 
-
 type ProductsPageProps = {
   searchParams: Promise<{
     page?: string;
@@ -28,29 +27,35 @@ type ProductsPageProps = {
   }>;
 };
 
-
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
+  // =========================================================
+  // Authorization
+  // =========================================================
 
-const user = await requireRole([
-  UserRole.STAFF,
-  UserRole.MANAGER,
-  UserRole.ADMIN,
-  UserRole.OWNER,
-]);
+  const user = await requireRole([
+    UserRole.STAFF,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  ]);
 
-const deleteRoles: UserRole[] = [
-  UserRole.MANAGER,
-  UserRole.ADMIN,
-  UserRole.OWNER,
-];
+  const deleteRoles: UserRole[] = [
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  ];
 
-const canDelete = deleteRoles.includes(user.role);
+  const canDelete = deleteRoles.includes(
+    user.role
+  );
 
+  // =========================================================
+  // Search Params
+  // =========================================================
 
   const params = await searchParams;
-
 
   const search = params.search ?? "";
   const brand = params.brand ?? "";
@@ -62,19 +67,23 @@ const canDelete = deleteRoles.includes(user.role);
   const sort =
     params.sort ?? "latest";
 
+  // =========================================================
+  // Pagination
+  // =========================================================
 
-const page = Math.max(
-  1,
-  Number(params.page ?? "1") || 1
-);
-
+  const page = Math.max(
+    1,
+    Number(params.page ?? "1") || 1
+  );
 
   const pageSize = 20;
-
 
   const skip =
     (page - 1) * pageSize;
 
+  // =========================================================
+  // Filters
+  // =========================================================
 
   const where = buildProductWhere({
     search,
@@ -83,10 +92,16 @@ const page = Math.max(
     availability,
   });
 
+  // =========================================================
+  // Sorting
+  // =========================================================
 
   const orderBy =
     buildProductOrderBy(sort);
 
+  // =========================================================
+  // Database
+  // =========================================================
 
   const [
     products,
@@ -94,9 +109,7 @@ const page = Math.max(
     settings,
     brands,
     categories,
-  ] =
-  await Promise.all([
-
+  ] = await Promise.all([
     prisma.product.findMany({
       where,
       orderBy,
@@ -129,23 +142,32 @@ const page = Math.max(
         name: "asc",
       },
     }),
-
   ]);
 
+  // =========================================================
+  // Exchange Rate
+  // =========================================================
 
   const exchangeRate =
     settings?.exchangeRate ?? 0.59;
 
+  // =========================================================
+  // Pagination
+  // =========================================================
 
-const totalPages = Math.max(
-  1,
-  Math.ceil(totalProducts / pageSize)
-);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      totalProducts / pageSize
+    )
+  );
 
+  // =========================================================
+  // Preserve Current Filters
+  // =========================================================
 
   const currentSearchParams =
     new URLSearchParams();
-
 
   if (search) {
     currentSearchParams.set(
@@ -154,14 +176,12 @@ const totalPages = Math.max(
     );
   }
 
-
   if (brand) {
     currentSearchParams.set(
       "brand",
       brand
     );
   }
-
 
   if (category) {
     currentSearchParams.set(
@@ -170,14 +190,12 @@ const totalPages = Math.max(
     );
   }
 
-
   if (availability) {
     currentSearchParams.set(
       "availability",
       availability
     );
   }
-
 
   if (sort) {
     currentSearchParams.set(
@@ -186,73 +204,91 @@ const totalPages = Math.max(
     );
   }
 
+  // =========================================================
+  // Render
+  // =========================================================
 
   return (
     <main className="space-y-8">
+
+      {/* ================================================= */}
+      {/* Header */}
+      {/* ================================================= */}
 
       <PageHeader
         title="Products"
         description="Manage your luxury product collection."
       >
-
         <div className="flex gap-2">
 
-          <Link href="/admin/dashboard/products/import">
+          <Link
+            href="/admin/dashboard/products/import"
+          >
             <Button variant="secondary">
               📥 Import Excel
             </Button>
           </Link>
 
-
-          <Link href="/api/admin/products/export">
+          <Link
+            href="/api/admin/products/export"
+          >
             <Button variant="secondary">
               📤 Export Excel
             </Button>
           </Link>
 
-
-          <Link href="/admin/dashboard/products/new">
+          <Link
+            href="/admin/dashboard/products/new"
+          >
             <Button>
               + Add Product
             </Button>
           </Link>
 
         </div>
-
       </PageHeader>
 
+      {/* ================================================= */}
+      {/* Filters */}
+      {/* ================================================= */}
 
       <ProductFilters
         brands={brands}
         categories={categories}
       />
 
+      {/* ================================================= */}
+      {/* Products */}
+      {/* ================================================= */}
 
-<Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden p-0">
 
-  {products.length === 0 ? (
+        {products.length === 0 ? (
 
-    <EmptyState
-      title="No Products"
-      description="Create your first product to get started."
-    />
+          <EmptyState
+            title="No Products"
+            description="Create your first product to get started."
+          />
 
-  ) : (
+        ) : (
 
-<ProductView
-  products={products}
-  exchangeRate={exchangeRate}
-  brands={brands}
-  categories={categories}
-  canDelete={canDelete}
-  page={page}
-  pageSize={pageSize}
-/>
+          <ProductView
+            products={products}
+            exchangeRate={exchangeRate}
+            brands={brands}
+            categories={categories}
+            canDelete={canDelete}
+            page={page}
+            pageSize={pageSize}
+          />
 
-  )}
+        )}
 
-</Card>
+      </Card>
 
+      {/* ================================================= */}
+      {/* Pagination */}
+      {/* ================================================= */}
 
       <Pagination
         page={page}

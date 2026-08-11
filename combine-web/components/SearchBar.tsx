@@ -20,15 +20,15 @@ export default function SearchBar({
   onKeyDown,
 }: SearchBarProps) {
   return (
-    <div className="mb-8 sm:mb-14">
+    <div className="mb-7 sm:mb-12">
       {/* Label */}
       <p
         className="
           mb-3
-          text-[10px]
+          text-[9px]
           font-medium
           uppercase
-          tracking-[0.35em]
+          tracking-[0.32em]
           text-neutral-400
           sm:mb-4
           sm:text-[11px]
@@ -38,22 +38,23 @@ export default function SearchBar({
         Search Collection
       </p>
 
+      {/* Search Box */}
       <div
         className="
           group
           relative
           overflow-hidden
-          rounded-[22px]
+          rounded-[18px]
           border
           border-neutral-200
           bg-white
-          shadow-[0_15px_45px_rgba(0,0,0,.04)]
+          shadow-[0_12px_35px_rgba(0,0,0,.035)]
           transition-all
           duration-500
           hover:border-neutral-300
-          hover:shadow-[0_25px_70px_rgba(0,0,0,.08)]
+          hover:shadow-[0_20px_55px_rgba(0,0,0,.06)]
           focus-within:border-[#C8A96A]
-          focus-within:shadow-[0_30px_80px_rgba(200,169,106,.18)]
+          focus-within:shadow-[0_25px_70px_rgba(200,169,106,.14)]
           sm:rounded-[28px]
         "
       >
@@ -69,11 +70,12 @@ export default function SearchBar({
 
         {/* Search Icon */}
         <Search
-          size={19}
+          aria-hidden="true"
+          size={18}
           className="
             pointer-events-none
             absolute
-            left-5
+            left-4
             top-1/2
             -translate-y-1/2
             text-neutral-400
@@ -88,8 +90,11 @@ export default function SearchBar({
         {/* Input */}
         <input
           id="product-search"
-          type="text"
+          type="search"
+          inputMode="search"
           autoComplete="off"
+          spellCheck={false}
+          enterKeyHint="search"
           placeholder="Search handbags, watches, jewellery..."
           value={value}
           onChange={(e) =>
@@ -98,12 +103,14 @@ export default function SearchBar({
           onFocus={onFocus}
           onKeyDown={onKeyDown}
           className="
-            h-16
+            relative
+            z-10
+            h-14
             w-full
             bg-transparent
-            pl-14
-            pr-14
-            text-base
+            pl-12
+            pr-12
+            text-[14px]
             font-light
             text-neutral-900
             outline-none
@@ -120,14 +127,17 @@ export default function SearchBar({
           <button
             type="button"
             aria-label="Clear search"
-            onClick={() => onChange("")}
+            onClick={() =>
+              onChange("")
+            }
             className="
               absolute
-              right-4
+              right-3
               top-1/2
+              z-20
               flex
-              h-9
-              w-9
+              h-8
+              w-8
               -translate-y-1/2
               items-center
               justify-center
@@ -138,12 +148,16 @@ export default function SearchBar({
               hover:scale-110
               hover:bg-neutral-100
               hover:text-black
-              sm:right-6
+              active:scale-95
+              sm:right-5
               sm:h-10
               sm:w-10
             "
           >
-            <X size={17} className="sm:size-[18px]" />
+            <X
+              size={16}
+              className="sm:size-[18px]"
+            />
           </button>
         )}
       </div>
@@ -152,9 +166,9 @@ export default function SearchBar({
       <p
         className="
           mt-3
-          text-[9px]
+          text-[8px]
           uppercase
-          tracking-[0.22em]
+          tracking-[0.18em]
           text-neutral-400
           sm:mt-4
           sm:text-[11px]

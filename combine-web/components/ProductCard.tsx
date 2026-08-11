@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  useMemo,
-} from "react";
+import { useMemo } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -31,34 +29,58 @@ export default function ProductCard({
   onSale,
   buttonSize = "default",
 }: ProductCardProps) {
-  const { addItem, openDrawer } = useInquiry();
-  const { open } = useQuickView();
+  const { addItem, openDrawer } =
+    useInquiry();
+
+  const { open } =
+    useQuickView();
 
   const productHref = slug
     ? `/shop/${slug}`
     : "/shop";
 
   /*
+   * =========================================================
    * NEW badge
+   * =========================================================
+   *
+   * A product is considered "NEW" only when:
+   *
+   * 1. newArrival is enabled
+   * 2. The product was created within the last 30 days
    */
-  const isNewArrival = useMemo(() => {
-    if (!newArrival) {
-      return false;
-    }
 
-    const now = new Date();
-    const created = new Date(createdAt);
+  const isNewArrival =
+    useMemo(() => {
+      if (!newArrival) {
+        return false;
+      }
 
-    return (
-      now.getTime() -
-        created.getTime() <
-      30 * 24 * 60 * 60 * 1000
-    );
-  }, [createdAt, newArrival]);
+      const now = new Date();
+
+      const created =
+        new Date(createdAt);
+
+      return (
+        now.getTime() -
+          created.getTime() <
+        30 *
+          24 *
+          60 *
+          60 *
+          1000
+      );
+    }, [
+      createdAt,
+      newArrival,
+    ]);
 
   /*
+   * =========================================================
    * Inquiry
+   * =========================================================
    */
+
   function handleInquiry(
     event: React.MouseEvent
   ) {
@@ -70,8 +92,11 @@ export default function ProductCard({
   }
 
   /*
+   * =========================================================
    * Quick View
+   * =========================================================
    */
+
   function handleQuickView(
     event: React.MouseEvent
   ) {
@@ -96,20 +121,11 @@ export default function ProductCard({
   }
 
   /*
-   * Cloudinary optimized URLs.
-   *
-   * Product cards do not need the original
-   * full-resolution image.
-   *
-   * Main image:
-   * - automatic format
-   * - automatic quality
-   * - max 800px
-   *
-   * Hover image:
-   * - same optimisation
-   * - loaded lazily
+   * =========================================================
+   * Cloudinary optimized URLs
+   * =========================================================
    */
+
   const optimizedImage =
     optimizeCloudinaryImage(
       image,
@@ -132,7 +148,7 @@ export default function ProductCard({
         h-full
         flex-col
         overflow-hidden
-        rounded-[22px]
+        rounded-[18px]
         border
         border-neutral-100
         bg-white
@@ -140,16 +156,24 @@ export default function ProductCard({
         transition-all
         duration-700
         sm:rounded-[32px]
-        hover:-translate-y-3
-        hover:scale-[1.02]
-        hover:border-[#C8A96A]/60
-        hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
+        sm:hover:-translate-y-3
+        sm:hover:scale-[1.02]
+        sm:hover:border-[#C8A96A]/60
+        sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
       "
     >
+      {/* ================================================= */}
+      {/* Product */}
+      {/* ================================================= */}
+
       <Link
         href={productHref}
         prefetch
-        className="flex flex-1 flex-col"
+        className="
+          flex
+          flex-1
+          flex-col
+        "
       >
         {/* ================================================= */}
         {/* Image */}
@@ -160,7 +184,7 @@ export default function ProductCard({
             relative
             aspect-[4/5]
             overflow-hidden
-            rounded-[18px]
+            rounded-[15px]
             bg-gradient-to-b
             from-[#ffffff]
             via-[#fbfbfb]
@@ -168,13 +192,15 @@ export default function ProductCard({
             sm:rounded-[24px]
           "
         >
+          {/* ================================================= */}
           {/* Wishlist */}
+          {/* ================================================= */}
 
           <div
             className="
               absolute
-              right-2.5
-              top-2.5
+              right-2
+              top-2
               z-30
               rounded-full
               bg-white/90
@@ -200,13 +226,15 @@ export default function ProductCard({
             />
           </div>
 
+          {/* ================================================= */}
           {/* Labels */}
+          {/* ================================================= */}
 
           <div
             className="
               absolute
-              left-2.5
-              top-2.5
+              left-2
+              top-2
               z-20
               flex
               flex-col
@@ -216,6 +244,8 @@ export default function ProductCard({
               sm:gap-2
             "
           >
+            {/* NEW */}
+
             {isNewArrival && (
               <span
                 className="
@@ -223,24 +253,26 @@ export default function ProductCard({
                   bg-black
                   px-2
                   py-0.5
-                  text-[8px]
+                  text-[7px]
                   font-medium
                   uppercase
-                  tracking-[0.15em]
+                  tracking-[0.14em]
                   text-white
                   transition-all
                   duration-300
-                  group-hover:-translate-y-1
-                  group-hover:scale-105
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
                   sm:tracking-[0.2em]
+                  sm:group-hover:-translate-y-1
+                  sm:group-hover:scale-105
                 "
               >
                 NEW
               </span>
             )}
+
+            {/* FEATURED */}
 
             {featured && (
               <span
@@ -249,24 +281,26 @@ export default function ProductCard({
                   bg-[#C8A96A]
                   px-2
                   py-0.5
-                  text-[8px]
+                  text-[7px]
                   font-medium
                   uppercase
-                  tracking-[0.15em]
+                  tracking-[0.14em]
                   text-white
                   transition-all
                   duration-300
-                  group-hover:-translate-y-1
-                  group-hover:scale-105
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
                   sm:tracking-[0.2em]
+                  sm:group-hover:-translate-y-1
+                  sm:group-hover:scale-105
                 "
               >
                 FEATURED
               </span>
             )}
+
+            {/* BEST SELLER */}
 
             {bestSeller && (
               <span
@@ -275,24 +309,26 @@ export default function ProductCard({
                   bg-neutral-800
                   px-2
                   py-0.5
-                  text-[8px]
+                  text-[7px]
                   font-medium
                   uppercase
-                  tracking-[0.15em]
+                  tracking-[0.14em]
                   text-white
                   transition-all
                   duration-300
-                  group-hover:-translate-y-1
-                  group-hover:scale-105
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
-                  sm:tracking-[0.2em]
+                  sm:tracking-[0.15em]
+                  sm:group-hover:-translate-y-1
+                  sm:group-hover:scale-105
                 "
               >
                 BEST SELLER
               </span>
             )}
+
+            {/* LIMITED */}
 
             {limited && (
               <span
@@ -303,23 +339,25 @@ export default function ProductCard({
                   bg-white
                   px-2
                   py-0.5
-                  text-[8px]
+                  text-[7px]
                   font-medium
                   uppercase
-                  tracking-[0.15em]
+                  tracking-[0.14em]
                   transition-all
                   duration-300
-                  group-hover:-translate-y-1
-                  group-hover:scale-105
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
-                  sm:tracking-[0.2em]
+                  sm:tracking-[0.15em]
+                  sm:group-hover:-translate-y-1
+                  sm:group-hover:scale-105
                 "
               >
                 LIMITED
               </span>
             )}
+
+            {/* SALE */}
 
             {onSale && (
               <span
@@ -328,19 +366,19 @@ export default function ProductCard({
                   bg-[#7A4E2C]
                   px-2
                   py-0.5
-                  text-[8px]
+                  text-[7px]
                   font-medium
                   uppercase
-                  tracking-[0.16em]
+                  tracking-[0.14em]
                   text-white
                   transition-all
                   duration-300
-                  group-hover:-translate-y-1
-                  group-hover:scale-105
                   sm:px-2.5
                   sm:py-1
                   sm:text-[9px]
                   sm:tracking-[0.22em]
+                  sm:group-hover:-translate-y-1
+                  sm:group-hover:scale-105
                 "
               >
                 SALE
@@ -375,16 +413,17 @@ export default function ProductCard({
               className={`
                 pointer-events-none
                 object-contain
-                p-4
+                p-3.5
                 sm:p-8
+                lg:p-8
                 will-change-transform
                 transition-all
                 duration-700
                 ease-[cubic-bezier(0.22,1,0.36,1)]
                 ${
                   secondImage
-                    ? "opacity-100 group-hover:opacity-0 group-hover:scale-105"
-                    : "group-hover:scale-105"
+                    ? "opacity-100 sm:group-hover:opacity-0 sm:group-hover:scale-105"
+                    : "sm:group-hover:scale-105"
                 }
               `}
             />
@@ -393,7 +432,9 @@ export default function ProductCard({
 
             {optimizedSecondImage && (
               <Image
-                src={optimizedSecondImage}
+                src={
+                  optimizedSecondImage
+                }
                 alt={`${brand} ${name}`}
                 fill
                 quality={80}
@@ -408,8 +449,9 @@ export default function ProductCard({
                   inset-0
                   pointer-events-none
                   object-contain
-                  p-4
+                  p-3.5
                   sm:p-8
+                  lg:p-8
                   will-change-transform
                   opacity-0
                   scale-110
@@ -417,15 +459,17 @@ export default function ProductCard({
                   transition-all
                   duration-700
                   ease-[cubic-bezier(0.22,1,0.36,1)]
-                  group-hover:scale-100
-                  group-hover:opacity-100
-                  group-hover:blur-0
+                  sm:group-hover:scale-100
+                  sm:group-hover:opacity-100
+                  sm:group-hover:blur-0
                 "
               />
             )}
           </div>
 
+          {/* ================================================= */}
           {/* Luxury Shine */}
+          {/* ================================================= */}
 
           <div
             className="
@@ -437,19 +481,21 @@ export default function ProductCard({
               opacity-0
               transition-all
               duration-1000
-              group-hover:translate-x-[120%]
-              group-hover:opacity-100
+              sm:group-hover:translate-x-[120%]
+              sm:group-hover:opacity-100
             "
           />
 
+          {/* ================================================= */}
           {/* Dark Overlay */}
+          {/* ================================================= */}
 
           <div
             className="
               pointer-events-none
               absolute
               inset-0
-              rounded-[18px]
+              rounded-[15px]
               bg-gradient-to-t
               from-black/15
               via-black/5
@@ -457,12 +503,14 @@ export default function ProductCard({
               opacity-0
               transition-opacity
               duration-500
-              group-hover:opacity-100
+              sm:group-hover:opacity-100
               sm:rounded-[24px]
             "
           />
 
+          {/* ================================================= */}
           {/* Quick View */}
+          {/* ================================================= */}
 
           <div
             className="
@@ -478,14 +526,16 @@ export default function ProductCard({
               transition-all
               duration-700
               ease-[cubic-bezier(0.22,1,0.36,1)]
-              group-hover:scale-100
-              group-hover:opacity-100
               sm:block
+              sm:group-hover:scale-100
+              sm:group-hover:opacity-100
             "
           >
             <button
               type="button"
-              onClick={handleQuickView}
+              onClick={
+                handleQuickView
+              }
               className="
                 rounded-full
                 border
@@ -523,65 +573,91 @@ export default function ProductCard({
             flex
             flex-1
             flex-col
-            px-3.5
-            pb-4
-            pt-4
+            px-3
+            pb-3.5
+            pt-3.5
             sm:px-6
             sm:pb-5
             sm:pt-7
+            lg:px-6
+            lg:pb-5
+            lg:pt-7
           "
         >
+          {/* Brand */}
+
           <p
             className="
-              text-[8px]
+              text-[7px]
               font-medium
               uppercase
-              tracking-[0.28em]
+              tracking-[0.26em]
               text-neutral-400
               sm:text-[11px]
               sm:tracking-[0.4em]
+              lg:text-[10px]
+              lg:tracking-[0.34em]
             "
           >
             {brand}
           </p>
 
+          {/* ================================================= */}
+          {/* Product Title */}
+          {/* ================================================= */}
+
           <h3
             className="
-              mt-2
-              min-h-[2.6rem]
+              mt-1.5
               line-clamp-2
-              text-[14px]
+              overflow-hidden
+              text-[13px]
               font-light
-              leading-[1.3]
+              leading-[1.4]
               tracking-[-0.02em]
               text-neutral-900
               sm:mt-3
-              sm:min-h-[3.8rem]
-              sm:text-[20px]
-              sm:leading-[1.35]
-              sm:tracking-[-0.03em]
+              sm:min-h-[3.5rem]
+              sm:max-h-[3.5rem]
+              sm:text-xl
+              sm:leading-7
+              sm:tracking-[-0.02em]
+              lg:mt-3
+              lg:min-h-[3.5rem]
+              lg:max-h-[3.5rem]
+              lg:text-xl
+              lg:leading-7
+              lg:tracking-[-0.02em]
             "
           >
             {name}
           </h3>
 
+          {/* ================================================= */}
+          {/* Model */}
+          {/* ================================================= */}
+
           <div
             className="
-              mt-3
-              min-h-[42px]
+              mt-2.5
+              min-h-[2.75rem]
               flex-1
               sm:mt-5
               sm:min-h-[56px]
+              lg:mt-5
+              lg:min-h-[56px]
             "
           >
             <p
               className="
-                text-[8px]
+                text-[7px]
                 uppercase
-                tracking-[0.22em]
+                tracking-[0.2em]
                 text-neutral-400
                 sm:text-[11px]
                 sm:tracking-[0.3em]
+                lg:text-[11px]
+                lg:tracking-[0.3em]
               "
             >
               Model
@@ -591,9 +667,10 @@ export default function ProductCard({
               className="
                 mt-1
                 line-clamp-1
-                text-[9px]
+                text-[8px]
                 text-neutral-600
                 sm:text-sm
+                lg:text-sm
               "
             >
               {model ?? "—"}
@@ -610,26 +687,40 @@ export default function ProductCard({
         className="
           border-t
           border-neutral-100
-          px-3.5
-          py-3.5
+          px-3
+          py-3
           sm:px-7
           sm:py-6
+          lg:px-7
+          lg:py-6
         "
       >
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            gap-2
+            sm:gap-3
+          "
+        >
+          {/* ================================================= */}
+          {/* Discover */}
+          {/* ================================================= */}
 
           <Link
             href={productHref}
             prefetch
             className="
               inline-flex
+              min-w-0
               flex-1
               items-center
               gap-1
-              text-[8px]
+              text-[7px]
               font-medium
               uppercase
-              tracking-[0.12em]
+              tracking-[0.1em]
               text-neutral-500
               transition-all
               duration-300
@@ -637,6 +728,8 @@ export default function ProductCard({
               sm:gap-2
               sm:text-[11px]
               sm:tracking-[0.24em]
+              lg:text-[11px]
+              lg:tracking-[0.24em]
             "
           >
             <span>
@@ -648,17 +741,23 @@ export default function ProductCard({
                 hidden
                 transition-transform
                 duration-300
-                group-hover:translate-x-1.5
                 sm:inline
+                sm:group-hover:translate-x-1.5
               "
             >
               →
             </span>
           </Link>
 
+          {/* ================================================= */}
+          {/* Request Price */}
+          {/* ================================================= */}
+
           <button
             type="button"
-            onClick={handleInquiry}
+            onClick={
+              handleInquiry
+            }
             className={`
               inline-flex
               shrink-0
@@ -678,15 +777,50 @@ export default function ProductCard({
               hover:shadow-xl
 
               ${
-                buttonSize === "small"
-                  ? "h-8 min-w-0 px-2.5 text-[8px] tracking-[0.05em] sm:h-9 sm:min-w-[122px] sm:px-4 sm:text-[10px] sm:tracking-[0.14em]"
-                  : "h-8 min-w-0 px-2.5 text-[8px] tracking-[0.05em] sm:h-10 sm:min-w-[138px] sm:px-5 sm:text-[10px] sm:tracking-[0.16em]"
+                buttonSize ===
+                "small"
+                  ? `
+                    h-8
+                    min-w-0
+                    px-2.5
+                    text-[7px]
+                    tracking-[0.04em]
+
+                    sm:h-9
+                    sm:min-w-[122px]
+                    sm:px-4
+                    sm:text-[10px]
+                    sm:tracking-[0.14em]
+
+                    lg:h-9
+                    lg:min-w-[122px]
+                    lg:px-4
+                    lg:text-[10px]
+                  `
+                  : `
+                    h-8
+                    min-w-0
+                    px-2.5
+                    text-[7px]
+                    tracking-[0.04em]
+
+                    sm:h-10
+                    sm:min-w-[138px]
+                    sm:px-5
+                    sm:text-[10px]
+                    sm:tracking-[0.16em]
+
+                    lg:h-10
+                    lg:min-w-[138px]
+                    lg:px-5
+                    lg:text-[10px]
+                    lg:tracking-[0.16em]
+                  `
               }
             `}
           >
             Request Price
           </button>
-
         </div>
       </div>
     </article>

@@ -17,6 +17,25 @@ type UploadedImage = {
   sortOrder: number;
 };
 
+function getCustomPackagingId(formData: FormData) {
+  const value = formData
+    .get("customPackagingId")
+    ?.toString()
+    .trim();
+
+  if (!value) {
+    return null;
+  }
+
+  const id = Number(value);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new Error("Invalid custom packaging.");
+  }
+
+  return id;
+}
+
 async function uploadImage(
   file: File,
   folder: string
@@ -331,6 +350,9 @@ const slug = await generateProductSlug(
   formData.get("model")?.toString() || null
 );
 
+const customPackagingId =
+  getCustomPackagingId(formData);
+
 await prisma.product.create({
 
       data:{
@@ -420,7 +442,7 @@ model:
           )?.toString()
           || null,
 
-
+        customPackagingId,
 
         availability:
           formData.get(
@@ -751,6 +773,9 @@ const slug = await generateProductSlug(
   id
 );
 
+const customPackagingId =
+  getCustomPackagingId(formData);
+
     await prisma.product.update({
 
       where:{
@@ -844,7 +869,7 @@ model:
           )?.toString()
           || null,
 
-
+        customPackagingId,
 
         availability:
           formData.get(
@@ -1131,10 +1156,13 @@ data: newVariants.map(
 }
 
 
-    redirect(
+    revalidatePath(
       "/admin/dashboard/products"
     );
 
+    // Do not redirect here.
+    // ProductForm handles returning to the user's
+    // previous products page and scroll position.
 
   }catch(err){
 
@@ -1209,6 +1237,9 @@ const newProduct = await prisma.product.create({
 
     mainColor: product.mainColor,
     dimensions: product.dimensions,
+
+    customPackagingId:
+      product.customPackagingId,
 
     availability: product.availability,
 

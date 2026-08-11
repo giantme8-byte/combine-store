@@ -109,15 +109,25 @@ Thank you 😊`;
 
     const url =
       `https://wa.me/${whatsappNumber}` +
-      `?text=${encodeURIComponent(message)}`;
+      `?text=${encodeURIComponent(
+        message
+      )}`;
 
-    window.open(url, "_blank");
+    window.open(
+      url,
+      "_blank"
+    );
 
     setLoading(false);
   }
 
   return (
-    <div className="mt-6 sm:mt-8">
+    <div
+      className="
+        mt-6
+        sm:mt-8
+      "
+    >
       <div
         className="
           border-t
@@ -126,7 +136,10 @@ Thank you 😊`;
           sm:pt-8
         "
       >
+        {/* ================================================= */}
         {/* Section Title */}
+        {/* ================================================= */}
+
         <p
           className="
             mb-4
@@ -142,10 +155,15 @@ Thank you 😊`;
           Luxury Concierge
         </p>
 
-        {/* WhatsApp / Request Price */}
+        {/* ================================================= */}
+        {/* Request Price */}
+        {/* ================================================= */}
+
         <button
           type="button"
-          onClick={handleWhatsApp}
+          onClick={
+            handleWhatsApp
+          }
           disabled={loading}
           className="
             group
@@ -169,6 +187,7 @@ Thank you 😊`;
             duration-500
             hover:-translate-y-1
             hover:shadow-2xl
+            active:translate-y-0
             disabled:cursor-not-allowed
             disabled:opacity-50
             sm:h-auto
@@ -178,6 +197,8 @@ Thank you 😊`;
             sm:tracking-[0.28em]
           "
         >
+          {/* Luxury Hover */}
+
           <span
             className="
               absolute
@@ -193,17 +214,25 @@ Thank you 😊`;
             "
           />
 
-          <span className="relative z-10">
+          <span
+            className="
+              relative
+              z-10
+            "
+          >
             {loading
               ? "Opening..."
               : "Request Price"}
           </span>
         </button>
 
+        {/* ================================================= */}
         {/* Secondary Actions */}
+        {/* ================================================= */}
+
         <div
           className="
-            mt-4
+            mt-3
             grid
             grid-cols-2
             gap-2.5
@@ -212,7 +241,9 @@ Thank you 😊`;
           "
         >
           <AddToInquiryButton
-            productId={productId}
+            productId={
+              productId
+            }
             color={
               selectedColor?.name
             }
@@ -226,7 +257,9 @@ Thank you 😊`;
           />
 
           <WishlistButton
-            productId={productId}
+            productId={
+              productId
+            }
           />
         </div>
       </div>

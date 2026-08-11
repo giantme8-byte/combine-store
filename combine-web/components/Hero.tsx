@@ -289,7 +289,7 @@ export default function Hero() {
                   md:text-4xl
                 "
               >
-                5000+
+                10,000+
               </p>
 
               <p

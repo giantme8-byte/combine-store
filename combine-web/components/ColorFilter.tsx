@@ -12,8 +12,16 @@ export default function ColorFilter({
   colors,
 }: Props) {
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div
+      className="
+        space-y-3
+        sm:space-y-4
+      "
+    >
+      {/* ================================================= */}
       {/* Label */}
+      {/* ================================================= */}
+
       <label
         htmlFor="color-filter"
         className="
@@ -30,7 +38,10 @@ export default function ColorFilter({
         Color
       </label>
 
+      {/* ================================================= */}
       {/* Select */}
+      {/* ================================================= */}
+
       <div className="relative">
         <select
           id="color-filter"
@@ -40,6 +51,7 @@ export default function ColorFilter({
             onSelect(e.target.value)
           }
           className="
+            min-h-11
             w-full
             appearance-none
             rounded-xl
@@ -47,7 +59,7 @@ export default function ColorFilter({
             border-neutral-200
             bg-white
             px-4
-            py-3.5
+            py-2.5
             pr-10
             text-[12px]
             font-light
@@ -60,36 +72,46 @@ export default function ColorFilter({
             focus:border-[#C8A96A]
             focus:ring-4
             focus:ring-[#C8A96A]/10
+            sm:min-h-12
             sm:rounded-2xl
             sm:px-6
-            sm:py-5
+            sm:py-4
             sm:pr-14
             sm:text-[15px]
           "
         >
-          {colors.map((color) => (
-            <option
-              key={color}
-              value={color}
-            >
-              {color}
-            </option>
-          ))}
+          {colors.map(
+            (color) => (
+              <option
+                key={color}
+                value={color}
+              >
+                {color}
+              </option>
+            )
+          )}
         </select>
 
+        {/* ================================================= */}
         {/* Arrow */}
+        {/* ================================================= */}
+
         <div
           className="
             pointer-events-none
             absolute
             right-4
             top-1/2
+            flex
             -translate-y-1/2
-            text-[9px]
+            items-center
+            justify-center
+            text-[8px]
             text-neutral-400
             sm:right-6
-            sm:text-[11px]
+            sm:text-[10px]
           "
+          aria-hidden="true"
         >
           ▼
         </div>
