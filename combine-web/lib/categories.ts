@@ -11,11 +11,22 @@ export const CATEGORY_OPTIONS = {
     "Travel Bags",
     "Business Bags",
     "Messenger Bags",
+    "Waist Bags",
     "Clutches",
-    "Evening Bags",
-    "Wallets",
-    "Card Holders",
     "Pouches",
+    "Toiletry Bags",
+
+    // Wallets
+    "Wallets",
+    "Long Wallets",
+    "Bifold Wallets",
+    "Trifold Wallets",
+    "Compact Wallets",
+    "Card Holders",
+    "Coin Purses",
+    "Zip Wallets",
+    "Wristlets",
+    "Money Clips",
   ],
 
   Shoes: [

@@ -35,6 +35,14 @@ export default async function EditProductPage({
           orderBy: {
             sortOrder: "asc",
           },
+
+          include: {
+            images: {
+              orderBy: {
+                sortOrder: "asc",
+              },
+            },
+          },
         },
 
         variants: {

@@ -23,20 +23,25 @@ import type {
   Product,
   ProductImage,
   ProductColor,
+  ProductColorImage,
   ProductVariant,
   PackagingProfile,
 } from "@prisma/client";
 
+type ProductColorWithImages = ProductColor & {
+  images?: ProductColorImage[];
+};
+
 type ProductWithRelations = Product & {
   images: ProductImage[];
-  colors: ProductColor[];
+  colors: ProductColorWithImages[];
   variants: ProductVariant[];
 };
 
 type ProductFormProps = {
   action: (
     formData: FormData
-  ) => void | Promise<void>;
+  ) => void | Promise<unknown>;
 
   product?: ProductWithRelations;
 
@@ -116,26 +121,45 @@ export default function ProductForm({
     );
 
     setColors(
-      product.colors.map((color) => ({
-        id: color.id.toString(),
+      product.colors.map((color) => {
+        const galleryImages =
+          color.images?.map((image) => ({
+            id: image.id.toString(),
+            url: image.url,
+            publicId: image.publicId ?? "",
+            isNew: false,
+            sortOrder: image.sortOrder,
+            deleted: false,
+          })) ?? [];
 
-        name: color.name,
+        // Backward compatibility:
+        // old Colors only have ProductColor.imageUrl/publicId.
+        if (
+          galleryImages.length === 0 &&
+          color.imageUrl
+        ) {
+          galleryImages.push({
+            id: `legacy-${color.id}`,
+            url: color.imageUrl,
+            publicId: color.publicId ?? "",
+            isNew: false,
+            sortOrder: 0,
+            deleted: false,
+          });
+        }
 
-        model:
-          color.model ?? "",
-
-        url: color.imageUrl,
-
-        publicId:
-          color.publicId,
-
-        isNew: false,
-
-        sortOrder:
-          color.sortOrder,
-
-        deleted: false,
-      }))
+        return {
+          id: color.id.toString(),
+          name: color.name,
+          model: color.model ?? "",
+          url: color.imageUrl,
+          publicId: color.publicId,
+          images: galleryImages,
+          isNew: false,
+          sortOrder: color.sortOrder,
+          deleted: false,
+        };
+      })
     );
 
     setVariants(
@@ -314,106 +338,231 @@ export default function ProductForm({
     }
 
     /*
-     * =========================================================
-     * PRODUCT IMAGES
-     * =========================================================
-     *
-     * IMPORTANT:
-     *
-     * We DO NOT append image.file anymore.
-     *
-     * The image file has already been uploaded directly
-     * from the browser to Cloudinary.
-     *
-     * Server Action only receives:
-     *
-     * - id
-     * - url
-     * - publicId
-     * - sortOrder
-     * - isNew
-     * - deleted
-     */
-
-    images.forEach(
-      (image, index) => {
-        formData.append(
-          "imageOrder",
-          JSON.stringify({
-            id: image.id,
-
-            url: image.url,
-
-            publicId:
-              image.publicId,
-
-            sortOrder:
-              index,
-
-            isNew:
-              image.isNew,
-
-            deleted:
-              image.deleted ??
-              false,
-          })
-        );
-      }
-    );
-
-    /*
+     * ====================================    /*
      * =========================================================
      * COLORS
      * =========================================================
      *
-     * ColorUpload is still using the old upload mechanism.
+     * Color Gallery images are uploaded directly to Cloudinary
+     * before the Server Action is called.
      *
-     * We intentionally leave this unchanged for now.
+     * The Server Action therefore receives:
+     * - Color metadata
+     * - Cloudinary URL
+     * - Cloudinary publicId
+     * - Gallery sortOrder
      *
-     * We will migrate ColorUpload later when we build the
-     * complete multi-color gallery system.
+     * No Color image File is appended to the Server Action.
      */
 
-    colors.forEach(
-      (color, index) => {
-        formData.append(
-          "colorOrder",
-          JSON.stringify({
-            id:
-              color.id,
+    async function uploadColorImage(
+      file: File
+    ): Promise<{
+      url: string;
+      publicId: string;
+    }> {
+      const signatureResponse = await fetch(
+        "/api/cloudinary/sign",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-            name:
-              color.name,
+      if (!signatureResponse.ok) {
+        throw new Error(
+          "Failed to create Cloudinary upload signature."
+        );
+      }
 
-            model:
-              color.model,
+      const signatureData =
+        await signatureResponse.json();
 
-            publicId:
-              color.publicId,
+      if (
+        !signatureData.signature ||
+        !signatureData.timestamp ||
+        !signatureData.folder ||
+        !signatureData.cloudName ||
+        !signatureData.apiKey
+      ) {
+        throw new Error(
+          "Invalid Cloudinary signature response."
+        );
+      }
 
-            sortOrder:
-              index,
+      const uploadData = new FormData();
 
-            isNew:
-              color.isNew,
+      uploadData.append("file", file);
+      uploadData.append(
+        "api_key",
+        signatureData.apiKey
+      );
+      uploadData.append(
+        "timestamp",
+        String(signatureData.timestamp)
+      );
+      uploadData.append(
+        "signature",
+        signatureData.signature
+      );
+      uploadData.append(
+        "folder",
+        signatureData.folder
+      );
 
-            deleted:
-              color.deleted ??
-              false,
+      const uploadUrl =
+        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`;
 
-            hasNewImage:
-              !!color.file,
-          })
+      const uploadResponse = await fetch(
+        uploadUrl,
+        {
+          method: "POST",
+          body: uploadData,
+        }
+      );
+
+      if (!uploadResponse.ok) {
+        throw new Error(
+          `Cloudinary upload failed with status ${uploadResponse.status}.`
+        );
+      }
+
+      const data =
+        await uploadResponse.json();
+
+      if (
+        !data?.secure_url ||
+        !data?.public_id
+      ) {
+        throw new Error(
+          "Invalid response from Cloudinary."
+        );
+      }
+
+      return {
+        url: data.secure_url,
+        publicId: data.public_id,
+      };
+    }
+
+    for (
+      let colorIndex = 0;
+      colorIndex < colors.length;
+      colorIndex++
+    ) {
+      const color = colors[colorIndex];
+
+      const visibleImages =
+        (color.images ?? []).filter(
+          (image) => !image.deleted
         );
 
-        if (color.file) {
-          formData.append(
-            "colorImages",
-            color.file
-          );
+      const galleryImages: {
+        id: string;
+        url: string;
+        publicId: string;
+        sortOrder: number;
+      }[] = [];
+
+      for (
+        let imageIndex = 0;
+        imageIndex < visibleImages.length;
+        imageIndex++
+      ) {
+        const image =
+          visibleImages[imageIndex];
+
+        if (
+          image.file
+        ) {
+          const uploaded =
+            await uploadColorImage(
+              image.file
+            );
+
+          galleryImages.push({
+            id: image.id,
+            url: uploaded.url,
+            publicId:
+              uploaded.publicId,
+            sortOrder:
+              imageIndex,
+          });
+
+          continue;
+        }
+
+        if (
+          image.url &&
+          image.publicId
+        ) {
+          galleryImages.push({
+            id: image.id,
+            url: image.url,
+            publicId:
+              image.publicId,
+            sortOrder:
+              imageIndex,
+          });
         }
       }
-    );
+
+      /*
+       * Legacy Color compatibility.
+       *
+       * Old products may only have ProductColor.imageUrl /
+       * ProductColor.publicId and no ProductColorImage records.
+       */
+      if (
+        galleryImages.length === 0 &&
+        color.url &&
+        color.publicId
+      ) {
+        galleryImages.push({
+          id: `legacy-${color.id}`,
+          url: color.url,
+          publicId:
+            color.publicId,
+          sortOrder: 0,
+        });
+      }
+
+      formData.append(
+        "colorOrder",
+        JSON.stringify({
+          id: color.id,
+          name: color.name,
+          model: color.model,
+          publicId:
+            galleryImages[0]?.publicId ??
+            color.publicId ??
+            "",
+          sortOrder: colorIndex,
+          isNew: color.isNew,
+          deleted:
+            color.deleted ?? false,
+          hasNewImage:
+            visibleImages.some(
+              (image) =>
+                Boolean(image.file)
+            ),
+          images:
+            galleryImages.map(
+              (image) => ({
+                id: image.id,
+                url: image.url,
+                publicId:
+                  image.publicId,
+                sortOrder:
+                  image.sortOrder,
+                deleted: false,
+              })
+            ),
+        })
+      );
+    }
 
     /*
      * =========================================================
@@ -475,7 +624,6 @@ export default function ProductForm({
         }
       }
     );
-
     /*
      * =========================================================
      * SAVE PRODUCT
