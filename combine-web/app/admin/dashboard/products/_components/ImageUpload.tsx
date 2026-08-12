@@ -1,6 +1,11 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useState,
+} from "react";
 
 import {
   DndContext,
@@ -27,9 +32,9 @@ import GalleryGrid from "./GalleryGrid";
 type ImageUploadProps = {
   images: ProductImageItem[];
 
-  onChange: (
-    images: ProductImageItem[]
-  ) => void;
+  onChange: Dispatch<
+    SetStateAction<ProductImageItem[]>
+  >;
 };
 
 type CloudinaryUploadResponse = {
@@ -70,9 +75,13 @@ export default function ImageUpload({
     try {
       /*
        * Mark image as uploading.
+       *
+       * IMPORTANT:
+       * Use functional state update so we always
+       * work with the latest images array.
        */
-      onChange(
-        images.map((item) =>
+      onChange((currentImages) =>
+        currentImages.map((item) =>
           item.id === image.id
             ? {
                 ...item,
@@ -87,7 +96,6 @@ export default function ImageUpload({
       /*
        * Request a signed Cloudinary upload.
        *
-       * IMPORTANT:
        * The API secret never reaches the browser.
        */
       const signatureResponse =
@@ -110,6 +118,18 @@ export default function ImageUpload({
 
       const signatureData =
         await signatureResponse.json();
+
+      if (
+        !signatureData.signature ||
+        !signatureData.timestamp ||
+        !signatureData.folder ||
+        !signatureData.cloudName ||
+        !signatureData.apiKey
+      ) {
+        throw new Error(
+          "Invalid Cloudinary signature response."
+        );
+      }
 
       /*
        * Build Cloudinary upload request.
@@ -167,7 +187,9 @@ export default function ImageUpload({
             xhr.upload.onprogress = (
               event
             ) => {
-              if (!event.lengthComputable) {
+              if (
+                !event.lengthComputable
+              ) {
                 return;
               }
 
@@ -179,16 +201,18 @@ export default function ImageUpload({
                 );
 
               onChange(
-                images.map((item) =>
-                  item.id === image.id
-                    ? {
-                        ...item,
-                        status:
-                          "uploading",
-                        progress,
-                      }
-                    : item
-                )
+                (currentImages) =>
+                  currentImages.map(
+                    (item) =>
+                      item.id === image.id
+                        ? {
+                            ...item,
+                            status:
+                              "uploading",
+                            progress,
+                          }
+                        : item
+                  )
               );
             };
 
@@ -271,12 +295,10 @@ export default function ImageUpload({
        * Upload succeeded.
        *
        * IMPORTANT:
-       * The local File is removed from the item.
-       * From this point onward, the product only needs
-       * Cloudinary URL + publicId.
+       * Use functional state update here too.
        */
-      onChange(
-        images.map((item) =>
+      onChange((currentImages) =>
+        currentImages.map((item) =>
           item.id === image.id
             ? {
                 ...item,
@@ -298,8 +320,8 @@ export default function ImageUpload({
         error
       );
 
-      onChange(
-        images.map((item) =>
+      onChange((currentImages) =>
+        currentImages.map((item) =>
           item.id === image.id
             ? {
                 ...item,
@@ -328,7 +350,10 @@ export default function ImageUpload({
     }
 
     /*
-     * Keep the existing validation.
+     * Create local image items immediately.
+     *
+     * This means the selected images appear
+     * in the gallery before Cloudinary finishes.
      */
     const newImages: ProductImageItem[] =
       files.map((file, index) => ({
@@ -359,13 +384,17 @@ export default function ImageUpload({
 
     onChange(updatedImages);
 
+    /*
+     * Reset file input so selecting the same
+     * files again will trigger onChange.
+     */
     e.target.value = "";
 
     /*
      * Upload sequentially.
      *
      * This avoids sending multiple large files
-     * through the Next.js server at once.
+     * at the same time.
      */
     setUploading(true);
 
