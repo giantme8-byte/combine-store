@@ -15,8 +15,9 @@ export const CATEGORY_OPTIONS = {
     "Clutches",
     "Pouches",
     "Toiletry Bags",
+  ],
 
-    // Wallets
+  Wallets: [
     "Wallets",
     "Long Wallets",
     "Bifold Wallets",
