@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import {
   useEffect,
   useRef,
@@ -48,6 +50,8 @@ type ProductFormProps = {
 
   exchangeRate: number;
 
+  returnTo?: string;
+
 };
 
 export default function ProductForm({
@@ -58,7 +62,9 @@ export default function ProductForm({
   brands,
   packagingProfiles,
   exchangeRate,
+  returnTo,
 }: ProductFormProps) {
+  const router = useRouter();
   const formRef =
     useRef<HTMLFormElement>(null);
 
@@ -190,47 +196,144 @@ export default function ProductForm({
   ) {
     e.preventDefault();
 
-    if (!formRef.current) return;
+    if (!formRef.current) {
+      return;
+    }
 
-    if (isPending) return;
+    if (isPending) {
+      return;
+    }
+
+    /*
+     * =========================================================
+     * IMAGE UPLOAD CHECK
+     * =========================================================
+     *
+     * Product images are now uploaded directly to Cloudinary
+     * from ImageUpload.tsx.
+     *
+     * Therefore, before saving the product:
+     *
+     * 1. No new image can still be uploading
+     * 2. No new image can have failed
+     * 3. Every new image must have a Cloudinary URL
+     * 4. Every new image must have a Cloudinary publicId
+     */
+
+    const uploadingImages =
+      images.filter(
+        (image) =>
+          image.isNew &&
+          !image.deleted &&
+          image.status === "uploading"
+      );
+
+    if (uploadingImages.length > 0) {
+      alert(
+        "Please wait for all images to finish uploading."
+      );
+
+      return;
+    }
+
+    const failedImages =
+      images.filter(
+        (image) =>
+          image.isNew &&
+          !image.deleted &&
+          image.status === "failed"
+      );
+
+    if (failedImages.length > 0) {
+      alert(
+        "Some images failed to upload. Please remove them and upload again."
+      );
+
+      return;
+    }
+
+    const incompleteImages =
+      images.filter(
+        (image) =>
+          image.isNew &&
+          !image.deleted &&
+          (
+            !image.url ||
+            !image.publicId ||
+            image.status !== "uploaded"
+          )
+      );
+
+    if (incompleteImages.length > 0) {
+      alert(
+        "Some images are not ready yet. Please wait for the upload to finish."
+      );
+
+      return;
+    }
+
+    /*
+     * =========================================================
+     * CREATE FORM DATA
+     * =========================================================
+     */
 
     const formData =
       new FormData(
         formRef.current
       );
 
-    const MAX_IMAGES = 20;
-    const MAX_SIZE =
-      10 * 1024 * 1024;
+    /*
+     * =========================================================
+     * PRODUCT IMAGE LIMIT
+     * =========================================================
+     *
+     * Count all visible product images, not only new images.
+     *
+     * This keeps the existing 20-image limit correct when
+     * editing an existing product.
+     */
 
-    const newImages =
+    const MAX_IMAGES = 20;
+
+    const visibleImages =
       images.filter(
-        (image) => image.file
+        (image) =>
+          !image.deleted
       );
 
     if (
-      newImages.length >
+      visibleImages.length >
       MAX_IMAGES
     ) {
       alert(
         "Maximum 20 images."
       );
+
       return;
     }
 
-    for (
-      const image of newImages
-    ) {
-      if (
-        image.file!.size >
-        MAX_SIZE
-      ) {
-        alert(
-          `${image.file!.name} exceeds 10MB.`
-        );
-        return;
-      }
-    }
+    /*
+     * =========================================================
+     * PRODUCT IMAGES
+     * =========================================================
+     *
+     * IMPORTANT:
+     *
+     * We DO NOT append image.file anymore.
+     *
+     * The image file has already been uploaded directly
+     * from the browser to Cloudinary.
+     *
+     * Server Action only receives:
+     *
+     * - id
+     * - url
+     * - publicId
+     * - sortOrder
+     * - isNew
+     * - deleted
+     */
 
     images.forEach(
       (image, index) => {
@@ -238,33 +341,49 @@ export default function ProductForm({
           "imageOrder",
           JSON.stringify({
             id: image.id,
+
+            url: image.url,
+
             publicId:
               image.publicId,
-            sortOrder: index,
-            isNew: image.isNew,
+
+            sortOrder:
+              index,
+
+            isNew:
+              image.isNew,
+
             deleted:
               image.deleted ??
               false,
           })
         );
-
-        if (image.file) {
-          formData.append(
-            "images",
-            image.file
-          );
-        }
       }
     );
+
+    /*
+     * =========================================================
+     * COLORS
+     * =========================================================
+     *
+     * ColorUpload is still using the old upload mechanism.
+     *
+     * We intentionally leave this unchanged for now.
+     *
+     * We will migrate ColorUpload later when we build the
+     * complete multi-color gallery system.
+     */
 
     colors.forEach(
       (color, index) => {
         formData.append(
           "colorOrder",
           JSON.stringify({
-            id: color.id,
+            id:
+              color.id,
 
-            name: color.name,
+            name:
+              color.name,
 
             model:
               color.model,
@@ -272,9 +391,11 @@ export default function ProductForm({
             publicId:
               color.publicId,
 
-            sortOrder: index,
+            sortOrder:
+              index,
 
-            isNew: color.isNew,
+            isNew:
+              color.isNew,
 
             deleted:
               color.deleted ??
@@ -294,14 +415,29 @@ export default function ProductForm({
       }
     );
 
+    /*
+     * =========================================================
+     * VARIANTS
+     * =========================================================
+     *
+     * VariantManager is still using the old upload mechanism.
+     *
+     * We intentionally leave this unchanged for now.
+     *
+     * We will migrate VariantManager together with the final
+     * Color + Size / Variant system.
+     */
+
     variants.forEach(
       (variant, index) => {
         formData.append(
           "variantOrder",
           JSON.stringify({
-            id: variant.id,
+            id:
+              variant.id,
 
-            size: variant.size,
+            size:
+              variant.size,
 
             model:
               variant.model,
@@ -317,7 +453,8 @@ export default function ProductForm({
               variant.publicId ??
               "",
 
-            sortOrder: index,
+            sortOrder:
+              index,
 
             isNew:
               variant.isNew,
@@ -339,11 +476,35 @@ export default function ProductForm({
       }
     );
 
+    /*
+     * =========================================================
+     * SAVE PRODUCT
+     * =========================================================
+     */
+
     startTransition(
       async () => {
-        await action(
-          formData
-        );
+        try {
+          await action(
+            formData
+          );
+
+          router.push(
+            returnTo ||
+              "/admin/dashboard/products"
+          );
+
+          router.refresh();
+        } catch (error) {
+          console.error(
+            "Failed to save product:",
+            error
+          );
+
+          alert(
+            "Failed to save product. Please try again."
+          );
+        }
       }
     );
   }

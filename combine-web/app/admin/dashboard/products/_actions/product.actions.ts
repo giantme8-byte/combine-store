@@ -199,29 +199,44 @@ try {
   console.log("=== CREATE PRODUCT START ===");
 
   // Gallery Images
-  const files =
-    formData.getAll("images") as File[];
+  //
+  // Gallery images are uploaded directly from the browser
+  // to Cloudinary. The server action only receives the
+  // resulting URL, publicId and sortOrder.
+  type ImageOrderItem = {
+    id: string;
+    url: string;
+    publicId: string | null;
+    sortOrder: number;
+    isNew: boolean;
+    deleted: boolean;
+  };
 
-  const uploadedImages: UploadedImage[] = [];
+  const imageOrder =
+    formData
+      .getAll("imageOrder")
+      .map((item) =>
+        JSON.parse(item.toString())
+      ) as ImageOrderItem[];
 
-const galleryUploads = await uploadImages(
-  files,
-  "combine-store/gallery",
-  3
-);
+  const uploadedImages: UploadedImage[] =
+    imageOrder
+      .filter(
+        (image) =>
+          !image.deleted &&
+          image.url &&
+          image.publicId
+      )
+      .map((image) => ({
+        url: image.url,
+        publicId: image.publicId!,
+        sortOrder: image.sortOrder,
+      }));
 
-for (const uploaded of galleryUploads) {
-  uploadedImages.push({
-    url: uploaded.url,
-    publicId: uploaded.publicId,
-    sortOrder: uploaded.index,
-  });
-}
-
-console.log(
-  "Gallery uploaded:",
-  uploadedImages.length
-);
+  console.log(
+    "Gallery images received:",
+    uploadedImages.length
+  );
 
   // Product Colors
   const colorFiles =
@@ -600,26 +615,35 @@ const product =
 
 
 
-const files =
-  formData.getAll("images") as File[];
-
 type ImageOrderItem = {
   id: string;
+  url: string;
   publicId: string | null;
   sortOrder: number;
   isNew: boolean;
   deleted: boolean;
 };
 
-const imageOrder = formData
-  .getAll("imageOrder")
-  .map((item) => JSON.parse(item.toString())) as ImageOrderItem[];
+const imageOrder =
+  formData
+    .getAll("imageOrder")
+    .map((item) =>
+      JSON.parse(item.toString())
+    ) as ImageOrderItem[];
 
-const newImageOrder = imageOrder.filter(
-  (image) => image.isNew && !image.deleted
-);  
-
-const uploadedImages: UploadedImage[] = [];
+const uploadedImages: UploadedImage[] =
+  imageOrder
+    .filter(
+      (image) =>
+        !image.deleted &&
+        image.url &&
+        image.publicId
+    )
+    .map((image) => ({
+      url: image.url,
+      publicId: image.publicId!,
+      sortOrder: image.sortOrder,
+    }));
 
 const colorFiles =
   formData.getAll("colorImages") as File[];
@@ -725,27 +749,6 @@ for (const uploaded of variantUploads) {
     publicId: uploaded.publicId,
   });
 }
-
-    if (files.length > 0) {
-      const galleryUploads = await uploadImages(
-        files,
-        "combine-store/gallery",
-        3
-      );
-
-      for (const uploaded of galleryUploads) {
-        const image = newImageOrder[uploaded.index];
-
-        if (!image) continue;
-
-        uploadedImages.push({
-          url: uploaded.url,
-          publicId: uploaded.publicId,
-          sortOrder: image.sortOrder,
-        });
-      }
-    }
-
 
     const colorUploads = await uploadImages(
       colorFiles,
@@ -917,26 +920,45 @@ model:
     });
 
 const deletedImages = imageOrder.filter(
-  (image) => !image.isNew && image.deleted
+  (image) => image.deleted
 );
 
 console.log("deletedImages:", deletedImages);
 
 for (const image of deletedImages) {
-
-  console.log("Deleting Cloudinary:", image.publicId);
-
+  // Remove the image from Cloudinary.
   if (image.publicId) {
-    await cloudinary.uploader.destroy(image.publicId);
+    console.log(
+      "Deleting Cloudinary:",
+      image.publicId
+    );
+
+    await cloudinary.uploader.destroy(
+      image.publicId
+    );
   }
 
-  console.log("Deleting DB Image:", image.id);
+  // Existing database images have numeric IDs.
+  // Newly direct-uploaded images do not exist in the
+  // ProductImage table yet, so there is nothing to delete
+  // from the database for those.
+  const databaseId = Number(image.id);
 
-  await prisma.productImage.delete({
-    where: {
-      id: Number(image.id),
-    },
-  });
+  if (
+    Number.isInteger(databaseId) &&
+    databaseId > 0
+  ) {
+    console.log(
+      "Deleting DB Image:",
+      databaseId
+    );
+
+    await prisma.productImage.delete({
+      where: {
+        id: databaseId,
+      },
+    });
+  }
 }
 
 await prisma.productImage.updateMany({
