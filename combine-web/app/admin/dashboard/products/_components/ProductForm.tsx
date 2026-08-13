@@ -59,6 +59,20 @@ type ProductFormProps = {
 
 };
 
+function formatCreatedDate(
+  date: Date | string
+) {
+  return new Intl.DateTimeFormat(
+    "en-MY",
+    {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      timeZone: "UTC",
+    }
+  ).format(new Date(date));
+}
+
 export default function ProductForm({
   action,
   product,
@@ -338,7 +352,54 @@ export default function ProductForm({
     }
 
     /*
-     * ====================================    /*
+     * =========================================================
+     * PRODUCT IMAGES
+     * =========================================================
+     *
+     * Product gallery files are uploaded directly to Cloudinary
+     * from ImageUpload.tsx.
+     *
+     * The Server Action receives only metadata:
+     * - id
+     * - url
+     * - publicId
+     * - sortOrder
+     * - isNew
+     * - deleted
+     *
+     * IMPORTANT:
+     * We intentionally do NOT append image.file here.
+     */
+
+    images.forEach(
+      (image, index) => {
+        formData.append(
+          "imageOrder",
+          JSON.stringify({
+            id:
+              image.id,
+
+            url:
+              image.url,
+
+            publicId:
+              image.publicId,
+
+            sortOrder:
+              index,
+
+            isNew:
+              image.isNew,
+
+            deleted:
+              image.deleted ??
+              false,
+          })
+        );
+      }
+    );
+
+    /*
      * =========================================================
      * COLORS
      * =========================================================
@@ -1330,9 +1391,9 @@ export default function ProductForm({
 
                 <span className="font-medium">
                   {product
-                    ? new Date(
+                    ? formatCreatedDate(
                         product.createdAt
-                      ).toLocaleDateString()
+                      )
                     : "-"}
                 </span>
               </div>
