@@ -413,9 +413,9 @@ export default function ProductCard({
               className={`
                 pointer-events-none
                 object-contain
-                p-3.5
-                sm:p-8
-                lg:p-8
+                p-1
+                sm:p-4
+                lg:p-4
                 will-change-transform
                 transition-all
                 duration-700
@@ -449,9 +449,9 @@ export default function ProductCard({
                   inset-0
                   pointer-events-none
                   object-contain
-                  p-3.5
-                  sm:p-8
-                  lg:p-8
+                  p-1
+                  sm:p-4
+                  lg:p-4
                   will-change-transform
                   opacity-0
                   scale-110

@@ -8,13 +8,38 @@ datasource db {
 }
 
 model Product {
-  id          Int     @id @default(autoincrement())
-  sku         String? @unique
-  brand       String
+  id    Int     @id @default(autoincrement())
+  sku   String? @unique
+  brand String
+
+  // ============================================================
+  // LEGACY CATEGORY FIELDS
+  // ============================================================
+  // Keep these fields for existing product data.
+  // They will remain during the migration process.
+  // ============================================================
+
   category    String
   subCategory String?
-  name        String
-  slug        String? @unique
+
+  // ============================================================
+  // CATEGORY RELATIONS
+  // ============================================================
+  // New database relations.
+  //
+  // Existing category / subCategory strings are NOT removed.
+  // They will be used to automatically connect existing products
+  // to Category and SubCategory.
+  // ============================================================
+
+  categoryId    Int?
+  subCategoryId Int?
+
+  categoryRecord    Category?    @relation("ProductCategory", fields: [categoryId], references: [id], onDelete: SetNull)
+  subCategoryRecord SubCategory? @relation("ProductSubCategory", fields: [subCategoryId], references: [id], onDelete: SetNull)
+
+  name String
+  slug String? @unique
 
   model            String?
   shortDescription String?
@@ -55,6 +80,8 @@ model Product {
   @@index([brand])
   @@index([category])
   @@index([subCategory])
+  @@index([categoryId])
+  @@index([subCategoryId])
   @@index([availability])
   @@index([name])
   @@index([displayOrder])
@@ -250,6 +277,9 @@ model Category {
   // Sub Categories belonging to this Category.
   subCategories SubCategory[]
 
+  // Products belonging to this Category.
+  products Product[] @relation("ProductCategory")
+
   @@index([active])
 }
 
@@ -262,6 +292,9 @@ model SubCategory {
   // Optional parent Category.
   categoryId Int?
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Products belonging to this Sub-Category.
+  products Product[] @relation("ProductSubCategory")
 
   active    Boolean @default(true)
   sortOrder Int     @default(9999)
@@ -563,4 +596,42 @@ enum InquiryStatus {
   CONTACTED
   COMPLETED
   CANCELLED
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+model AnalyticsVisitor {
+  id          Int      @id @default(autoincrement())
+  visitorId   String   @unique
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @updatedAt
+
+  @@index([firstSeenAt])
+  @@index([lastSeenAt])
+}
+
+model AnalyticsEvent {
+  id Int @id @default(autoincrement())
+
+  visitorId String
+  event     AnalyticsEventType
+
+  path      String?
+  productId Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([visitorId])
+  @@index([event])
+  @@index([createdAt])
+  @@index([productId])
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PRODUCT_VIEW
+  WHATSAPP_CLICK
+  INSTAGRAM_CLICK
 }

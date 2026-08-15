@@ -12,6 +12,7 @@ import InventoryChart from "./_components/InventoryChart";
 import TopBrands from "./_components/TopBrands";
 import InventoryAlerts from "./_components/InventoryAlerts";
 import DashboardHero from "./_components/DashboardHero";
+import WebsiteAnalytics from "./_components/WebsiteAnalytics";
 
 import { PageHeader } from "@/components/ui/page-header";
 
@@ -29,14 +30,11 @@ import Link from "next/link";
 
 export default async function DashboardPage() {
 
-
   const user = await requireRole([
     UserRole.OWNER,
     UserRole.ADMIN,
     UserRole.MANAGER,
   ]);
-
-
 
   const [
     products,
@@ -59,94 +57,67 @@ export default async function DashboardPage() {
 
   ] = await Promise.all([
 
-
     prisma.product.count(),
-
 
     prisma.category.count(),
 
-
     prisma.brand.count(),
-
 
     prisma.wishlistItem.count(),
 
-
     prisma.inquiry.count(),
 
-
-
     prisma.inquiry.count({
-      where:{
-        status:"PENDING",
+      where: {
+        status: "PENDING",
       },
     }),
 
-
-
     prisma.inquiry.count({
-      where:{
-        status:"CONTACTED",
+      where: {
+        status: "CONTACTED",
       },
     }),
 
-
-
     prisma.inquiry.count({
-      where:{
-        status:"COMPLETED",
+      where: {
+        status: "COMPLETED",
       },
     }),
 
-
-
     prisma.inquiry.count({
-      where:{
-        status:"CANCELLED",
+      where: {
+        status: "CANCELLED",
       },
     }),
-
-
 
     prisma.product.count({
-      where:{
-        featured:true,
+      where: {
+        featured: true,
       },
     }),
-
-
 
     prisma.product.count({
-      where:{
-        newArrival:true,
+      where: {
+        newArrival: true,
       },
     }),
-
-
 
     prisma.product.count({
-      where:{
-        bestSeller:true,
+      where: {
+        bestSeller: true,
       },
     }),
-
-
 
     prisma.product.findMany(),
 
-
-
     prisma.setting.findFirst(),
-
 
   ]);
 
 
-
-
   const exchangeRate =
     settings?.exchangeRate ?? 0.59;
-
 
 
   const summary =
@@ -156,27 +127,22 @@ export default async function DashboardPage() {
     );
 
 
-
-
   const categoryData =
     Object.values(
       allProducts.reduce(
-        (acc, product)=>{
+        (acc, product) => {
 
           const category =
             product.category;
 
-
-          if(!acc[category]){
-            acc[category]={
-              name:category,
-              value:0,
+          if (!acc[category]) {
+            acc[category] = {
+              name: category,
+              value: 0,
             };
           }
 
-
           acc[category].value++;
-
 
           return acc;
 
@@ -184,36 +150,30 @@ export default async function DashboardPage() {
         {} as Record<
           string,
           {
-            name:string;
-            value:number;
+            name: string;
+            value: number;
           }
         >
       )
     );
-
-
-
 
 
   const brandData =
     Object.values(
       allProducts.reduce(
-        (acc, product)=>{
+        (acc, product) => {
 
           const brand =
             product.brand;
 
-
-          if(!acc[brand]){
-            acc[brand]={
-              name:brand,
-              value:0,
+          if (!acc[brand]) {
+            acc[brand] = {
+              name: brand,
+              value: 0,
             };
           }
 
-
           acc[brand].value++;
-
 
           return acc;
 
@@ -221,25 +181,25 @@ export default async function DashboardPage() {
         {} as Record<
           string,
           {
-            name:string;
-            value:number;
+            name: string;
+            value: number;
           }
         >
       )
     );
-
-
 
 
   const canManage =
     user.role !== UserRole.STAFF;
 
 
-
   return (
 
     <main className="space-y-8">
 
+      {/* ================================================= */}
+      {/* Header */}
+      {/* ================================================= */}
 
       <PageHeader
         title="Dashboard"
@@ -247,6 +207,9 @@ export default async function DashboardPage() {
       />
 
 
+      {/* ================================================= */}
+      {/* Hero */}
+      {/* ================================================= */}
 
       <DashboardHero
         companyName={
@@ -255,18 +218,19 @@ export default async function DashboardPage() {
       />
 
 
-
-
+      {/* ================================================= */}
       {/* Statistics */}
+      {/* ================================================= */}
 
-      <div className="
-        grid
-        gap-5
-        md:grid-cols-2
-        xl:grid-cols-4
-        2xl:grid-cols-6
-      ">
-
+      <div
+        className="
+          grid
+          gap-5
+          md:grid-cols-2
+          xl:grid-cols-4
+          2xl:grid-cols-6
+        "
+      >
 
         <StatCard
           title="Products"
@@ -274,13 +238,11 @@ export default async function DashboardPage() {
           icon="📦"
         />
 
-
         <StatCard
           title="Categories"
           value={categories}
           icon="📂"
         />
-
 
         <StatCard
           title="Brands"
@@ -288,13 +250,11 @@ export default async function DashboardPage() {
           icon="🏷️"
         />
 
-
         <StatCard
           title="Wishlist"
           value={wishlist}
           icon="❤️"
         />
-
 
         <StatCard
           title="Inquiries"
@@ -302,13 +262,11 @@ export default async function DashboardPage() {
           icon="📩"
         />
 
-
         <StatCard
           title="Featured"
           value={featuredProducts}
           icon="⭐"
         />
-
 
         <StatCard
           title="New Arrival"
@@ -316,14 +274,11 @@ export default async function DashboardPage() {
           icon="🆕"
         />
 
-
         <StatCard
           title="Best Seller"
           value={bestSellerProducts}
           icon="🔥"
         />
-
-
 
         <StatCard
           title="Pending"
@@ -331,20 +286,17 @@ export default async function DashboardPage() {
           icon="🟡"
         />
 
-
         <StatCard
           title="Contacted"
           value={contactedInquiries}
           icon="🔵"
         />
 
-
         <StatCard
           title="Completed"
           value={completedInquiries}
           icon="🟢"
         />
-
 
         <StatCard
           title="Cancelled"
@@ -355,53 +307,50 @@ export default async function DashboardPage() {
       </div>
 
 
-
-
-
+      {/* ================================================= */}
       {/* Business Analytics */}
+      {/* ================================================= */}
 
-      <div className="
-        grid
-        gap-5
-        md:grid-cols-2
-        xl:grid-cols-4
-      ">
-
+      <div
+        className="
+          grid
+          gap-5
+          md:grid-cols-2
+          xl:grid-cols-4
+        "
+      >
 
         <BusinessStatCard
           title="Inventory Value"
           value={`RM ${summary.totalCostMyr.toLocaleString(
             undefined,
             {
-              minimumFractionDigits:2,
-              maximumFractionDigits:2,
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
             }
           )}`}
           icon="📦"
         />
-
 
         <BusinessStatCard
           title="Potential Revenue"
           value={`RM ${summary.totalRevenue.toLocaleString(
             undefined,
             {
-              minimumFractionDigits:2,
-              maximumFractionDigits:2,
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
             }
           )}`}
           icon="💰"
         />
-
-
 
         <BusinessStatCard
           title="Estimated Profit"
           value={`RM ${summary.totalProfit.toLocaleString(
             undefined,
             {
-              minimumFractionDigits:2,
-              maximumFractionDigits:2,
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
             }
           )}`}
           icon="📈"
@@ -412,72 +361,74 @@ export default async function DashboardPage() {
           }
         />
 
-
-
         <BusinessStatCard
           title="Average Margin"
           value={`${summary.margin.toFixed(1)}%`}
           icon="🎯"
           color={
-            summary.margin >=30
+            summary.margin >= 30
               ? "text-green-600"
-              : summary.margin >=15
+              : summary.margin >= 15
               ? "text-yellow-600"
               : "text-red-600"
           }
         />
 
-
       </div>
 
 
+      {/* ================================================= */}
+      {/* Website Analytics */}
+      {/* ================================================= */}
+
+      <WebsiteAnalytics />
 
 
+      {/* ================================================= */}
+      {/* Existing Dashboard Content */}
+      {/* ================================================= */}
 
+      <div
+        className="
+          grid
+          gap-5
+          lg:grid-cols-3
+        "
+      >
 
-      <div className="
-        grid
-        gap-5
-        lg:grid-cols-3
-      ">
+        {/* ================================================= */}
+        {/* Main Column */}
+        {/* ================================================= */}
 
-
-        <div className="
-          space-y-6
-          lg:col-span-2
-        ">
-
+        <div
+          className="
+            space-y-6
+            lg:col-span-2
+          "
+        >
 
           <InventoryChart
             title="Products by Category"
             data={categoryData}
           />
 
-
-
           <InventoryChart
             title="Products by Brand"
             data={brandData}
           />
 
-
-
           <RecentProducts />
 
-
-
           <RecentInquiries />
-
 
         </div>
 
 
-
-
+        {/* ================================================= */}
+        {/* Sidebar */}
+        {/* ================================================= */}
 
         <div className="space-y-6">
-
-
 
           {canManage && (
 
@@ -489,11 +440,9 @@ export default async function DashboardPage() {
                 </CardTitle>
               </CardHeader>
 
-
               <CardContent
                 className="space-y-3"
               >
-
 
                 <Link
                   href="/admin/dashboard/products/new"
@@ -504,8 +453,6 @@ export default async function DashboardPage() {
                     ➕ Add Product
                   </Button>
                 </Link>
-
-
 
                 <Link
                   href="/admin/dashboard/categories/new"
@@ -518,8 +465,6 @@ export default async function DashboardPage() {
                   </Button>
                 </Link>
 
-
-
                 <Link
                   href="/admin/dashboard/brands/new"
                 >
@@ -531,26 +476,19 @@ export default async function DashboardPage() {
                   </Button>
                 </Link>
 
-
               </CardContent>
 
             </Card>
 
           )}
 
-
-
           <TopBrands />
-
 
           <InventoryAlerts />
 
-
         </div>
 
-
       </div>
-
 
     </main>
 

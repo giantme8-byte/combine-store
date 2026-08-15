@@ -18,6 +18,8 @@ import ProductAccordion from "@/components/product/ProductAccordion";
 import ProductDetailClient from "@/components/product/ProductDetailClient";
 import ProductOptions from "@/components/product/ProductOptions";
 
+import ProductViewTracker from "@/components/analytics/ProductViewTracker";
+
 /*
  * Cache product pages for 5 minutes.
  */
@@ -427,6 +429,14 @@ export default async function ProductPage({
         lg:py-20
       "
     >
+      {/* ===================================================== */}
+      {/* Analytics - Product View */}
+      {/* ===================================================== */}
+
+      <ProductViewTracker
+        productId={product.id}
+      />
+
       {/* ===================================================== */}
       {/* Recently Viewed Tracker */}
       {/* ===================================================== */}

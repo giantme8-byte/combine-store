@@ -15,7 +15,6 @@ import SearchBar from "./SearchBar";
 import CategoryFilter from "./CategoryFilter";
 import BrandFilter from "./BrandFilter";
 import SubCategoryFilter from "./SubCategoryFilter";
-import ColorFilter from "./ColorFilter";
 import SortDropdown from "./SortDropdown";
 import ProductGrid from "./ProductGrid";
 import SearchAutocomplete from "./SearchAutocomplete";
@@ -52,7 +51,6 @@ type FilterOptions = {
   categories: string[];
   brands: string[];
   subCategories: string[];
-  colors: string[];
 };
 
 type Props = {
@@ -118,10 +116,6 @@ export default function ShopClient({
       "subCategory"
     );
 
-  const urlColor =
-    searchParams.get("color") ??
-    "All";
-
   const urlSearch =
     searchParams.get("search") ??
     "";
@@ -149,9 +143,6 @@ export default function ShopClient({
     urlSubCategories
   );
 
-  const [color, setColor] =
-    useState(urlColor);
-
   const [sort, setSort] =
     useState(urlSort);
 
@@ -170,13 +161,10 @@ export default function ShopClient({
       urlSubCategories
     );
 
-    setColor(urlColor);
-
     setSort(urlSort);
   }, [
     urlSearch,
     urlBrand,
-    urlColor,
     urlSort,
     urlSubCategories.join("|"),
   ]);
@@ -604,25 +592,6 @@ export default function ShopClient({
 
   /*
    * =========================================================
-   * Color
-   * =========================================================
-   */
-
-  function handleColorChange(
-    value: string
-  ) {
-    setColor(value);
-
-    updateParams({
-      color:
-        value === "All"
-          ? null
-          : value,
-    });
-  }
-
-  /*
-   * =========================================================
    * Sort
    * =========================================================
    */
@@ -652,8 +621,6 @@ export default function ShopClient({
     setBrand("All");
 
     setSubCategories([]);
-
-    setColor("All");
 
     setSort("Newest");
 
@@ -815,7 +782,6 @@ export default function ShopClient({
     category !== "All" ||
     brand !== "All" ||
     subCategories.length > 0 ||
-    color !== "All" ||
     sort !== "Newest";
 
   /*
@@ -905,35 +871,33 @@ export default function ShopClient({
             }
           />
 
-          {/* ================================================= */}
-          {/* Sub Category */}
-          {/* ================================================= */}
+{/* ================================================= */}
+{/* Sub Category
+ *
+ * Give Sub Category two
+ * desktop grid columns.
+ *
+ * This is the important fix.
+ * ================================================= */}
 
-          <SubCategoryFilter
-            selected={
-              subCategories
-            }
-            onSelect={
-              handleSubCategoryChange
-            }
-            subCategories={
-              filterOptions.subCategories
-            }
-          />
-
-          {/* ================================================= */}
-          {/* Color */}
-          {/* ================================================= */}
-
-          <ColorFilter
-            selected={color}
-            onSelect={
-              handleColorChange
-            }
-            colors={
-              filterOptions.colors
-            }
-          />
+          <div
+            className="
+              min-w-0
+              xl:col-span-2
+            "
+          >
+            <SubCategoryFilter
+              selected={
+                subCategories
+              }
+              onSelect={
+                handleSubCategoryChange
+              }
+              subCategories={
+                filterOptions.subCategories
+              }
+            />
+          </div>
 
           {/* ================================================= */}
           {/* Sort */}

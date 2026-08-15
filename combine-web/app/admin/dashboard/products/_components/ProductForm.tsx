@@ -20,6 +20,7 @@ import VariantManager from "./VariantManager";
 import type {
   Brand,
   Category,
+  SubCategory,
   Product,
   ProductImage,
   ProductColor,
@@ -56,6 +57,8 @@ type ProductFormProps = {
 
   categories: Category[];
 
+  subCategories: SubCategory[];
+
   brands: Brand[];
 
   packagingProfiles: PackagingProfile[];
@@ -86,6 +89,7 @@ export default function ProductForm({
   product,
   submitText,
   categories,
+  subCategories,
   brands,
   packagingProfiles,
   globalColors,
@@ -1443,6 +1447,9 @@ export default function ProductForm({
               <CategorySelect
                 categories={
                   categories
+                }
+                subCategories={
+                  subCategories
                 }
                 product={
                   product

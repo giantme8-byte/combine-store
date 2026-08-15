@@ -15,19 +15,25 @@ export default function SubCategoryFilter({
     value: string
   ) {
     /*
+     * =====================================================
      * All
      *
      * Selecting All clears
-     * every selected sub category.
+     * every selected sub-category.
+     * =====================================================
      */
+
     if (value === "All") {
       onSelect([]);
       return;
     }
 
     /*
-     * Toggle selected value.
+     * =====================================================
+     * Toggle Selected Value
+     * =====================================================
      */
+
     const exists =
       selected.includes(value);
 
@@ -54,17 +60,21 @@ export default function SubCategoryFilter({
   return (
     <div
       className="
-        space-y-3
-        sm:space-y-4
+        w-full
+        min-w-0
+        space-y-4
+        sm:space-y-5
       "
     >
       {/* ================================================= */}
-      {/* Label */}
+      {/* Header */}
       {/* ================================================= */}
 
       <div
         className="
           flex
+          w-full
+          min-w-0
           items-center
           justify-between
           gap-3
@@ -72,6 +82,7 @@ export default function SubCategoryFilter({
       >
         <p
           className="
+            min-w-0
             text-[10px]
             font-medium
             uppercase
@@ -89,6 +100,7 @@ export default function SubCategoryFilter({
         {selectedCount > 0 && (
           <span
             className="
+              shrink-0
               rounded-full
               bg-[#C8A96A]/10
               px-2.5
@@ -113,22 +125,22 @@ export default function SubCategoryFilter({
 
       <div
         className="
-          flex
-          max-h-[220px]
-          flex-wrap
+          grid
+          w-full
+          min-w-0
+          grid-cols-2
           gap-2
-          overflow-y-auto
-          pr-1
-          sm:max-h-[280px]
-          sm:gap-2.5
+          sm:grid-cols-3
+          sm:gap-3
+          xl:grid-cols-4
+          xl:gap-3
         "
       >
         {subCategories.map(
           (item) => {
             const active =
               item === "All"
-                ? selectedCount ===
-                  0
+                ? selectedCount === 0
                 : selected.includes(
                     item
                   );
@@ -144,23 +156,27 @@ export default function SubCategoryFilter({
                   )
                 }
                 className={`
-                  group
-                  min-h-10
-                  rounded-full
+                  flex
+                  min-h-12
+                  w-full
+                  min-w-0
+                  items-center
+                  justify-center
+                  rounded-xl
                   border
-                  px-3.5
-                  py-2
-                  text-[10px]
-                  font-medium
-                  tracking-[0.04em]
+                  px-3
+                  py-3
+                  text-center
                   transition-all
                   duration-300
                   active:scale-[0.97]
 
-                  sm:min-h-11
+                  sm:min-h-13
                   sm:px-4
-                  sm:py-2.5
-                  sm:text-[11px]
+                  sm:py-3
+
+                  xl:min-h-14
+                  xl:px-4
 
                   ${
                     active
@@ -185,17 +201,20 @@ export default function SubCategoryFilter({
                 <span
                   className="
                     flex
+                    w-full
+                    min-w-0
                     items-center
-                    gap-2
+                    justify-center
+                    gap-1.5
                   "
                 >
                   {/* Check */}
 
                   {active &&
-                    item !==
-                      "All" && (
+                    item !== "All" && (
                       <span
                         className="
+                          shrink-0
                           text-[10px]
                           font-semibold
                         "
@@ -204,7 +223,28 @@ export default function SubCategoryFilter({
                       </span>
                     )}
 
-                  {item}
+                  {/* Text */}
+
+                  <span
+                    className="
+                      min-w-0
+                      max-w-full
+                      text-center
+                      text-[10px]
+                      font-medium
+                      leading-4
+                      tracking-[0.02em]
+                      break-words
+
+                      sm:text-[11px]
+                      sm:leading-5
+
+                      xl:text-[12px]
+                      xl:leading-5
+                    "
+                  >
+                    {item}
+                  </span>
                 </span>
               </button>
             );
@@ -226,7 +266,7 @@ export default function SubCategoryFilter({
           sm:tracking-[0.25em]
         "
       >
-        Select multiple categories
+        Select multiple sub-categories
       </p>
     </div>
   );

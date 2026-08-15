@@ -3,11 +3,11 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 
-export default async function BestSellers() {
-  const allBestSellerProducts =
+export default async function LimitedCollection() {
+  const allLimitedProducts =
     await prisma.product.findMany({
       where: {
-        bestSeller: true,
+        limited: true,
       },
 
       select: {
@@ -25,6 +25,8 @@ export default async function BestSellers() {
         onSale: true,
 
         images: {
+          take: 2,
+
           select: {
             url: true,
           },
@@ -32,19 +34,17 @@ export default async function BestSellers() {
           orderBy: {
             sortOrder: "asc",
           },
-
-          take: 2,
         },
       },
     });
 
   /*
    * =========================================================
-   * RANDOMIZE BEST SELLERS
+   * RANDOMIZE LIMITED PRODUCTS
    * =========================================================
    *
-   * Every time the homepage renders, Best Seller products
-   * are shuffled and a random selection of 4 is displayed.
+   * Every time the homepage renders, the Limited products
+   * are shuffled and a different selection of 4 may appear.
    *
    * Example:
    *
@@ -52,17 +52,12 @@ export default async function BestSellers() {
    * Refresh 2 → G I A E
    * Refresh 3 → C F H B
    *
-   * No manual product sorting is required.
+   * No manual sorting is required.
    * =========================================================
    */
 
-  const products = [
-    ...allBestSellerProducts,
-  ]
-    .sort(
-      () =>
-        Math.random() - 0.5
-    )
+  const products = [...allLimitedProducts]
+    .sort(() => Math.random() - 0.5)
     .slice(0, 4);
 
   return (
@@ -94,19 +89,18 @@ export default async function BestSellers() {
           className="
             text-[10px]
             uppercase
-            tracking-[0.45em]
+            tracking-[0.55em]
             text-neutral-400
             sm:text-xs
-            sm:tracking-[0.55em]
           "
         >
-          BEST SELLERS
+          LIMITED COLLECTION
         </p>
 
         <h2
           className="
             mt-5
-            text-3xl
+            text-4xl
             font-extralight
             tracking-[-0.04em]
             text-neutral-900
@@ -115,46 +109,47 @@ export default async function BestSellers() {
             md:text-6xl
           "
         >
-          Our Signature Pieces
+          Exclusively Selected
         </h2>
 
         <div
           className="
             mx-auto
-            mt-6
+            mt-7
             h-px
-            w-16
+            w-20
             bg-gradient-to-r
             from-transparent
             via-[#C8A96A]
             to-transparent
             sm:mt-8
-            sm:w-20
           "
         />
 
         <p
           className="
             mx-auto
-            mt-6
+            mt-7
             max-w-3xl
-            text-sm
+            px-2
+            text-[15px]
             leading-7
             text-neutral-500
             sm:mt-8
+            sm:px-0
             sm:text-lg
             sm:leading-8
           "
         >
-          Explore our most sought-after luxury pieces, selected for
-          timeless elegance, exceptional craftsmanship and enduring
-          popularity among our clients worldwide.
+          Discover a refined selection of limited pieces, chosen for
+          their distinctive character, exceptional craftsmanship and
+          timeless appeal.
         </p>
 
         <Link
           href="/shop"
           className="
-            mt-8
+            mt-9
             inline-flex
             items-center
             rounded-full
@@ -180,7 +175,7 @@ export default async function BestSellers() {
             sm:tracking-[0.3em]
           "
         >
-          View Collection
+          Explore Collection
         </Link>
       </div>
 
@@ -191,15 +186,24 @@ export default async function BestSellers() {
 
         <div
           className="
+            mx-auto
+            flex
+            max-w-3xl
+            flex-col
+            items-center
             rounded-[28px]
             border
-            border-dashed
-            border-neutral-300
+            border-neutral-200
+            bg-gradient-to-b
+            from-white
+            to-neutral-50
             px-6
-            py-20
+            py-16
             text-center
-            sm:rounded-[32px]
-            sm:py-24
+            shadow-[0_30px_80px_rgba(0,0,0,.05)]
+            sm:rounded-[36px]
+            sm:px-12
+            sm:py-20
           "
         >
           <h3
@@ -211,7 +215,7 @@ export default async function BestSellers() {
               sm:text-3xl
             "
           >
-            Our Signature Collection Is Coming Soon
+            Limited Collection Coming Soon
           </h3>
 
           <p
@@ -219,16 +223,15 @@ export default async function BestSellers() {
               mx-auto
               mt-5
               max-w-xl
-              text-sm
+              text-[15px]
               leading-7
               text-neutral-500
               sm:mt-6
-              sm:text-base
               sm:leading-8
             "
           >
-            We are curating our most iconic luxury pieces. Please check
-            back soon for our signature selection.
+            We are preparing our limited collection. Please check
+            back soon to discover our most exclusive selections.
           </p>
         </div>
       ) : (
@@ -241,9 +244,8 @@ export default async function BestSellers() {
             grid
             grid-cols-2
             gap-3
-            sm:gap-6
+            sm:gap-8
             lg:grid-cols-4
-            lg:gap-8
           "
         >
           {products.map((product) => (

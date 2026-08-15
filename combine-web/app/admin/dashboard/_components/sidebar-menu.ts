@@ -145,9 +145,8 @@ export const sidebarSections: {
 
       {
         title: "Analytics",
-        href: "",
+        href: "/admin/dashboard/analytics",
         icon: ChartColumn,
-        disabled: true,
         roles: [
           UserRole.OWNER,
           UserRole.ADMIN,

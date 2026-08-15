@@ -6,45 +6,95 @@ import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 
 export default async function NewArrivals() {
-  const products = await prisma.product.findMany({
-    where: {
-      newArrival: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 4,
-    select: {
-      id: true,
-      slug: true,
-      brand: true,
-      name: true,
-      model: true,
-      createdAt: true,
+  const allNewArrivalProducts =
+    await prisma.product.findMany({
+      where: {
+        newArrival: true,
+      },
 
-      featured: true,
-      newArrival: true,
-      bestSeller: true,
-      limited: true,
-      onSale: true,
+      select: {
+        id: true,
+        slug: true,
+        brand: true,
+        name: true,
+        model: true,
+        createdAt: true,
 
-      images: {
-        select: {
-          url: true,
-        },
-        orderBy: {
-          sortOrder: "asc",
+        featured: true,
+        newArrival: true,
+        bestSeller: true,
+        limited: true,
+        onSale: true,
+
+        images: {
+          select: {
+            url: true,
+          },
+
+          orderBy: {
+            sortOrder: "asc",
+          },
+
+          take: 2,
         },
       },
-    },
-  });
+    });
+
+  /*
+   * =========================================================
+   * RANDOMIZE NEW ARRIVALS
+   * =========================================================
+   *
+   * Every time the homepage renders, New Arrival products
+   * are shuffled and a random selection of 4 is displayed.
+   *
+   * Example:
+   *
+   * Refresh 1 → A B C D
+   * Refresh 2 → G I A E
+   * Refresh 3 → C F H B
+   *
+   * Only products with newArrival = true are included.
+   *
+   * No manual sorting is required.
+   * =========================================================
+   */
+
+  const products = [
+    ...allNewArrivalProducts,
+  ]
+    .sort(
+      () =>
+        Math.random() - 0.5
+    )
+    .slice(0, 4);
 
   return (
-    <section className="mx-auto max-w-[1600px] px-4 py-20 sm:px-8 sm:py-32 lg:px-14 lg:py-36">
-
+    <section
+      className="
+        mx-auto
+        max-w-[1600px]
+        px-4
+        py-20
+        sm:px-8
+        sm:py-32
+        lg:px-14
+        lg:py-36
+      "
+    >
+      {/* ================================================= */}
       {/* Header */}
-      <div className="mx-auto mb-16 max-w-5xl text-center sm:mb-24">
+      {/* ================================================= */}
 
+      <div
+        className="
+          mx-auto
+          mb-16
+          max-w-5xl
+          text-center
+          sm:mb-24
+        "
+      >
         <p
           className="
             text-[10px]
@@ -104,10 +154,13 @@ export default async function NewArrivals() {
           for exceptional craftsmanship, timeless elegance and
           modern sophistication.
         </p>
-
       </div>
 
       {products.length === 0 ? (
+        /* ================================================= */
+        /* Empty State */
+        /* ================================================= */
+
         <div
           className="
             rounded-[28px]
@@ -154,36 +207,18 @@ export default async function NewArrivals() {
         </div>
       ) : (
         <>
-          {/* Products */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-8 lg:grid-cols-4">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                slug={product.slug ?? ""}
-                brand={product.brand}
-                name={product.name}
-                model={product.model}
-                image={
-                  product.images[0]?.url ??
-                  "/placeholder.png"
-                }
-                secondImage={
-                  product.images[1]?.url
-                }
-                createdAt={product.createdAt}
-                featured={product.featured}
-                newArrival={product.newArrival}
-                bestSeller={product.bestSeller}
-                limited={product.limited}
-                onSale={product.onSale}
-              />
-            ))}
-          </div>
-
+          {/* ================================================= */}
           {/* View All */}
-          <div className="mt-14 flex justify-center sm:mt-20">
+          {/* ================================================= */}
 
+          <div
+            className="
+              mb-12
+              flex
+              justify-center
+              sm:mb-16
+            "
+          >
             <Link
               href="/shop?filter=new"
               className="
@@ -221,13 +256,48 @@ export default async function NewArrivals() {
                   group-hover:translate-x-1
                 "
               />
-
             </Link>
+          </div>
 
+          {/* ================================================= */}
+          {/* Products */}
+          {/* ================================================= */}
+
+          <div
+            className="
+              grid
+              grid-cols-2
+              gap-3
+              sm:gap-8
+              lg:grid-cols-4
+            "
+          >
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                slug={product.slug ?? ""}
+                brand={product.brand}
+                name={product.name}
+                model={product.model}
+                image={
+                  product.images[0]?.url ??
+                  "/placeholder.png"
+                }
+                secondImage={
+                  product.images[1]?.url
+                }
+                createdAt={product.createdAt}
+                featured={product.featured}
+                newArrival={product.newArrival}
+                bestSeller={product.bestSeller}
+                limited={product.limited}
+                onSale={product.onSale}
+              />
+            ))}
           </div>
         </>
       )}
-
     </section>
   );
 }

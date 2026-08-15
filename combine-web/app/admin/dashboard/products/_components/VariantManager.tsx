@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   DndContext,
@@ -76,7 +76,9 @@ function SortableVariantImage({
       CSS.Transform.toString(
         transform
       ),
-    transition,
+    transition:
+      transition ??
+      "transform 180ms cubic-bezier(0.2, 0, 0, 1)",
   };
 
   return (
@@ -91,13 +93,12 @@ function SortableVariantImage({
         border
         bg-white
         shadow-sm
-        transition-all
+        transition-shadow
         duration-200
         ${
           isDragging
             ? `
               z-50
-              scale-[1.02]
               border-black
               shadow-2xl
               ring-2
@@ -105,7 +106,7 @@ function SortableVariantImage({
             `
             : `
               border-neutral-200
-              hover:-translate-y-0.5
+              shadow-sm
               hover:shadow-md
             `
         }
@@ -121,15 +122,13 @@ function SortableVariantImage({
         className={`
           relative
           aspect-square
-          cursor-grab
-          select-none
           overflow-hidden
           bg-neutral-50
-          active:cursor-grabbing
+          select-none
           ${
             isDragging
               ? "cursor-grabbing"
-              : ""
+              : "cursor-grab"
           }
         `}
       >
@@ -141,15 +140,18 @@ function SortableVariantImage({
           fill
           unoptimized
           draggable={false}
-          className="
+          className={`
             pointer-events-none
+            h-full
+            w-full
             select-none
             object-contain
-            transition-transform
-            duration-300
-            ease-out
-            group-hover:scale-[1.02]
-          "
+            ${
+              isDragging
+                ? ""
+                : "transition-transform duration-200 ease-out group-hover:scale-[1.01]"
+            }
+          `}
         />
 
         {/* =================================================
@@ -356,7 +358,7 @@ function VariantImageGallery({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 6,
+        distance: 8,
       },
     })
   );
@@ -567,7 +569,7 @@ function VariantImageGallery({
 
             <p className="mt-1 text-xs text-neutral-500">
               Upload multiple images and
-              drag to reorder them.
+              drag any image to reorder them.
             </p>
           </div>
 
@@ -778,6 +780,55 @@ export default function VariantManager({
         !variant.deleted
     );
 
+  const hasMultipleColors =
+    availableColors.length > 1;
+
+  const singleColorId =
+    availableColors.length === 1
+      ? availableColors[0].colorId
+      : null;
+
+  /* =========================================================
+   * SINGLE COLOR PRODUCTS
+   * =======================================================
+   *
+   * When a product has exactly one Product Color, automatically
+   * link every active Variant to that color. The user should not
+   * have to select the same color repeatedly for every Variant.
+   *
+   * When there are multiple Product Colors, Variant colors remain
+   * selectable per Variant.
+   * ======================================================= */
+
+  useEffect(() => {
+    if (singleColorId == null) {
+      return;
+    }
+
+    let changed = false;
+
+    const next = variants.map((variant) => {
+      if (variant.deleted) {
+        return variant;
+      }
+
+      if (variant.colorId === singleColorId) {
+        return variant;
+      }
+
+      changed = true;
+
+      return {
+        ...variant,
+        colorId: singleColorId,
+      };
+    });
+
+    if (changed) {
+      onChange(next);
+    }
+  }, [singleColorId, variants, onChange]);
+
   function addVariant() {
     onChange([
       ...variants,
@@ -950,24 +1001,22 @@ export default function VariantManager({
         </button>
       </div>
 
-      {/* =====================================================
-       * NO COLORS WARNING
-       * =================================================== */}
+{/* =====================================================
+ * COLOR MODE
+ * =================================================== */}
 
-      {availableColors.length ===
-        0 && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-          <p className="text-sm font-medium text-amber-800">
-            Add at least one Product Color
-            first.
-          </p>
+{availableColors.length === 0 && (
+  <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 px-5 py-4">
+    <p className="text-sm font-medium text-neutral-800">
+      Single-color product
+    </p>
 
-          <p className="mt-1 text-xs text-amber-700">
-            Variant colors can only be selected
-            from the Product Colors added above.
-          </p>
-        </div>
-      )}
+    <p className="mt-1 text-xs text-neutral-500">
+      Variant color selection is not required.
+      The product Primary Color will be used.
+    </p>
+  </div>
+)}
 
       {/* =====================================================
        * EMPTY STATE
@@ -1014,9 +1063,11 @@ export default function VariantManager({
                   variant.colorId
               );
 
-            const colorName =
+                    const colorName =
               selectedColor?.name ??
-              "Variant";
+              (availableColors.length === 1
+                ? availableColors[0].name || "Variant"
+                : "Variant");
 
             return (
               <div
@@ -1084,106 +1135,110 @@ export default function VariantManager({
                    * COLOR
                    * ================================================= */}
 
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-neutral-700">
-                      Color
-                    </label>
+                  {hasMultipleColors ? (
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-neutral-700">
+                        Color
+                      </label>
 
-                    <select
-                      value={
-                        variant.colorId ??
-                        ""
-                      }
-                      onChange={(e) => {
-                        const value =
-                          e.target.value;
+                      <select
+                        value={
+                          variant.colorId ??
+                          ""
+                        }
+                        onChange={(e) => {
+                          const value =
+                            e.target.value;
 
-                        updateVariant(
-                          actualIndex,
-                          "colorId",
-                          value ===
-                            ""
-                            ? null
-                            : Number(
-                                value
-                              )
-                        );
-                      }}
-                      className="
-                        w-full
-                        rounded-xl
-                        border
-                        border-neutral-300
-                        bg-white
-                        px-4
-                        py-3
-                        transition-all
-                        duration-200
-                        focus:border-black
-                        focus:outline-none
-                        focus:ring-2
-                        focus:ring-black/5
-                      "
-                    >
-                      <option value="">
-                        Select Product Color
-                      </option>
-
-                      {availableColors.map(
-                        (
-                          color
-                        ) => (
-                          <option
-                            key={
-                              color.id
-                            }
-                            value={
-                              color.colorId ??
+                          updateVariant(
+                            actualIndex,
+                            "colorId",
+                            value ===
                               ""
-                            }
-                            disabled={
-                              color.colorId ===
-                              null
-                            }
-                          >
-                            {color.name ||
-                              "Unnamed Color"}
-                          </option>
-                        )
-                      )}
-                    </select>
+                              ? null
+                              : Number(
+                                  value
+                                )
+                          );
+                        }}
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-neutral-300
+                          bg-white
+                          px-4
+                          py-3
+                          transition-all
+                          duration-200
+                          focus:border-black
+                          focus:outline-none
+                          focus:ring-2
+                          focus:ring-black/5
+                        "
+                      >
+                        <option value="">
+                          Select Product Color
+                        </option>
 
-                    {availableColors.length ===
-                      0 && (
-                      <p className="mt-2 text-xs text-amber-600">
-                        Please add a Product
-                        Color before creating
-                        a Variant.
-                      </p>
-                    )}
+                        {availableColors.map(
+                          (
+                            color
+                          ) => (
+                            <option
+                              key={
+                                color.id
+                              }
+                              value={
+                                color.colorId ??
+                                ""
+                              }
+                              disabled={
+                                color.colorId ===
+                                null
+                              }
+                            >
+                              {color.name ||
+                                "Unnamed Color"}
+                            </option>
+                          )
+                        )}
+                      </select>
 
-                    {availableColors.length >
-                      0 &&
-                      !variant.colorId && (
+                      {!variant.colorId && (
                         <p className="mt-2 text-xs text-amber-600">
                           Please select a Product
                           Color.
                         </p>
                       )}
 
-                    {selectedColor && (
-                      <p className="mt-2 text-xs text-neutral-500">
-                        This Variant is linked
-                        to{" "}
-                        <span className="font-medium text-neutral-800">
-                          {
-                            selectedColor.name
-                          }
-                        </span>
-                        .
+                      {selectedColor && (
+                        <p className="mt-2 text-xs text-neutral-500">
+                          This Variant is linked
+                          to{" "}
+                          <span className="font-medium text-neutral-800">
+                            {
+                              selectedColor.name
+                            }
+                          </span>
+                          .
+                        </p>
+                      )}
+                    </div>
+                  ) : availableColors.length === 1 ? (
+                    <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                      <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+                        Color
                       </p>
-                    )}
-                  </div>
+                      <p className="mt-1 text-sm font-medium text-neutral-800">
+                        {availableColors[0].name ||
+                          "Unnamed Color"}
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Automatically applied to this Variant.
+                      </p>
+                    </div>
+                  ) : null}
 
                   {/* =================================================
                    * VARIANT IMAGE GALLERY

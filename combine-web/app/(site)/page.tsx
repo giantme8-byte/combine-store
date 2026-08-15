@@ -4,7 +4,7 @@ import CollectionSection from "@/components/collections/CollectionSection";
 import BrandShowcase from "@/components/BrandShowcase";
 import NewArrivals from "@/components/NewArrivals";
 import BestSellers from "@/components/BestSellers";
-import FeaturedCollection from "@/components/FeaturedCollection";
+import LimitedCollection from "@/components/LimitedCollection";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import MotionSection from "@/components/MotionSection";
 
@@ -34,7 +34,7 @@ export default function Home() {
       </MotionSection>
 
       <MotionSection delay={0.2}>
-        <FeaturedCollection />
+        <LimitedCollection />
       </MotionSection>
 
       <MotionSection delay={0.25}>

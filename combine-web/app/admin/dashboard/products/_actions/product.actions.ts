@@ -23,6 +23,120 @@ type ColorGalleryImage = {
   deleted?: boolean;
 };
 
+
+async function getProductCategoryRelations(
+  formData: FormData
+) {
+  const categoryIdValue =
+    formData
+      .get("categoryId")
+      ?.toString()
+      .trim() ?? "";
+
+  const subCategoryIdValue =
+    formData
+      .get("subCategoryId")
+      ?.toString()
+      .trim() ?? "";
+
+  if (!categoryIdValue) {
+    throw new Error(
+      "Category is required."
+    );
+  }
+
+  const categoryId =
+    Number(categoryIdValue);
+
+  if (
+    !Number.isInteger(categoryId) ||
+    categoryId <= 0
+  ) {
+    throw new Error(
+      "Invalid category."
+    );
+  }
+
+  const category =
+    await prisma.category.findUnique({
+      where: {
+        id: categoryId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+  if (!category) {
+    throw new Error(
+      "Selected category does not exist."
+    );
+  }
+
+  let subCategoryId:
+    number | null = null;
+
+  let subCategoryName:
+    string | null = null;
+
+  if (subCategoryIdValue) {
+    const parsedSubCategoryId =
+      Number(subCategoryIdValue);
+
+    if (
+      !Number.isInteger(
+        parsedSubCategoryId
+      ) ||
+      parsedSubCategoryId <= 0
+    ) {
+      throw new Error(
+        "Invalid sub-category."
+      );
+    }
+
+    const subCategory =
+      await prisma.subCategory.findUnique({
+        where: {
+          id: parsedSubCategoryId,
+        },
+        select: {
+          id: true,
+          name: true,
+          categoryId: true,
+        },
+      });
+
+    if (!subCategory) {
+      throw new Error(
+        "Selected sub-category does not exist."
+      );
+    }
+
+    if (
+      subCategory.categoryId !==
+      category.id
+    ) {
+      throw new Error(
+        "Selected sub-category does not belong to the selected category."
+      );
+    }
+
+    subCategoryId =
+      subCategory.id;
+
+    subCategoryName =
+      subCategory.name;
+  }
+
+  return {
+    categoryId: category.id,
+    categoryName: category.name,
+    subCategoryId,
+    subCategoryName,
+  };
+}
+
 function getCustomPackagingId(formData: FormData) {
   const value = formData
     .get("customPackagingId")
@@ -485,6 +599,10 @@ export async function createProduct(
       getCustomPackagingId(
         formData
       );
+    const categoryRelations =
+      await getProductCategoryRelations(
+        formData
+      );
 
     // =========================================================
     // Create Product
@@ -548,14 +666,16 @@ export async function createProduct(
           ) as string,
 
         category:
-          formData.get(
-            "category"
-          ) as string,
+          categoryRelations.categoryName,
 
         subCategory:
-          formData
-            .get("subCategory")
-            ?.toString() || null,
+          categoryRelations.subCategoryName,
+
+        categoryId:
+          categoryRelations.categoryId,
+
+        subCategoryId:
+          categoryRelations.subCategoryId,
 
         mainColor:
           formData
@@ -1024,6 +1144,10 @@ export async function updateProduct(
       getCustomPackagingId(
         formData
       );
+    const categoryRelations =
+      await getProductCategoryRelations(
+        formData
+      );
 
     await prisma.product.update({
       where: {
@@ -1085,14 +1209,16 @@ export async function updateProduct(
           ) as string,
 
         category:
-          formData.get(
-            "category"
-          ) as string,
+          categoryRelations.categoryName,
 
         subCategory:
-          formData
-            .get("subCategory")
-            ?.toString() || null,
+          categoryRelations.subCategoryName,
+
+        categoryId:
+          categoryRelations.categoryId,
+
+        subCategoryId:
+          categoryRelations.subCategoryId,
 
         mainColor:
           formData
@@ -1746,6 +1872,12 @@ export async function duplicateProduct(
 
         subCategory:
           product.subCategory,
+
+        categoryId:
+          product.categoryId,
+
+        subCategoryId:
+          product.subCategoryId,
 
         name:
           `${product.name} (Copy)`,

@@ -16,6 +16,7 @@ export default async function EditProductPage({
     product,
     brands,
     categories,
+    subCategories,
     packagingProfiles,
     settings,
     colors,
@@ -92,6 +93,31 @@ export default async function EditProductPage({
     }),
 
     /*
+     * Active Sub Categories
+     *
+     * Loaded from database.
+     *
+     * CategorySelect will automatically
+     * filter these according to the
+     * selected Category.
+     */
+    prisma.subCategory.findMany({
+      where: {
+        active: true,
+      },
+
+      orderBy: [
+        {
+          sortOrder: "asc",
+        },
+
+        {
+          name: "asc",
+        },
+      ],
+    }),
+
+    /*
      * Packaging Profiles
      */
     prisma.packagingProfile.findMany({
@@ -144,6 +170,7 @@ export default async function EditProductPage({
       product={product}
       submitText="Update Product"
       categories={categories}
+      subCategories={subCategories}
       brands={brands}
       packagingProfiles={packagingProfiles}
       exchangeRate={

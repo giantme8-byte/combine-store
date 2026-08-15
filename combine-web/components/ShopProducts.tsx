@@ -8,6 +8,12 @@ type ShopProductsProps = {
   brand?: string;
   category?: string;
   subCategory?: string[];
+  /*
+   * Kept for compatibility with any existing
+   * page-level props.
+   *
+   * Color is no longer used by the Shop filter.
+   */
   color?: string;
   search?: string;
   sort?: string;
@@ -24,19 +30,23 @@ function buildWhere({
   brand,
   category,
   subCategory,
-  color,
   search,
 }: {
   brand?: string;
   category?: string;
   subCategory?: string[];
-  color?: string;
   search?: string;
 }) {
   const keyword =
     search?.trim().slice(0, 100) ?? "";
 
   return {
+    /*
+     * =====================================================
+     * Brand
+     * =====================================================
+     */
+
     ...(brand &&
     brand !== "All"
       ? {
@@ -44,43 +54,39 @@ function buildWhere({
         }
       : {}),
 
+    /*
+     * =====================================================
+     * Category Relation
+     * =====================================================
+     */
+
     ...(category &&
     category !== "All"
       ? {
-          category,
+          categoryRecord: {
+            is: {
+              name: category,
+            },
+          },
         }
       : {}),
 
     /*
      * =====================================================
      * Multiple Sub Categories
-     *
-     * Example:
-     *
-     * ["Shoulder Bags", "Crossbody Bags"]
-     *
-     * becomes:
-     *
-     * subCategory IN (
-     *   "Shoulder Bags",
-     *   "Crossbody Bags"
-     * )
      * =====================================================
      */
 
     ...(subCategory &&
     subCategory.length > 0
       ? {
-          subCategory: {
-            in: subCategory,
+          subCategoryRecord: {
+            is: {
+              name: {
+                in: subCategory,
+              },
+            },
           },
-        }
-      : {}),
-
-    ...(color &&
-    color !== "All"
-      ? {
-          mainColor: color,
         }
       : {}),
 
@@ -132,6 +138,26 @@ function buildWhere({
             {
               mainColor: {
                 contains: keyword,
+              },
+            },
+
+            {
+              categoryRecord: {
+                is: {
+                  name: {
+                    contains: keyword,
+                  },
+                },
+              },
+            },
+
+            {
+              subCategoryRecord: {
+                is: {
+                  name: {
+                    contains: keyword,
+                  },
+                },
               },
             },
           ],
@@ -250,13 +276,6 @@ const productSelect = {
       sortOrder: "asc" as const,
     },
 
-    /*
-     * ProductCard only needs:
-     *
-     * 1. Main image
-     * 2. Hover image
-     */
-
     take: 2,
   },
 };
@@ -271,7 +290,6 @@ export default async function ShopProducts({
   brand,
   category,
   subCategory,
-  color,
   search,
   sort,
   page,
@@ -286,7 +304,6 @@ export default async function ShopProducts({
     brand,
     category,
     subCategory,
-    color,
     search,
   });
 
@@ -369,8 +386,23 @@ export default async function ShopProducts({
     brands,
     categories,
     subCategories,
-    colors,
     featuredProducts,
+
+    /*
+     * Product Category Relations
+     *
+     * Used only to determine which
+     * categories actually have products.
+     */
+    productCategoryRecords,
+
+    /*
+     * Product Sub-Category Relations
+     *
+     * Used only to determine which
+     * sub-categories actually have products.
+     */
+    productSubCategoryRecords,
   ] = await Promise.all([
     /*
      * =====================================================
@@ -393,6 +425,9 @@ export default async function ShopProducts({
     /*
      * =====================================================
      * Brand Options
+     *
+     * Brands are automatically based on
+     * actual products.
      * =====================================================
      */
 
@@ -412,10 +447,10 @@ export default async function ShopProducts({
      * =====================================================
      * Category Options
      *
-     * Categories come directly from
-     * the Admin Dashboard Category table.
+     * Only active Categories are loaded.
      *
-     * Only active categories are shown.
+     * Product existence is checked separately
+     * below using Product.categoryRecord.
      * =====================================================
      */
 
@@ -425,6 +460,7 @@ export default async function ShopProducts({
       },
 
       select: {
+        id: true,
         name: true,
       },
 
@@ -437,31 +473,34 @@ export default async function ShopProducts({
      * =====================================================
      * Sub Category Options
      *
-     * IMPORTANT:
+     * Only active Sub-Categories are loaded.
      *
-     * These now come from the dedicated
-     * SubCategory table.
-     *
-     * They are NOT hard-coded.
-     *
-     * Therefore:
-     *
-     * Admin Dashboard
-     *      ↓
-     * SubCategory table
-     *      ↓
-     * Public Shop
+     * They are filtered by selected Category
+     * and sorted by Admin sortOrder.
      * =====================================================
      */
 
     prisma.subCategory.findMany({
       where: {
         active: true,
+
+        ...(category &&
+        category !== "All"
+          ? {
+              category: {
+                is: {
+                  name: category,
+                },
+              },
+            }
+          : {}),
       },
 
       select: {
+        id: true,
         name: true,
         sortOrder: true,
+        categoryId: true,
       },
 
       orderBy: [
@@ -472,30 +511,6 @@ export default async function ShopProducts({
           name: "asc",
         },
       ],
-    }),
-
-    /*
-     * =====================================================
-     * Color Options
-     * =====================================================
-     */
-
-    prisma.product.findMany({
-      where: {
-        mainColor: {
-          not: null,
-        },
-      },
-
-      select: {
-        mainColor: true,
-      },
-
-      distinct: ["mainColor"],
-
-      orderBy: {
-        mainColor: "asc",
-      },
     }),
 
     /*
@@ -523,7 +538,120 @@ export default async function ShopProducts({
 
       select: productSelect,
     }),
+
+    /*
+     * =====================================================
+     * Existing Product Categories
+     *
+     * This query gives us the actual Categories
+     * currently connected to Products.
+     *
+     * Therefore an empty Category will never
+     * appear on the customer-facing Shop.
+     * =====================================================
+     */
+
+    prisma.product.findMany({
+      where: {
+        categoryRecord: {
+          isNot: null,
+        },
+      },
+
+      select: {
+        categoryRecord: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    }),
+
+    /*
+     * =====================================================
+     * Existing Product Sub-Categories
+     *
+     * This query gives us the actual Sub-Categories
+     * currently connected to Products.
+     *
+     * Therefore an empty Sub-Category will never
+     * appear on the customer-facing Shop.
+     * =====================================================
+     */
+
+    prisma.product.findMany({
+      where: {
+        subCategoryRecord: {
+          isNot: null,
+        },
+      },
+
+      select: {
+        subCategoryRecord: {
+          select: {
+            id: true,
+            name: true,
+            categoryId: true,
+          },
+        },
+      },
+    }),
   ]);
+
+  /*
+   * =========================================================
+   * Build Existing Category Set
+   * =========================================================
+   */
+
+  const existingCategoryIds =
+    new Set<number>();
+
+  const existingCategoryNames =
+    new Set<string>();
+
+  for (const product of
+    productCategoryRecords) {
+    if (
+      product.categoryRecord
+    ) {
+      existingCategoryIds.add(
+        product.categoryRecord.id
+      );
+
+      existingCategoryNames.add(
+        product.categoryRecord.name
+      );
+    }
+  }
+
+  /*
+   * =========================================================
+   * Build Existing Sub-Category Set
+   * =========================================================
+   */
+
+  const existingSubCategoryIds =
+    new Set<number>();
+
+  const existingSubCategoryNames =
+    new Set<string>();
+
+  for (const product of
+    productSubCategoryRecords) {
+    if (
+      product.subCategoryRecord
+    ) {
+      existingSubCategoryIds.add(
+        product.subCategoryRecord.id
+      );
+
+      existingSubCategoryNames.add(
+        product.subCategoryRecord.name
+      );
+    }
+  }
 
   /*
    * =========================================================
@@ -612,7 +740,11 @@ export default async function ShopProducts({
 
   /*
    * =========================================================
-   * Filter Options
+   * Brand Options
+   *
+   * These already come from Product,
+   * so every listed Brand has at least
+   * one Product.
    * =========================================================
    */
 
@@ -635,6 +767,15 @@ export default async function ShopProducts({
   /*
    * =========================================================
    * Category Options
+   *
+   * IMPORTANT:
+   *
+   * Only Categories that:
+   *
+   * 1. Are active
+   * 2. Have at least one Product
+   *
+   * will appear.
    * =========================================================
    */
 
@@ -642,9 +783,18 @@ export default async function ShopProducts({
     "All",
 
     ...categories
+      .filter(
+        (categoryItem) =>
+          existingCategoryIds.has(
+            categoryItem.id
+          ) &&
+          existingCategoryNames.has(
+            categoryItem.name
+          )
+      )
       .map(
-        (item) =>
-          item.name
+        (categoryItem) =>
+          categoryItem.name
       )
       .filter(
         (
@@ -658,8 +808,17 @@ export default async function ShopProducts({
    * =========================================================
    * Sub Category Options
    *
-   * These names come directly from
-   * the SubCategory database table.
+   * IMPORTANT:
+   *
+   * Only Sub-Categories that:
+   *
+   * 1. Are active
+   * 2. Belong to the selected Category
+   *    when a Category is selected
+   * 3. Have at least one Product
+   * 4. Follow Admin sortOrder
+   *
+   * will appear.
    * =========================================================
    */
 
@@ -667,37 +826,24 @@ export default async function ShopProducts({
     "All",
 
     ...subCategories
+      .filter(
+        (subCategoryItem) =>
+          existingSubCategoryIds.has(
+            subCategoryItem.id
+          ) &&
+          existingSubCategoryNames.has(
+            subCategoryItem.name
+          )
+      )
       .map(
-        (item) =>
-          item.name
+        (subCategoryItem) =>
+          subCategoryItem.name
       )
       .filter(
         (
           value
         ): value is string =>
           Boolean(value)
-      ),
-  ];
-
-  /*
-   * =========================================================
-   * Color Options
-   * =========================================================
-   */
-
-  const colorOptions = [
-    "All",
-
-    ...colors
-      .map(
-        (item) =>
-          item.mainColor
-      )
-      .filter(
-        (
-          value
-        ): value is string =>
-          value !== null
       ),
   ];
 
@@ -742,9 +888,6 @@ export default async function ShopProducts({
 
         subCategories:
           subCategoryOptions,
-
-        colors:
-          colorOptions,
       }}
     />
   );

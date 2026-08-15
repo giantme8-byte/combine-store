@@ -2,12 +2,81 @@
 
 import { MessageCircle } from "lucide-react";
 
+const VISITOR_STORAGE_KEY =
+  "combine-analytics-visitor-id";
+
+function getVisitorId() {
+  try {
+    const existing =
+      window.localStorage.getItem(
+        VISITOR_STORAGE_KEY
+      );
+
+    if (existing) {
+      return existing;
+    }
+
+    const visitorId =
+      crypto.randomUUID();
+
+    window.localStorage.setItem(
+      VISITOR_STORAGE_KEY,
+      visitorId
+    );
+
+    return visitorId;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
 export default function FloatingWhatsApp() {
+  const handleWhatsAppClick = () => {
+    try {
+      const visitorId =
+        getVisitorId();
+
+      fetch(
+        "/api/analytics/track",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            visitorId,
+            event:
+              "WHATSAPP_CLICK",
+            path:
+              window.location.pathname,
+          }),
+
+          keepalive: true,
+        }
+      ).catch(() => {
+        /*
+         * Analytics must never interrupt
+         * the customer's WhatsApp experience.
+         */
+      });
+    } catch {
+      /*
+       * Ignore analytics errors.
+       */
+    }
+  };
+
   return (
     <a
       href="https://wa.me/60166620448"
       target="_blank"
       rel="noopener noreferrer"
+      onClick={
+        handleWhatsAppClick
+      }
       className="
         group
         fixed

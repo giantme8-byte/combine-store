@@ -7,6 +7,7 @@ export default async function NewProductPage() {
   const [
     brands,
     categories,
+    subCategories,
     packagingProfiles,
     settings,
     colors,
@@ -35,6 +36,30 @@ export default async function NewProductPage() {
       orderBy: {
         name: "asc",
       },
+    }),
+
+    /*
+     * Active Sub Categories
+     *
+     * Loaded from database.
+     *
+     * ProductForm will filter these
+     * according to the selected Category.
+     */
+    prisma.subCategory.findMany({
+      where: {
+        active: true,
+      },
+
+      orderBy: [
+        {
+          sortOrder: "asc",
+        },
+
+        {
+          name: "asc",
+        },
+      ],
     }),
 
     /*
@@ -93,6 +118,7 @@ export default async function NewProductPage() {
       action={createProduct}
       submitText="Create Product"
       categories={categories}
+      subCategories={subCategories}
       brands={brands}
       packagingProfiles={packagingProfiles}
       exchangeRate={
