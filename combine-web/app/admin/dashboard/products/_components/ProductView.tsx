@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { LayoutGrid, Table } from "lucide-react";
+import {
+  LayoutGrid,
+  Table,
+} from "lucide-react";
 
 import type {
   ProductWithImages,
@@ -31,6 +34,8 @@ type ProductViewProps = {
   page: number;
 
   pageSize: number;
+
+  sort: string;
 };
 
 export default function ProductView({
@@ -41,25 +46,27 @@ export default function ProductView({
   canDelete,
   page,
   pageSize,
+  sort,
 }: ProductViewProps) {
   /*
-   * IMPORTANT
-   *
-   * Always render the same view on the server
-   * and during the first client render.
-   *
-   * We load the saved view from localStorage
-   * only after hydration.
+   * =========================================================
+   * VIEW STATE
+   * =========================================================
    */
 
   const [view, setView] =
-    useState<"table" | "grid">("table");
+    useState<"table" | "grid">(
+      "table"
+    );
 
   const [mounted, setMounted] =
     useState(false);
 
-  const [selectedCount] =
-    useState(0);
+  /*
+   * =========================================================
+   * HYDRATION
+   * =========================================================
+   */
 
   useEffect(() => {
     setMounted(true);
@@ -77,6 +84,12 @@ export default function ProductView({
     }
   }, []);
 
+  /*
+   * =========================================================
+   * SAVE VIEW PREFERENCE
+   * =========================================================
+   */
+
   useEffect(() => {
     if (!mounted) {
       return;
@@ -86,22 +99,27 @@ export default function ProductView({
       "product-view",
       view
     );
-  }, [view, mounted]);
+  }, [
+    view,
+    mounted,
+  ]);
 
   /*
-   * Until hydration is complete, keep rendering
-   * the server-safe Table view.
-   *
-   * This prevents:
-   *
-   * Server = Table
-   * Client = Grid
-   *
-   * hydration mismatch.
+   * =========================================================
+   * ACTIVE VIEW
+   * =========================================================
    */
 
   const activeView =
-    mounted ? view : "table";
+    mounted
+      ? view
+      : "table";
+
+  /*
+   * =========================================================
+   * RENDER
+   * =========================================================
+   */
 
   return (
     <div className="space-y-4">
@@ -112,10 +130,14 @@ export default function ProductView({
 
       <div className="flex items-center justify-between">
 
+        {/* ================================================= */}
+        {/* Left Side */}
+        {/* ================================================= */}
+
         <div className="flex items-center gap-3">
 
           <span className="text-sm text-neutral-500">
-            {selectedCount} selected
+            0 selected
           </span>
 
           <button
@@ -142,9 +164,13 @@ export default function ProductView({
 
         <div className="flex rounded-xl border border-neutral-200 bg-white p-1">
 
+          {/* Table */}
+
           <button
             type="button"
-            onClick={() => setView("table")}
+            onClick={() =>
+              setView("table")
+            }
             className={`
               flex
               items-center
@@ -152,6 +178,7 @@ export default function ProductView({
               rounded-lg
               px-4
               py-2
+              text-sm
               transition
               ${
                 activeView === "table"
@@ -165,9 +192,13 @@ export default function ProductView({
             Table
           </button>
 
+          {/* Grid */}
+
           <button
             type="button"
-            onClick={() => setView("grid")}
+            onClick={() =>
+              setView("grid")
+            }
             className={`
               flex
               items-center
@@ -175,6 +206,7 @@ export default function ProductView({
               rounded-lg
               px-4
               py-2
+              text-sm
               transition
               ${
                 activeView === "grid"
@@ -206,12 +238,16 @@ export default function ProductView({
           canDelete={canDelete}
           page={page}
           pageSize={pageSize}
+          sort={sort}
         />
 
       ) : (
 
         <ProductGrid
           products={products}
+          page={page}
+          pageSize={pageSize}
+          sort={sort}
         />
 
       )}

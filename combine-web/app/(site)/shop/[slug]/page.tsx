@@ -72,7 +72,10 @@ export async function generateMetadata({
 
   const description =
     product.shortDescription ||
-    product.description.slice(0, 160);
+    product.description.slice(
+      0,
+      160
+    );
 
   return {
     title: `${product.brand} ${product.name}`,
@@ -87,8 +90,12 @@ export async function generateMetadata({
       images: product.images.length
         ? [
             {
-              url: product.images[0].url,
-              alt: product.name,
+              url:
+                product.images[0]
+                  .url,
+
+              alt:
+                product.name,
             },
           ]
         : [],
@@ -102,7 +109,10 @@ export async function generateMetadata({
       description,
 
       images: product.images.length
-        ? [product.images[0].url]
+        ? [
+            product.images[0]
+              .url,
+          ]
         : [],
     },
   };
@@ -158,6 +168,7 @@ export default async function ProductPage({
         /*
          * Product-specific custom packaging.
          */
+
         customPackaging: {
           select: {
             id: true,
@@ -177,7 +188,8 @@ export default async function ProductPage({
               },
 
               orderBy: {
-                sortOrder: "asc",
+                sortOrder:
+                  "asc",
               },
             },
 
@@ -188,11 +200,16 @@ export default async function ProductPage({
               },
 
               orderBy: {
-                sortOrder: "asc",
+                sortOrder:
+                  "asc",
               },
             },
           },
         },
+
+        /*
+         * Product Gallery
+         */
 
         images: {
           select: {
@@ -204,17 +221,57 @@ export default async function ProductPage({
           },
         },
 
+        /*
+         * ======================================================
+         * Product Colors
+         * ======================================================
+         *
+         * IMPORTANT:
+         *
+         * We now load the complete Color Gallery.
+         *
+         * Old:
+         *
+         * imageUrl
+         *
+         * New:
+         *
+         * images[]
+         *
+         */
+
         colors: {
           select: {
             id: true,
             name: true,
             imageUrl: true,
+
+            images: {
+              select: {
+                id: true,
+                url: true,
+                publicId: true,
+                sortOrder: true,
+              },
+
+              orderBy: {
+                sortOrder:
+                  "asc",
+              },
+            },
           },
 
           orderBy: {
-            sortOrder: "asc",
+            sortOrder:
+              "asc",
           },
         },
+
+        /*
+         * Product Variants
+         *
+         * Keep the current Variant structure.
+         */
 
         variants: {
           select: {
@@ -226,7 +283,8 @@ export default async function ProductPage({
           },
 
           orderBy: {
-            sortOrder: "asc",
+            sortOrder:
+              "asc",
           },
         },
       },
@@ -262,7 +320,8 @@ export default async function ProductPage({
           },
 
           {
-            brand: product.brand,
+            brand:
+              product.brand,
           },
         ],
       },
@@ -284,7 +343,8 @@ export default async function ProductPage({
           },
 
           orderBy: {
-            sortOrder: "asc",
+            sortOrder:
+              "asc",
           },
         },
 
@@ -295,7 +355,8 @@ export default async function ProductPage({
           },
 
           orderBy: {
-            sortOrder: "asc",
+            sortOrder:
+              "asc",
           },
         },
       },
@@ -304,6 +365,7 @@ export default async function ProductPage({
   /*
    * Brand packaging.
    */
+
   const brandPackaging =
     packagingProfiles.find(
       (packaging) =>
@@ -314,10 +376,12 @@ export default async function ProductPage({
   /*
    * Default packaging.
    */
+
   const defaultPackaging =
     packagingProfiles.find(
       (packaging) =>
-        packaging.brand === null
+        packaging.brand ===
+        null
     ) ?? null;
 
   /*
@@ -325,8 +389,10 @@ export default async function ProductPage({
    *
    * Custom packaging has the highest priority.
    */
+
   const packaging =
-    product.customPackaging?.active
+    product.customPackaging
+      ?.active
       ? product.customPackaging
       : brandPackaging ??
         defaultPackaging;
@@ -341,12 +407,13 @@ export default async function ProductPage({
     product.images[0]?.url ??
     "/placeholder.png";
 
-  const gallery = product.images
-    .slice(1)
-    .map(
-      (image) =>
-        image.url
-    );
+  const gallery =
+    product.images
+      .slice(1)
+      .map(
+        (image) =>
+          image.url
+      );
 
   return (
     <main
@@ -382,16 +449,19 @@ export default async function ProductPage({
           },
 
           {
-            label: "Collection",
+            label:
+              "Collection",
             href: "/shop",
           },
 
           {
-            label: product.brand,
+            label:
+              product.brand,
           },
 
           {
-            label: product.name,
+            label:
+              product.name,
           },
         ]}
       />
@@ -554,7 +624,6 @@ export default async function ProductPage({
         </section>
       </ProductDetailClient>
 
-
       {/* ===================================================== */}
       {/* Packaging Details */}
       {/* ===================================================== */}
@@ -639,7 +708,9 @@ export default async function ProductPage({
                   sm:leading-8
                 "
               >
-                {packaging.description}
+                {
+                  packaging.description
+                }
               </p>
             )}
           </div>
@@ -648,7 +719,8 @@ export default async function ProductPage({
           {/* Editorial Packaging Gallery */}
           {/* ================================================= */}
 
-          {packaging.images.length > 0 && (
+          {packaging.images
+            .length > 0 && (
             <div
               className="
                 mx-auto
@@ -669,13 +741,19 @@ export default async function ProductPage({
                 "
               >
                 {packaging.images.map(
-                  (image, index) => {
+                  (
+                    image,
+                    index
+                  ) => {
                     const isFirst =
-                      index === 0;
+                      index ===
+                      0;
 
                     return (
                       <div
-                        key={image.id}
+                        key={
+                          image.id
+                        }
                         className={`
                           group
                           relative
@@ -701,7 +779,9 @@ export default async function ProductPage({
                           `}
                         >
                           <Image
-                            src={image.url}
+                            src={
+                              image.url
+                            }
                             alt={
                               image.altText ??
                               packaging.name
@@ -763,7 +843,9 @@ export default async function ProductPage({
                                   sm:text-xs
                                 "
                               >
-                                {image.caption}
+                                {
+                                  image.caption
+                                }
                               </p>
                             </div>
                           )}
@@ -780,7 +862,8 @@ export default async function ProductPage({
           {/* Included Packaging */}
           {/* ================================================= */}
 
-          {packaging.items.length > 0 && (
+          {packaging.items
+            .length > 0 && (
             <div
               className="
                 mx-auto
@@ -835,9 +918,14 @@ export default async function ProductPage({
                 "
               >
                 {packaging.items.map(
-                  (item, index) => (
+                  (
+                    item,
+                    index
+                  ) => (
                     <div
-                      key={item.id}
+                      key={
+                        item.id
+                      }
                       className="
                         group
                         flex
@@ -863,7 +951,9 @@ export default async function ProductPage({
                           sm:text-xs
                         "
                       >
-                        {String(index + 1).padStart(
+                        {String(
+                          index + 1
+                        ).padStart(
                           2,
                           "0"
                         )}
@@ -898,7 +988,9 @@ export default async function ProductPage({
                           sm:text-base
                         "
                       >
-                        {item.name}
+                        {
+                          item.name
+                        }
                       </span>
                     </div>
                   )
@@ -920,14 +1012,19 @@ export default async function ProductPage({
           lg:mt-28
         "
       >
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={null}
+        >
           <RelatedProducts
-            currentId={product.id}
-            category={product.category}
+            currentId={
+              product.id
+            }
+            category={
+              product.category
+            }
           />
         </Suspense>
       </section>
-
 
       {/* ===================================================== */}
       {/* Recently Viewed */}
@@ -945,7 +1042,9 @@ export default async function ProductPage({
           lg:pt-24
         "
       >
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={null}
+        >
           <RecentlyViewed />
         </Suspense>
       </section>

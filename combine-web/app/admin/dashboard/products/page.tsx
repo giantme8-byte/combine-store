@@ -57,15 +57,28 @@ export default async function ProductsPage({
 
   const params = await searchParams;
 
-  const search = params.search ?? "";
-  const brand = params.brand ?? "";
-  const category = params.category ?? "";
+  const search =
+    params.search ?? "";
+
+  const brand =
+    params.brand ?? "";
+
+  const category =
+    params.category ?? "";
 
   const availability =
     params.availability ?? "";
 
+  /*
+   * IMPORTANT
+   *
+   * Manual Order is now the default sorting mode.
+   *
+   * This allows the admin to drag products into the desired
+   * position and keep that position after refreshing.
+   */
   const sort =
-    params.sort ?? "latest";
+    params.sort ?? "manual";
 
   // =========================================================
   // Pagination
@@ -85,12 +98,13 @@ export default async function ProductsPage({
   // Filters
   // =========================================================
 
-  const where = buildProductWhere({
-    search,
-    brand,
-    category,
-    availability,
-  });
+  const where =
+    buildProductWhere({
+      search,
+      brand,
+      category,
+      availability,
+    });
 
   // =========================================================
   // Sorting
@@ -197,6 +211,12 @@ export default async function ProductsPage({
     );
   }
 
+  /*
+   * Always preserve the current sort.
+   *
+   * This is important because otherwise pagination could
+   * accidentally fall back to Manual Order.
+   */
   if (sort) {
     currentSearchParams.set(
       "sort",
@@ -280,6 +300,7 @@ export default async function ProductsPage({
             canDelete={canDelete}
             page={page}
             pageSize={pageSize}
+            sort={sort}
           />
 
         )}

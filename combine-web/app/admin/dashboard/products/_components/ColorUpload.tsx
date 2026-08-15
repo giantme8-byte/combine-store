@@ -1,62 +1,333 @@
 "use client";
 
-import { ChangeEvent } from "react";
+import {
+  ChangeEvent,
+} from "react";
 
-import { ImagePlus, Trash2, X } from "lucide-react";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+
+import { CSS } from "@dnd-kit/utilities";
+
+import {
+  ImagePlus,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import type {
   ColorImage,
   ColorImageItem,
 } from "@/types/color-image";
 
+type GlobalColor = {
+  id: number;
+  name: string;
+  slug: string;
+  hexCode: string | null;
+  active: boolean;
+};
+
 type Props = {
   colors: ColorImageItem[];
-  onChange: (colors: ColorImageItem[]) => void;
+  globalColors: GlobalColor[];
+  onChange: (
+    colors: ColorImageItem[]
+  ) => void;
 };
+
+/* =========================================================
+ * Sortable Color Image
+ * ======================================================= */
+
+function SortableColorImage({
+  image,
+  index,
+  colorName,
+  onRemove,
+}: {
+  image: ColorImage;
+  index: number;
+  colorName: string;
+  onRemove: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: image.id,
+  });
+
+  const style = {
+    transform:
+      CSS.Transform.toString(
+        transform
+      ),
+    transition:
+      transition ??
+      "transform 180ms cubic-bezier(0.2, 0, 0, 1)",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`
+        group
+        relative
+        overflow-hidden
+        rounded-2xl
+        border
+        bg-white
+        transition-shadow
+        duration-200
+        ${
+          isDragging
+            ? `
+              z-50
+              border-black
+              shadow-2xl
+              ring-2
+              ring-black/10
+            `
+            : `
+              border-neutral-200
+              shadow-sm
+              hover:shadow-md
+            `
+        }
+      `}
+    >
+      {/* =====================================================
+       * IMAGE AREA
+       *
+       * Entire image area is draggable.
+       * =================================================== */}
+
+      <div
+        {...attributes}
+        {...listeners}
+        className={`
+          relative
+          aspect-square
+          overflow-hidden
+          bg-neutral-50
+          select-none
+          ${
+            isDragging
+              ? "cursor-grabbing"
+              : "cursor-grab"
+          }
+        `}
+      >
+        <img
+          src={image.url}
+          alt={`${colorName || "Color"} image ${index + 1}`}
+          draggable={false}
+          className={`
+            pointer-events-none
+            h-full
+            w-full
+            select-none
+            object-contain
+            ${
+              isDragging
+                ? ""
+                : "transition-transform duration-200 ease-out group-hover:scale-[1.01]"
+            }
+          `}
+        />
+
+        {/* =================================================
+         * IMAGE NUMBER
+         * ================================================= */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            left-3
+            top-3
+            rounded-lg
+            bg-black/80
+            px-2.5
+            py-1.5
+            text-xs
+            font-semibold
+            tracking-wide
+            text-white
+            shadow-sm
+            backdrop-blur-sm
+          "
+        >
+          {String(
+            index + 1
+          ).padStart(2, "0")}
+        </div>
+
+        {/* =================================================
+         * DELETE X
+         *
+         * Prevents drag from starting.
+         * ================================================= */}
+
+        <button
+          type="button"
+          onPointerDown={(event) => {
+            event.stopPropagation();
+          }}
+          onMouseDown={(event) => {
+            event.stopPropagation();
+          }}
+          onClick={(event) => {
+            event.stopPropagation();
+            onRemove();
+          }}
+          className="
+            absolute
+            right-3
+            top-3
+            z-20
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            rounded-full
+            bg-white/95
+            text-neutral-700
+            opacity-0
+            shadow-md
+            backdrop-blur-sm
+            transition-all
+            duration-150
+            hover:bg-white
+            hover:text-red-600
+            group-hover:opacity-100
+          "
+          aria-label="Remove image"
+          title="Remove image"
+        >
+          <X
+            size={18}
+            strokeWidth={2}
+          />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+ * Color Upload
+ * ======================================================= */
 
 export default function ColorUpload({
   colors,
+  globalColors,
   onChange,
 }: Props) {
+  const sensors =
+    useSensors(
+      useSensor(
+        PointerSensor,
+        {
+          activationConstraint: {
+            distance: 4,
+          },
+        }
+      )
+    );
+
+  /* =======================================================
+   * Add Color
+   * ===================================================== */
+
   function addColor() {
     onChange([
       ...colors,
       {
         id: crypto.randomUUID(),
+        colorId: null,
         name: "",
         model: "",
         url: "",
         publicId: null,
         images: [],
         isNew: true,
-        sortOrder: colors.length,
+        sortOrder:
+          colors.length,
         deleted: false,
       },
     ]);
   }
 
-  function removeColor(id: string) {
-    const color = colors.find(
-      (item) => item.id === id
+  /* =======================================================
+   * Remove Color
+   * ===================================================== */
+
+  function removeColor(
+    id: string
+  ) {
+    const color =
+      colors.find(
+        (item) =>
+          item.id === id
+      );
+
+    if (!color) {
+      return;
+    }
+
+    color.images.forEach(
+      (image) => {
+        if (
+          image.url.startsWith(
+            "blob:"
+          )
+        ) {
+          URL.revokeObjectURL(
+            image.url
+          );
+        }
+      }
     );
 
-    if (!color) return;
-
-    // Revoke local blob URLs before removing
-    color.images.forEach((image) => {
-      if (image.url.startsWith("blob:")) {
-        URL.revokeObjectURL(image.url);
-      }
-    });
-
-    if (color.url.startsWith("blob:")) {
-      URL.revokeObjectURL(color.url);
+    if (
+      color.url.startsWith(
+        "blob:"
+      )
+    ) {
+      URL.revokeObjectURL(
+        color.url
+      );
     }
 
     onChange(
       colors
         .map((item) => {
-          if (item.id !== id) return item;
+          if (
+            item.id !== id
+          ) {
+            return item;
+          }
 
           if (item.isNew) {
             return null;
@@ -67,140 +338,338 @@ export default function ColorUpload({
             deleted: true,
           };
         })
-        .filter(Boolean) as ColorImageItem[]
+        .filter(
+          Boolean
+        ) as ColorImageItem[]
     );
   }
 
-  function updateColorName(
+  /* =======================================================
+   * Update Global Color
+   * ===================================================== */
+
+  function updateColor(
     id: string,
-    name: string
+    colorId: number | null
   ) {
+    const selectedColor =
+      globalColors.find(
+        (color) =>
+          color.id ===
+          colorId
+      );
+
     onChange(
-      colors.map((color) =>
-        color.id === id
-          ? {
-              ...color,
-              name,
-            }
-          : color
+      colors.map(
+        (color) =>
+          color.id === id
+            ? {
+                ...color,
+                colorId,
+                name:
+                  selectedColor?.name ??
+                  "",
+              }
+            : color
       )
     );
   }
+
+  /* =======================================================
+   * Update Color Model
+   * ===================================================== */
 
   function updateColorModel(
     id: string,
     model: string
   ) {
     onChange(
-      colors.map((color) =>
-        color.id === id
-          ? {
-              ...color,
-              model,
-            }
-          : color
+      colors.map(
+        (color) =>
+          color.id === id
+            ? {
+                ...color,
+                model,
+              }
+            : color
       )
     );
   }
+
+  /* =======================================================
+   * Add Color Gallery Images
+   * ===================================================== */
 
   function addColorImages(
     id: string,
     e: ChangeEvent<HTMLInputElement>
   ) {
-    const files = Array.from(
-      e.target.files ?? []
-    );
+    const files =
+      Array.from(
+        e.target.files ??
+          []
+      );
 
-    if (files.length === 0) return;
+    if (
+      files.length === 0
+    ) {
+      return;
+    }
 
     onChange(
-      colors.map((color) => {
-        if (color.id !== id) return color;
+      colors.map(
+        (color) => {
+          if (
+            color.id !== id
+          ) {
+            return color;
+          }
 
-        const existingImages =
-          color.images ?? [];
+          const existingImages =
+            color.images ??
+            [];
 
-        const newImages: ColorImage[] =
-          files.map((file, index) => ({
-            id: crypto.randomUUID(),
-            url: URL.createObjectURL(file),
-            publicId: null,
-            file,
-            isNew: true,
-            deleted: false,
-            sortOrder:
-              existingImages.length + index,
-          }));
+          const newImages: ColorImage[] =
+            files.map(
+              (
+                file,
+                index
+              ) => ({
+                id: crypto.randomUUID(),
+                url: URL.createObjectURL(
+                  file
+                ),
+                publicId:
+                  null,
+                file,
+                isNew:
+                  true,
+                deleted:
+                  false,
+                sortOrder:
+                  existingImages.length +
+                  index,
+              })
+            );
 
-        return {
-          ...color,
-          images: [
-            ...existingImages,
-            ...newImages,
-          ],
-        };
-      })
+          return {
+            ...color,
+            images: [
+              ...existingImages,
+              ...newImages,
+            ],
+          };
+        }
+      )
     );
 
     e.target.value = "";
   }
+
+  /* =======================================================
+   * Remove Color Gallery Image
+   * ===================================================== */
 
   function removeColorImage(
     colorId: string,
     imageId: string
   ) {
     onChange(
-      colors.map((color) => {
-        if (color.id !== colorId) {
-          return color;
+      colors.map(
+        (color) => {
+          if (
+            color.id !==
+            colorId
+          ) {
+            return color;
+          }
+
+          const image =
+            color.images.find(
+              (item) =>
+                item.id ===
+                imageId
+            );
+
+          if (!image) {
+            return color;
+          }
+
+          if (
+            image.url.startsWith(
+              "blob:"
+            )
+          ) {
+            URL.revokeObjectURL(
+              image.url
+            );
+          }
+
+          return {
+            ...color,
+            images:
+              color.images
+                .map(
+                  (item) => {
+                    if (
+                      item.id !==
+                      imageId
+                    ) {
+                      return item;
+                    }
+
+                    if (
+                      item.isNew
+                    ) {
+                      return null;
+                    }
+
+                    return {
+                      ...item,
+                      deleted:
+                        true,
+                    };
+                  }
+                )
+                .filter(
+                  Boolean
+                )
+                .map(
+                  (
+                    item,
+                    index
+                  ) => ({
+                    ...(item as ColorImage),
+                    sortOrder:
+                      index,
+                  })
+                ),
+          };
         }
-
-        const image = color.images.find(
-          (item) => item.id === imageId
-        );
-
-        if (!image) return color;
-
-        if (image.url.startsWith("blob:")) {
-          URL.revokeObjectURL(image.url);
-        }
-
-        return {
-          ...color,
-          images: color.images
-            .map((item) => {
-              if (item.id !== imageId) {
-                return item;
-              }
-
-              /*
-               * Existing images are kept in the
-               * array and marked deleted.
-               *
-               * New images can simply be removed.
-               */
-              if (item.isNew) {
-                return null;
-              }
-
-              return {
-                ...item,
-                deleted: true,
-              };
-            })
-            .filter(Boolean)
-            .map((item, index) => ({
-              ...(item as ColorImage),
-              sortOrder: index,
-            })),
-        };
-      })
+      )
     );
   }
 
+  /* =======================================================
+   * Drag / Reorder Color Gallery
+   * ===================================================== */
+
+  function handleColorImageDragEnd(
+    colorId: string,
+    event: DragEndEvent
+  ) {
+    const {
+      active,
+      over,
+    } = event;
+
+    if (
+      !over ||
+      active.id ===
+        over.id
+    ) {
+      return;
+    }
+
+    onChange(
+      colors.map(
+        (color) => {
+          if (
+            color.id !==
+            colorId
+          ) {
+            return color;
+          }
+
+          const visibleImages =
+            color.images.filter(
+              (image) =>
+                !image.deleted
+            );
+
+          const oldIndex =
+            visibleImages.findIndex(
+              (image) =>
+                image.id ===
+                active.id
+            );
+
+          const newIndex =
+            visibleImages.findIndex(
+              (image) =>
+                image.id ===
+                over.id
+            );
+
+          if (
+            oldIndex === -1 ||
+            newIndex === -1
+          ) {
+            return color;
+          }
+
+          const reordered =
+            arrayMove(
+              visibleImages,
+              oldIndex,
+              newIndex
+            ).map(
+              (
+                image,
+                index
+              ) => ({
+                ...image,
+                sortOrder:
+                  index,
+              })
+            );
+
+          const deletedImages =
+            color.images.filter(
+              (image) =>
+                image.deleted
+            );
+
+          return {
+            ...color,
+            images: [
+              ...reordered,
+              ...deletedImages,
+            ],
+          };
+        }
+      )
+    );
+  }
+
+  /* =======================================================
+   * Check Duplicate Global Color
+   * ===================================================== */
+
+  function isColorAlreadyUsed(
+    colorId: number,
+    currentColorId: string
+  ) {
+    return colors.some(
+      (color) =>
+        color.id !==
+          currentColorId &&
+        !color.deleted &&
+        color.colorId ===
+          colorId
+    );
+  }
+
+  /* =======================================================
+   * Render
+   * ===================================================== */
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* ===================================================
+       * Header
+       * ================================================= */}
+
       <div className="flex items-center justify-between">
         <label className="text-sm font-semibold text-neutral-700">
           Available Colors
@@ -208,7 +677,9 @@ export default function ColorUpload({
 
         <button
           type="button"
-          onClick={addColor}
+          onClick={
+            addColor
+          }
           className="
             rounded-xl
             border
@@ -225,7 +696,12 @@ export default function ColorUpload({
         </button>
       </div>
 
-      {colors.length === 0 ? (
+      {/* ===================================================
+       * Empty State
+       * ================================================= */}
+
+      {colors.length ===
+      0 ? (
         <div
           className="
             rounded-2xl
@@ -239,281 +715,393 @@ export default function ColorUpload({
             text-neutral-500
           "
         >
-          No color variants added.
+          No color variants
+          added.
         </div>
       ) : (
         <div className="space-y-6">
           {colors
-            .filter((color) => !color.deleted)
-            .map((color) => {
-              const visibleImages =
-                color.images.filter(
-                  (image) => !image.deleted
-                );
+            .filter(
+              (color) =>
+                !color.deleted
+            )
+            .map(
+              (color) => {
+                const visibleImages =
+                  color.images.filter(
+                    (image) =>
+                      !image.deleted
+                  );
 
-              return (
-                <div
-                  key={color.id}
-                  className="
-                    space-y-5
-                    rounded-2xl
-                    border
-                    border-neutral-200
-                    p-5
-                  "
-                >
-                  {/* Color Name */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      Color Name
-                    </label>
+                return (
+                  <div
+                    key={
+                      color.id
+                    }
+                    className="
+                      space-y-5
+                      rounded-2xl
+                      border
+                      border-neutral-200
+                      p-5
+                    "
+                  >
+                    {/* =======================================
+                     * Color
+                     * ===================================== */}
 
-                    <input
-                      type="text"
-                      value={color.name}
-                      placeholder="Black"
-                      onChange={(e) =>
-                        updateColorName(
-                          color.id,
-                          e.target.value
-                        )
-                      }
-                      className="
-                        w-full
-                        rounded-xl
-                        border
-                        border-neutral-300
-                        px-4
-                        py-3
-                        focus:border-black
-                        focus:outline-none
-                      "
-                    />
-                  </div>
-
-                  {/* Model */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      Model
-                    </label>
-
-                    <input
-                      type="text"
-                      value={color.model}
-                      placeholder="M45831"
-                      onChange={(e) =>
-                        updateColorModel(
-                          color.id,
-                          e.target.value
-                        )
-                      }
-                      className="
-                        w-full
-                        rounded-xl
-                        border
-                        border-neutral-300
-                        px-4
-                        py-3
-                        focus:border-black
-                        focus:outline-none
-                      "
-                    />
-                  </div>
-
-                  {/* Color Gallery */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="space-y-2">
                       <label className="text-sm font-medium">
-                        Color Gallery
+                        Color
                       </label>
 
-                      <span className="text-xs text-neutral-500">
-                        {visibleImages.length}{" "}
-                        {visibleImages.length === 1
-                          ? "image"
-                          : "images"}
-                      </span>
-                    </div>
+                      <select
+                        value={
+                          color.colorId ??
+                          ""
+                        }
+                        onChange={(
+                          e
+                        ) => {
+                          const value =
+                            e.target
+                              .value;
 
-                    {/* Image Grid */}
-                    {visibleImages.length > 0 && (
-                      <div
+                          updateColor(
+                            color.id,
+                            value ===
+                              ""
+                              ? null
+                              : Number(
+                                  value
+                                )
+                          );
+                        }}
                         className="
-                          grid
-                          grid-cols-2
-                          gap-4
-                          sm:grid-cols-3
-                          md:grid-cols-4
+                          w-full
+                          rounded-xl
+                          border
+                          border-neutral-300
+                          bg-white
+                          px-4
+                          py-3
+                          focus:border-black
+                          focus:outline-none
+                          focus:ring-2
+                          focus:ring-black/5
                         "
                       >
-                        {visibleImages.map(
-                          (image, index) => (
+                        <option value="">
+                          Select a
+                          color
+                        </option>
+
+                        {globalColors.map(
+                          (
+                            globalColor
+                          ) => {
+                            const used =
+                              isColorAlreadyUsed(
+                                globalColor.id,
+                                color.id
+                              );
+
+                            return (
+                              <option
+                                key={
+                                  globalColor.id
+                                }
+                                value={
+                                  globalColor.id
+                                }
+                                disabled={
+                                  used
+                                }
+                              >
+                                {
+                                  globalColor.name
+                                }
+                                {used
+                                  ? " — Already added"
+                                  : ""}
+                              </option>
+                            );
+                          }
+                        )}
+                      </select>
+
+                      {color.colorId ===
+                        null && (
+                        <p className="text-xs text-amber-600">
+                          Please
+                          select a
+                          Global
+                          Color.
+                        </p>
+                      )}
+
+                      {color.colorId !==
+                        null && (
+                        <p className="text-xs text-neutral-500">
+                          This
+                          Product
+                          Color is
+                          linked to
+                          the
+                          Global
+                          Color
+                          Master.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* =======================================
+                     * Model
+                     * ===================================== */}
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Model
+                      </label>
+
+                      <input
+                        type="text"
+                        value={
+                          color.model
+                        }
+                        placeholder="M45831"
+                        onChange={(
+                          e
+                        ) =>
+                          updateColorModel(
+                            color.id,
+                            e.target
+                              .value
+                          )
+                        }
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-neutral-300
+                          px-4
+                          py-3
+                          focus:border-black
+                          focus:outline-none
+                          focus:ring-2
+                          focus:ring-black/5
+                        "
+                      />
+                    </div>
+
+                    {/* =======================================
+                     * Color Gallery
+                     * ===================================== */}
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-sm font-medium">
+                            Color
+                            Gallery
+                          </label>
+
+                          <p className="mt-1 text-xs text-neutral-500">
+                            Drag the
+                            image
+                            itself to
+                            reorder.
+                          </p>
+                        </div>
+
+                        <span className="text-xs text-neutral-500">
+                          {
+                            visibleImages.length
+                          }{" "}
+                          {visibleImages.length ===
+                          1
+                            ? "image"
+                            : "images"}
+                        </span>
+                      </div>
+
+                      {/* =====================================
+                       * 2 COLUMN GALLERY
+                       * =================================== */}
+
+                      {visibleImages.length >
+                        0 && (
+                        <DndContext
+                          sensors={
+                            sensors
+                          }
+                          collisionDetection={
+                            closestCenter
+                          }
+                          onDragEnd={(
+                            event
+                          ) =>
+                            handleColorImageDragEnd(
+                              color.id,
+                              event
+                            )
+                          }
+                        >
+                          <SortableContext
+                            items={visibleImages.map(
+                              (
+                                image
+                              ) =>
+                                image.id
+                            )}
+                            strategy={
+                              rectSortingStrategy
+                            }
+                          >
                             <div
-                              key={image.id}
                               className="
-                                group
-                                relative
-                                aspect-square
-                                overflow-hidden
-                                rounded-2xl
-                                border
-                                border-neutral-200
-                                bg-neutral-50
+                                grid
+                                grid-cols-2
+                                gap-6
                               "
                             >
-                              <img
-                                src={image.url}
-                                alt={
-                                  color.name ||
-                                  "Color"
-                                }
-                                className="
-                                  h-full
-                                  w-full
-                                  object-contain
-                                "
-                              />
-
-                              {/* Image Number */}
-                              <div
-                                className="
-                                  absolute
-                                  left-2
-                                  top-2
-                                  rounded-lg
-                                  bg-black/70
-                                  px-2
-                                  py-1
-                                  text-xs
-                                  font-medium
-                                  text-white
-                                "
-                              >
-                                {String(
-                                  index + 1
-                                ).padStart(2, "0")}
-                              </div>
-
-                              {/* Remove Image */}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  removeColorImage(
-                                    color.id,
-                                    image.id
-                                  )
-                                }
-                                className="
-                                  absolute
-                                  right-2
-                                  top-2
-                                  flex
-                                  h-8
-                                  w-8
-                                  items-center
-                                  justify-center
-                                  rounded-full
-                                  bg-white/90
-                                  text-red-600
-                                  opacity-0
-                                  shadow-sm
-                                  transition
-                                  group-hover:opacity-100
-                                  hover:bg-white
-                                "
-                                aria-label="Remove image"
-                              >
-                                <X size={16} />
-                              </button>
+                              {visibleImages.map(
+                                (
+                                  image,
+                                  index
+                                ) => (
+                                  <SortableColorImage
+                                    key={
+                                      image.id
+                                    }
+                                    image={
+                                      image
+                                    }
+                                    index={
+                                      index
+                                    }
+                                    colorName={
+                                      color.name
+                                    }
+                                    onRemove={() =>
+                                      removeColorImage(
+                                        color.id,
+                                        image.id
+                                      )
+                                    }
+                                  />
+                                )
+                              )}
                             </div>
-                          )
-                        )}
-                      </div>
-                    )}
+                          </SortableContext>
+                        </DndContext>
+                      )}
 
-                    {/* Upload More Images */}
-                    <input
-                      id={`color-gallery-${color.id}`}
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={(e) =>
-                        addColorImages(
-                          color.id,
+                      {/* =====================================
+                       * Upload More Images
+                       * =================================== */}
+
+                      <input
+                        id={`color-gallery-${color.id}`}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(
                           e
-                        )
-                      }
-                    />
-
-                    <label
-                      htmlFor={`color-gallery-${color.id}`}
-                      className="
-                        flex
-                        min-h-32
-                        cursor-pointer
-                        flex-col
-                        items-center
-                        justify-center
-                        rounded-2xl
-                        border-2
-                        border-dashed
-                        border-neutral-300
-                        bg-neutral-50
-                        px-6
-                        py-6
-                        text-center
-                        transition
-                        hover:border-black
-                        hover:bg-neutral-100
-                      "
-                    >
-                      <ImagePlus
-                        size={32}
-                        className="text-neutral-400"
+                        ) =>
+                          addColorImages(
+                            color.id,
+                            e
+                          )
+                        }
                       />
 
-                      <p className="mt-3 text-sm font-medium">
-                        {visibleImages.length > 0
-                          ? "Add More Images"
-                          : "Upload Color Images"}
-                      </p>
+                      <label
+                        htmlFor={`color-gallery-${color.id}`}
+                        className="
+                          flex
+                          min-h-32
+                          cursor-pointer
+                          flex-col
+                          items-center
+                          justify-center
+                          rounded-2xl
+                          border-2
+                          border-dashed
+                          border-neutral-300
+                          bg-neutral-50
+                          px-6
+                          py-6
+                          text-center
+                          transition
+                          hover:border-black
+                          hover:bg-neutral-100
+                        "
+                      >
+                        <ImagePlus
+                          size={
+                            32
+                          }
+                          className="text-neutral-400"
+                        />
 
-                      <p className="mt-1 text-xs text-neutral-500">
-                        Select multiple images at once
-                      </p>
-                    </label>
+                        <p className="mt-3 text-sm font-medium">
+                          {visibleImages.length >
+                          0
+                            ? "Add More Images"
+                            : "Upload Color Images"}
+                        </p>
+
+                        <p className="mt-1 text-xs text-neutral-500">
+                          Select
+                          multiple
+                          images at
+                          once
+                        </p>
+                      </label>
+                    </div>
+
+                    {/* =======================================
+                     * Remove Color
+                     * ===================================== */}
+
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeColor(
+                            color.id
+                          )
+                        }
+                        className="
+                          flex
+                          items-center
+                          gap-2
+                          rounded-xl
+                          border
+                          border-red-300
+                          px-4
+                          py-2
+                          text-red-600
+                          transition
+                          hover:bg-red-50
+                        "
+                      >
+                        <Trash2
+                          size={
+                            18
+                          }
+                        />
+
+                        Remove
+                        Color
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Remove Color */}
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeColor(color.id)
-                      }
-                      className="
-                        flex
-                        items-center
-                        gap-2
-                        rounded-xl
-                        border
-                        border-red-300
-                        px-4
-                        py-2
-                        text-red-600
-                        transition
-                        hover:bg-red-50
-                      "
-                    >
-                      <Trash2 size={18} />
-
-                      Remove Color
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              }
+            )}
         </div>
       )}
     </div>

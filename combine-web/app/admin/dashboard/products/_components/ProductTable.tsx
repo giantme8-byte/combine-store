@@ -17,6 +17,7 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
+
 import { Availability } from "@prisma/client";
 
 import type {
@@ -25,12 +26,12 @@ import type {
 
 import ProductRow from "./ProductRow";
 import SelectionToolbar from "./SelectionToolbar";
+
 import {
   deleteProducts,
   updateProducts,
   updateProductDisplayOrder,
 } from "../_actions/product.actions";
-
 
 type ProductTableProps = {
   products: ProductWithImages[];
@@ -41,283 +42,695 @@ type ProductTableProps = {
 
   pageSize: number;
 
-brands: {
-  id: number;
-  name: string;
-}[];
+  brands: {
+    id: number;
+    name: string;
+  }[];
 
-categories: {
-  id: number;
-  name: string;
-}[];
+  categories: {
+    id: number;
+    name: string;
+  }[];
 
   canDelete: boolean;
+
+  sort: string;
 };
 
 export default function ProductTable({
   products,
   exchangeRate,
-
   page,
   pageSize,
-
   brands,
   categories,
   canDelete,
+  sort,
 }: ProductTableProps) {
-  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-  const [availability, setAvailability] = useState<Availability | "">("");
-  const [brand, setBrand] = useState("");
-  const [category, setCategory] = useState("");
+  /*
+   * =========================================================
+   * SELECTION
+   * =========================================================
+   */
 
-  const [featured, setFeatured] = useState("");
-  const [newArrival, setNewArrival] = useState("");
-  const [bestSeller, setBestSeller] = useState("");
-  const [limited, setLimited] = useState("");
-  const [onSale, setOnSale] = useState("");
+  const [
+    selectedProducts,
+    setSelectedProducts,
+  ] = useState<number[]>([]);
 
-  const router = useRouter();
+  /*
+   * =========================================================
+   * BULK FILTER STATE
+   * =========================================================
+   */
 
-const [displayProducts, setDisplayProducts] =
-  useState<ProductWithImages[]>(products);
+  const [
+    availability,
+    setAvailability,
+  ] = useState<Availability | "">("");
 
-const sensors = useSensors(
-  useSensor(PointerSensor, {
-    activationConstraint: {
-      distance: 8,
-    },
-  })
-);
+  const [
+    brand,
+    setBrand,
+  ] = useState("");
 
-useEffect(() => {
-  setDisplayProducts(products);
-}, [products]);
+  const [
+    category,
+    setCategory,
+  ] = useState("");
 
-  const toggleProduct = (id: number) => {
-    setSelectedProducts((prev) =>
-      prev.includes(id)
-        ? prev.filter((productId) => productId !== id)
-        : [...prev, id]
+  const [
+    featured,
+    setFeatured,
+  ] = useState("");
+
+  const [
+    newArrival,
+    setNewArrival,
+  ] = useState("");
+
+  const [
+    bestSeller,
+    setBestSeller,
+  ] = useState("");
+
+  const [
+    limited,
+    setLimited,
+  ] = useState("");
+
+  const [
+    onSale,
+    setOnSale,
+  ] = useState("");
+
+  const router =
+    useRouter();
+
+  /*
+   * =========================================================
+   * DISPLAY PRODUCTS
+   * =========================================================
+   */
+
+  const [
+    displayProducts,
+    setDisplayProducts,
+  ] = useState<ProductWithImages[]>(
+    products
+  );
+
+  /*
+   * =========================================================
+   * SAVING STATE
+   * =========================================================
+   */
+
+  const [
+    isSavingOrder,
+    setIsSavingOrder,
+  ] = useState(false);
+
+  /*
+   * =========================================================
+   * MANUAL ORDER
+   * =========================================================
+   *
+   * Both "manual" and the existing "featured" value use
+   * Product.displayOrder.
+   */
+
+  const isManualOrder =
+    sort === "manual" ||
+    sort === "featured";
+
+  /*
+   * =========================================================
+   * DRAG SENSOR
+   * =========================================================
+   */
+
+  const sensors =
+    useSensors(
+      useSensor(
+        PointerSensor,
+        {
+          activationConstraint: {
+            distance: 8,
+          },
+        }
+      )
+    );
+
+  /*
+   * =========================================================
+   * SYNC SERVER DATA
+   * =========================================================
+   */
+
+  useEffect(() => {
+    setDisplayProducts(
+      products
+    );
+  }, [products]);
+
+  /*
+   * =========================================================
+   * SELECTION
+   * =========================================================
+   */
+
+  const toggleProduct = (
+    id: number
+  ) => {
+    setSelectedProducts(
+      (prev) =>
+        prev.includes(id)
+          ? prev.filter(
+              (productId) =>
+                productId !== id
+            )
+          : [
+              ...prev,
+              id,
+            ]
     );
   };
 
-  const toggleAllProducts = () => {
-    if (selectedProducts.length === products.length) {
+  const toggleAllProducts =
+    () => {
+      if (
+        selectedProducts.length ===
+        displayProducts.length
+      ) {
+        setSelectedProducts([]);
+      } else {
+        setSelectedProducts(
+          displayProducts.map(
+            (product) =>
+              product.id
+          )
+        );
+      }
+    };
+
+  const clearSelection =
+    () => {
       setSelectedProducts([]);
-    } else {
-      setSelectedProducts(products.map((product) => product.id));
-    }
-  };
+    };
 
-  const clearSelection = () => {
-    setSelectedProducts([]);
-  };
+  /*
+   * =========================================================
+   * BULK UPDATE
+   * =========================================================
+   */
 
-  const applyAvailability = async () => {
-    if (selectedProducts.length === 0) {
-      return;
-    }
+  const applyAvailability =
+    async () => {
+      if (
+        selectedProducts.length ===
+        0
+      ) {
+        return;
+      }
 
-    const data: {
-      brand?: string;
-      category?: string;
-      availability?: Availability;
-      featured?: boolean;
-      newArrival?: boolean;
-      bestSeller?: boolean;
-      limited?: boolean;
-      onSale?: boolean;
-    } = {};
+      const data: {
+        brand?: string;
+        category?: string;
+        availability?: Availability;
+        featured?: boolean;
+        newArrival?: boolean;
+        bestSeller?: boolean;
+        limited?: boolean;
+        onSale?: boolean;
+      } = {};
 
-    if (brand) {
-      data.brand = brand;
-    }
+      if (brand) {
+        data.brand =
+          brand;
+      }
 
-    if (category) {
-      data.category = category;
-    }
+      if (category) {
+        data.category =
+          category;
+      }
 
-    if (availability) {
-      data.availability = availability;
-    }
+      if (availability) {
+        data.availability =
+          availability;
+      }
 
-    if (featured !== "") {
-      data.featured = featured === "true";
-    }
+      if (featured !== "") {
+        data.featured =
+          featured === "true";
+      }
 
-    if (newArrival !== "") {
-      data.newArrival = newArrival === "true";
-    }
+      if (newArrival !== "") {
+        data.newArrival =
+          newArrival === "true";
+      }
 
-    if (bestSeller !== "") {
-      data.bestSeller = bestSeller === "true";
-    }
+      if (bestSeller !== "") {
+        data.bestSeller =
+          bestSeller === "true";
+      }
 
-    if (limited !== "") {
-      data.limited = limited === "true";
-    }
+      if (limited !== "") {
+        data.limited =
+          limited === "true";
+      }
 
-    if (onSale !== "") {
-      data.onSale = onSale === "true";
-    }
+      if (onSale !== "") {
+        data.onSale =
+          onSale === "true";
+      }
 
-    if (Object.keys(data).length === 0) {
-      return;
-    }
+      if (
+        Object.keys(data).length ===
+        0
+      ) {
+        return;
+      }
 
-    await updateProducts(selectedProducts, data);
+      await updateProducts(
+        selectedProducts,
+        data
+      );
 
-    setSelectedProducts([]);
-    setBrand("");
-    setCategory("");
-    setAvailability("");
+      setSelectedProducts([]);
 
-    setFeatured("");
-    setNewArrival("");
-    setBestSeller("");
-    setLimited("");
-    setOnSale("");
+      setBrand("");
+      setCategory("");
+      setAvailability("");
 
-    router.refresh();
-  };
+      setFeatured("");
+      setNewArrival("");
+      setBestSeller("");
+      setLimited("");
+      setOnSale("");
+
+      router.refresh();
+    };
+
+  /*
+   * =========================================================
+   * DRAG & DROP
+   * =========================================================
+   */
 
   async function handleDragEnd(
     event: DragEndEvent
   ) {
-    const { active, over } = event;
+    /*
+     * -------------------------------------------------------
+     * Prevent concurrent saves.
+     * -------------------------------------------------------
+     */
 
-    if (!over || active.id === over.id) {
+    if (isSavingOrder) {
       return;
     }
 
-    const oldIndex = displayProducts.findIndex(
-      (product) => product.id === Number(active.id)
+    /*
+     * -------------------------------------------------------
+     * Only Manual Order can be dragged.
+     * -------------------------------------------------------
+     */
+
+    if (!isManualOrder) {
+      return;
+    }
+
+    const {
+      active,
+      over,
+    } = event;
+
+    if (!over) {
+      return;
+    }
+
+    if (
+      active.id ===
+      over.id
+    ) {
+      return;
+    }
+
+    /*
+     * -------------------------------------------------------
+     * Find indexes.
+     * -------------------------------------------------------
+     */
+
+    const oldIndex =
+      displayProducts.findIndex(
+        (product) =>
+          product.id ===
+          Number(active.id)
+      );
+
+    const newIndex =
+      displayProducts.findIndex(
+        (product) =>
+          product.id ===
+          Number(over.id)
+      );
+
+    if (
+      oldIndex === -1 ||
+      newIndex === -1
+    ) {
+      return;
+    }
+
+    /*
+     * -------------------------------------------------------
+     * Save previous UI state.
+     * -------------------------------------------------------
+     */
+
+    const previousProducts =
+      [...displayProducts];
+
+    /*
+     * -------------------------------------------------------
+     * Optimistic reorder.
+     * -------------------------------------------------------
+     */
+
+    const reordered =
+      arrayMove(
+        displayProducts,
+        oldIndex,
+        newIndex
+      );
+
+    setDisplayProducts(
+      reordered
     );
 
-    const newIndex = displayProducts.findIndex(
-      (product) => product.id === Number(over.id)
-    );
+    /*
+     * -------------------------------------------------------
+     * IMPORTANT
+     *
+     * Do NOT calculate displayOrder here.
+     *
+     * Do NOT use:
+     *
+     * (page - 1) * pageSize + index
+     *
+     * The server owns the global order.
+     * -------------------------------------------------------
+     */
 
-    const reordered = arrayMove(
-      displayProducts,
-      oldIndex,
-      newIndex
-    );
+    const orderedIds =
+      reordered.map(
+        (product) =>
+          product.id
+      );
 
-    setDisplayProducts(reordered);
+    /*
+     * -------------------------------------------------------
+     * Save global order.
+     * -------------------------------------------------------
+     */
 
-await updateProductDisplayOrder(
-  reordered.map((product, index) => ({
-    id: product.id,
-    displayOrder: (page - 1) * pageSize + index,
-  }))
-);
+    setIsSavingOrder(true);
 
-    router.refresh();
+    try {
+      await updateProductDisplayOrder(
+        orderedIds
+      );
+
+      router.refresh();
+    } catch (error) {
+      console.error(
+        "Failed to save product order:",
+        error
+      );
+
+      setDisplayProducts(
+        previousProducts
+      );
+
+      alert(
+        "Failed to save product order. Please try again."
+      );
+    } finally {
+      setIsSavingOrder(
+        false
+      );
+    }
   }
 
-  const deleteSelected = async () => {
-    if (selectedProducts.length === 0) return;
+  /*
+   * =========================================================
+   * DELETE SELECTED
+   * =========================================================
+   */
 
-    await deleteProducts(selectedProducts);
+  const deleteSelected =
+    async () => {
+      if (
+        selectedProducts.length ===
+        0
+      ) {
+        return;
+      }
 
-    setSelectedProducts([]);
+      await deleteProducts(
+        selectedProducts
+      );
 
-    router.refresh();
-  };
+      setSelectedProducts([]);
 
-return (
-  <>
-    {selectedProducts.length > 0 && (
-      <SelectionToolbar
-        selectedCount={selectedProducts.length}
-        brands={brands}
-        categories={categories}
-        onClear={clearSelection}
-        onDelete={deleteSelected}
-        availability={availability}
-        brand={brand}
-        category={category}
-        featured={featured}
-        newArrival={newArrival}
-        bestSeller={bestSeller}
-        limited={limited}
-        onSale={onSale}
-        onAvailabilityChange={setAvailability}
-        onBrandChange={setBrand}
-        onCategoryChange={setCategory}
-        onFeaturedChange={setFeatured}
-        onNewArrivalChange={setNewArrival}
-        onBestSellerChange={setBestSeller}
-        onLimitedChange={setLimited}
-        onOnSaleChange={setOnSale}
-        onApplyAvailability={applyAvailability}
-      />
-    )}
+      router.refresh();
+    };
 
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm">
+  /*
+   * =========================================================
+   * RENDER
+   * =========================================================
+   */
 
-        <table className="min-w-full table-fixed">
+  return (
+    <>
+      {/* ================================================= */}
+      {/* Selection Toolbar */}
+      {/* ================================================= */}
 
-          <thead className="sticky top-0 z-20 border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-            <tr>
-              <th className="w-12 px-4 py-4">
-                <input
-                  type="checkbox"
-                  checked={
-                    displayProducts.length > 0 &&
-                    selectedProducts.length === displayProducts.length
-                  }
-                  onChange={toggleAllProducts}
-                  className="h-4 w-4 rounded border-neutral-300 accent-black"
-                />
-              </th>
+      {selectedProducts.length >
+        0 && (
+        <SelectionToolbar
+          selectedCount={
+            selectedProducts.length
+          }
+          brands={
+            brands
+          }
+          categories={
+            categories
+          }
+          onClear={
+            clearSelection
+          }
+          onDelete={
+            deleteSelected
+          }
+          availability={
+            availability
+          }
+          brand={brand}
+          category={
+            category
+          }
+          featured={
+            featured
+          }
+          newArrival={
+            newArrival
+          }
+          bestSeller={
+            bestSeller
+          }
+          limited={
+            limited
+          }
+          onSale={
+            onSale
+          }
+          onAvailabilityChange={
+            setAvailability
+          }
+          onBrandChange={
+            setBrand
+          }
+          onCategoryChange={
+            setCategory
+          }
+          onFeaturedChange={
+            setFeatured
+          }
+          onNewArrivalChange={
+            setNewArrival
+          }
+          onBestSellerChange={
+            setBestSeller
+          }
+          onLimitedChange={
+            setLimited
+          }
+          onOnSaleChange={
+            setOnSale
+          }
+          onApplyAvailability={
+            applyAvailability
+          }
+        />
+      )}
 
-              <th className="w-[560px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                Product
-              </th>
+      {/* ================================================= */}
+      {/* Manual Order Notice */}
+      {/* ================================================= */}
 
-              <th className="w-[260px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                Pricing
-              </th>
+      {!isManualOrder && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <span className="font-medium">
+            Manual Order
+          </span>{" "}
+          is required to drag and reorder
+          products.
+        </div>
+      )}
 
-              <th className="w-[180px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                Availability
-              </th>
+      {/* ================================================= */}
+      {/* Saving Notice */}
+      {/* ================================================= */}
 
-              <th className="w-[120px] px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                Actions
-              </th>
-            </tr>
-          </thead>
+      {isSavingOrder && (
+        <div className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
+          Saving product order...
+        </div>
+      )}
 
-          <SortableContext
-            items={displayProducts.map((product) => product.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <tbody className="divide-y divide-neutral-100">
-              {displayProducts.map((product) => (
-                <ProductRow
-                  key={product.id}
-                  product={product}
-                  exchangeRate={exchangeRate}
-                  selected={selectedProducts.includes(product.id)}
-                  onToggle={() => toggleProduct(product.id)}
-                  canDelete={canDelete}
-                />
-              ))}
-            </tbody>
-          </SortableContext>
+      {/* ================================================= */}
+      {/* Drag & Drop */}
+      {/* ================================================= */}
 
-        </table>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={
+          closestCenter
+        }
+        onDragEnd={
+          handleDragEnd
+        }
+      >
+        <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm">
 
-      </div>
-    </DndContext>
-  </>
-);
+          <table className="min-w-full table-fixed">
+
+            {/* ================================================= */}
+            {/* Header */}
+            {/* ================================================= */}
+
+            <thead className="sticky top-0 z-20 border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+
+              <tr>
+
+                <th className="w-12 px-4 py-4">
+
+                  <input
+                    type="checkbox"
+                    checked={
+                      displayProducts.length >
+                        0 &&
+                      selectedProducts.length ===
+                        displayProducts.length
+                    }
+                    onChange={
+                      toggleAllProducts
+                    }
+                    className="h-4 w-4 rounded border-neutral-300 accent-black"
+                  />
+
+                </th>
+
+                <th className="w-[560px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                  Product
+                </th>
+
+                <th className="w-[260px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                  Pricing
+                </th>
+
+                <th className="w-[180px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                  Availability
+                </th>
+
+                <th className="w-[120px] px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                  Actions
+                </th>
+
+              </tr>
+
+            </thead>
+
+            {/* ================================================= */}
+            {/* Products */}
+            {/* ================================================= */}
+
+            <SortableContext
+              items={
+                displayProducts.map(
+                  (product) =>
+                    product.id
+                )
+              }
+              strategy={
+                verticalListSortingStrategy
+              }
+            >
+
+              <tbody className="divide-y divide-neutral-100">
+
+                {displayProducts.map(
+                  (product) => (
+                    <ProductRow
+                      key={
+                        product.id
+                      }
+                      product={
+                        product
+                      }
+                      exchangeRate={
+                        exchangeRate
+                      }
+                      selected={selectedProducts.includes(
+                        product.id
+                      )}
+                      onToggle={() =>
+                        toggleProduct(
+                          product.id
+                        )
+                      }
+                      canDelete={
+                        canDelete
+                      }
+                    />
+                  )
+                )}
+
+              </tbody>
+
+            </SortableContext>
+
+          </table>
+
+        </div>
+
+      </DndContext>
+    </>
+  );
 }

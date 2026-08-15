@@ -9,6 +9,7 @@ export default async function NewProductPage() {
     categories,
     packagingProfiles,
     settings,
+    colors,
   ] = await Promise.all([
     /*
      * Active Brands
@@ -62,32 +63,42 @@ export default async function NewProductPage() {
      * Website Settings
      */
     prisma.setting.findFirst(),
+
+    /*
+     * Active Global Colors
+     *
+     * These colors are the master color
+     * options used by ProductColor and
+     * ProductVariant.
+     */
+    prisma.color.findMany({
+      where: {
+        active: true,
+      },
+
+      orderBy: [
+        {
+          sortOrder: "asc",
+        },
+
+        {
+          name: "asc",
+        },
+      ],
+    }),
   ]);
 
   return (
     <ProductForm
-      action={
-        createProduct
-      }
-
+      action={createProduct}
       submitText="Create Product"
-
-      categories={
-        categories
-      }
-
-      brands={
-        brands
-      }
-
-      packagingProfiles={
-        packagingProfiles
-      }
-
+      categories={categories}
+      brands={brands}
+      packagingProfiles={packagingProfiles}
       exchangeRate={
-        settings?.exchangeRate ??
-        0.59
+        settings?.exchangeRate ?? 0.59
       }
+      globalColors={colors}
     />
   );
 }

@@ -1,10 +1,14 @@
 export type ColorImage = {
   id: string;
+
   url: string;
+
   publicId: string | null;
+
   file?: File;
 
   isNew: boolean;
+
   deleted?: boolean;
 
   sortOrder: number;
@@ -13,7 +17,27 @@ export type ColorImage = {
 export type ColorImageItem = {
   id: string;
 
+  /*
+   * Global Color Master ID.
+   *
+   * Example:
+   * Black = 1
+   * White = 2
+   * Brown = 3
+   */
+  colorId: number | null;
+
+  /*
+   * Display name.
+   *
+   * Keep this field for backward compatibility
+   * with existing ProductColor records.
+   *
+   * New records should normally get their name
+   * from the selected Global Color.
+   */
   name: string;
+
   model: string;
 
   /*
@@ -23,16 +47,20 @@ export type ColorImageItem = {
    * with existing Color records.
    */
   url: string;
+
   publicId: string | null;
 
   /*
    * New Color Gallery.
    *
-   * One color can now contain multiple images.
+   * One Product Color can contain
+   * multiple gallery images.
    */
   images: ColorImage[];
 
   isNew: boolean;
+
   sortOrder: number;
+
   deleted?: boolean;
 };

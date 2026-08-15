@@ -1,3 +1,39 @@
+export type ProductVariantImageItem = {
+  id: string;
+
+  url: string;
+
+  publicId: string;
+
+  /**
+   * Image order inside the Variant gallery.
+   *
+   * 1 = first image
+   * 2 = second image
+   * 3 = third image
+   * ...
+   */
+  sortOrder: number;
+
+  /**
+   * Optional local file.
+   *
+   * Used when the image is newly selected
+   * from the computer and has not been uploaded yet.
+   */
+  file?: File;
+
+  /**
+   * Marks a newly added image.
+   */
+  isNew?: boolean;
+
+  /**
+   * Marks an existing image for deletion.
+   */
+  deleted?: boolean;
+};
+
 export type ProductVariantItem = {
   id: string;
 
@@ -7,10 +43,52 @@ export type ProductVariantItem = {
 
   dimensions: string;
 
+  /**
+   * Global Color relation.
+   *
+   * This connects the Variant to the
+   * global Color table.
+   *
+   * Example:
+   *
+   * Black -> colorId: 1
+   * Grey  -> colorId: 2
+   */
+  colorId: number | null;
+
+  /**
+   * Legacy single Variant image.
+   *
+   * Keep these fields for existing products
+   * and backward compatibility.
+   */
   imageUrl?: string;
 
   publicId?: string;
 
+  /**
+   * New Variant gallery.
+   *
+   * One Variant can now contain multiple images.
+   *
+   * Example:
+   *
+   * Variant: Black / M
+   *
+   * images:
+   * 01 Front
+   * 02 Back
+   * 03 Side
+   * 04 Detail
+   */
+  images: ProductVariantImageItem[];
+
+  /**
+   * Legacy single-file upload.
+   *
+   * Kept temporarily for compatibility
+   * with the existing upload flow.
+   */
   file?: File;
 
   isNew: boolean;

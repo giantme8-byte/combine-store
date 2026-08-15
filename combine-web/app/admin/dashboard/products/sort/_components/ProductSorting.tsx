@@ -61,6 +61,12 @@ export default function ProductSorting({
   const [saving, setSaving] =
     useState(false);
 
+  /*
+   * =========================================================
+   * SYNC PRODUCTS
+   * =========================================================
+   */
+
   useEffect(() => {
     setSortedProducts([
       ...products,
@@ -69,7 +75,15 @@ export default function ProductSorting({
     setOriginalProducts([
       ...products,
     ]);
+
+    setHasChanges(false);
   }, [products]);
+
+  /*
+   * =========================================================
+   * BEFORE UNLOAD
+   * =========================================================
+   */
 
   useEffect(() => {
     const handleBeforeUnload = (
@@ -96,6 +110,12 @@ export default function ProductSorting({
     };
   }, [hasChanges]);
 
+  /*
+   * =========================================================
+   * FILTER
+   * =========================================================
+   */
+
   const filteredProducts =
     sortedProducts.filter((product) => {
       const matchSearch =
@@ -120,10 +140,19 @@ export default function ProductSorting({
       );
     });
 
+  /*
+   * =========================================================
+   * RENDER
+   * =========================================================
+   */
+
   return (
     <main className="space-y-8">
 
-      {/* Header */}
+      {/* ================================================= */}
+      {/* HEADER */}
+      {/* ================================================= */}
+
       <div className="flex items-center justify-between">
 
         <div>
@@ -133,15 +162,21 @@ export default function ProductSorting({
           </h1>
 
           <p className="mt-2 text-neutral-500">
+
             Showing{" "}
+
             <span className="font-semibold text-neutral-900">
               {filteredProducts.length}
             </span>{" "}
+
             of{" "}
+
             <span className="font-semibold text-neutral-900">
               {products.length}
             </span>{" "}
+
             products
+
           </p>
 
         </div>
@@ -164,6 +199,10 @@ export default function ProductSorting({
 
       </div>
 
+      {/* ================================================= */}
+      {/* TOOLBAR */}
+      {/* ================================================= */}
+
       <SortToolbar
         search={search}
         brand={brand}
@@ -175,6 +214,10 @@ export default function ProductSorting({
         onCategoryChange={setCategory}
       />
 
+      {/* ================================================= */}
+      {/* SORT LIST */}
+      {/* ================================================= */}
+
       <SortList
         products={filteredProducts}
         allProducts={sortedProducts}
@@ -184,9 +227,20 @@ export default function ProductSorting({
         }}
       />
 
+      {/* ================================================= */}
+      {/* SAVE BAR */}
+      {/* ================================================= */}
+
       {hasChanges && (
         <SaveBar
           saving={saving}
+
+          /*
+           * -------------------------------------------------
+           * CANCEL
+           * -------------------------------------------------
+           */
+
           onCancel={() => {
             setSortedProducts([
               ...originalProducts,
@@ -194,21 +248,40 @@ export default function ProductSorting({
 
             setHasChanges(false);
           }}
+
+          /*
+           * -------------------------------------------------
+           * SAVE
+           * -------------------------------------------------
+           */
+
           onSave={async () => {
             setSaving(true);
 
             try {
-              await updateProductDisplayOrder(
+              /*
+               * Send ONLY product IDs.
+               *
+               * The server action is responsible for
+               * calculating the final global displayOrder.
+               *
+               * This prevents the sorting logic from becoming
+               * dependent on pagination / filtered indexes.
+               */
+
+              const orderedIds =
                 sortedProducts.map(
-                  (
-                    product,
-                    index,
-                  ) => ({
-                    id: product.id,
-                    displayOrder: index,
-                  })
-                )
+                  (product) =>
+                    product.id
+                );
+
+              await updateProductDisplayOrder(
+                orderedIds
               );
+
+              /*
+               * Save successful.
+               */
 
               setHasChanges(false);
 
@@ -223,7 +296,10 @@ export default function ProductSorting({
               router.refresh();
 
             } catch (error) {
-              console.error(error);
+              console.error(
+                "Failed to update product order:",
+                error
+              );
 
               toast.error(
                 "Unable to save changes."

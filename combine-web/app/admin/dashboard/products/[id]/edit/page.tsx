@@ -18,7 +18,11 @@ export default async function EditProductPage({
     categories,
     packagingProfiles,
     settings,
+    colors,
   ] = await Promise.all([
+    /*
+     * Product
+     */
     prisma.product.findUnique({
       where: {
         id: Number(id),
@@ -49,10 +53,21 @@ export default async function EditProductPage({
           orderBy: {
             sortOrder: "asc",
           },
+
+          include: {
+            images: {
+              orderBy: {
+                sortOrder: "asc",
+              },
+            },
+          },
         },
       },
     }),
 
+    /*
+     * Active Brands
+     */
     prisma.brand.findMany({
       where: {
         active: true,
@@ -63,6 +78,9 @@ export default async function EditProductPage({
       },
     }),
 
+    /*
+     * Active Categories
+     */
     prisma.category.findMany({
       where: {
         active: true,
@@ -73,6 +91,9 @@ export default async function EditProductPage({
       },
     }),
 
+    /*
+     * Packaging Profiles
+     */
     prisma.packagingProfile.findMany({
       orderBy: [
         {
@@ -85,7 +106,29 @@ export default async function EditProductPage({
       ],
     }),
 
+    /*
+     * Website Settings
+     */
     prisma.setting.findFirst(),
+
+    /*
+     * Active Global Colors
+     */
+    prisma.color.findMany({
+      where: {
+        active: true,
+      },
+
+      orderBy: [
+        {
+          sortOrder: "asc",
+        },
+
+        {
+          name: "asc",
+        },
+      ],
+    }),
   ]);
 
   if (!product) {
@@ -102,12 +145,11 @@ export default async function EditProductPage({
       submitText="Update Product"
       categories={categories}
       brands={brands}
-      packagingProfiles={
-        packagingProfiles
-      }
+      packagingProfiles={packagingProfiles}
       exchangeRate={
         settings?.exchangeRate ?? 0.59
       }
+      globalColors={colors}
     />
   );
 }

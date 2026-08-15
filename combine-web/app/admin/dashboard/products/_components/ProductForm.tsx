@@ -25,17 +25,24 @@ import type {
   ProductColor,
   ProductColorImage,
   ProductVariant,
+  ProductVariantImage,
   PackagingProfile,
+  Color,
 } from "@prisma/client";
 
 type ProductColorWithImages = ProductColor & {
   images?: ProductColorImage[];
 };
 
+type ProductVariantWithImages =
+  ProductVariant & {
+    images: ProductVariantImage[];
+  };
+
 type ProductWithRelations = Product & {
   images: ProductImage[];
   colors: ProductColorWithImages[];
-  variants: ProductVariant[];
+  variants: ProductVariantWithImages[];
 };
 
 type ProductFormProps = {
@@ -53,10 +60,11 @@ type ProductFormProps = {
 
   packagingProfiles: PackagingProfile[];
 
+  globalColors: Color[];
+
   exchangeRate: number;
 
   returnTo?: string;
-
 };
 
 function formatCreatedDate(
@@ -80,10 +88,12 @@ export default function ProductForm({
   categories,
   brands,
   packagingProfiles,
+  globalColors,
   exchangeRate,
   returnTo,
 }: ProductFormProps) {
   const router = useRouter();
+
   const formRef =
     useRef<HTMLFormElement>(null);
 
@@ -103,15 +113,19 @@ export default function ProductForm({
   const [variants, setVariants] =
     useState<ProductVariantItem[]>([]);
 
-  const [costPriceCny, setCostPriceCny] =
-    useState<number>(
-      product?.costPriceCny ?? 0
-    );
+  const [
+    costPriceCny,
+    setCostPriceCny,
+  ] = useState<number>(
+    product?.costPriceCny ?? 0
+  );
 
-  const [sellingPrice, setSellingPrice] =
-    useState<number>(
-      product?.price ?? 0
-    );
+  const [
+    sellingPrice,
+    setSellingPrice,
+  ] = useState<number>(
+    product?.price ?? 0
+  );
 
   const [slug, setSlug] = useState(
     product?.slug ?? ""
@@ -121,83 +135,236 @@ export default function ProductForm({
     useRef(false);
 
   useEffect(() => {
-    if (!product) return;
+    if (!product) {
+      return;
+    }
+
+    /*
+     * =========================================================
+     * PRODUCT IMAGES
+     * =========================================================
+     */
 
     setImages(
-      product.images.map((image) => ({
-        id: image.id.toString(),
-        url: image.url,
-        publicId: image.publicId,
-        isNew: false,
-        sortOrder: image.sortOrder,
-        deleted: false,
-      }))
+      product.images.map(
+        (image) => ({
+          id:
+            image.id.toString(),
+
+          url:
+            image.url,
+
+          publicId:
+            image.publicId,
+
+          isNew:
+            false,
+
+          sortOrder:
+            image.sortOrder,
+
+          deleted:
+            false,
+        })
+      )
     );
+
+    /*
+     * =========================================================
+     * COLORS
+     * =========================================================
+     */
 
     setColors(
-      product.colors.map((color) => {
-        const galleryImages =
-          color.images?.map((image) => ({
-            id: image.id.toString(),
-            url: image.url,
-            publicId: image.publicId ?? "",
-            isNew: false,
-            sortOrder: image.sortOrder,
-            deleted: false,
-          })) ?? [];
+      product.colors.map(
+        (color) => {
+          const galleryImages =
+            color.images?.map(
+              (image) => ({
+                id:
+                  image.id.toString(),
 
-        // Backward compatibility:
-        // old Colors only have ProductColor.imageUrl/publicId.
-        if (
-          galleryImages.length === 0 &&
-          color.imageUrl
-        ) {
-          galleryImages.push({
-            id: `legacy-${color.id}`,
-            url: color.imageUrl,
-            publicId: color.publicId ?? "",
-            isNew: false,
-            sortOrder: 0,
-            deleted: false,
-          });
+                url:
+                  image.url,
+
+                publicId:
+                  image.publicId ??
+                  "",
+
+                isNew:
+                  false,
+
+                sortOrder:
+                  image.sortOrder,
+
+                deleted:
+                  false,
+              })
+            ) ?? [];
+
+          /*
+           * Backward compatibility:
+           *
+           * Old Colors may only have
+           * ProductColor.imageUrl/publicId.
+           */
+
+          if (
+            galleryImages.length ===
+              0 &&
+            color.imageUrl
+          ) {
+            galleryImages.push({
+              id:
+                `legacy-${color.id}`,
+
+              url:
+                color.imageUrl,
+
+              publicId:
+                color.publicId ??
+                "",
+
+              isNew:
+                false,
+
+              sortOrder:
+                0,
+
+              deleted:
+                false,
+            });
+          }
+
+          return {
+            id:
+              color.id.toString(),
+
+            colorId:
+              color.colorId ??
+              null,
+
+            name:
+              color.name,
+
+            model:
+              color.model ??
+              "",
+
+            url:
+              color.imageUrl,
+
+            publicId:
+              color.publicId,
+
+            images:
+              galleryImages,
+
+            isNew:
+              false,
+
+            sortOrder:
+              color.sortOrder,
+
+            deleted:
+              false,
+          };
         }
-
-        return {
-          id: color.id.toString(),
-          name: color.name,
-          model: color.model ?? "",
-          url: color.imageUrl,
-          publicId: color.publicId,
-          images: galleryImages,
-          isNew: false,
-          sortOrder: color.sortOrder,
-          deleted: false,
-        };
-      })
+      )
     );
 
+    /*
+     * =========================================================
+     * VARIANTS
+     * =========================================================
+     *
+     * IMPORTANT:
+     *
+     * A Variant can now contain multiple images.
+     *
+     * Example:
+     *
+     * Black / Small
+     *   ├── Front
+     *   ├── Back
+     *   └── Side
+     *
+     * Black / Medium
+     *   ├── Front
+     *   └── Detail
+     *
+     * We also keep the legacy imageUrl/publicId fields
+     * for backward compatibility.
+     */
+
     setVariants(
-      product.variants.map((variant) => ({
-        id: variant.id.toString(),
+      product.variants.map(
+        (variant) => ({
+          id:
+            variant.id.toString(),
 
-        size: variant.size,
+          colorId:
+            variant.colorId ??
+            null,
 
-        model:
-          variant.model ?? "",
+          size:
+            variant.size,
 
-        dimensions:
-          variant.dimensions ?? "",
+          model:
+            variant.model ??
+            "",
 
-        imageUrl:
-          variant.imageUrl ?? "",
+          dimensions:
+            variant.dimensions ??
+            "",
 
-        publicId:
-          variant.publicId ?? "",
+          /*
+           * Legacy single Variant image.
+           */
+          imageUrl:
+            variant.imageUrl ??
+            "",
 
-        isNew: false,
+          publicId:
+            variant.publicId ??
+            "",
 
-        deleted: false,
-      }))
+          /*
+           * New Variant gallery.
+           */
+          images:
+            variant.images.map(
+              (image) => ({
+                id:
+                  image.id.toString(),
+
+                url:
+                  image.url,
+
+                publicId:
+                  image.publicId,
+
+                sortOrder:
+                  image.sortOrder,
+
+                isNew:
+                  false,
+
+                deleted:
+                  false,
+              })
+            ),
+
+          file:
+            undefined,
+
+          isNew:
+            false,
+
+          deleted:
+            false,
+        })
+      )
     );
 
     setCostPriceCny(
@@ -212,21 +379,34 @@ export default function ProductForm({
       product.slug ?? ""
     );
 
-    slugEdited.current = false;
+    slugEdited.current =
+      false;
   }, [product]);
 
   function slugify(text: string) {
     return text
       .toLowerCase()
       .trim()
-      .replace(/&/g, "and")
+      .replace(
+        /&/g,
+        "and"
+      )
       .replace(
         /[^a-z0-9\s-]/g,
         ""
       )
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(
+        /\s+/g,
+        "-"
+      )
+      .replace(
+        /-+/g,
+        "-"
+      )
+      .replace(
+        /^-|-$/g,
+        ""
+      );
   }
 
   async function handleSubmit(
@@ -246,16 +426,6 @@ export default function ProductForm({
      * =========================================================
      * IMAGE UPLOAD CHECK
      * =========================================================
-     *
-     * Product images are now uploaded directly to Cloudinary
-     * from ImageUpload.tsx.
-     *
-     * Therefore, before saving the product:
-     *
-     * 1. No new image can still be uploading
-     * 2. No new image can have failed
-     * 3. Every new image must have a Cloudinary URL
-     * 4. Every new image must have a Cloudinary publicId
      */
 
     const uploadingImages =
@@ -263,10 +433,14 @@ export default function ProductForm({
         (image) =>
           image.isNew &&
           !image.deleted &&
-          image.status === "uploading"
+          image.status ===
+            "uploading"
       );
 
-    if (uploadingImages.length > 0) {
+    if (
+      uploadingImages.length >
+      0
+    ) {
       alert(
         "Please wait for all images to finish uploading."
       );
@@ -279,10 +453,14 @@ export default function ProductForm({
         (image) =>
           image.isNew &&
           !image.deleted &&
-          image.status === "failed"
+          image.status ===
+            "failed"
       );
 
-    if (failedImages.length > 0) {
+    if (
+      failedImages.length >
+      0
+    ) {
       alert(
         "Some images failed to upload. Please remove them and upload again."
       );
@@ -298,11 +476,15 @@ export default function ProductForm({
           (
             !image.url ||
             !image.publicId ||
-            image.status !== "uploaded"
+            image.status !==
+              "uploaded"
           )
       );
 
-    if (incompleteImages.length > 0) {
+    if (
+      incompleteImages.length >
+      0
+    ) {
       alert(
         "Some images are not ready yet. Please wait for the upload to finish."
       );
@@ -325,11 +507,6 @@ export default function ProductForm({
      * =========================================================
      * PRODUCT IMAGE LIMIT
      * =========================================================
-     *
-     * Count all visible product images, not only new images.
-     *
-     * This keeps the existing 20-image limit correct when
-     * editing an existing product.
      */
 
     const MAX_IMAGES = 20;
@@ -355,24 +532,13 @@ export default function ProductForm({
      * =========================================================
      * PRODUCT IMAGES
      * =========================================================
-     *
-     * Product gallery files are uploaded directly to Cloudinary
-     * from ImageUpload.tsx.
-     *
-     * The Server Action receives only metadata:
-     * - id
-     * - url
-     * - publicId
-     * - sortOrder
-     * - isNew
-     * - deleted
-     *
-     * IMPORTANT:
-     * We intentionally do NOT append image.file here.
      */
 
     images.forEach(
-      (image, index) => {
+      (
+        image,
+        index
+      ) => {
         formData.append(
           "imageOrder",
           JSON.stringify({
@@ -403,17 +569,6 @@ export default function ProductForm({
      * =========================================================
      * COLORS
      * =========================================================
-     *
-     * Color Gallery images are uploaded directly to Cloudinary
-     * before the Server Action is called.
-     *
-     * The Server Action therefore receives:
-     * - Color metadata
-     * - Cloudinary URL
-     * - Cloudinary publicId
-     * - Gallery sortOrder
-     *
-     * No Color image File is appended to the Server Action.
      */
 
     async function uploadColorImage(
@@ -422,17 +577,23 @@ export default function ProductForm({
       url: string;
       publicId: string;
     }> {
-      const signatureResponse = await fetch(
-        "/api/cloudinary/sign",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const signatureResponse =
+        await fetch(
+          "/api/cloudinary/sign",
+          {
+            method:
+              "POST",
 
-      if (!signatureResponse.ok) {
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+      if (
+        !signatureResponse.ok
+      ) {
         throw new Error(
           "Failed to create Cloudinary upload signature."
         );
@@ -453,21 +614,31 @@ export default function ProductForm({
         );
       }
 
-      const uploadData = new FormData();
+      const uploadData =
+        new FormData();
 
-      uploadData.append("file", file);
+      uploadData.append(
+        "file",
+        file
+      );
+
       uploadData.append(
         "api_key",
         signatureData.apiKey
       );
+
       uploadData.append(
         "timestamp",
-        String(signatureData.timestamp)
+        String(
+          signatureData.timestamp
+        )
       );
+
       uploadData.append(
         "signature",
         signatureData.signature
       );
+
       uploadData.append(
         "folder",
         signatureData.folder
@@ -476,15 +647,21 @@ export default function ProductForm({
       const uploadUrl =
         `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`;
 
-      const uploadResponse = await fetch(
-        uploadUrl,
-        {
-          method: "POST",
-          body: uploadData,
-        }
-      );
+      const uploadResponse =
+        await fetch(
+          uploadUrl,
+          {
+            method:
+              "POST",
 
-      if (!uploadResponse.ok) {
+            body:
+              uploadData,
+          }
+        );
+
+      if (
+        !uploadResponse.ok
+      ) {
         throw new Error(
           `Cloudinary upload failed with status ${uploadResponse.status}.`
         );
@@ -503,21 +680,32 @@ export default function ProductForm({
       }
 
       return {
-        url: data.secure_url,
-        publicId: data.public_id,
+        url:
+          data.secure_url,
+
+        publicId:
+          data.public_id,
       };
     }
 
     for (
       let colorIndex = 0;
-      colorIndex < colors.length;
+      colorIndex <
+        colors.length;
       colorIndex++
     ) {
-      const color = colors[colorIndex];
+      const color =
+        colors[
+          colorIndex
+        ];
 
       const visibleImages =
-        (color.images ?? []).filter(
-          (image) => !image.deleted
+        (
+          color.images ??
+          []
+        ).filter(
+          (image) =>
+            !image.deleted
         );
 
       const galleryImages: {
@@ -529,11 +717,14 @@ export default function ProductForm({
 
       for (
         let imageIndex = 0;
-        imageIndex < visibleImages.length;
+        imageIndex <
+          visibleImages.length;
         imageIndex++
       ) {
         const image =
-          visibleImages[imageIndex];
+          visibleImages[
+            imageIndex
+          ];
 
         if (
           image.file
@@ -544,10 +735,15 @@ export default function ProductForm({
             );
 
           galleryImages.push({
-            id: image.id,
-            url: uploaded.url,
+            id:
+              image.id,
+
+            url:
+              uploaded.url,
+
             publicId:
               uploaded.publicId,
+
             sortOrder:
               imageIndex,
           });
@@ -560,10 +756,15 @@ export default function ProductForm({
           image.publicId
         ) {
           galleryImages.push({
-            id: image.id,
-            url: image.url,
+            id:
+              image.id,
+
+            url:
+              image.url,
+
             publicId:
               image.publicId,
+
             sortOrder:
               imageIndex,
           });
@@ -572,53 +773,88 @@ export default function ProductForm({
 
       /*
        * Legacy Color compatibility.
-       *
-       * Old products may only have ProductColor.imageUrl /
-       * ProductColor.publicId and no ProductColorImage records.
        */
+
       if (
-        galleryImages.length === 0 &&
+        galleryImages.length ===
+          0 &&
         color.url &&
         color.publicId
       ) {
         galleryImages.push({
-          id: `legacy-${color.id}`,
-          url: color.url,
+          id:
+            `legacy-${color.id}`,
+
+          url:
+            color.url,
+
           publicId:
             color.publicId,
-          sortOrder: 0,
+
+          sortOrder:
+            0,
         });
       }
 
       formData.append(
         "colorOrder",
         JSON.stringify({
-          id: color.id,
-          name: color.name,
-          model: color.model,
+          id:
+            color.id,
+
+          colorId:
+            color.colorId ??
+            null,
+
+          name:
+            color.name,
+
+          model:
+            color.model,
+
           publicId:
-            galleryImages[0]?.publicId ??
+            galleryImages[0]
+              ?.publicId ??
             color.publicId ??
             "",
-          sortOrder: colorIndex,
-          isNew: color.isNew,
+
+          sortOrder:
+            colorIndex,
+
+          isNew:
+            color.isNew,
+
           deleted:
-            color.deleted ?? false,
+            color.deleted ??
+            false,
+
           hasNewImage:
             visibleImages.some(
               (image) =>
-                Boolean(image.file)
+                Boolean(
+                  image.file
+                )
             ),
+
           images:
             galleryImages.map(
-              (image) => ({
-                id: image.id,
-                url: image.url,
+              (
+                image
+              ) => ({
+                id:
+                  image.id,
+
+                url:
+                  image.url,
+
                 publicId:
                   image.publicId,
+
                 sortOrder:
                   image.sortOrder,
-                deleted: false,
+
+                deleted:
+                  false,
               })
             ),
         })
@@ -630,21 +866,33 @@ export default function ProductForm({
      * VARIANTS
      * =========================================================
      *
-     * VariantManager is still using the old upload mechanism.
+     * IMPORTANT:
      *
-     * We intentionally leave this unchanged for now.
+     * The Variant gallery is now stored inside
+     * variant.images.
      *
-     * We will migrate VariantManager together with the final
-     * Color + Size / Variant system.
+     * For this step we keep the existing submit
+     * structure untouched.
+     *
+     * The Server Action migration will be handled
+     * separately after the TypeScript structure
+     * is confirmed.
      */
 
     variants.forEach(
-      (variant, index) => {
+      (
+        variant,
+        index
+      ) => {
         formData.append(
           "variantOrder",
           JSON.stringify({
             id:
               variant.id,
+
+            colorId:
+              variant.colorId ??
+              null,
 
             size:
               variant.size,
@@ -663,6 +911,47 @@ export default function ProductForm({
               variant.publicId ??
               "",
 
+            /*
+             * New Variant gallery metadata.
+             */
+            images:
+              (
+                variant.images ??
+                []
+              )
+                .filter(
+                  (
+                    image
+                  ) =>
+                    !image.deleted
+                )
+                .map(
+                  (
+                    image,
+                    imageIndex
+                  ) => ({
+                    id:
+                      image.id,
+
+                    url:
+                      image.url,
+
+                    publicId:
+                      image.publicId,
+
+                    sortOrder:
+                      imageIndex,
+
+                    isNew:
+                      image.isNew ??
+                      false,
+
+                    deleted:
+                      image.deleted ??
+                      false,
+                  })
+                ),
+
             sortOrder:
               index,
 
@@ -672,12 +961,21 @@ export default function ProductForm({
             deleted:
               variant.deleted,
 
+            /*
+             * Legacy upload compatibility.
+             */
             hasNewImage:
               !!variant.file,
           })
         );
 
-        if (variant.file) {
+        /*
+         * Keep legacy single-file upload
+         * temporarily for compatibility.
+         */
+        if (
+          variant.file
+        ) {
           formData.append(
             "variantImages",
             variant.file
@@ -685,6 +983,7 @@ export default function ProductForm({
         }
       }
     );
+
     /*
      * =========================================================
      * SAVE PRODUCT
@@ -704,7 +1003,9 @@ export default function ProductForm({
           );
 
           router.refresh();
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.error(
             "Failed to save product:",
             error
@@ -722,9 +1023,12 @@ export default function ProductForm({
    * Only active packaging profiles
    * should be selectable.
    */
+
   const activePackaging =
     packagingProfiles.filter(
-      (packaging) =>
+      (
+        packaging
+      ) =>
         packaging.active
     );
 
@@ -732,7 +1036,9 @@ export default function ProductForm({
     <form
       ref={formRef}
       id="product-form"
-      onSubmit={handleSubmit}
+      onSubmit={
+        handleSubmit
+      }
     >
       <div className="grid gap-8 xl:grid-cols-[2fr_380px]">
 
@@ -761,6 +1067,7 @@ export default function ProductForm({
             <div className="grid gap-5 md:grid-cols-2">
 
               {/* Brand */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Brand
@@ -780,7 +1087,9 @@ export default function ProductForm({
                   </option>
 
                   {brands.map(
-                    (brand) => (
+                    (
+                      brand
+                    ) => (
                       <option
                         key={
                           brand.id
@@ -789,7 +1098,9 @@ export default function ProductForm({
                           brand.name
                         }
                       >
-                        {brand.name}
+                        {
+                          brand.name
+                        }
                       </option>
                     )
                   )}
@@ -797,6 +1108,7 @@ export default function ProductForm({
               </div>
 
               {/* SKU */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   SKU
@@ -814,6 +1126,7 @@ export default function ProductForm({
               </div>
 
               {/* Product Name */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Product Name
@@ -825,7 +1138,9 @@ export default function ProductForm({
                   defaultValue={
                     product?.name
                   }
-                  onChange={(e) => {
+                  onChange={(
+                    e
+                  ) => {
                     if (
                       !slugEdited.current
                     ) {
@@ -843,6 +1158,7 @@ export default function ProductForm({
               </div>
 
               {/* Slug */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Slug
@@ -850,8 +1166,12 @@ export default function ProductForm({
 
                 <input
                   name="slug"
-                  value={slug}
-                  onChange={(e) => {
+                  value={
+                    slug
+                  }
+                  onChange={(
+                    e
+                  ) => {
                     slugEdited.current =
                       true;
 
@@ -872,6 +1192,7 @@ export default function ProductForm({
               </div>
 
               {/* Model */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Model
@@ -891,6 +1212,7 @@ export default function ProductForm({
             </div>
 
             {/* Short Description */}
+
             <div className="mt-5 space-y-2">
               <label className="mb-1 block text-sm font-semibold text-neutral-700">
                 Short Description
@@ -908,7 +1230,6 @@ export default function ProductForm({
             </div>
 
           </div>
-
 
           {/* =================================================== */}
           {/* Pricing */}
@@ -929,6 +1250,7 @@ export default function ProductForm({
             <div className="grid gap-5 md:grid-cols-2">
 
               {/* Price Remark */}
+
               <div className="space-y-2 md:col-span-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Price Remark
@@ -946,6 +1268,7 @@ export default function ProductForm({
               </div>
 
               {/* Cost Price */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Cost Price (CNY)
@@ -960,7 +1283,9 @@ export default function ProductForm({
                   value={
                     costPriceCny
                   }
-                  onChange={(e) =>
+                  onChange={(
+                    e
+                  ) =>
                     setCostPriceCny(
                       Number(
                         e.target
@@ -973,6 +1298,7 @@ export default function ProductForm({
               </div>
 
               {/* Selling Price */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Selling Price (MYR)
@@ -987,7 +1313,9 @@ export default function ProductForm({
                   value={
                     sellingPrice
                   }
-                  onChange={(e) =>
+                  onChange={(
+                    e
+                  ) =>
                     setSellingPrice(
                       Number(
                         e.target
@@ -1003,6 +1331,7 @@ export default function ProductForm({
             </div>
 
             {/* Profit Summary */}
+
             <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
 
               <h3 className="mb-5 text-lg font-medium">
@@ -1047,7 +1376,9 @@ export default function ProductForm({
                     {(
                       costPriceCny *
                       exchangeRate
-                    ).toFixed(2)}
+                    ).toFixed(
+                      2
+                    )}
                   </span>
                 </div>
 
@@ -1077,7 +1408,9 @@ export default function ProductForm({
                       sellingPrice -
                       costPriceCny *
                         exchangeRate
-                    ).toFixed(2)}
+                    ).toFixed(
+                      2
+                    )}
                   </span>
                 </div>
 
@@ -1086,7 +1419,6 @@ export default function ProductForm({
             </div>
 
           </div>
-
 
           {/* =================================================== */}
           {/* Product Details */}
@@ -1107,6 +1439,7 @@ export default function ProductForm({
             <div className="grid gap-5 md:grid-cols-2">
 
               {/* Category */}
+
               <CategorySelect
                 categories={
                   categories
@@ -1117,6 +1450,7 @@ export default function ProductForm({
               />
 
               {/* Availability */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Availability
@@ -1147,7 +1481,6 @@ export default function ProductForm({
                   </option>
                 </select>
               </div>
-
 
               {/* ================================================= */}
               {/* Packaging */}
@@ -1188,7 +1521,9 @@ export default function ProductForm({
                   </option>
 
                   {activePackaging.map(
-                    (packaging) => (
+                    (
+                      packaging
+                    ) => (
                       <option
                         key={
                           packaging.id
@@ -1213,8 +1548,8 @@ export default function ProductForm({
 
               </div>
 
-
               {/* Dimensions */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Dimensions
@@ -1231,8 +1566,8 @@ export default function ProductForm({
                 />
               </div>
 
-
               {/* Primary Color */}
+
               <div className="space-y-2">
                 <label className="mb-1 block text-sm font-semibold text-neutral-700">
                   Primary Color
@@ -1249,11 +1584,14 @@ export default function ProductForm({
                 />
               </div>
 
-
               {/* Colors */}
+
               <ColorUpload
                 colors={
                   colors
+                }
+                globalColors={
+                  globalColors
                 }
                 onChange={
                   setColors
@@ -1262,8 +1600,8 @@ export default function ProductForm({
 
             </div>
 
-
             {/* Description */}
+
             <div className="mt-6 space-y-2">
               <label className="mb-1 block text-sm font-semibold text-neutral-700">
                 Description
@@ -1282,7 +1620,6 @@ export default function ProductForm({
 
           </div>
 
-
           {/* =================================================== */}
           {/* Variants */}
           {/* =================================================== */}
@@ -1291,13 +1628,15 @@ export default function ProductForm({
             variants={
               variants
             }
+            colors={
+              colors
+            }
             onChange={
               setVariants
             }
           />
 
         </div>
-
 
         {/* ===================================================== */}
         {/* RIGHT */}
@@ -1331,7 +1670,6 @@ export default function ProductForm({
             />
 
           </div>
-
 
           {/* =================================================== */}
           {/* Product Information */}
@@ -1401,7 +1739,6 @@ export default function ProductForm({
             </div>
 
           </div>
-
 
           {/* =================================================== */}
           {/* Product Tags */}
@@ -1484,7 +1821,6 @@ export default function ProductForm({
             </div>
 
           </div>
-
 
           {/* =================================================== */}
           {/* Save Button */}

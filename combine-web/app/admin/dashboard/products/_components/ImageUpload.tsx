@@ -8,26 +8,20 @@ import {
 } from "react";
 
 import {
-  DndContext,
   PointerSensor,
-  closestCenter,
   useSensor,
   useSensors,
   DragEndEvent,
 } from "@dnd-kit/core";
 
-import {
-  SortableContext,
-  rectSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
+import { arrayMove } from "@dnd-kit/sortable";
 
 import {
   ProductImageItem,
 } from "@/types/product-image";
 
 import UploadDropzone from "./UploadDropzone";
-import GalleryGrid from "./GalleryGrid";
+import SortableImageGrid from "./SortableImageGrid";
 
 type ImageUploadProps = {
   images: ProductImageItem[];
@@ -73,13 +67,6 @@ export default function ImageUpload({
     }
 
     try {
-      /*
-       * Mark image as uploading.
-       *
-       * IMPORTANT:
-       * Use functional state update so we always
-       * work with the latest images array.
-       */
       onChange((currentImages) =>
         currentImages.map((item) =>
           item.id === image.id
@@ -93,11 +80,6 @@ export default function ImageUpload({
         )
       );
 
-      /*
-       * Request a signed Cloudinary upload.
-       *
-       * The API secret never reaches the browser.
-       */
       const signatureResponse =
         await fetch(
           "/api/cloudinary/sign",
@@ -131,9 +113,6 @@ export default function ImageUpload({
         );
       }
 
-      /*
-       * Build Cloudinary upload request.
-       */
       const formData = new FormData();
 
       formData.append(
@@ -166,10 +145,6 @@ export default function ImageUpload({
       const uploadUrl =
         `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`;
 
-      /*
-       * XMLHttpRequest is used instead of fetch
-       * because it provides upload progress.
-       */
       const result =
         await new Promise<{
           url: string;
@@ -226,7 +201,6 @@ export default function ImageUpload({
                     `Cloudinary upload failed with status ${xhr.status}.`
                   )
                 );
-
                 return;
               }
 
@@ -245,7 +219,6 @@ export default function ImageUpload({
                     "Invalid response from Cloudinary."
                   )
                 );
-
                 return;
               }
 
@@ -260,7 +233,6 @@ export default function ImageUpload({
                       "Cloudinary did not return image information."
                   )
                 );
-
                 return;
               }
 
@@ -291,12 +263,6 @@ export default function ImageUpload({
           }
         );
 
-      /*
-       * Upload succeeded.
-       *
-       * IMPORTANT:
-       * Use functional state update here too.
-       */
       onChange((currentImages) =>
         currentImages.map((item) =>
           item.id === image.id
@@ -349,12 +315,6 @@ export default function ImageUpload({
       return;
     }
 
-    /*
-     * Create local image items immediately.
-     *
-     * This means the selected images appear
-     * in the gallery before Cloudinary finishes.
-     */
     const newImages: ProductImageItem[] =
       files.map((file, index) => ({
         id: crypto.randomUUID(),
@@ -384,18 +344,8 @@ export default function ImageUpload({
 
     onChange(updatedImages);
 
-    /*
-     * Reset file input so selecting the same
-     * files again will trigger onChange.
-     */
     e.target.value = "";
 
-    /*
-     * Upload sequentially.
-     *
-     * This avoids sending multiple large files
-     * at the same time.
-     */
     setUploading(true);
 
     try {
@@ -474,9 +424,6 @@ export default function ImageUpload({
           return [image];
         }
 
-        /*
-         * Local-only image.
-         */
         if (
           image.isNew &&
           image.status !== "uploaded"
@@ -494,12 +441,6 @@ export default function ImageUpload({
           return [];
         }
 
-        /*
-         * Uploaded image or existing image.
-         *
-         * Keep it in state as deleted so the
-         * server can process deletion on Save.
-         */
         return [
           {
             ...image,
@@ -552,7 +493,7 @@ export default function ImageUpload({
 
       {visibleImages.length >
         0 && (
-        <GalleryGrid
+        <SortableImageGrid
           images={
             visibleImages
           }

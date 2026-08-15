@@ -1,6 +1,6 @@
 "use server";
 
-import { Availability, UserRole } from "@prisma/client";
+import { Availability, UserRole, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authorize";
 import cloudinary from "@/lib/cloudinary";
@@ -304,6 +304,7 @@ export async function createProduct(
 
     type ColorOrderItem = {
       id: string;
+      colorId: number | null;
       publicId: string | null;
       name: string;
       model: string;
@@ -328,6 +329,7 @@ export async function createProduct(
 
     type VariantOrderItem = {
       id: string;
+      colorId: number | null;
       size: string;
       model: string;
       dimensions: string;
@@ -442,6 +444,7 @@ export async function createProduct(
         }
 
         return {
+          colorId: color.colorId,
           name: color.name,
           model: color.model,
           imageUrl:
@@ -605,6 +608,9 @@ export async function createProduct(
           create:
             uploadedColors.map(
               (color) => ({
+                colorId:
+                  color.colorId,
+
                 name:
                   color.name,
 
@@ -644,6 +650,9 @@ export async function createProduct(
                 variant,
                 index
               ) => ({
+                colorId:
+                  variant.colorId,
+
                 size:
                   variant.size,
 
@@ -834,6 +843,7 @@ export async function updateProduct(
 
     type ColorOrderItem = {
       id: string;
+      colorId: number | null;
       publicId: string | null;
       name: string;
       model: string;
@@ -874,6 +884,7 @@ export async function updateProduct(
 
     type VariantOrderItem = {
       id: string;
+      colorId: number | null;
       size: string;
       model: string;
       dimensions: string;
@@ -975,6 +986,7 @@ export async function updateProduct(
         }
 
         return {
+          colorId: color.colorId,
           name: color.name,
           model: color.model,
           imageUrl:
@@ -1334,6 +1346,7 @@ export async function updateProduct(
           id: databaseId,
         },
         data: {
+          colorId: color.colorId,
           name: color.name,
           model: color.model,
           sortOrder:
@@ -1474,6 +1487,7 @@ export async function updateProduct(
       await prisma.productColor.create({
         data: {
           productId: id,
+          colorId: color.colorId,
           name: color.name,
           model: color.model,
           imageUrl:
@@ -1557,6 +1571,9 @@ export async function updateProduct(
         },
 
         data: {
+          colorId:
+            variant.colorId,
+
           size:
             variant.size,
 
@@ -1616,6 +1633,7 @@ export async function updateProduct(
             index
           ) => ({
             productId: id,
+            colorId: variant.colorId,
 
             size:
               variant.size,
@@ -1794,6 +1812,9 @@ export async function duplicateProduct(
           create:
             product.colors.map(
               (color) => ({
+                colorId:
+                  color.colorId,
+
                 name:
                   color.name,
 
@@ -1830,6 +1851,9 @@ export async function duplicateProduct(
           create:
             product.variants.map(
               (variant) => ({
+                colorId:
+                  variant.colorId,
+
                 size:
                   variant.size,
 
@@ -2082,31 +2106,236 @@ export async function updateProducts(
 }
 
 export async function updateProductDisplayOrder(
-  items: {
-    id: number;
-    displayOrder: number;
-  }[]
+  orderedIds: number[]
 ) {
   await requireRole([
     UserRole.MANAGER,
     UserRole.ADMIN,
+    UserRole.OWNER,
   ]);
 
-  await prisma.$transaction(
-    items.map(
-      (item) =>
-        prisma.product.update({
-          where: {
-            id: item.id,
-          },
+  if (orderedIds.length === 0) {
+    return;
+  }
 
-          data: {
-            displayOrder:
-              item.displayOrder,
-          },
-        })
-    )
+  /*
+   * =========================================================
+   * REMOVE DUPLICATES
+   * =========================================================
+   */
+
+  const uniqueOrderedIds =
+    Array.from(
+      new Set(orderedIds)
+    );
+
+  /*
+   * =========================================================
+   * STEP 1
+   * LOAD THE COMPLETE GLOBAL PRODUCT ORDER
+   * =========================================================
+   *
+   * displayOrder is global, so we must read every product
+   * before calculating the new positions.
+   */
+
+  const allProducts =
+    await prisma.product.findMany({
+      select: {
+        id: true,
+        displayOrder: true,
+      },
+
+      orderBy: [
+        {
+          displayOrder: "asc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+    });
+
+  if (allProducts.length === 0) {
+    return;
+  }
+
+  /*
+   * =========================================================
+   * STEP 2
+   * CURRENT GLOBAL ORDER
+   * =========================================================
+   */
+
+  const globalIds =
+    allProducts.map(
+      (product) =>
+        product.id
+    );
+
+  const globalIdSet =
+    new Set(globalIds);
+
+  /*
+   * =========================================================
+   * STEP 3
+   * VALIDATE CLIENT IDS
+   * =========================================================
+   */
+
+  const hasInvalidId =
+    uniqueOrderedIds.some(
+      (id) =>
+        !globalIdSet.has(id)
+    );
+
+  if (hasInvalidId) {
+    throw new Error(
+      "Invalid product IDs in reorder request."
+    );
+  }
+
+  /*
+   * =========================================================
+   * STEP 4
+   * FIND THE GLOBAL POSITIONS
+   * =========================================================
+   *
+   * Example:
+   *
+   * Global:
+   *
+   * A B C D E F G H
+   *
+   * Visible products:
+   *
+   * B D F H
+   *
+   * Their global positions are:
+   *
+   * 1 3 5 7
+   *
+   * New visible order:
+   *
+   * H B F D
+   *
+   * Final global order:
+   *
+   * A H C B E F G D
+   */
+
+  const orderedIdSet =
+    new Set(
+      uniqueOrderedIds
+    );
+
+  const targetIndexes =
+    globalIds
+      .map(
+        (
+          id,
+          index
+        ) =>
+          orderedIdSet.has(id)
+            ? index
+            : -1
+      )
+      .filter(
+        (index) =>
+          index !== -1
+      );
+
+  if (
+    targetIndexes.length !==
+    uniqueOrderedIds.length
+  ) {
+    throw new Error(
+      "Product reorder data is invalid."
+    );
+  }
+
+  /*
+   * =========================================================
+   * STEP 5
+   * BUILD THE NEW GLOBAL ORDER
+   * =========================================================
+   */
+
+  const reorderedGlobalIds =
+    [...globalIds];
+
+  uniqueOrderedIds.forEach(
+    (
+      productId,
+      index
+    ) => {
+      const targetIndex =
+        targetIndexes[index];
+
+      reorderedGlobalIds[
+        targetIndex
+      ] = productId;
+    }
   );
+
+  /*
+   * =========================================================
+   * STEP 6
+   * UPDATE ALL DISPLAY ORDERS IN ONE SQL QUERY
+   * =========================================================
+   *
+   * IMPORTANT:
+   *
+   * Do not use hundreds of individual tx.product.update()
+   * calls here.
+   *
+   * The previous implementation used an interactive Prisma
+   * transaction with many sequential updates. With a larger
+   * catalogue, the transaction could close before all updates
+   * completed and produce:
+   *
+   * "Transaction API error: Transaction not found."
+   *
+   * One SQL UPDATE avoids that problem.
+   */
+
+  const cases =
+    reorderedGlobalIds.map(
+      (
+        productId,
+        index
+      ) =>
+        Prisma.sql`
+          WHEN ${productId}
+          THEN ${index}
+        `
+    );
+
+  const ids =
+    Prisma.join(
+      reorderedGlobalIds
+    );
+
+  await prisma.$executeRaw(
+    Prisma.sql`
+      UPDATE "Product"
+      SET "displayOrder" =
+        CASE "id"
+          ${Prisma.join(
+            cases,
+            " "
+          )}
+          ELSE "displayOrder"
+        END
+      WHERE "id" IN (${ids})
+    `
+  );
+
+  /*
+   * =========================================================
+   * REVALIDATE
+   * =========================================================
+   */
 
   revalidatePath(
     "/admin/dashboard/products"

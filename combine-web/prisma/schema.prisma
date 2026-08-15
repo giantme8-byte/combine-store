@@ -84,10 +84,40 @@ model ProductImage {
   @@index([sortOrder])
 }
 
+// ============================================================
+// GLOBAL COLOR MASTER
+// ============================================================
+
+model Color {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  slug      String  @unique
+  hexCode   String?
+  active    Boolean @default(true)
+  sortOrder Int     @default(9999)
+
+  productColors ProductColor[]
+  variants      ProductVariant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+  @@index([sortOrder])
+}
+
+// ============================================================
+// PRODUCT COLOR
+// ============================================================
+
 model ProductColor {
   id    Int     @id @default(autoincrement())
   name  String
   model String?
+
+  // Global Color relation.
+  colorId Int?
+  color   Color? @relation(fields: [colorId], references: [id], onDelete: SetNull)
 
   // Legacy single color image.
   // Keep these fields for existing products.
@@ -99,13 +129,14 @@ model ProductColor {
   productId Int
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  // New: one color can have multiple gallery images.
+  // One color can have multiple gallery images.
   images ProductColorImage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([productId])
+  @@index([colorId])
   @@index([sortOrder])
 }
 
@@ -129,6 +160,10 @@ model ProductColorImage {
   @@index([sortOrder])
 }
 
+// ============================================================
+// PRODUCT VARIANT
+// ============================================================
+
 model ProductVariant {
   id        Int @id @default(autoincrement())
   productId Int
@@ -137,8 +172,22 @@ model ProductVariant {
   model      String?
   dimensions String?
 
+  // Global Color relation.
+  //
+  // Example:
+  // Black -> colorId: 1
+  // Grey  -> colorId: 2
+  colorId Int?
+  color   Color? @relation(fields: [colorId], references: [id], onDelete: SetNull)
+
+  // Legacy single Variant image.
+  // Keep these fields for existing products.
   imageUrl String?
   publicId String?
+
+  // New Variant gallery.
+  // One Variant can contain multiple images.
+  images ProductVariantImage[]
 
   sortOrder Int @default(1)
 
@@ -147,9 +196,48 @@ model ProductVariant {
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@unique([productId, size])
+  // Same Product can have the same Size
+  // in different Colors.
+  //
+  // Example:
+  // Black / M
+  // White / M
+  //
+  // Both are valid.
+  @@unique([productId, size, colorId])
   @@index([productId])
+  @@index([colorId])
+  @@index([sortOrder])
 }
+
+// ============================================================
+// PRODUCT VARIANT IMAGE
+// ============================================================
+
+model ProductVariantImage {
+  id        Int @id @default(autoincrement())
+  variantId Int
+
+  url      String
+  publicId String
+
+  altText String?
+  caption String?
+
+  sortOrder Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([variantId])
+  @@index([sortOrder])
+}
+
+// ============================================================
+// CATEGORY
+// ============================================================
 
 model Category {
   id        Int      @id @default(autoincrement())
@@ -187,6 +275,10 @@ model SubCategory {
   @@index([sortOrder])
 }
 
+// ============================================================
+// BRAND
+// ============================================================
+
 model Brand {
   id        Int      @id @default(autoincrement())
   name      String   @unique
@@ -199,6 +291,10 @@ model Brand {
 
   @@index([active])
 }
+
+// ============================================================
+// PACKAGING
+// ============================================================
 
 model PackagingProfile {
   id Int @id @default(autoincrement())
@@ -291,6 +387,10 @@ model PackagingItem {
   @@index([sortOrder])
 }
 
+// ============================================================
+// USER
+// ============================================================
+
 model User {
   id       Int    @id @default(autoincrement())
   name     String
@@ -326,6 +426,10 @@ model Session {
   @@index([expiresAt])
 }
 
+// ============================================================
+// WISHLIST
+// ============================================================
+
 model WishlistItem {
   id        Int @id @default(autoincrement())
   userId    Int
@@ -338,6 +442,10 @@ model WishlistItem {
 
   @@unique([userId, productId])
 }
+
+// ============================================================
+// INQUIRY
+// ============================================================
 
 model InquiryItem {
   id Int @id @default(autoincrement())
@@ -385,6 +493,10 @@ model Inquiry {
   @@index([createdAt])
 }
 
+// ============================================================
+// SETTINGS
+// ============================================================
+
 model Setting {
   id Int @id @default(autoincrement())
 
@@ -419,6 +531,10 @@ model Setting {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// ============================================================
+// ENUMS
+// ============================================================
 
 enum Availability {
   IN_STOCK
