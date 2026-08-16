@@ -122,9 +122,9 @@ function SortableVariantImage({
         className={`
           relative
           aspect-square
+          select-none
           overflow-hidden
           bg-neutral-50
-          select-none
           ${
             isDragging
               ? "cursor-grabbing"
@@ -140,18 +140,13 @@ function SortableVariantImage({
           fill
           unoptimized
           draggable={false}
-          className={`
+          className="
             pointer-events-none
             h-full
             w-full
             select-none
             object-contain
-            ${
-              isDragging
-                ? ""
-                : "transition-transform duration-200 ease-out group-hover:scale-[1.01]"
-            }
-          `}
+          "
         />
 
         {/* =================================================
@@ -358,7 +353,7 @@ function VariantImageGallery({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 6,
       },
     })
   );
@@ -569,7 +564,7 @@ function VariantImageGallery({
 
             <p className="mt-1 text-xs text-neutral-500">
               Upload multiple images and
-              drag any image to reorder them.
+              drag to reorder them.
             </p>
           </div>
 

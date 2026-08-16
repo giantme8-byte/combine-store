@@ -847,29 +847,45 @@ export default function ShopClient({
           {/* Category */}
           {/* ================================================= */}
 
-          <CategoryFilter
-            selected={category}
-            onSelect={
-              handleCategoryChange
-            }
-            categories={
-              filterOptions.categories
-            }
-          />
+          <div
+            className="
+              min-w-0
+              col-span-2
+              xl:col-span-1
+            "
+          >
+            <CategoryFilter
+              selected={category}
+              onSelect={
+                handleCategoryChange
+              }
+              categories={
+                filterOptions.categories
+              }
+            />
+          </div>
 
           {/* ================================================= */}
           {/* Brand */}
           {/* ================================================= */}
 
-          <BrandFilter
-            selected={brand}
-            onSelect={
-              handleBrandChange
-            }
-            brands={
-              filterOptions.brands
-            }
-          />
+          <div
+            className="
+              min-w-0
+              col-span-2
+              xl:col-span-1
+            "
+          >
+            <BrandFilter
+              selected={brand}
+              onSelect={
+                handleBrandChange
+              }
+              brands={
+                filterOptions.brands
+              }
+            />
+          </div>
 
 {/* ================================================= */}
 {/* Sub Category
@@ -883,6 +899,7 @@ export default function ShopClient({
           <div
             className="
               min-w-0
+              col-span-2
               xl:col-span-2
             "
           >
@@ -903,12 +920,20 @@ export default function ShopClient({
           {/* Sort */}
           {/* ================================================= */}
 
-          <SortDropdown
-            value={sort}
-            onChange={
-              handleSortChange
-            }
-          />
+          <div
+            className="
+              min-w-0
+              col-span-2
+              xl:col-span-1
+            "
+          >
+            <SortDropdown
+              value={sort}
+              onChange={
+                handleSortChange
+              }
+            />
+          </div>
         </div>
       </section>
 
