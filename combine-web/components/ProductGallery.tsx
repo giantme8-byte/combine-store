@@ -845,27 +845,20 @@ export default function ProductGallery({
               </button>
             )}
 
-            {/* Image */}
+{/* Image */}
 
-            <div
-              key={
-                selectedImage
-              }
-              className="
-                animate-[fadeSlide_.35s_ease]
-              "
-            >
-              <ZoomImage
-                src={
-                  selectedImage
-                }
-                alt={name}
-                priority={
-                  selectedImage ===
-                  initialImage
-                }
-              />
-            </div>
+<div>
+  <ZoomImage
+    src={
+      selectedImage
+    }
+    alt={name}
+    priority={
+      selectedImage ===
+      initialImage
+    }
+  />
+</div>
 
             {/* Next */}
 

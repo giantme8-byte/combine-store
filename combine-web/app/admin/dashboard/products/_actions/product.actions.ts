@@ -156,180 +156,6 @@ function getCustomPackagingId(formData: FormData) {
   return id;
 }
 
-async function uploadImage(
-  file: File,
-  folder: string
-) {
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const result = await new Promise<UploadApiResponse>(
-    (resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          folder,
-          resource_type: "image",
-        },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else if (result) {
-            resolve(result);
-          } else {
-            reject(
-              new Error(
-                "Cloudinary upload returned no result."
-              )
-            );
-          }
-        }
-      ).end(buffer);
-    }
-  );
-
-  return {
-    url: result.secure_url,
-    publicId: result.public_id,
-  };
-}
-
-/**
- * Upload one image with automatic retry.
- *
- * A failed upload is retried up to 3 times so a temporary
- * network/Cloudinary error does not fail the whole product.
- */
-async function uploadImageWithRetry(
-  file: File,
-  folder: string,
-  maxRetries = 3
-) {
-  let lastError: unknown;
-
-  for (
-    let attempt = 1;
-    attempt <= maxRetries;
-    attempt++
-  ) {
-    try {
-      console.log(
-        `Uploading ${file.name} - attempt ${attempt}/${maxRetries}`
-      );
-
-      return await uploadImage(
-        file,
-        folder
-      );
-    } catch (error) {
-      lastError = error;
-
-      console.error(
-        `Upload failed: ${file.name} - attempt ${attempt}`,
-        error
-      );
-
-      if (attempt < maxRetries) {
-        await new Promise((resolve) =>
-          setTimeout(
-            resolve,
-            500 * attempt
-          )
-        );
-      }
-    }
-  }
-
-  throw lastError instanceof Error
-    ? lastError
-    : new Error(
-        `Failed to upload ${file.name}`
-      );
-}
-
-/**
- * Upload files with controlled concurrency.
- *
- * 9 images become:
- * 3 uploads -> 3 uploads -> 3 uploads
- *
- * This is faster than uploading one-by-one while being much
- * more stable than opening 9 Cloudinary uploads at once.
- */
-async function uploadImages(
-  files: File[],
-  folder: string,
-  concurrency = 3
-) {
-  const validFiles = files
-    .map((file, index) => ({
-      file,
-      index,
-    }))
-    .filter(
-      ({ file }) =>
-        file && file.size > 0
-    );
-
-  const results: {
-    index: number;
-    url: string;
-    publicId: string;
-  }[] = [];
-
-  for (
-    let i = 0;
-    i < validFiles.length;
-    i += concurrency
-  ) {
-    const batch =
-      validFiles.slice(
-        i,
-        i + concurrency
-      );
-
-    console.log(
-      `Uploading batch ${
-        Math.floor(i / concurrency) + 1
-      }/${Math.ceil(
-        validFiles.length /
-          concurrency
-      )}`
-    );
-
-    const batchResults =
-      await Promise.all(
-        batch.map(
-          async ({
-            file,
-            index,
-          }) => {
-            const uploaded =
-              await uploadImageWithRetry(
-                file,
-                folder
-              );
-
-            return {
-              index,
-              url: uploaded.url,
-              publicId:
-                uploaded.publicId,
-            };
-          }
-        )
-      );
-
-    results.push(
-      ...batchResults
-    );
-  }
-
-  return results.sort(
-    (a, b) =>
-      a.index - b.index
-  );
-}
-
 export async function quickUpdateProductPrice(
   productId: number,
   price: number
@@ -411,10 +237,6 @@ export async function createProduct(
     // Product Colors
     // =========================================================
 
-    const colorFiles =
-      formData.getAll(
-        "colorImages"
-      ) as File[];
 
     type ColorOrderItem = {
       id: string;
@@ -478,35 +300,6 @@ export async function createProduct(
           !variant.deleted
       );
 
-    const variantFiles =
-      formData.getAll(
-        "variantImages"
-      ) as File[];
-
-    const uploadedVariants: {
-      imageUrl: string;
-      publicId: string;
-    }[] = [];
-
-    const variantUploads =
-      await uploadImages(
-        variantFiles,
-        "combine-store/variants",
-        3
-      );
-
-    for (
-      const uploaded of
-        variantUploads
-    ) {
-      uploadedVariants.push({
-        imageUrl:
-          uploaded.url,
-        publicId:
-          uploaded.publicId,
-      });
-    }
-
     // =========================================================
     // New Colors
     // =========================================================
@@ -518,15 +311,9 @@ export async function createProduct(
           !color.deleted
       );
 
-    const colorUploads =
-      await uploadImages(
-        colorFiles,
-        "combine-store/colors",
-        3
-      );
 
     const uploadedColors = newColorOrder
-      .map((color, colorIndex) => {
+      .map((color) => {
         const galleryImages =
           Array.isArray(color.images)
             ? color.images
@@ -537,29 +324,17 @@ export async function createProduct(
                     image.publicId &&
                     !image.deleted
                 )
-                .map((image, imageIndex) => ({
-                  url: image.url,
-                  publicId: image.publicId,
-                  sortOrder:
-                    image.sortOrder ??
-                    imageIndex + 1,
-                }))
+                .map(
+                  (image, imageIndex) => ({
+                    url: image.url,
+                    publicId:
+                      image.publicId,
+                    sortOrder:
+                      image.sortOrder ??
+                      imageIndex,
+                  })
+                )
             : [];
-
-        // Backward compatibility with the current
-        // one-image ColorUpload component.
-        if (
-          galleryImages.length === 0 &&
-          colorUploads[colorIndex]
-        ) {
-          galleryImages.push({
-            url:
-              colorUploads[colorIndex].url,
-            publicId:
-              colorUploads[colorIndex].publicId,
-            sortOrder: 1,
-          });
-        }
 
         if (galleryImages.length === 0) {
           return null;
@@ -806,11 +581,6 @@ export async function createProduct(
                         )
                     : [];
 
-                const legacyUpload =
-                  uploadedVariants[
-                    index
-                  ];
-
                 return {
                   colorId:
                     variant.colorId,
@@ -829,15 +599,13 @@ export async function createProduct(
                   imageUrl:
                     galleryImages[0]
                       ?.url ??
-                    legacyUpload
-                      ?.imageUrl ??
+                    variant.imageUrl ??
                     null,
 
                   publicId:
                     galleryImages[0]
                       ?.publicId ??
-                    legacyUpload
-                      ?.publicId ??
+                    variant.publicId ??
                     null,
 
                   sortOrder:
@@ -1009,10 +777,6 @@ export async function updateProduct(
     // PRODUCT COLORS
     // =========================================================
 
-    const colorFiles =
-      formData.getAll(
-        "colorImages"
-      ) as File[];
 
     type ColorOrderItem = {
       id: string;
@@ -1043,13 +807,6 @@ export async function updateProduct(
           !color.deleted
       );
 
-    const replaceColors =
-      colorOrder.filter(
-        (color) =>
-          !color.isNew &&
-          !color.deleted &&
-          color.hasNewImage
-      );
 
     // =========================================================
     // PRODUCT VARIANTS
@@ -1086,45 +843,6 @@ export async function updateProduct(
           )
         ) as VariantOrderItem[];
 
-    const variantFiles =
-      formData.getAll(
-        "variantImages"
-      ) as File[];
-
-    const uploadedVariants: {
-      imageUrl: string;
-      publicId: string;
-    }[] = [];
-
-    const variantUploads =
-      await uploadImages(
-        variantFiles,
-        "combine-store/variants",
-        3
-      );
-
-    for (
-      const uploaded of
-        variantUploads
-    ) {
-      uploadedVariants.push({
-        imageUrl:
-          uploaded.url,
-        publicId:
-          uploaded.publicId,
-      });
-    }
-
-    // =========================================================
-    // UPLOAD NEW COLORS
-    // =========================================================
-
-    const uploadedColorFiles =
-      await uploadImages(
-        colorFiles,
-        "combine-store/colors",
-        3
-      );
 
     const uploadedColors = newColorOrder
       .map((color, colorIndex) => {
@@ -1147,20 +865,6 @@ export async function updateProduct(
                 }))
             : [];
 
-        // Backward compatibility with the current
-        // one-image ColorUpload component.
-        if (
-          galleryImages.length === 0 &&
-          uploadedColorFiles[colorIndex]
-        ) {
-          galleryImages.push({
-            url:
-              uploadedColorFiles[colorIndex].url,
-            publicId:
-              uploadedColorFiles[colorIndex].publicId,
-            sortOrder: 1,
-          });
-        }
 
         if (galleryImages.length === 0) {
           return null;

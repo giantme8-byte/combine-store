@@ -37,8 +37,13 @@ export default function ZoomImage({
     useState(false);
 
   /*
-   * Only enable hover zoom on desktop.
+   * ============================================================
+   * DESKTOP DETECTION
+   * ============================================================
+   *
+   * Hover zoom is only enabled on desktop.
    */
+
   useEffect(() => {
     const mediaQuery =
       window.matchMedia(
@@ -67,8 +72,45 @@ export default function ZoomImage({
   }, []);
 
   /*
-   * Mouse position for desktop zoom.
+   * ============================================================
+   * PRELOAD CURRENT IMAGE
+   * ============================================================
+   *
+   * When the selected Variant / Colour changes,
+   * preload the optimized image so the browser can start
+   * downloading it immediately.
+   *
+   * This helps reduce the small pause when switching
+   * between Variant images on mobile.
    */
+
+  useEffect(() => {
+    if (!src) {
+      return;
+    }
+
+    const optimizedSrc =
+      optimizeCloudinaryImage(
+        src,
+        1200
+      );
+
+    const image =
+      new window.Image();
+
+    image.decoding = "async";
+    image.src =
+      optimizedSrc;
+  }, [src]);
+
+  /*
+   * ============================================================
+   * MOUSE POSITION
+   * ============================================================
+   *
+   * Desktop only.
+   */
+
   function handleMouseMove(
     event: React.MouseEvent<HTMLDivElement>
   ) {
@@ -99,6 +141,12 @@ export default function ZoomImage({
     });
   }
 
+  /*
+   * ============================================================
+   * MOUSE ENTER
+   * ============================================================
+   */
+
   function handleMouseEnter() {
     if (!isDesktop) {
       return;
@@ -106,6 +154,12 @@ export default function ZoomImage({
 
     setZoom(true);
   }
+
+  /*
+   * ============================================================
+   * MOUSE LEAVE
+   * ============================================================
+   */
 
   function handleMouseLeave() {
     if (!isDesktop) {
@@ -121,24 +175,35 @@ export default function ZoomImage({
   }
 
   /*
-   * Cloudinary optimization.
-   *
-   * The product detail main image is displayed
-   * much larger than thumbnails, so use a larger
-   * but still optimized image.
+   * ============================================================
+   * CLOUDINARY IMAGE
+   * ============================================================
    */
+
   const optimizedSrc =
     optimizeCloudinaryImage(
       src,
       1200
     );
 
+  /*
+   * ============================================================
+   * RENDER
+   * ============================================================
+   */
+
   return (
     <div
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseMove={
+        handleMouseMove
+      }
+      onMouseEnter={
+        handleMouseEnter
+      }
+      onMouseLeave={
+        handleMouseLeave
+      }
       className="
         relative
         aspect-square
@@ -164,10 +229,11 @@ export default function ZoomImage({
         className="
           object-contain
           p-6
-          transition-transform
-          duration-300
           md:p-8
           lg:p-12
+          lg:transition-transform
+          lg:duration-300
+          lg:ease-out
         "
         style={{
           transformOrigin:

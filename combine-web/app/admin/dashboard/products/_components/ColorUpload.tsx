@@ -2,6 +2,8 @@
 
 import {
   ChangeEvent,
+  useEffect,
+  useRef,
 } from "react";
 
 import {
@@ -50,6 +52,34 @@ type Props = {
 };
 
 /* =========================================================
+ * Cloudinary Upload
+ * ======================================================= */
+
+type UploadResponse = {
+  url: string;
+  publicId: string;
+};
+
+async function uploadColorGalleryImage(file: File): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("folder", "colors");
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data?.url || !data?.publicId) {
+    throw new Error(data?.error || "Color image upload failed.");
+  }
+
+  return { url: data.url, publicId: data.publicId };
+}
+
+/* =========================================================
  * Sortable Color Image
  * ======================================================= */
 
@@ -58,11 +88,13 @@ function SortableColorImage({
   index,
   colorName,
   onRemove,
+  onRetry,
 }: {
   image: ColorImage;
   index: number;
   colorName: string;
   onRemove: () => void;
+  onRetry: () => void;
 }) {
   const {
     attributes,
@@ -180,6 +212,38 @@ function SortableColorImage({
           ).padStart(2, "0")}
         </div>
 
+        {/* Upload Status */}
+
+        {image.uploadStatus === "uploading" && (
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 rounded-xl bg-black/75 px-3 py-2 text-center text-xs font-medium text-white backdrop-blur-sm">
+            Uploading...
+          </div>
+        )}
+
+        {image.uploadStatus === "uploaded" && (
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 rounded-xl bg-white/95 px-3 py-2 text-center text-xs font-semibold text-neutral-800 shadow-sm backdrop-blur-sm">
+            ✓ Uploaded
+          </div>
+        )}
+
+        {image.uploadStatus === "error" && (
+          <div className="absolute inset-x-3 bottom-3 z-20 flex items-center justify-center gap-2 rounded-xl bg-red-600/95 px-3 py-2 text-xs font-semibold text-white shadow-sm backdrop-blur-sm">
+            <span>Upload Failed</span>
+            <button
+              type="button"
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRetry();
+              }}
+              className="rounded-lg bg-white/15 px-2 py-1 transition hover:bg-white/25"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Delete */}
 
         <button
@@ -238,6 +302,12 @@ export default function ColorUpload({
   globalColors,
   onChange,
 }: Props) {
+  const colorsRef = useRef(colors);
+
+  useEffect(() => {
+    colorsRef.current = colors;
+  }, [colors]);
+
   const sensors =
     useSensors(
       useSensor(
@@ -424,72 +494,129 @@ export default function ColorUpload({
 
   /* =======================================================
    * Add Color Gallery Images
+   *
+   * Images are uploaded immediately after selection.
    * ===================================================== */
 
   function addColorImages(
     id: string,
     e: ChangeEvent<HTMLInputElement>
   ) {
-    const files =
-      Array.from(
-        e.target.files ??
-          []
-      );
+    const files = Array.from(e.target.files ?? []);
 
-    if (
-      files.length === 0
-    ) {
+    if (files.length === 0) {
       return;
     }
 
-    onChange(
-      colors.map(
-        (color) => {
-          if (
-            color.id !== id
-          ) {
-            return color;
-          }
-
-          const existingImages =
-            color.images ??
-            [];
-
-          const newImages: ColorImage[] =
-            files.map(
-              (
-                file,
-                index
-              ) => ({
-                id: crypto.randomUUID(),
-                url: URL.createObjectURL(
-                  file
-                ),
-                publicId:
-                  null,
-                file,
-                isNew:
-                  true,
-                deleted:
-                  false,
-                sortOrder:
-                  existingImages.length +
-                  index,
-              })
-            );
-
-          return {
-            ...color,
-            images: [
-              ...existingImages,
-              ...newImages,
-            ],
-          };
-        }
-      )
+    const targetColor = colorsRef.current.find(
+      (color) => color.id === id
     );
 
+    if (!targetColor) {
+      e.target.value = "";
+      return;
+    }
+
+    const existingImages = targetColor.images ?? [];
+
+    const newImages: ColorImage[] = files.map(
+      (file, index) => ({
+        id: crypto.randomUUID(),
+        url: URL.createObjectURL(file),
+        publicId: null,
+        file,
+        isNew: true,
+        deleted: false,
+        sortOrder: existingImages.length + index,
+        uploadStatus: "uploading",
+      })
+    );
+
+    const nextColors = colorsRef.current.map(
+      (color) =>
+        color.id === id
+          ? { ...color, images: [...existingImages, ...newImages] }
+          : color
+    );
+
+    colorsRef.current = nextColors;
+    onChange(nextColors);
     e.target.value = "";
+
+    newImages.forEach((image) => {
+      if (image.file) {
+        void uploadNewColorImage(id, image.id, image.file);
+      }
+    });
+  }
+
+  async function uploadNewColorImage(
+    colorId: string,
+    imageId: string,
+    file: File
+  ) {
+    try {
+      const result = await uploadColorGalleryImage(file);
+
+      updateColorImage(colorId, imageId, {
+        url: result.url,
+        publicId: result.publicId,
+        file: undefined,
+        uploadStatus: "uploaded",
+      });
+    } catch (error) {
+      console.error("Color image upload failed:", error);
+
+      updateColorImage(colorId, imageId, {
+        uploadStatus: "error",
+      });
+    }
+  }
+
+  function updateColorImage(
+    colorId: string,
+    imageId: string,
+    data: Partial<ColorImage>
+  ) {
+    const nextColors = colorsRef.current.map(
+      (color) =>
+        color.id === colorId
+          ? {
+              ...color,
+              images: color.images.map((image) =>
+                image.id === imageId
+                  ? { ...image, ...data }
+                  : image
+              ),
+            }
+          : color
+    );
+
+    colorsRef.current = nextColors;
+    onChange(nextColors);
+  }
+
+  function retryColorImage(
+    colorId: string,
+    imageId: string
+  ) {
+    const color = colorsRef.current.find(
+      (item) => item.id === colorId
+    );
+
+    const image = color?.images.find(
+      (item) => item.id === imageId
+    );
+
+    if (!image?.file) {
+      return;
+    }
+
+    updateColorImage(colorId, imageId, {
+      uploadStatus: "uploading",
+    });
+
+    void uploadNewColorImage(colorId, imageId, image.file);
   }
 
   /* =======================================================
@@ -1053,6 +1180,12 @@ export default function ColorUpload({
                                     }
                                     onRemove={() =>
                                       removeColorImage(
+                                        color.id,
+                                        image.id
+                                      )
+                                    }
+                                    onRetry={() =>
+                                      retryColorImage(
                                         color.id,
                                         image.id
                                       )

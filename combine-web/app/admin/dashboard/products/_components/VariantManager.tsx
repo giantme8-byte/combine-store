@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   DndContext,
@@ -39,6 +39,50 @@ type VariantManagerProps = {
 };
 
 /* =========================================================
+ * Cloudinary Upload
+ * ======================================================= */
+
+type UploadResponse = {
+  url: string;
+  publicId: string;
+};
+
+async function uploadVariantGalleryImage(
+  file: File
+): Promise<UploadResponse> {
+  const formData = new FormData();
+
+  formData.append("file", file);
+  formData.append("folder", "variants");
+
+  const response = await fetch(
+    "/api/upload",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  const data = await response.json();
+
+  if (
+    !response.ok ||
+    !data?.url ||
+    !data?.publicId
+  ) {
+    throw new Error(
+      data?.error ||
+        "Variant image upload failed."
+    );
+  }
+
+  return {
+    url: data.url,
+    publicId: data.publicId,
+  };
+}
+
+/* =========================================================
  * Sortable Variant Image
  * ======================================================= */
 
@@ -48,6 +92,7 @@ function SortableVariantImage({
   colorName,
   onPreview,
   onDelete,
+  onRetry,
 }: {
   image: ProductVariantImageItem;
   index: number;
@@ -57,6 +102,9 @@ function SortableVariantImage({
     alt: string
   ) => void;
   onDelete: (
+    id: string
+  ) => void;
+  onRetry: (
     id: string
   ) => void;
 }) {
@@ -276,6 +324,109 @@ function SortableVariantImage({
         </div>
 
         {/* =================================================
+         * UPLOAD STATUS
+         * ================================================= */}
+
+        {image.uploadStatus ===
+          "uploading" && (
+          <div
+            className="
+              pointer-events-none
+              absolute
+              inset-x-2
+              bottom-2
+              z-30
+              rounded-lg
+              bg-black/80
+              px-2.5
+              py-2
+              text-center
+              text-[10px]
+              font-semibold
+              text-white
+              backdrop-blur-sm
+            "
+          >
+            Uploading...
+          </div>
+        )}
+
+        {image.uploadStatus ===
+          "uploaded" && (
+          <div
+            className="
+              pointer-events-none
+              absolute
+              inset-x-2
+              bottom-2
+              z-30
+              rounded-lg
+              bg-white/95
+              px-2.5
+              py-2
+              text-center
+              text-[10px]
+              font-semibold
+              text-neutral-800
+              shadow-sm
+              backdrop-blur-sm
+            "
+          >
+            ✓ Uploaded
+          </div>
+        )}
+
+        {image.uploadStatus ===
+          "error" && (
+          <div
+            className="
+              absolute
+              inset-x-2
+              bottom-2
+              z-30
+              flex
+              items-center
+              justify-center
+              gap-2
+              rounded-lg
+              bg-red-600/95
+              px-2.5
+              py-2
+              text-[10px]
+              font-semibold
+              text-white
+              shadow-sm
+              backdrop-blur-sm
+            "
+          >
+            <span>
+              Upload Failed
+            </span>
+
+            <button
+              type="button"
+              onPointerDown={(event) => {
+                event.stopPropagation();
+              }}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRetry(image.id);
+              }}
+              className="
+                rounded-md
+                bg-white/15
+                px-2
+                py-1
+                transition
+                hover:bg-white/25
+              "
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* =================================================
          * NEW IMAGE
          * ================================================= */}
 
@@ -353,6 +504,14 @@ function VariantImageGallery({
       alt: string;
     } | null>(null);
 
+  const imagesRef =
+    useRef(images);
+
+  useEffect(() => {
+    imagesRef.current =
+      images;
+  }, [images]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -366,6 +525,70 @@ function VariantImageGallery({
       (image) =>
         !image.deleted
     );
+
+  function setImages(
+    nextImages: ProductVariantImageItem[]
+  ) {
+    imagesRef.current =
+      nextImages;
+
+    onChange(nextImages);
+  }
+
+  function updateImage(
+    imageId: string,
+    data: Partial<ProductVariantImageItem>
+  ) {
+    const nextImages =
+      imagesRef.current.map(
+        (image) =>
+          image.id === imageId
+            ? {
+                ...image,
+                ...data,
+              }
+            : image
+      );
+
+    setImages(nextImages);
+  }
+
+  async function uploadNewImage(
+    imageId: string,
+    file: File
+  ) {
+    try {
+      const result =
+        await uploadVariantGalleryImage(
+          file
+        );
+
+      updateImage(
+        imageId,
+        {
+          url: result.url,
+          publicId:
+            result.publicId,
+          file: undefined,
+          uploadStatus:
+            "uploaded",
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Variant image upload failed:",
+        error
+      );
+
+      updateImage(
+        imageId,
+        {
+          uploadStatus:
+            "error",
+        }
+      );
+    }
+  }
 
   function handleFiles(
     files: FileList | null
@@ -404,32 +627,91 @@ function VariantImageGallery({
           index
         ) => ({
           id: crypto.randomUUID(),
+
+          /*
+           * Keep local preview while
+           * Cloudinary upload is running.
+           */
           url:
             URL.createObjectURL(
               file
             ),
+
           publicId: "",
+
           sortOrder:
             currentMaxOrder +
             index +
             1,
+
           file,
+
           isNew: true,
+
           deleted: false,
+
+          uploadStatus:
+            "uploading" as const,
         })
       );
 
-    onChange([
-      ...images,
+    const nextImages = [
+      ...imagesRef.current,
       ...newImages,
-    ]);
+    ];
+
+    setImages(nextImages);
+
+    /*
+     * Start all uploads immediately.
+     * Each image updates independently.
+     */
+    newImages.forEach(
+      (image) => {
+        if (!image.file) {
+          return;
+        }
+
+        void uploadNewImage(
+          image.id,
+          image.file
+        );
+      }
+    );
+  }
+
+  function retryImage(
+    imageId: string
+  ) {
+    const image =
+      imagesRef.current.find(
+        (item) =>
+          item.id === imageId
+      );
+
+    if (!image?.file) {
+      return;
+    }
+
+    updateImage(
+      imageId,
+      {
+        uploadStatus:
+          "uploading",
+      }
+    );
+
+    void uploadNewImage(
+      imageId,
+      image.file
+    );
   }
 
   function handleDelete(
     imageId: string
   ) {
     const image =
-      images.find(
+      imagesRef.current.find(
         (item) =>
           item.id === imageId
       );
@@ -449,8 +731,8 @@ function VariantImageGallery({
     }
 
     if (image.isNew) {
-      onChange(
-        images.filter(
+      setImages(
+        imagesRef.current.filter(
           (item) =>
             item.id !==
             imageId
@@ -460,8 +742,8 @@ function VariantImageGallery({
       return;
     }
 
-    onChange(
-      images.map(
+    setImages(
+      imagesRef.current.map(
         (item) =>
           item.id === imageId
             ? {
@@ -490,15 +772,24 @@ function VariantImageGallery({
       return;
     }
 
+    const currentImages =
+      imagesRef.current;
+
+    const activeImagesNow =
+      currentImages.filter(
+        (image) =>
+          !image.deleted
+      );
+
     const oldIndex =
-      activeImages.findIndex(
+      activeImagesNow.findIndex(
         (image) =>
           image.id ===
           active.id
       );
 
     const newIndex =
-      activeImages.findIndex(
+      activeImagesNow.findIndex(
         (image) =>
           image.id ===
           over.id
@@ -512,7 +803,7 @@ function VariantImageGallery({
     }
 
     const reordered = [
-      ...activeImages,
+      ...activeImagesNow,
     ];
 
     const [
@@ -541,12 +832,12 @@ function VariantImageGallery({
       );
 
     const deletedImages =
-      images.filter(
+      currentImages.filter(
         (image) =>
           image.deleted
       );
 
-    onChange([
+    setImages([
       ...updatedImages,
       ...deletedImages,
     ]);
@@ -643,6 +934,9 @@ function VariantImageGallery({
                     onDelete={
                       handleDelete
                     }
+                    onRetry={
+                      retryImage
+                    }
                   />
                 )
               )}
@@ -702,8 +996,6 @@ function VariantImageGallery({
                     bg-white
                     text-neutral-500
                     shadow-sm
-                    transition
-                    group-hover:text-black
                   "
                 >
                   <ImageIcon

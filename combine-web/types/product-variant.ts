@@ -32,6 +32,20 @@ export type ProductVariantImageItem = {
    * Marks an existing image for deletion.
    */
   deleted?: boolean;
+
+  /**
+   * Current Cloudinary upload status.
+   *
+   * idle      = not uploading
+   * uploading = currently uploading
+   * uploaded  = successfully uploaded
+   * error     = upload failed
+   */
+  uploadStatus?:
+    | "idle"
+    | "uploading"
+    | "uploaded"
+    | "error";
 };
 
 export type ProductVariantItem = {

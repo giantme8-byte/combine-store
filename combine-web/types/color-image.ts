@@ -12,6 +12,20 @@ export type ColorImage = {
   deleted?: boolean;
 
   sortOrder: number;
+
+  /**
+   * Current Cloudinary upload status.
+   *
+   * idle      = not uploading
+   * uploading = currently uploading
+   * uploaded  = successfully uploaded
+   * error     = upload failed
+   */
+  uploadStatus?:
+    | "idle"
+    | "uploading"
+    | "uploaded"
+    | "error";
 };
 
 export type ColorImageItem = {

@@ -138,111 +138,6 @@ export default function ProductForm({
   const slugEdited =
     useRef(false);
 
-  async function uploadVariantImage(
-    file: File
-  ): Promise<{
-    url: string;
-    publicId: string;
-  }> {
-    const signatureResponse =
-      await fetch(
-        "/api/cloudinary/sign",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-        }
-      );
-
-    if (!signatureResponse.ok) {
-      throw new Error(
-        "Failed to create Cloudinary upload signature."
-      );
-    }
-
-    const signatureData =
-      await signatureResponse.json();
-
-    if (
-      !signatureData.signature ||
-      !signatureData.timestamp ||
-      !signatureData.folder ||
-      !signatureData.cloudName ||
-      !signatureData.apiKey
-    ) {
-      throw new Error(
-        "Invalid Cloudinary signature response."
-      );
-    }
-
-    const uploadData =
-      new FormData();
-
-    uploadData.append(
-      "file",
-      file
-    );
-
-    uploadData.append(
-      "api_key",
-      signatureData.apiKey
-    );
-
-    uploadData.append(
-      "timestamp",
-      String(
-        signatureData.timestamp
-      )
-    );
-
-    uploadData.append(
-      "signature",
-      signatureData.signature
-    );
-
-    uploadData.append(
-      "folder",
-      signatureData.folder
-    );
-
-    const uploadUrl =
-      `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`;
-
-    const uploadResponse =
-      await fetch(
-        uploadUrl,
-        {
-          method: "POST",
-          body: uploadData,
-        }
-      );
-
-    if (!uploadResponse.ok) {
-      throw new Error(
-        `Cloudinary variant upload failed with status ${uploadResponse.status}.`
-      );
-    }
-
-    const data =
-      await uploadResponse.json();
-
-    if (
-      !data?.secure_url ||
-      !data?.public_id
-    ) {
-      throw new Error(
-        "Invalid response from Cloudinary."
-      );
-    }
-
-    return {
-      url: data.secure_url,
-      publicId: data.public_id,
-    };
-  }
-
   useEffect(() => {
     if (!product) {
       return;
@@ -546,6 +441,14 @@ export default function ProductForm({
      * =========================================================
      * IMAGE UPLOAD CHECK
      * =========================================================
+     *
+     * Product images, Color gallery images and Variant gallery
+     * images are uploaded immediately by their own components.
+     *
+     * ProductForm must NEVER upload Color / Variant files here.
+     * It only verifies that newly-added images have finished
+     * uploading and then sends their Cloudinary URL/publicId
+     * to the Server Action.
      */
 
     const uploadingImages =
@@ -557,17 +460,6 @@ export default function ProductForm({
             "uploading"
       );
 
-    if (
-      uploadingImages.length >
-      0
-    ) {
-      alert(
-        "Please wait for all images to finish uploading."
-      );
-
-      return;
-    }
-
     const failedImages =
       images.filter(
         (image) =>
@@ -576,17 +468,6 @@ export default function ProductForm({
           image.status ===
             "failed"
       );
-
-    if (
-      failedImages.length >
-      0
-    ) {
-      alert(
-        "Some images failed to upload. Please remove them and upload again."
-      );
-
-      return;
-    }
 
     const incompleteImages =
       images.filter(
@@ -601,9 +482,120 @@ export default function ProductForm({
           )
       );
 
+    const uploadingColorImages =
+      colors.some(
+        (color) =>
+          !color.deleted &&
+          (color.images ?? []).some(
+            (image) =>
+              image.isNew &&
+              !image.deleted &&
+              image.uploadStatus ===
+                "uploading"
+          )
+      );
+
+    const failedColorImages =
+      colors.some(
+        (color) =>
+          !color.deleted &&
+          (color.images ?? []).some(
+            (image) =>
+              image.isNew &&
+              !image.deleted &&
+              image.uploadStatus ===
+                "error"
+          )
+      );
+
+    const incompleteColorImages =
+      colors.some(
+        (color) =>
+          !color.deleted &&
+          (color.images ?? []).some(
+            (image) =>
+              image.isNew &&
+              !image.deleted &&
+              (
+                !image.url ||
+                !image.publicId ||
+                image.uploadStatus !==
+                  "uploaded"
+              )
+          )
+      );
+
+    const uploadingVariantImages =
+      variants.some(
+        (variant) =>
+          !variant.deleted &&
+          (variant.images ?? []).some(
+            (image) =>
+              image.isNew &&
+              !image.deleted &&
+              image.uploadStatus ===
+                "uploading"
+          )
+      );
+
+    const failedVariantImages =
+      variants.some(
+        (variant) =>
+          !variant.deleted &&
+          (variant.images ?? []).some(
+            (image) =>
+              image.isNew &&
+              !image.deleted &&
+              image.uploadStatus ===
+                "error"
+          )
+      );
+
+    const incompleteVariantImages =
+      variants.some(
+        (variant) =>
+          !variant.deleted &&
+          (variant.images ?? []).some(
+            (image) =>
+              image.isNew &&
+              !image.deleted &&
+              (
+                !image.url ||
+                !image.publicId ||
+                image.uploadStatus !==
+                  "uploaded"
+              )
+          )
+      );
+
     if (
-      incompleteImages.length >
-      0
+      uploadingImages.length > 0 ||
+      uploadingColorImages ||
+      uploadingVariantImages
+    ) {
+      alert(
+        "Please wait for all images to finish uploading."
+      );
+
+      return;
+    }
+
+    if (
+      failedImages.length > 0 ||
+      failedColorImages ||
+      failedVariantImages
+    ) {
+      alert(
+        "Some images failed to upload. Please remove them or retry the upload before saving."
+      );
+
+      return;
+    }
+
+    if (
+      incompleteImages.length > 0 ||
+      incompleteColorImages ||
+      incompleteVariantImages
     ) {
       alert(
         "Some images are not ready yet. Please wait for the upload to finish."
@@ -689,277 +681,169 @@ export default function ProductForm({
      * =========================================================
      * COLORS
      * =========================================================
+     *
+     * ColorUpload has already uploaded the files.
+     * We only serialize the finished Cloudinary assets.
      */
 
-    async function uploadColorImage(
-      file: File
-    ): Promise<{
-      url: string;
-      publicId: string;
-    }> {
-      const signatureResponse =
-        await fetch(
-          "/api/cloudinary/sign",
-          {
-            method:
-              "POST",
+    colors.forEach(
+      (
+        color,
+        colorIndex
+      ) => {
+        const visibleColorImages =
+          (
+            color.images ??
+            []
+          ).filter(
+            (image) =>
+              !image.deleted
+          );
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-          }
-        );
-
-      if (
-        !signatureResponse.ok
-      ) {
-        throw new Error(
-          "Failed to create Cloudinary upload signature."
-        );
-      }
-
-      const signatureData =
-        await signatureResponse.json();
-
-      if (
-        !signatureData.signature ||
-        !signatureData.timestamp ||
-        !signatureData.folder ||
-        !signatureData.cloudName ||
-        !signatureData.apiKey
-      ) {
-        throw new Error(
-          "Invalid Cloudinary signature response."
-        );
-      }
-
-      const uploadData =
-        new FormData();
-
-      uploadData.append(
-        "file",
-        file
-      );
-
-      uploadData.append(
-        "api_key",
-        signatureData.apiKey
-      );
-
-      uploadData.append(
-        "timestamp",
-        String(
-          signatureData.timestamp
-        )
-      );
-
-      uploadData.append(
-        "signature",
-        signatureData.signature
-      );
-
-      uploadData.append(
-        "folder",
-        signatureData.folder
-      );
-
-      const uploadUrl =
-        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`;
-
-      const uploadResponse =
-        await fetch(
-          uploadUrl,
-          {
-            method:
-              "POST",
-
-            body:
-              uploadData,
-          }
-        );
-
-      if (
-        !uploadResponse.ok
-      ) {
-        throw new Error(
-          `Cloudinary upload failed with status ${uploadResponse.status}.`
-        );
-      }
-
-      const data =
-        await uploadResponse.json();
-
-      if (
-        !data?.secure_url ||
-        !data?.public_id
-      ) {
-        throw new Error(
-          "Invalid response from Cloudinary."
-        );
-      }
-
-      return {
-        url:
-          data.secure_url,
-
-        publicId:
-          data.public_id,
-      };
-    }
-
-    for (
-      let colorIndex = 0;
-      colorIndex <
-        colors.length;
-      colorIndex++
-    ) {
-      const color =
-        colors[
-          colorIndex
-        ];
-
-      const visibleImages =
-        (
-          color.images ??
-          []
-        ).filter(
-          (image) =>
-            !image.deleted
-        );
-
-      const galleryImages: {
-        id: string;
-        url: string;
-        publicId: string;
-        sortOrder: number;
-      }[] = [];
-
-      for (
-        let imageIndex = 0;
-        imageIndex <
-          visibleImages.length;
-        imageIndex++
-      ) {
-        const image =
-          visibleImages[
-            imageIndex
-          ];
-
-        if (
-          image.file
-        ) {
-          const uploaded =
-            await uploadColorImage(
-              image.file
-            );
-
-          galleryImages.push({
-            id:
-              image.id,
-
-            url:
-              uploaded.url,
-
-            publicId:
-              uploaded.publicId,
-
-            sortOrder:
-              imageIndex,
-          });
-
-          continue;
-        }
-
-        if (
-          image.url &&
-          image.publicId
-        ) {
-          galleryImages.push({
-            id:
-              image.id,
-
-            url:
-              image.url,
-
-            publicId:
-              image.publicId,
-
-            sortOrder:
-              imageIndex,
-          });
-        }
-      }
-
-      /*
-       * Legacy Color compatibility.
-       */
-
-      if (
-        galleryImages.length ===
-          0 &&
-        color.url &&
-        color.publicId
-      ) {
-        galleryImages.push({
-          id:
-            `legacy-${color.id}`,
-
-          url:
-            color.url,
-
-          publicId:
-            color.publicId,
-
-          sortOrder:
-            0,
-        });
-      }
-
-      formData.append(
-        "colorOrder",
-        JSON.stringify({
-          id:
-            color.id,
-
-          colorId:
-            color.colorId ??
-            null,
-
-          name:
-            color.name,
-
-          model:
-            color.model,
-
-          publicId:
-            galleryImages[0]
-              ?.publicId ??
-            color.publicId ??
-            "",
-
-          sortOrder:
-            colorIndex,
-
-          isNew:
-            color.isNew,
-
-          deleted:
-            color.deleted ??
-            false,
-
-          hasNewImage:
-            visibleImages.some(
+        const galleryImages =
+          visibleColorImages
+            .filter(
               (image) =>
                 Boolean(
-                  image.file
+                  image.url &&
+                  image.publicId
                 )
-            ),
-
-          images:
-            galleryImages.map(
+            )
+            .map(
               (
-                image
+                image,
+                imageIndex
+              ) => ({
+                id:
+                  image.id,
+
+                url:
+                  image.url,
+
+                publicId:
+                  image.publicId!,
+
+                sortOrder:
+                  image.sortOrder ??
+                  imageIndex,
+
+                deleted:
+                  false,
+              })
+            );
+
+        /*
+         * Legacy Color compatibility.
+         *
+         * Existing old records may still only have
+         * color.url / color.publicId.
+         */
+
+        if (
+          galleryImages.length ===
+            0 &&
+          color.url &&
+          color.publicId
+        ) {
+          galleryImages.push({
+            id:
+              `legacy-${color.id}`,
+
+            url:
+              color.url,
+
+            publicId:
+              color.publicId,
+
+            sortOrder:
+              0,
+
+            deleted:
+              false,
+          });
+        }
+
+        formData.append(
+          "colorOrder",
+          JSON.stringify({
+            id:
+              color.id,
+
+            colorId:
+              color.colorId ??
+              null,
+
+            name:
+              color.name,
+
+            model:
+              color.model,
+
+            publicId:
+              galleryImages[0]
+                ?.publicId ??
+              color.publicId ??
+              "",
+
+            sortOrder:
+              colorIndex,
+
+            isNew:
+              color.isNew,
+
+            deleted:
+              color.deleted ??
+              false,
+
+            hasNewImage:
+              visibleColorImages.some(
+                (image) =>
+                  image.isNew
+              ),
+
+            images:
+              galleryImages,
+          })
+        );
+      }
+    );
+
+    /*
+     * =========================================================
+     * VARIANTS
+     * =========================================================
+     *
+     * VariantManager has already uploaded all new gallery
+     * images. Do not upload files again here.
+     */
+
+    variants.forEach(
+      (
+        variant,
+        index
+      ) => {
+        const visibleVariantImages =
+          (
+            variant.images ??
+            []
+          ).filter(
+            (image) =>
+              !image.deleted
+          );
+
+        const galleryImages =
+          visibleVariantImages
+            .filter(
+              (image) =>
+                Boolean(
+                  image.url &&
+                  image.publicId
+                )
+            )
+            .map(
+              (
+                image,
+                imageIndex
               ) => ({
                 id:
                   image.id,
@@ -971,164 +855,61 @@ export default function ProductForm({
                   image.publicId,
 
                 sortOrder:
-                  image.sortOrder,
+                  image.sortOrder ??
+                  imageIndex,
+
+                isNew:
+                  image.isNew ??
+                  false,
 
                 deleted:
                   false,
               })
-            ),
-        })
-      );
-    }
+            );
 
-    /*
-     * =========================================================
-     * VARIANTS
-     * =========================================================
-     *
-     * IMPORTANT:
-     *
-     * The Variant gallery is now stored inside
-     * variant.images.
-     *
-     * For this step we keep the existing submit
-     * structure untouched.
-     *
-     * The Server Action migration will be handled
-     * separately after the TypeScript structure
-     * is confirmed.
-     */
-
-    const variantPayloads =
-      await Promise.all(
-        variants.map(
-          async (
-            variant,
-            index
-          ) => {
-            const visibleVariantImages =
-              (
-                variant.images ??
-                []
-              ).filter(
-                (image) =>
-                  !image.deleted
-              );
-
-            const uploadedGallery =
-              await Promise.all(
-                visibleVariantImages.map(
-                  async (
-                    image,
-                    imageIndex
-                  ) => {
-                    if (image.file) {
-                      const uploaded =
-                        await uploadVariantImage(
-                          image.file
-                        );
-
-                      return {
-                        id:
-                          image.id,
-                        url:
-                          uploaded.url,
-                        publicId:
-                          uploaded.publicId,
-                        sortOrder:
-                          imageIndex,
-                        isNew: true,
-                        deleted: false,
-                      };
-                    }
-
-                    if (
-                      image.url &&
-                      image.publicId
-                    ) {
-                      return {
-                        id:
-                          image.id,
-                        url:
-                          image.url,
-                        publicId:
-                          image.publicId,
-                        sortOrder:
-                          imageIndex,
-                        isNew:
-                          image.isNew ??
-                          false,
-                        deleted: false,
-                      };
-                    }
-
-                    return null;
-                  }
-                )
-              );
-
-            const galleryImages =
-              uploadedGallery.filter(
-                (
-                  image
-                ): image is NonNullable<
-                  typeof image
-                > =>
-                  image !== null
-              );
-
-            return {
-              id:
-                variant.id,
-
-              colorId:
-                variant.colorId ??
-                null,
-
-              size:
-                variant.size,
-
-              model:
-                variant.model,
-
-              dimensions:
-                variant.dimensions,
-
-              imageUrl:
-                galleryImages[0]
-                  ?.url ??
-                variant.imageUrl ??
-                "",
-
-              publicId:
-                galleryImages[0]
-                  ?.publicId ??
-                variant.publicId ??
-                "",
-
-              images:
-                galleryImages,
-
-              sortOrder:
-                index,
-
-              isNew:
-                variant.isNew,
-
-              deleted:
-                variant.deleted,
-            };
-          }
-        )
-      );
-
-    variantPayloads.forEach(
-      (variant) => {
         formData.append(
           "variantOrder",
-          JSON.stringify(
-            variant
-          )
+          JSON.stringify({
+            id:
+              variant.id,
+
+            colorId:
+              variant.colorId ??
+              null,
+
+            size:
+              variant.size,
+
+            model:
+              variant.model,
+
+            dimensions:
+              variant.dimensions,
+
+            imageUrl:
+              galleryImages[0]
+                ?.url ??
+              variant.imageUrl ??
+              "",
+
+            publicId:
+              galleryImages[0]
+                ?.publicId ??
+              variant.publicId ??
+              "",
+
+            images:
+              galleryImages,
+
+            sortOrder:
+              index,
+
+            isNew:
+              variant.isNew,
+
+            deleted:
+              variant.deleted,
+          })
         );
       }
     );
