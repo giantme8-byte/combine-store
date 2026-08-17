@@ -11,7 +11,9 @@ import {
 import Lightbox from "@/components/Lightbox";
 import ZoomImage from "@/components/ZoomImage";
 
-import { useProduct } from "@/components/product/ProductContext";
+import {
+  useProduct,
+} from "@/components/product/ProductContext";
 
 import { optimizeCloudinaryImage } from "@/lib/cloudinary-image";
 
@@ -32,9 +34,7 @@ type ProductGalleryColor = {
 type Props = {
   cover: string;
   gallery: string[];
-
   colors: ProductGalleryColor[];
-
   name: string;
 };
 
@@ -47,21 +47,17 @@ export default function ProductGallery({
   const {
     selectedColor,
     setSelectedColor,
+
     selectedVariant,
+
+    selectionSource,
+    setSelectionSource,
   } = useProduct();
 
   /*
    * ============================================================
    * BASE PRODUCT GALLERY
    * ============================================================
-   *
-   * Used when no Product Color is selected.
-   *
-   * Product:
-   * Cover
-   * Gallery 01
-   * Gallery 02
-   * ...
    */
 
   const baseImages = Array.from(
@@ -90,14 +86,6 @@ export default function ProductGallery({
    * ============================================================
    * COLOR GALLERY
    * ============================================================
-   *
-   * New system:
-   *
-   * color.images[]
-   *
-   * Legacy fallback:
-   *
-   * color.imageUrl
    */
 
   const colorImages =
@@ -126,18 +114,65 @@ export default function ProductGallery({
 
   /*
    * ============================================================
+   * VARIANT GALLERY
+   * ============================================================
+   *
+   * Priority:
+   *
+   * 1. Variant images[]
+   * 2. Legacy variant imageUrl
+   */
+
+  const variantImages =
+    selectedVariant
+      ? Array.from(
+          new Set(
+            [
+              ...(selectedVariant.images ??
+                [])
+                .slice()
+                .sort(
+                  (a, b) =>
+                    a.sortOrder -
+                    b.sortOrder
+                )
+                .map(
+                  (image) =>
+                    image.url
+                ),
+
+              selectedVariant.imageUrl ??
+                "",
+            ].filter(Boolean)
+          )
+        )
+      : [];
+
+  /*
+   * ============================================================
    * ACTIVE GALLERY
    * ============================================================
    *
-   * Color selected:
-   * Color Gallery
+   * Colour mode:
    *
-   * No color selected:
-   * Product Gallery
+   * Colour Gallery
+   * → Product Gallery fallback
+   *
+   * Variant mode:
+   *
+   * Variant Gallery
+   * → Colour Gallery fallback
+   * → Product Gallery fallback
    */
 
   const images =
-    colorImages.length > 0
+    selectionSource === "variant"
+      ? variantImages.length > 0
+        ? variantImages
+        : colorImages.length > 0
+        ? colorImages
+        : baseImages
+      : colorImages.length > 0
       ? colorImages
       : baseImages;
 
@@ -228,23 +263,11 @@ export default function ProductGallery({
     );
   }
 
-  /*
-   * ============================================================
-   * PREVIOUS IMAGE
-   * ============================================================
-   */
-
   function previousImage() {
     changeImage(
       currentIndex - 1
     );
   }
-
-  /*
-   * ============================================================
-   * NEXT IMAGE
-   * ============================================================
-   */
 
   function nextImage() {
     changeImage(
@@ -254,7 +277,7 @@ export default function ProductGallery({
 
   /*
    * ============================================================
-   * TOUCH START
+   * TOUCH
    * ============================================================
    */
 
@@ -270,12 +293,6 @@ export default function ProductGallery({
     touchEndX.current =
       touchStartX.current;
   }
-
-  /*
-   * ============================================================
-   * TOUCH MOVE
-   * ============================================================
-   */
 
   function handleTouchMove(
     event: React.TouchEvent<HTMLDivElement>
@@ -293,12 +310,6 @@ export default function ProductGallery({
         true;
     }
   }
-
-  /*
-   * ============================================================
-   * TOUCH END
-   * ============================================================
-   */
 
   function handleTouchEnd() {
     const distance =
@@ -319,44 +330,23 @@ export default function ProductGallery({
 
   /*
    * ============================================================
-   * COLOR CHANGE
+   * COLOUR CHANGE
    * ============================================================
-   *
-   * IMPORTANT:
-   *
-   * ProductContext currently expects the old ProductColor
-   * structure where imageUrl is a required string.
-   *
-   * The new Product Detail query correctly returns:
-   *
-   * imageUrl: string | null
-   *
-   * Therefore we normalize imageUrl to "" when sending
-   * the selected Color into ProductContext.
-   *
-   * The Color Gallery itself still uses color.images[].
    */
 
   function handleColorChange(
     color: ProductGalleryColor
   ) {
+    setSelectionSource(
+      "color"
+    );
+
     setSelectedColor({
       id: color.id,
       name: color.name,
       imageUrl:
         color.imageUrl ?? "",
     });
-
-    /*
-     * ==========================================================
-     * COLOR GALLERY
-     * ==========================================================
-     *
-     * Priority:
-     *
-     * 1. ProductColorImage gallery
-     * 2. Legacy ProductColor.imageUrl
-     */
 
     const selectedColorImages =
       Array.from(
@@ -380,39 +370,12 @@ export default function ProductGallery({
         )
       );
 
-    /*
-     * ==========================================================
-     * USE COLOR GALLERY
-     * ==========================================================
-     */
-
     if (
       selectedColorImages.length >
       0
     ) {
       setSelectedImage(
         selectedColorImages[0]
-      );
-
-      return;
-    }
-
-    /*
-     * ==========================================================
-     * LEGACY FALLBACK
-     * ==========================================================
-     */
-
-    const index =
-      baseImages.findIndex(
-        (img) =>
-          img ===
-          color.imageUrl
-      );
-
-    if (index >= 0) {
-      setSelectedImage(
-        baseImages[index]
       );
 
       return;
@@ -429,14 +392,20 @@ export default function ProductGallery({
 
   /*
    * ============================================================
-   * COLOR CHANGE EFFECT
+   * COLOUR CHANGE EFFECT
    * ============================================================
    *
-   * When selectedColor changes from ProductContext,
-   * make sure the gallery starts from that Color's first image.
+   * Only run this when Colour is the active gallery source.
    */
 
   useEffect(() => {
+    if (
+      selectionSource !==
+      "color"
+    ) {
+      return;
+    }
+
     const color =
       colors.find(
         (item) =>
@@ -485,33 +454,142 @@ export default function ProductGallery({
       setSelectedImage(
         selectedColorImages[0]
       );
+
+      return;
+    }
+
+    if (
+      color.imageUrl
+    ) {
+      setSelectedImage(
+        color.imageUrl
+      );
     }
   }, [
     selectedColor,
     colors,
+    selectionSource,
   ]);
 
   /*
    * ============================================================
-   * VARIANT CHANGE
+   * VARIANT CHANGE EFFECT
    * ============================================================
    *
-   * Keep existing Variant behavior.
+   * Only run this when Variant is the active gallery source.
    *
-   * If a Variant has a legacy single image,
-   * display that image.
+   * This is the important fix:
+   *
+   * Variant images[]
+   * → complete Variant Gallery
+   *
+   * imageUrl
+   * → legacy fallback
    */
 
   useEffect(() => {
     if (
-      selectedVariant?.imageUrl
+      selectionSource !==
+      "variant"
+    ) {
+      return;
+    }
+
+    if (!selectedVariant) {
+      return;
+    }
+
+    const selectedVariantImages =
+      Array.from(
+        new Set(
+          [
+            ...(selectedVariant.images ??
+              [])
+              .slice()
+              .sort(
+                (a, b) =>
+                  a.sortOrder -
+                  b.sortOrder
+              )
+              .map(
+                (image) =>
+                  image.url
+              ),
+
+            selectedVariant.imageUrl ??
+              "",
+          ].filter(Boolean)
+        )
+      );
+
+    if (
+      selectedVariantImages.length >
+      0
     ) {
       setSelectedImage(
-        selectedVariant.imageUrl
+        selectedVariantImages[0]
+      );
+
+      return;
+    }
+
+    /*
+     * If Variant has no images,
+     * fallback to current Colour Gallery.
+     */
+
+    if (
+      colorImages.length > 0
+    ) {
+      setSelectedImage(
+        colorImages[0]
+      );
+
+      return;
+    }
+
+    if (
+      baseImages.length > 0
+    ) {
+      setSelectedImage(
+        baseImages[0]
       );
     }
   }, [
     selectedVariant,
+    selectionSource,
+    colorImages,
+    baseImages,
+  ]);
+
+  /*
+   * ============================================================
+   * ACTIVE GALLERY SYNC
+   * ============================================================
+   *
+   * This handles cases where the image currently selected
+   * no longer exists inside the new gallery.
+   */
+
+  useEffect(() => {
+    if (
+      images.length === 0
+    ) {
+      return;
+    }
+
+    if (
+      !images.includes(
+        selectedImage
+      )
+    ) {
+      setSelectedImage(
+        images[0]
+      );
+    }
+  }, [
+    images,
+    selectedImage,
   ]);
 
   /*
@@ -533,7 +611,6 @@ export default function ProductGallery({
         "ArrowLeft"
       ) {
         previousImage();
-
         return;
       }
 
@@ -542,7 +619,6 @@ export default function ProductGallery({
         "ArrowRight"
       ) {
         nextImage();
-
         return;
       }
 
@@ -551,7 +627,6 @@ export default function ProductGallery({
         "Home"
       ) {
         changeImage(0);
-
         return;
       }
 
@@ -583,7 +658,7 @@ export default function ProductGallery({
 
   /*
    * ============================================================
-   * CURRENT COLOR
+   * CURRENT COLOUR
    * ============================================================
    */
 
@@ -594,19 +669,12 @@ export default function ProductGallery({
         selectedColor?.id
     ) ?? null;
 
-  /*
-   * ============================================================
-   * MULTIPLE IMAGES
-   * ============================================================
-   */
-
   const hasMultipleImages =
     images.length > 1;
 
   return (
     <>
       <div className="flex flex-col gap-6 lg:flex-row">
-
         {/* ==================================================== */}
         {/* Thumbnails */}
         {/* ==================================================== */}
@@ -693,7 +761,6 @@ export default function ProductGallery({
         {/* ==================================================== */}
 
         <div className="group relative flex-1">
-
           <div
             onClick={() => {
               if (
@@ -728,10 +795,7 @@ export default function ProductGallery({
               lg:shadow-[0_20px_60px_rgba(0,0,0,0.05)]
             "
           >
-
-            {/* ================================================= */}
             {/* Previous */}
-            {/* ================================================= */}
 
             {hasMultipleImages && (
               <button
@@ -781,9 +845,7 @@ export default function ProductGallery({
               </button>
             )}
 
-            {/* ================================================= */}
             {/* Image */}
-            {/* ================================================= */}
 
             <div
               key={
@@ -805,9 +867,7 @@ export default function ProductGallery({
               />
             </div>
 
-            {/* ================================================= */}
             {/* Next */}
-            {/* ================================================= */}
 
             {hasMultipleImages && (
               <button
@@ -856,12 +916,9 @@ export default function ProductGallery({
                 />
               </button>
             )}
-
           </div>
 
-          {/* ================================================= */}
           {/* Counter */}
-          {/* ================================================= */}
 
           <div className="mt-5 flex items-center justify-between px-1">
             <span className="text-xs tracking-[0.25em] text-neutral-400">
@@ -879,9 +936,7 @@ export default function ProductGallery({
             </span>
           </div>
 
-          {/* ================================================= */}
           {/* Mobile Swipe Hint */}
-          {/* ================================================= */}
 
           {hasMultipleImages && (
             <div
@@ -918,9 +973,7 @@ export default function ProductGallery({
             </div>
           )}
 
-          {/* ================================================= */}
           {/* Mobile Dots */}
-          {/* ================================================= */}
 
           {hasMultipleImages && (
             <div className="mt-4 flex justify-center gap-2 lg:hidden">
@@ -960,13 +1013,12 @@ export default function ProductGallery({
           )}
 
           {/* ================================================= */}
-          {/* Color */}
+          {/* Colour Selector */}
           {/* ================================================= */}
 
           {colors.length >
             0 && (
             <div className="mt-8 lg:mt-10">
-
               <p className="mb-2 text-xs uppercase tracking-[0.3em] text-neutral-500">
                 Colour
               </p>
@@ -977,18 +1029,10 @@ export default function ProductGallery({
               </p>
 
               <div className="flex flex-wrap gap-4">
-
                 {colors.map(
                   (
                     color
                   ) => {
-                    /*
-                     * Color thumbnail:
-                     *
-                     * 1. Legacy imageUrl
-                     * 2. First gallery image
-                     */
-
                     const colorThumbnail =
                       color.imageUrl ??
                       color.images?.[0]
@@ -1039,17 +1083,11 @@ export default function ProductGallery({
                             alt={
                               color.name
                             }
-                            width={
-                              60
-                            }
-                            height={
-                              60
-                            }
+                            width={60}
+                            height={60}
                             loading="lazy"
                             sizes="56px"
-                            quality={
-                              75
-                            }
+                            quality={75}
                             className="
                               h-14
                               w-14
@@ -1068,7 +1106,6 @@ export default function ProductGallery({
                     );
                   }
                 )}
-
               </div>
             </div>
           )}

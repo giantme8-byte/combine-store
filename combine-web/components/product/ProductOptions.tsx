@@ -13,6 +13,8 @@ export default function ProductOptions() {
     selectedVariant,
     setSelectedVariant,
 
+    setSelectionSource,
+
     quantity,
     setQuantity,
   } = useProduct();
@@ -62,9 +64,18 @@ export default function ProductOptions() {
                 <button
                   key={color.id}
                   type="button"
-                  onClick={() =>
-                    setSelectedColor(color)
-                  }
+                  onClick={() => {
+                    setSelectedColor(color);
+
+                    /*
+                     * Colour was selected,
+                     * so ProductGallery should
+                     * display the Colour Gallery.
+                     */
+                    setSelectionSource(
+                      "color"
+                    );
+                  }}
                   className={`
                     min-h-11
                     rounded-full
@@ -131,11 +142,20 @@ export default function ProductOptions() {
                 <button
                   key={variant.id}
                   type="button"
-                  onClick={() =>
+                  onClick={() => {
                     setSelectedVariant(
                       variant
-                    )
-                  }
+                    );
+
+                    /*
+                     * Variant was selected,
+                     * so ProductGallery should
+                     * display the Variant Gallery.
+                     */
+                    setSelectionSource(
+                      "variant"
+                    );
+                  }}
                   className={`
                     min-h-[100px]
                     rounded-2xl
@@ -155,6 +175,7 @@ export default function ProductOptions() {
                   `}
                 >
                   {/* Size + Check */}
+
                   <div
                     className="
                       flex
@@ -188,6 +209,7 @@ export default function ProductOptions() {
                   </div>
 
                   {/* Dimensions */}
+
                   {variant.dimensions && (
                     <p
                       className={`
@@ -207,6 +229,7 @@ export default function ProductOptions() {
                   )}
 
                   {/* Size Variation Notice */}
+
                   <p
                     className={`
                       mt-2

@@ -21,8 +21,13 @@ import ProductOptions from "@/components/product/ProductOptions";
 import ProductViewTracker from "@/components/analytics/ProductViewTracker";
 
 /*
+ * ============================================================
+ * Cache
+ * ============================================================
+ *
  * Cache product pages for 5 minutes.
  */
+
 export const revalidate = 300;
 
 type Props = {
@@ -270,9 +275,28 @@ export default async function ProductPage({
         },
 
         /*
+         * ======================================================
          * Product Variants
+         * ======================================================
          *
-         * Keep the current Variant structure.
+         * Load the complete Variant Gallery.
+         *
+         * Each Variant can now have multiple images.
+         *
+         * Example:
+         *
+         * Small
+         * ├── Cover
+         * ├── Front
+         * ├── Back
+         * └── Interior
+         *
+         * Large
+         * ├── Cover
+         * ├── Front
+         * ├── Back
+         * └── Interior
+         *
          */
 
         variants: {
@@ -281,7 +305,32 @@ export default async function ProductPage({
             size: true,
             model: true,
             dimensions: true,
+
+            /*
+             * Legacy / fallback cover image.
+             */
+
             imageUrl: true,
+
+            /*
+             * Complete Variant Gallery.
+             */
+
+            images: {
+              select: {
+                id: true,
+                url: true,
+                publicId: true,
+                altText: true,
+                caption: true,
+                sortOrder: true,
+              },
+
+              orderBy: {
+                sortOrder:
+                  "asc",
+              },
+            },
           },
 
           orderBy: {

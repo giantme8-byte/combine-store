@@ -76,9 +76,7 @@ function SortableVariantImage({
       CSS.Transform.toString(
         transform
       ),
-    transition:
-      transition ??
-      "transform 180ms cubic-bezier(0.2, 0, 0, 1)",
+    transition,
   };
 
   return (
@@ -93,12 +91,13 @@ function SortableVariantImage({
         border
         bg-white
         shadow-sm
-        transition-shadow
+        transition-all
         duration-200
         ${
           isDragging
             ? `
               z-50
+              scale-[1.02]
               border-black
               shadow-2xl
               ring-2
@@ -106,7 +105,7 @@ function SortableVariantImage({
             `
             : `
               border-neutral-200
-              shadow-sm
+              hover:-translate-y-0.5
               hover:shadow-md
             `
         }
@@ -122,13 +121,15 @@ function SortableVariantImage({
         className={`
           relative
           aspect-square
+          cursor-grab
           select-none
           overflow-hidden
           bg-neutral-50
+          active:cursor-grabbing
           ${
             isDragging
               ? "cursor-grabbing"
-              : "cursor-grab"
+              : ""
           }
         `}
       >
@@ -142,10 +143,12 @@ function SortableVariantImage({
           draggable={false}
           className="
             pointer-events-none
-            h-full
-            w-full
             select-none
             object-contain
+            transition-transform
+            duration-300
+            ease-out
+            group-hover:scale-[1.02]
           "
         />
 
@@ -996,22 +999,24 @@ export default function VariantManager({
         </button>
       </div>
 
-{/* =====================================================
- * COLOR MODE
- * =================================================== */}
+      {/* =====================================================
+       * NO COLORS WARNING
+       * =================================================== */}
 
-{availableColors.length === 0 && (
-  <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 px-5 py-4">
-    <p className="text-sm font-medium text-neutral-800">
-      Single-color product
-    </p>
+      {availableColors.length ===
+        0 && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+          <p className="text-sm font-medium text-amber-800">
+            Add at least one Product Color
+            first.
+          </p>
 
-    <p className="mt-1 text-xs text-neutral-500">
-      Variant color selection is not required.
-      The product Primary Color will be used.
-    </p>
-  </div>
-)}
+          <p className="mt-1 text-xs text-amber-700">
+            Variant colors can only be selected
+            from the Product Colors added above.
+          </p>
+        </div>
+      )}
 
       {/* =====================================================
        * EMPTY STATE

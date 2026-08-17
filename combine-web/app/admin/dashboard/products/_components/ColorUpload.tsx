@@ -117,8 +117,6 @@ function SortableColorImage({
     >
       {/* =====================================================
        * IMAGE AREA
-       *
-       * Entire image area is draggable.
        * =================================================== */}
 
       <div
@@ -139,7 +137,9 @@ function SortableColorImage({
       >
         <img
           src={image.url}
-          alt={`${colorName || "Color"} image ${index + 1}`}
+          alt={`${colorName || "Color"} image ${
+            index + 1
+          }`}
           draggable={false}
           className={`
             pointer-events-none
@@ -155,9 +155,7 @@ function SortableColorImage({
           `}
         />
 
-        {/* =================================================
-         * IMAGE NUMBER
-         * ================================================= */}
+        {/* Image Number */}
 
         <div
           className="
@@ -182,11 +180,7 @@ function SortableColorImage({
           ).padStart(2, "0")}
         </div>
 
-        {/* =================================================
-         * DELETE X
-         *
-         * Prevents drag from starting.
-         * ================================================= */}
+        {/* Delete */}
 
         <button
           type="button"
@@ -345,10 +339,13 @@ export default function ColorUpload({
   }
 
   /* =======================================================
-   * Update Global Color
+   * Select Global Color
+   *
+   * Global Color is now only a shortcut.
+   * It is NOT required.
    * ===================================================== */
 
-  function updateColor(
+  function selectGlobalColor(
     id: string,
     colorId: number | null
   ) {
@@ -368,7 +365,36 @@ export default function ColorUpload({
                 colorId,
                 name:
                   selectedColor?.name ??
-                  "",
+                  color.name,
+              }
+            : color
+      )
+    );
+  }
+
+  /* =======================================================
+   * Custom Color Name
+   *
+   * Once the user types their own name:
+   *
+   * colorId = null
+   *
+   * This means the Product Color is no longer linked
+   * to the Global Color Master.
+   * ===================================================== */
+
+  function updateColorName(
+    id: string,
+    name: string
+  ) {
+    onChange(
+      colors.map(
+        (color) =>
+          color.id === id
+            ? {
+                ...color,
+                name,
+                colorId: null,
               }
             : color
       )
@@ -643,24 +669,6 @@ export default function ColorUpload({
   }
 
   /* =======================================================
-   * Check Duplicate Global Color
-   * ===================================================== */
-
-  function isColorAlreadyUsed(
-    colorId: number,
-    currentColorId: string
-  ) {
-    return colors.some(
-      (color) =>
-        color.id !==
-          currentColorId &&
-        !color.deleted &&
-        color.colorId ===
-          colorId
-    );
-  }
-
-  /* =======================================================
    * Render
    * ===================================================== */
 
@@ -671,9 +679,16 @@ export default function ColorUpload({
        * ================================================= */}
 
       <div className="flex items-center justify-between">
-        <label className="text-sm font-semibold text-neutral-700">
-          Available Colors
-        </label>
+        <div>
+          <label className="text-sm font-semibold text-neutral-700">
+            Available Colors
+          </label>
+
+          <p className="mt-1 text-xs text-neutral-500">
+            Enter any colour name you want. Global
+            Colors are optional shortcuts.
+          </p>
+        </div>
 
         <button
           type="button"
@@ -747,36 +762,56 @@ export default function ColorUpload({
                     "
                   >
                     {/* =======================================
-                     * Color
+                     * Color Name
                      * ===================================== */}
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Color
-                      </label>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <label className="text-sm font-medium">
+                          Color Name
+                        </label>
 
-                      <select
+                        {color.colorId ===
+                          null &&
+                          color.name.trim() !==
+                            "" && (
+                            <span
+                              className="
+                                rounded-full
+                                bg-neutral-100
+                                px-3
+                                py-1
+                                text-[10px]
+                                font-medium
+                                uppercase
+                                tracking-[0.15em]
+                                text-neutral-500
+                              "
+                            >
+                              Custom
+                            </span>
+                          )}
+                      </div>
+
+                      {/* ===================================
+                       * Custom Color Input
+                       * ================================= */}
+
+                      <input
+                        type="text"
                         value={
-                          color.colorId ??
-                          ""
+                          color.name
                         }
+                        placeholder="e.g. Black, Beige & Black, Black & Gold"
                         onChange={(
                           e
-                        ) => {
-                          const value =
-                            e.target
-                              .value;
-
-                          updateColor(
+                        ) =>
+                          updateColorName(
                             color.id,
-                            value ===
-                              ""
-                              ? null
-                              : Number(
-                                  value
-                                )
-                          );
-                        }}
+                            e.target
+                              .value
+                          )
+                        }
                         className="
                           w-full
                           rounded-xl
@@ -785,73 +820,109 @@ export default function ColorUpload({
                           bg-white
                           px-4
                           py-3
+                          text-sm
+                          outline-none
+                          transition
+                          placeholder:text-neutral-400
                           focus:border-black
-                          focus:outline-none
                           focus:ring-2
                           focus:ring-black/5
                         "
-                      >
-                        <option value="">
-                          Select a
-                          color
-                        </option>
+                      />
 
-                        {globalColors.map(
-                          (
-                            globalColor
-                          ) => {
-                            const used =
-                              isColorAlreadyUsed(
-                                globalColor.id,
-                                color.id
+                      <p className="text-xs text-neutral-500">
+                        You can enter any colour name.
+                        The name will be displayed exactly
+                        as entered.
+                      </p>
+
+                      {/* ===================================
+                       * Optional Global Color Shortcut
+                       * ================================= */}
+
+                      {globalColors.length >
+                        0 && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium uppercase tracking-[0.15em] text-neutral-400">
+                            Global Color Shortcut
+                          </label>
+
+                          <select
+                            value={
+                              color.colorId ??
+                              ""
+                            }
+                            onChange={(
+                              e
+                            ) => {
+                              const value =
+                                e.target
+                                  .value;
+
+                              selectGlobalColor(
+                                color.id,
+                                value ===
+                                  ""
+                                  ? null
+                                  : Number(
+                                      value
+                                    )
                               );
+                            }}
+                            className="
+                              w-full
+                              rounded-xl
+                              border
+                              border-neutral-300
+                              bg-white
+                              px-4
+                              py-3
+                              text-sm
+                              outline-none
+                              transition
+                              focus:border-black
+                              focus:ring-2
+                              focus:ring-black/5
+                            "
+                          >
+                            <option value="">
+                              No Global Color —
+                              Custom Name
+                            </option>
 
-                            return (
-                              <option
-                                key={
-                                  globalColor.id
-                                }
-                                value={
-                                  globalColor.id
-                                }
-                                disabled={
-                                  used
-                                }
-                              >
-                                {
-                                  globalColor.name
-                                }
-                                {used
-                                  ? " — Already added"
-                                  : ""}
-                              </option>
-                            );
-                          }
-                        )}
-                      </select>
+                            {globalColors
+                              .filter(
+                                (
+                                  globalColor
+                                ) =>
+                                  globalColor.active
+                              )
+                              .map(
+                                (
+                                  globalColor
+                                ) => (
+                                  <option
+                                    key={
+                                      globalColor.id
+                                    }
+                                    value={
+                                      globalColor.id
+                                    }
+                                  >
+                                    {
+                                      globalColor.name
+                                    }
+                                  </option>
+                                )
+                              )}
+                          </select>
 
-                      {color.colorId ===
-                        null && (
-                        <p className="text-xs text-amber-600">
-                          Please
-                          select a
-                          Global
-                          Color.
-                        </p>
-                      )}
-
-                      {color.colorId !==
-                        null && (
-                        <p className="text-xs text-neutral-500">
-                          This
-                          Product
-                          Color is
-                          linked to
-                          the
-                          Global
-                          Color
-                          Master.
-                        </p>
+                          <p className="text-xs text-neutral-400">
+                            Selecting a Global Color
+                            fills the name automatically.
+                            You can still edit it afterwards.
+                          </p>
+                        </div>
                       )}
                     </div>
 
@@ -902,14 +973,11 @@ export default function ColorUpload({
                       <div className="flex items-center justify-between">
                         <div>
                           <label className="text-sm font-medium">
-                            Color
-                            Gallery
+                            Color Gallery
                           </label>
 
                           <p className="mt-1 text-xs text-neutral-500">
-                            Drag the
-                            image
-                            itself to
+                            Drag the image itself to
                             reorder.
                           </p>
                         </div>
@@ -1040,9 +1108,7 @@ export default function ColorUpload({
                         "
                       >
                         <ImagePlus
-                          size={
-                            32
-                          }
+                          size={32}
                           className="text-neutral-400"
                         />
 
@@ -1054,10 +1120,8 @@ export default function ColorUpload({
                         </p>
 
                         <p className="mt-1 text-xs text-neutral-500">
-                          Select
-                          multiple
-                          images at
-                          once
+                          Select multiple
+                          images at once
                         </p>
                       </label>
                     </div>
@@ -1089,9 +1153,7 @@ export default function ColorUpload({
                         "
                       >
                         <Trash2
-                          size={
-                            18
-                          }
+                          size={18}
                         />
 
                         Remove

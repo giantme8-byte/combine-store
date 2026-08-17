@@ -138,6 +138,111 @@ export default function ProductForm({
   const slugEdited =
     useRef(false);
 
+  async function uploadVariantImage(
+    file: File
+  ): Promise<{
+    url: string;
+    publicId: string;
+  }> {
+    const signatureResponse =
+      await fetch(
+        "/api/cloudinary/sign",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+        }
+      );
+
+    if (!signatureResponse.ok) {
+      throw new Error(
+        "Failed to create Cloudinary upload signature."
+      );
+    }
+
+    const signatureData =
+      await signatureResponse.json();
+
+    if (
+      !signatureData.signature ||
+      !signatureData.timestamp ||
+      !signatureData.folder ||
+      !signatureData.cloudName ||
+      !signatureData.apiKey
+    ) {
+      throw new Error(
+        "Invalid Cloudinary signature response."
+      );
+    }
+
+    const uploadData =
+      new FormData();
+
+    uploadData.append(
+      "file",
+      file
+    );
+
+    uploadData.append(
+      "api_key",
+      signatureData.apiKey
+    );
+
+    uploadData.append(
+      "timestamp",
+      String(
+        signatureData.timestamp
+      )
+    );
+
+    uploadData.append(
+      "signature",
+      signatureData.signature
+    );
+
+    uploadData.append(
+      "folder",
+      signatureData.folder
+    );
+
+    const uploadUrl =
+      `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`;
+
+    const uploadResponse =
+      await fetch(
+        uploadUrl,
+        {
+          method: "POST",
+          body: uploadData,
+        }
+      );
+
+    if (!uploadResponse.ok) {
+      throw new Error(
+        `Cloudinary variant upload failed with status ${uploadResponse.status}.`
+      );
+    }
+
+    const data =
+      await uploadResponse.json();
+
+    if (
+      !data?.secure_url ||
+      !data?.public_id
+    ) {
+      throw new Error(
+        "Invalid response from Cloudinary."
+      );
+    }
+
+    return {
+      url: data.secure_url,
+      publicId: data.public_id,
+    };
+  }
+
   useEffect(() => {
     if (!product) {
       return;
@@ -276,6 +381,17 @@ export default function ProductForm({
         }
       )
     );
+
+    /*
+     * =========================================================
+     * VARIANT IMAGE UPLOAD
+     * =========================================================
+     *
+     * Variant gallery images are selected locally in VariantManager.
+     * Upload all new files before submitting the variant metadata.
+     * Uploads run in parallel so large galleries do not take
+     * unnecessarily long.
+     */
 
     /*
      * =========================================================
@@ -883,108 +999,137 @@ export default function ProductForm({
      * is confirmed.
      */
 
-    variants.forEach(
-      (
-        variant,
-        index
-      ) => {
-        formData.append(
-          "variantOrder",
-          JSON.stringify({
-            id:
-              variant.id,
-
-            colorId:
-              variant.colorId ??
-              null,
-
-            size:
-              variant.size,
-
-            model:
-              variant.model,
-
-            dimensions:
-              variant.dimensions,
-
-            imageUrl:
-              variant.imageUrl ??
-              "",
-
-            publicId:
-              variant.publicId ??
-              "",
-
-            /*
-             * New Variant gallery metadata.
-             */
-            images:
+    const variantPayloads =
+      await Promise.all(
+        variants.map(
+          async (
+            variant,
+            index
+          ) => {
+            const visibleVariantImages =
               (
                 variant.images ??
                 []
-              )
-                .filter(
-                  (
-                    image
-                  ) =>
-                    !image.deleted
-                )
-                .map(
-                  (
+              ).filter(
+                (image) =>
+                  !image.deleted
+              );
+
+            const uploadedGallery =
+              await Promise.all(
+                visibleVariantImages.map(
+                  async (
                     image,
                     imageIndex
-                  ) => ({
-                    id:
-                      image.id,
+                  ) => {
+                    if (image.file) {
+                      const uploaded =
+                        await uploadVariantImage(
+                          image.file
+                        );
 
-                    url:
-                      image.url,
+                      return {
+                        id:
+                          image.id,
+                        url:
+                          uploaded.url,
+                        publicId:
+                          uploaded.publicId,
+                        sortOrder:
+                          imageIndex,
+                        isNew: true,
+                        deleted: false,
+                      };
+                    }
 
-                    publicId:
-                      image.publicId,
+                    if (
+                      image.url &&
+                      image.publicId
+                    ) {
+                      return {
+                        id:
+                          image.id,
+                        url:
+                          image.url,
+                        publicId:
+                          image.publicId,
+                        sortOrder:
+                          imageIndex,
+                        isNew:
+                          image.isNew ??
+                          false,
+                        deleted: false,
+                      };
+                    }
 
-                    sortOrder:
-                      imageIndex,
+                    return null;
+                  }
+                )
+              );
 
-                    isNew:
-                      image.isNew ??
-                      false,
+            const galleryImages =
+              uploadedGallery.filter(
+                (
+                  image
+                ): image is NonNullable<
+                  typeof image
+                > =>
+                  image !== null
+              );
 
-                    deleted:
-                      image.deleted ??
-                      false,
-                  })
-                ),
+            return {
+              id:
+                variant.id,
 
-            sortOrder:
-              index,
+              colorId:
+                variant.colorId ??
+                null,
 
-            isNew:
-              variant.isNew,
+              size:
+                variant.size,
 
-            deleted:
-              variant.deleted,
+              model:
+                variant.model,
 
-            /*
-             * Legacy upload compatibility.
-             */
-            hasNewImage:
-              !!variant.file,
-          })
+              dimensions:
+                variant.dimensions,
+
+              imageUrl:
+                galleryImages[0]
+                  ?.url ??
+                variant.imageUrl ??
+                "",
+
+              publicId:
+                galleryImages[0]
+                  ?.publicId ??
+                variant.publicId ??
+                "",
+
+              images:
+                galleryImages,
+
+              sortOrder:
+                index,
+
+              isNew:
+                variant.isNew,
+
+              deleted:
+                variant.deleted,
+            };
+          }
+        )
+      );
+
+    variantPayloads.forEach(
+      (variant) => {
+        formData.append(
+          "variantOrder",
+          JSON.stringify(
+            variant
+          )
         );
-
-        /*
-         * Keep legacy single-file upload
-         * temporarily for compatibility.
-         */
-        if (
-          variant.file
-        ) {
-          formData.append(
-            "variantImages",
-            variant.file
-          );
-        }
       }
     );
 

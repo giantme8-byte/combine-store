@@ -12,6 +12,8 @@ type Props = {
   variant?: string;
   dimensions?: string;
   packaging?: string;
+
+  quantity: number;
 };
 
 export default function AddToInquiryButton({
@@ -20,6 +22,7 @@ export default function AddToInquiryButton({
   variant,
   dimensions,
   packaging,
+  quantity,
 }: Props) {
   const {
     addItem,
@@ -31,7 +34,12 @@ export default function AddToInquiryButton({
     useState(false);
 
   const added =
-    isInInquiry(productId);
+    isInInquiry(productId, {
+      color,
+      variant,
+      dimensions,
+      packaging,
+    });
 
   function handleAdd() {
     if (loading) return;
@@ -44,6 +52,7 @@ export default function AddToInquiryButton({
         variant,
         dimensions,
         packaging,
+        quantity,
       });
 
       openDrawer();

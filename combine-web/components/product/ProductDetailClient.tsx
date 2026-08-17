@@ -10,12 +10,23 @@ type ProductColor = {
   imageUrl: string;
 };
 
+type ProductVariantImage = {
+  id: number;
+  url: string;
+  publicId: string;
+  altText: string | null;
+  caption: string | null;
+  sortOrder: number;
+};
+
 type ProductVariant = {
   id: number;
   size: string;
   model: string | null;
   dimensions: string | null;
   imageUrl: string | null;
+
+  images: ProductVariantImage[];
 };
 
 type ProductDetailClientProps = {

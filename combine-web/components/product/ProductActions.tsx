@@ -95,30 +95,32 @@ Please provide the latest price and availability.
 
 Thank you 😊`;
 
-    const response =
-      await fetch("/api/settings");
+    try {
+      const response =
+        await fetch("/api/settings");
 
-    const settings =
-      await response.json();
+      const settings =
+        await response.json();
 
-    const whatsappNumber =
-      settings.whatsappNumber.replace(
-        /\D/g,
-        ""
+      const whatsappNumber =
+        settings.whatsappNumber.replace(
+          /\D/g,
+          ""
+        );
+
+      const url =
+        `https://wa.me/${whatsappNumber}` +
+        `?text=${encodeURIComponent(
+          message
+        )}`;
+
+      window.open(
+        url,
+        "_blank"
       );
-
-    const url =
-      `https://wa.me/${whatsappNumber}` +
-      `?text=${encodeURIComponent(
-        message
-      )}`;
-
-    window.open(
-      url,
-      "_blank"
-    );
-
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -161,9 +163,7 @@ Thank you 😊`;
 
         <button
           type="button"
-          onClick={
-            handleWhatsApp
-          }
+          onClick={handleWhatsApp}
           disabled={loading}
           className="
             group
@@ -197,8 +197,6 @@ Thank you 😊`;
             sm:tracking-[0.28em]
           "
         >
-          {/* Luxury Hover */}
-
           <span
             className="
               absolute
@@ -241,9 +239,7 @@ Thank you 😊`;
           "
         >
           <AddToInquiryButton
-            productId={
-              productId
-            }
+            productId={productId}
             color={
               selectedColor?.name
             }
@@ -252,14 +248,14 @@ Thank you 😊`;
             }
             dimensions={
               selectedVariant?.dimensions ??
+              dimensions ??
               undefined
             }
+            quantity={quantity}
           />
 
           <WishlistButton
-            productId={
-              productId
-            }
+            productId={productId}
           />
         </div>
       </div>

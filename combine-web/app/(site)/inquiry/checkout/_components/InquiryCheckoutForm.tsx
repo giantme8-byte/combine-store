@@ -17,16 +17,44 @@ type InquiryProduct = {
   }[];
 };
 
+type InquiryOptions = {
+  color?: string;
+  variant?: string;
+  dimensions?: string;
+  packaging?: string;
+};
+
+function getInquiryKey(
+  productId: number,
+  options?: InquiryOptions
+) {
+  return [
+    productId,
+    options?.color ?? "",
+    options?.variant ?? "",
+    options?.dimensions ?? "",
+    options?.packaging ?? "",
+  ].join("::");
+}
+
 export default function InquiryCheckoutForm() {
   const {
     items,
+    totalItems,
     removeItem,
     clearInquiry,
   } = useInquiry();
 
-  const [message, setMessage] = useState("");
-  const [products, setProducts] = useState<InquiryProduct[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [message, setMessage] =
+    useState("");
+
+  const [products, setProducts] =
+    useState<InquiryProduct[]>([]);
+
+  const [
+    loadingProducts,
+    setLoadingProducts,
+  ] = useState(true);
 
   useEffect(() => {
     async function loadProducts() {
@@ -37,23 +65,41 @@ export default function InquiryCheckoutForm() {
       }
 
       try {
-        const ids = items
-          .map((item) => item.productId)
-          .join(",");
+        setLoadingProducts(true);
 
-        const response = await fetch(
-          `/api/inquiry/products?ids=${encodeURIComponent(ids)}`
-        );
+        const ids = Array.from(
+          new Set(
+            items.map(
+              (item) =>
+                item.productId
+            )
+          )
+        ).join(",");
+
+        const response =
+          await fetch(
+            `/api/inquiry/products?ids=${encodeURIComponent(
+              ids
+            )}`
+          );
 
         if (!response.ok) {
-          throw new Error("Failed to load products.");
+          throw new Error(
+            "Failed to load products."
+          );
         }
 
-        const data = await response.json();
+        const data =
+          await response.json();
 
         setProducts(data);
       } catch (error) {
-        console.error(error);
+        console.error(
+          "Failed to load inquiry products:",
+          error
+        );
+
+        setProducts([]);
       } finally {
         setLoadingProducts(false);
       }
@@ -79,87 +125,154 @@ export default function InquiryCheckoutForm() {
       return;
     }
 
-    await fetch("/api/inquiry", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: "WhatsApp Customer",
-        whatsapp: "-",
-        message,
-        items,
-      }),
-    });
+    /*
+     * The inquiry API is currently only
+     * a placeholder and does not persist
+     * submissions yet.
+     *
+     * We intentionally keep this call here
+     * for future Checkout / Inquiry backend
+     * integration.
+     */
+    try {
+      await fetch("/api/inquiry", {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          name: "WhatsApp Customer",
+          whatsapp: "-",
+          message,
+          items,
+        }),
+      });
+    } catch (error) {
+      console.error(
+        "Inquiry API request failed:",
+        error
+      );
+    }
 
     const lines: string[] = [];
 
-    lines.push("Hi COMBINE 👋");
+    lines.push(
+      "Hi COMBINE 👋"
+    );
+
     lines.push("");
+
     lines.push(
       "I'd like to enquire about the following products."
     );
+
     lines.push("");
-    lines.push("────────────────");
+
+    lines.push(
+      "────────────────"
+    );
+
     lines.push("");
 
-    items.forEach((item, index) => {
-      const product =
-        productMap.get(item.productId);
+    items.forEach(
+      (item, index) => {
+        const product =
+          productMap.get(
+            item.productId
+          );
 
-      lines.push(`${index + 1}.`);
-      lines.push("");
-      lines.push(
-        `Brand: ${product?.brand ?? "-"}`
-      );
-      lines.push(
-        `Product: ${product?.name ?? "-"}`
-      );
-      lines.push(
-        `SKU: ${product?.sku ?? "-"}`
-      );
-
-      if (item.color) {
         lines.push(
-          `Colour: ${item.color}`
+          `${index + 1}.`
         );
-      }
 
-      if (item.variant) {
-        lines.push(
-          `Size: ${item.variant}`
-        );
-      }
-
-      if (item.dimensions) {
-        lines.push(
-          `Dimensions: ${item.dimensions}`
-        );
-      }
-
-      lines.push(
-        `Quantity: ${item.quantity}`
-      );
-
-      if (product?.slug) {
         lines.push("");
-        lines.push("Product Link:");
-        lines.push(
-          `${window.location.origin}/shop/${product.slug}`
-        );
-      }
 
-      lines.push("");
-      lines.push("────────────────");
-      lines.push("");
-      lines.push("");
-    });
+        lines.push(
+          `Brand: ${
+            product?.brand ?? "-"
+          }`
+        );
+
+        lines.push(
+          `Product: ${
+            product?.name ?? "-"
+          }`
+        );
+
+        lines.push(
+          `SKU: ${
+            product?.sku ?? "-"
+          }`
+        );
+
+        if (item.color) {
+          lines.push(
+            `Colour: ${item.color}`
+          );
+        }
+
+        if (item.variant) {
+          lines.push(
+            `Size: ${item.variant}`
+          );
+        }
+
+        if (item.dimensions) {
+          lines.push(
+            `Dimensions: ${item.dimensions}`
+          );
+        }
+
+        if (item.packaging) {
+          lines.push(
+            `Packaging: ${item.packaging}`
+          );
+        }
+
+        lines.push(
+          `Quantity: ${item.quantity}`
+        );
+
+        if (product?.slug) {
+          lines.push("");
+
+          lines.push(
+            "Product Link:"
+          );
+
+          lines.push(
+            `${window.location.origin}/shop/${product.slug}`
+          );
+        }
+
+        lines.push("");
+
+        lines.push(
+          "────────────────"
+        );
+
+        lines.push("");
+
+        lines.push("");
+      }
+    );
 
     if (message.trim()) {
-      lines.push("Additional Notes:");
-      lines.push(message.trim());
+      lines.push(
+        "Additional Notes:"
+      );
+
+      lines.push(
+        message.trim()
+      );
+
       lines.push("");
-      lines.push("────────────────");
+
+      lines.push(
+        "────────────────"
+      );
+
       lines.push("");
     }
 
@@ -168,39 +281,63 @@ export default function InquiryCheckoutForm() {
     );
 
     lines.push("");
+
     lines.push(
       "Thank you. I look forward to your reply."
     );
 
-    const response =
-      await fetch("/api/settings");
+    try {
+      const response =
+        await fetch(
+          "/api/settings"
+        );
 
-    if (!response.ok) {
-      throw new Error(
-        "Failed to load settings."
+      if (!response.ok) {
+        throw new Error(
+          "Failed to load settings."
+        );
+      }
+
+      const {
+        whatsappNumber,
+      } = await response.json();
+
+      const cleanNumber =
+        String(
+          whatsappNumber ?? ""
+        ).replace(/\D/g, "");
+
+      if (!cleanNumber) {
+        throw new Error(
+          "WhatsApp number is not configured."
+        );
+      }
+
+      const whatsappUrl =
+        `https://wa.me/${cleanNumber}?text=${encodeURIComponent(
+          lines.join("\n")
+        )}`;
+
+      const newWindow =
+        window.open(
+          whatsappUrl,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+      if (newWindow) {
+        clearInquiry();
+      } else {
+        window.location.href =
+          whatsappUrl;
+
+        clearInquiry();
+      }
+    } catch (error) {
+      console.error(
+        "Failed to open WhatsApp:",
+        error
       );
-    }
-
-    const { whatsappNumber } =
-      await response.json();
-
-    const whatsappUrl =
-      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        lines.join("\n")
-      )}`;
-
-    const newWindow = window.open(
-      whatsappUrl,
-      "_blank",
-      "noopener,noreferrer"
-    );
-
-    if (newWindow) {
-      clearInquiry();
-    } else {
-      window.location.href =
-        whatsappUrl;
-      clearInquiry();
     }
   }
 
@@ -247,9 +384,11 @@ export default function InquiryCheckoutForm() {
             text-neutral-500
           "
         >
-          Review your selected luxury pieces before continuing to
-          WhatsApp. We&apos;ll prepare pricing, availability and shipping
-          information for you.
+          Review your selected luxury
+          pieces before continuing to
+          WhatsApp. We&apos;ll prepare
+          pricing, availability and
+          shipping information for you.
         </p>
 
         <p
@@ -261,8 +400,10 @@ export default function InquiryCheckoutForm() {
             text-neutral-400
           "
         >
-          {items.length} Selected Item
-          {items.length === 1 ? "" : "s"}
+          {totalItems} Selected Item
+          {totalItems === 1
+            ? ""
+            : "s"}
         </p>
       </div>
 
@@ -290,6 +431,7 @@ export default function InquiryCheckoutForm() {
 
           <div
             className="
+              mx-auto
               mt-6
               h-px
               w-16
@@ -315,9 +457,27 @@ export default function InquiryCheckoutForm() {
                     item.productId
                   );
 
+                const options: InquiryOptions =
+                  {
+                    color:
+                      item.color,
+                    variant:
+                      item.variant,
+                    dimensions:
+                      item.dimensions,
+                    packaging:
+                      item.packaging,
+                  };
+
+                const inquiryKey =
+                  getInquiryKey(
+                    item.productId,
+                    options
+                  );
+
                 return (
                   <div
-                    key={item.productId}
+                    key={inquiryKey}
                     className="
                       flex
                       items-center
@@ -350,16 +510,25 @@ export default function InquiryCheckoutForm() {
                         p-4
                       "
                     >
-                      {product?.images?.[0]?.url ? (
+                      {product?.images?.[0]
+                        ?.url ? (
                         <Image
                           src={
-                            product.images[0].url
+                            product
+                              .images[0]
+                              .url
                           }
-                          alt={product.name}
+                          alt={
+                            product.name
+                          }
                           width={144}
                           height={144}
                           sizes="144px"
-                          className="h-full w-full object-contain"
+                          className="
+                            h-full
+                            w-full
+                            object-contain
+                          "
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-neutral-400">
@@ -396,25 +565,39 @@ export default function InquiryCheckoutForm() {
 
                       <p className="text-sm leading-7 text-neutral-500">
                         SKU:{" "}
-                        {product?.sku ?? "-"}
+                        {product?.sku ??
+                          "-"}
                       </p>
 
                       {item.color && (
                         <p className="text-sm leading-7 text-neutral-500">
-                          Colour: {item.color}
+                          Colour:{" "}
+                          {item.color}
                         </p>
                       )}
 
                       {item.variant && (
                         <p className="text-sm leading-7 text-neutral-500">
-                          Size: {item.variant}
+                          Size:{" "}
+                          {item.variant}
                         </p>
                       )}
 
                       {item.dimensions && (
                         <p className="text-sm leading-7 text-neutral-500">
                           Dimensions:{" "}
-                          {item.dimensions}
+                          {
+                            item.dimensions
+                          }
+                        </p>
+                      )}
+
+                      {item.packaging && (
+                        <p className="text-sm leading-7 text-neutral-500">
+                          Packaging:{" "}
+                          {
+                            item.packaging
+                          }
                         </p>
                       )}
 
@@ -428,7 +611,8 @@ export default function InquiryCheckoutForm() {
                       type="button"
                       onClick={() =>
                         removeItem(
-                          item.productId
+                          item.productId,
+                          options
                         )
                       }
                       className="
@@ -499,14 +683,18 @@ export default function InquiryCheckoutForm() {
               />
 
               <p className="mt-2 text-sm text-neutral-500">
-                Add any special requests, preferred colour, size, quantity or other details
+                Add any special requests,
+                preferred colour, size,
+                quantity or other details
                 you&apos;d like us to know.
               </p>
 
               <textarea
                 value={message}
                 onChange={(e) =>
-                  setMessage(e.target.value)
+                  setMessage(
+                    e.target.value
+                  )
                 }
                 rows={6}
                 maxLength={500}
@@ -578,8 +766,12 @@ export default function InquiryCheckoutForm() {
 
               <button
                 type="button"
-                onClick={handleWhatsApp}
-                disabled={loadingProducts}
+                onClick={
+                  handleWhatsApp
+                }
+                disabled={
+                  loadingProducts
+                }
                 className="
                   inline-flex
                   items-center

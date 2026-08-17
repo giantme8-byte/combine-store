@@ -11,17 +11,31 @@ import {
 export type ProductColor = {
   id: number;
   name: string;
-  imageUrl: string;
+  imageUrl: string | null;
+};
+
+export type ProductVariantImage = {
+  id: number;
+  url: string;
+  publicId: string;
+  altText: string | null;
+  caption: string | null;
+  sortOrder: number;
 };
 
 export type ProductVariant = {
   id: number;
   size: string;
   model: string | null;
-  dimensions: string |null;
-
+  dimensions: string | null;
   imageUrl: string | null;
+
+  images: ProductVariantImage[];
 };
+
+export type ProductGallerySelection =
+  | "color"
+  | "variant";
 
 type ProductContextType = {
   colors: ProductColor[];
@@ -35,6 +49,12 @@ type ProductContextType = {
   selectedVariant: ProductVariant | null;
   setSelectedVariant: (
     variant: ProductVariant | null
+  ) => void;
+
+  selectionSource: ProductGallerySelection;
+
+  setSelectionSource: (
+    source: ProductGallerySelection
   ) => void;
 
   quantity: number;
@@ -71,6 +91,31 @@ export function ProductProvider({
     variants[0] ?? null
   );
 
+  /*
+   * ============================================================
+   * Gallery Selection Source
+   * ============================================================
+   *
+   * This tells ProductGallery which gallery should be active.
+   *
+   * "color"
+   *   → Colour Gallery
+   *
+   * "variant"
+   *   → Variant Gallery
+   *
+   * Default:
+   *   Colour
+   */
+
+  const [
+    selectionSource,
+    setSelectionSource,
+  ] =
+    useState<ProductGallerySelection>(
+      "color"
+    );
+
   const [quantity, setQuantity] =
     useState(1);
 
@@ -85,22 +130,26 @@ export function ProductProvider({
       selectedVariant,
       setSelectedVariant,
 
+      selectionSource,
+      setSelectionSource,
+
       quantity,
       setQuantity,
     }),
     [
       colors,
       variants,
-
       selectedColor,
       selectedVariant,
-
+      selectionSource,
       quantity,
     ]
   );
 
   return (
-    <ProductContext.Provider value={value}>
+    <ProductContext.Provider
+      value={value}
+    >
       {children}
     </ProductContext.Provider>
   );

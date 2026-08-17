@@ -450,6 +450,14 @@ export async function createProduct(
       imageUrl?: string;
       publicId?: string;
       hasNewImage?: boolean;
+      images?: {
+        id: string;
+        url: string;
+        publicId: string;
+        sortOrder: number;
+        isNew?: boolean;
+        deleted?: boolean;
+      }[];
       sortOrder: number;
       isNew: boolean;
       deleted: boolean;
@@ -769,36 +777,81 @@ export async function createProduct(
               (
                 variant,
                 index
-              ) => ({
-                colorId:
-                  variant.colorId,
+              ) => {
+                const galleryImages =
+                  Array.isArray(
+                    variant.images
+                  )
+                    ? variant.images
+                        .filter(
+                          (image) =>
+                            image &&
+                            image.url &&
+                            image.publicId &&
+                            !image.deleted
+                        )
+                        .map(
+                          (
+                            image,
+                            imageIndex
+                          ) => ({
+                            url:
+                              image.url,
+                            publicId:
+                              image.publicId,
+                            sortOrder:
+                              image.sortOrder ??
+                              imageIndex,
+                          })
+                        )
+                    : [];
 
-                size:
-                  variant.size,
-
-                model:
-                  variant.model ||
-                  null,
-
-                dimensions:
-                  variant.dimensions ||
-                  null,
-
-                imageUrl:
+                const legacyUpload =
                   uploadedVariants[
                     index
-                  ]?.imageUrl ||
-                  null,
+                  ];
 
-                publicId:
-                  uploadedVariants[
-                    index
-                  ]?.publicId ||
-                  null,
+                return {
+                  colorId:
+                    variant.colorId,
 
-                sortOrder:
-                  variant.sortOrder,
-              })
+                  size:
+                    variant.size,
+
+                  model:
+                    variant.model ||
+                    null,
+
+                  dimensions:
+                    variant.dimensions ||
+                    null,
+
+                  imageUrl:
+                    galleryImages[0]
+                      ?.url ??
+                    legacyUpload
+                      ?.imageUrl ??
+                    null,
+
+                  publicId:
+                    galleryImages[0]
+                      ?.publicId ??
+                    legacyUpload
+                      ?.publicId ??
+                    null,
+
+                  sortOrder:
+                    variant.sortOrder,
+
+                  images:
+                    galleryImages.length
+                      ? {
+                          create:
+                            galleryImages,
+                        }
+                      : undefined,
+                };
+              }
             ),
         },
       },
@@ -1011,6 +1064,14 @@ export async function updateProduct(
       imageUrl?: string;
       publicId?: string;
       hasNewImage?: boolean;
+      images?: {
+        id: string;
+        url: string;
+        publicId: string;
+        sortOrder: number;
+        isNew?: boolean;
+        deleted?: boolean;
+      }[];
       sortOrder: number;
       isNew: boolean;
       deleted: boolean;
@@ -1671,7 +1732,6 @@ export async function updateProduct(
 
     // =========================================================
     // UPDATE EXISTING VARIANTS
-    // =========================================================
 
     const existingVariants =
       variantOrder.filter(
@@ -1681,13 +1741,39 @@ export async function updateProduct(
       );
 
     for (
-      let index = 0;
-      index <
-      existingVariants.length;
-      index++
+      const variant of
+        existingVariants
     ) {
-      const variant =
-        existingVariants[index];
+      const galleryImages =
+        Array.isArray(
+          variant.images
+        )
+          ? variant.images
+              .filter(
+                (image) =>
+                  image &&
+                  image.url &&
+                  image.publicId &&
+                  !image.deleted
+              )
+              .map(
+                (
+                  image,
+                  imageIndex
+                ) => ({
+                  url:
+                    image.url,
+                  publicId:
+                    image.publicId,
+                  sortOrder:
+                    image.sortOrder ??
+                    imageIndex,
+                })
+              )
+          : [];
+
+      const firstGalleryImage =
+        galleryImages[0];
 
       await prisma.productVariant.update({
         where: {
@@ -1712,34 +1798,93 @@ export async function updateProduct(
             null,
 
           imageUrl:
-            variant.hasNewImage
-              ? uploadedVariants[
-                  index
-                ]?.imageUrl ??
-                variant.imageUrl ??
-                null
-              : variant.imageUrl ??
-                null,
+            firstGalleryImage
+              ?.url ??
+            variant.imageUrl ??
+            null,
 
           publicId:
-            variant.hasNewImage
-              ? uploadedVariants[
-                  index
-                ]?.publicId ??
-                variant.publicId ??
-                null
-              : variant.publicId ??
-                null,
+            firstGalleryImage
+              ?.publicId ??
+            variant.publicId ??
+            null,
 
           sortOrder:
             variant.sortOrder,
         },
       });
+
+      if (
+        galleryImages.length >
+        0
+      ) {
+        const existingImages =
+          await prisma.productVariantImage.findMany({
+            where: {
+              variantId:
+                Number(
+                  variant.id
+                ),
+            },
+            select: {
+              publicId: true,
+            },
+          });
+
+        const newPublicIds =
+          new Set(
+            galleryImages.map(
+              (image) =>
+                image.publicId
+            )
+          );
+
+        for (
+          const image of
+            existingImages
+        ) {
+          if (
+            image.publicId &&
+            !newPublicIds.has(
+              image.publicId
+            )
+          ) {
+            await cloudinary.uploader.destroy(
+              image.publicId
+            );
+          }
+        }
+
+        await prisma.productVariantImage.deleteMany({
+          where: {
+            variantId:
+              Number(
+                variant.id
+              ),
+          },
+        });
+
+        await prisma.productVariantImage.createMany({
+          data:
+            galleryImages.map(
+              (image) => ({
+                variantId:
+                  Number(
+                    variant.id
+                  ),
+                url:
+                  image.url,
+                publicId:
+                  image.publicId,
+                sortOrder:
+                  image.sortOrder,
+              })
+            ),
+        });
+      }
     }
 
-    // =========================================================
     // CREATE NEW VARIANTS
-    // =========================================================
 
     const newVariants =
       variantOrder.filter(
@@ -1748,18 +1893,45 @@ export async function updateProduct(
           !variant.deleted
       );
 
-    if (
-      newVariants.length >
-      0
+    for (
+      const variant of
+        newVariants
     ) {
-      await prisma.productVariant.createMany({
-        data: newVariants.map(
-          (
-            variant,
-            index
-          ) => ({
+      const galleryImages =
+        Array.isArray(
+          variant.images
+        )
+          ? variant.images
+              .filter(
+                (image) =>
+                  image &&
+                  image.url &&
+                  image.publicId &&
+                  !image.deleted
+              )
+              .map(
+                (
+                  image,
+                  imageIndex
+                ) => ({
+                  url:
+                    image.url,
+                  publicId:
+                    image.publicId,
+                  sortOrder:
+                    image.sortOrder ??
+                    imageIndex,
+                })
+              )
+          : [];
+
+      const createdVariant =
+        await prisma.productVariant.create({
+          data: {
             productId: id,
-            colorId: variant.colorId,
+
+            colorId:
+              variant.colorId,
 
             size:
               variant.size,
@@ -1773,25 +1945,44 @@ export async function updateProduct(
               null,
 
             imageUrl:
-              uploadedVariants[
-                index
-              ]?.imageUrl ??
+              galleryImages[0]
+                ?.url ??
+              variant.imageUrl ??
               null,
 
             publicId:
-              uploadedVariants[
-                index
-              ]?.publicId ??
+              galleryImages[0]
+                ?.publicId ??
+              variant.publicId ??
               null,
 
             sortOrder:
               variant.sortOrder,
-          })
-        ),
-      });
+          },
+        });
+
+      if (
+        galleryImages.length >
+        0
+      ) {
+        await prisma.productVariantImage.createMany({
+          data:
+            galleryImages.map(
+              (image) => ({
+                variantId:
+                  createdVariant.id,
+                url:
+                  image.url,
+                publicId:
+                  image.publicId,
+                sortOrder:
+                  image.sortOrder,
+              })
+            ),
+        });
+      }
     }
 
-    // =========================================================
     // REVALIDATE
     // =========================================================
 
