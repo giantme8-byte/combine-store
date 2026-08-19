@@ -8,6 +8,7 @@ type ShopProductsProps = {
   brand?: string;
   category?: string;
   subCategory?: string[];
+
   /*
    * Kept for compatibility with any existing
    * page-level props.
@@ -170,6 +171,14 @@ function buildWhere({
  * =========================================================
  * Product Ordering
  * =========================================================
+ *
+ * Random is handled separately below.
+ *
+ * IMPORTANT:
+ * Random cannot use Prisma's normal orderBy because
+ * Prisma does not provide a database-independent
+ * random orderBy.
+ * =========================================================
  */
 
 function getOrderBy(sort?: string) {
@@ -224,6 +233,46 @@ function getOrderBy(sort?: string) {
         },
       ];
   }
+}
+
+/*
+ * =========================================================
+ * Random Shuffle
+ * =========================================================
+ *
+ * Fisher-Yates shuffle.
+ *
+ * This shuffles the complete matching product collection
+ * before pagination.
+ * =========================================================
+ */
+
+function shuffleProducts<T>(
+  items: T[],
+): T[] {
+  const shuffled = [...items];
+
+  for (
+    let index = shuffled.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const randomIndex =
+      Math.floor(
+        Math.random() *
+          (index + 1),
+      );
+
+    [
+      shuffled[index],
+      shuffled[randomIndex],
+    ] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
 }
 
 /*
@@ -307,6 +356,9 @@ export default async function ShopProducts({
     search,
   });
 
+  const isRandom =
+    sort === "Random";
+
   const orderBy =
     getOrderBy(sort);
 
@@ -321,11 +373,11 @@ export default async function ShopProducts({
 
   const parsedPage =
     Number.isFinite(
-      requestedPage
+      requestedPage,
     ) &&
     requestedPage >= 1
       ? Math.floor(
-          requestedPage
+          requestedPage,
         )
       : 1;
 
@@ -348,7 +400,7 @@ export default async function ShopProducts({
 
   const totalPages =
     Math.ceil(
-      total / PAGE_SIZE
+      total / PAGE_SIZE,
     );
 
   /*
@@ -361,7 +413,7 @@ export default async function ShopProducts({
     totalPages > 0
       ? Math.min(
           parsedPage,
-          totalPages
+          totalPages,
         )
       : 1;
 
@@ -394,6 +446,7 @@ export default async function ShopProducts({
      * Used only to determine which
      * categories actually have products.
      */
+
     productCategoryRecords,
 
     /*
@@ -402,25 +455,53 @@ export default async function ShopProducts({
      * Used only to determine which
      * sub-categories actually have products.
      */
+
     productSubCategoryRecords,
   ] = await Promise.all([
     /*
      * =====================================================
      * Current Page Products
      * =====================================================
+     *
+     * Random:
+     * Fetch ALL matching products, shuffle them,
+     * then paginate in memory.
+     *
+     * Normal:
+     * Use Prisma database pagination as before.
      */
 
-    prisma.product.findMany({
-      where,
+    isRandom
+      ? prisma.product
+          .findMany({
+            where,
 
-      orderBy,
+            select:
+              productSelect,
+          })
+          .then((allProducts) => {
+            const shuffled =
+              shuffleProducts(
+                allProducts,
+              );
 
-      skip,
+            return shuffled.slice(
+              skip,
+              skip + PAGE_SIZE,
+            );
+          })
+      : prisma.product.findMany({
+          where,
 
-      take: PAGE_SIZE,
+          orderBy,
 
-      select: productSelect,
-    }),
+          skip,
+
+          take: PAGE_SIZE,
+
+          select:
+            productSelect,
+        }),
 
     /*
      * =====================================================
@@ -536,7 +617,8 @@ export default async function ShopProducts({
 
       take: 12,
 
-      select: productSelect,
+      select:
+        productSelect,
     }),
 
     /*
@@ -617,11 +699,11 @@ export default async function ShopProducts({
       product.categoryRecord
     ) {
       existingCategoryIds.add(
-        product.categoryRecord.id
+        product.categoryRecord.id,
       );
 
       existingCategoryNames.add(
-        product.categoryRecord.name
+        product.categoryRecord.name,
       );
     }
   }
@@ -644,11 +726,11 @@ export default async function ShopProducts({
       product.subCategoryRecord
     ) {
       existingSubCategoryIds.add(
-        product.subCategoryRecord.id
+        product.subCategoryRecord.id,
       );
 
       existingSubCategoryNames.add(
-        product.subCategoryRecord.name
+        product.subCategoryRecord.name,
       );
     }
   }
@@ -662,7 +744,7 @@ export default async function ShopProducts({
   const formatProduct = (
     product:
       | (typeof products)[number]
-      | (typeof featuredProducts)[number]
+      | (typeof featuredProducts)[number],
   ) => ({
     id: product.id,
 
@@ -730,12 +812,12 @@ export default async function ShopProducts({
 
   const formattedProducts =
     products.map(
-      formatProduct
+      formatProduct,
     );
 
   const formattedFeaturedProducts =
     featuredProducts.map(
-      formatProduct
+      formatProduct,
     );
 
   /*
@@ -754,13 +836,13 @@ export default async function ShopProducts({
     ...brands
       .map(
         (item) =>
-          item.brand
+          item.brand,
       )
       .filter(
         (
-          value
+          value,
         ): value is string =>
-          Boolean(value)
+          Boolean(value),
       ),
   ];
 
@@ -786,21 +868,21 @@ export default async function ShopProducts({
       .filter(
         (categoryItem) =>
           existingCategoryIds.has(
-            categoryItem.id
+            categoryItem.id,
           ) &&
           existingCategoryNames.has(
-            categoryItem.name
-          )
+            categoryItem.name,
+          ),
       )
       .map(
         (categoryItem) =>
-          categoryItem.name
+          categoryItem.name,
       )
       .filter(
         (
-          value
+          value,
         ): value is string =>
-          Boolean(value)
+          Boolean(value),
       ),
   ];
 
@@ -829,21 +911,21 @@ export default async function ShopProducts({
       .filter(
         (subCategoryItem) =>
           existingSubCategoryIds.has(
-            subCategoryItem.id
+            subCategoryItem.id,
           ) &&
           existingSubCategoryNames.has(
-            subCategoryItem.name
-          )
+            subCategoryItem.name,
+          ),
       )
       .map(
         (subCategoryItem) =>
-          subCategoryItem.name
+          subCategoryItem.name,
       )
       .filter(
         (
-          value
+          value,
         ): value is string =>
-          Boolean(value)
+          Boolean(value),
       ),
   ];
 

@@ -78,6 +78,112 @@ function formatDay(
   ).format(date);
 }
 
+/*
+ * ============================================================
+ * TOP PRODUCT TYPE
+ * ============================================================
+ */
+
+type TopProductData = {
+  id: number;
+  name: string;
+  brand: string;
+  views: number;
+};
+
+/*
+ * ============================================================
+ * BUILD TOP PRODUCTS
+ * ============================================================
+ *
+ * Counts PRODUCT_VIEW events by product.
+ *
+ * The events passed into this function are already limited
+ * to the required date range.
+ *
+ * Therefore this function can be used for:
+ *
+ * Today
+ * 7 Days
+ * 30 Days
+ * ============================================================
+ */
+
+function buildTopProducts(
+  events: {
+    event: string;
+    productId: number | null;
+  }[],
+  productMap: Map<
+    number,
+    {
+      id: number;
+      name: string;
+      brand: string;
+    }
+  >
+): TopProductData[] {
+  const viewCounts =
+    new Map<number, number>();
+
+  for (const event of events) {
+    if (
+      event.event !==
+        "PRODUCT_VIEW" ||
+      event.productId === null
+    ) {
+      continue;
+    }
+
+    viewCounts.set(
+      event.productId,
+      (viewCounts.get(
+        event.productId
+      ) ?? 0) + 1
+    );
+  }
+
+  return Array.from(
+    viewCounts.entries()
+  )
+    .map(
+      ([productId, views]) => {
+        const product =
+          productMap.get(
+            productId
+          );
+
+        if (!product) {
+          return null;
+        }
+
+        return {
+          id: product.id,
+          name: product.name,
+          brand: product.brand,
+          views,
+        };
+      }
+    )
+    .filter(
+      (
+        product
+      ): product is TopProductData =>
+        product !== null
+    )
+    .sort(
+      (a, b) =>
+        b.views - a.views
+    )
+    .slice(0, 10);
+}
+
+/*
+ * ============================================================
+ * WEBSITE ANALYTICS
+ * ============================================================
+ */
+
 export default async function WebsiteAnalytics() {
   const now = new Date();
 
@@ -86,15 +192,14 @@ export default async function WebsiteAnalytics() {
    * DATE RANGE
    * =========================================================
    *
-   * We load the latest 30 days once.
+   * We load the latest 30 calendar days.
    *
-   * The client can then switch between:
+   * This dataset is then used for:
    *
    * Today
-   * 7 Days
-   * 30 Days
-   *
-   * without refreshing the Dashboard.
+   * Last 7 Days
+   * Last 30 Days
+   * =========================================================
    */
 
   const today =
@@ -292,7 +397,7 @@ export default async function WebsiteAnalytics() {
 
   /*
    * =========================================================
-   * TODAY STATS
+   * TODAY EVENTS
    * =========================================================
    */
 
@@ -315,65 +420,87 @@ export default async function WebsiteAnalytics() {
 
   /*
    * =========================================================
-   * RANGE SUMMARY
+   * 7 DAY RANGE
    * =========================================================
    *
-   * The client will use the same 30-day dataset to calculate
-   * Today / 7 Days / 30 Days.
+   * Includes:
+   *
+   * Today
+   * + previous 6 calendar days
+   *
+   * Total = 7 calendar days.
+   * =========================================================
    */
+
+  const sevenDaysStart =
+    new Date(
+      today.start.getTime() -
+        6 *
+          24 *
+          60 *
+          60 *
+          1000
+    );
+
+  const sevenDaysEvents =
+    events.filter(
+      (event) =>
+        event.createdAt >=
+          sevenDaysStart &&
+        event.createdAt <
+          today.end
+    );
 
   /*
    * =========================================================
-   * TOP PRODUCTS
+   * 30 DAY RANGE
    * =========================================================
    */
 
-  const topProductData =
-    productIds
-      .map((productId) => {
-        const product =
-          productMap.get(
-            productId
-          );
+  const thirtyDaysEvents =
+    events.filter(
+      (event) =>
+        event.createdAt >=
+          thirtyDaysAgo &&
+        event.createdAt <
+          today.end
+    );
 
-        if (!product) {
-          return null;
-        }
+  /*
+   * =========================================================
+   * TOP PRODUCTS — TODAY
+   * =========================================================
+   */
 
-        const views =
-          events.filter(
-            (event) =>
-              event.event ===
-                "PRODUCT_VIEW" &&
-              event.productId ===
-                productId
-          ).length;
+  const topProductsToday =
+    buildTopProducts(
+      todayEvents,
+      productMap
+    );
 
-        return {
-          id: product.id,
-          name:
-            product.name,
-          brand:
-            product.brand,
-          views,
-        };
-      })
-      .filter(
-        (
-          product
-        ): product is {
-          id: number;
-          name: string;
-          brand: string;
-          views: number;
-        } =>
-          product !== null
-      )
-      .sort(
-        (a, b) =>
-          b.views - a.views
-      )
-      .slice(0, 10);
+  /*
+   * =========================================================
+   * TOP PRODUCTS — 7 DAYS
+   * =========================================================
+   */
+
+  const topProducts7Days =
+    buildTopProducts(
+      sevenDaysEvents,
+      productMap
+    );
+
+  /*
+   * =========================================================
+   * TOP PRODUCTS — 30 DAYS
+   * =========================================================
+   */
+
+  const topProducts30Days =
+    buildTopProducts(
+      thirtyDaysEvents,
+      productMap
+    );
 
   /*
    * =========================================================
@@ -383,8 +510,22 @@ export default async function WebsiteAnalytics() {
 
   return (
     <WebsiteAnalyticsClient
-      dailyData={dailyData}
-      topProducts={topProductData}
+      dailyData={
+        dailyData
+      }
+
+      topProductsToday={
+        topProductsToday
+      }
+
+      topProducts7Days={
+        topProducts7Days
+      }
+
+      topProducts30Days={
+        topProducts30Days
+      }
+
       todayStats={{
         visitors:
           todayVisitors.size,

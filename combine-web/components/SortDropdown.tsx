@@ -45,7 +45,7 @@ export default function SortDropdown({
           value={value}
           onChange={(e) =>
             onChange(
-              e.target.value
+              e.target.value,
             )
           }
           className="
@@ -81,6 +81,10 @@ export default function SortDropdown({
         >
           <option value="Newest">
             Newest
+          </option>
+
+          <option value="Random">
+            Random · Shuffle
           </option>
 
           <option value="Price Low">
