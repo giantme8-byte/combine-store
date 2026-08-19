@@ -9,12 +9,28 @@ const nextConfig: NextConfig = {
       },
     ],
 
+    /*
+     * =========================================================
+     * IMAGE DELIVERY
+     * =========================================================
+     *
+     * Cloudinary handles image delivery.
+     *
+     * Disable Next.js/Vercel Image Optimization so images are
+     * loaded directly from their original Cloudinary URLs.
+     *
+     * This avoids the /_next/image optimization layer.
+     */
+
+    unoptimized: true,
+
     formats: [
       "image/avif",
       "image/webp",
     ],
 
-    minimumCacheTTL: 60 * 60 * 24 * 30,
+    minimumCacheTTL:
+      60 * 60 * 24 * 30,
   },
 
   experimental: {
@@ -47,7 +63,8 @@ const nextConfig: NextConfig = {
 
           {
             key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
+            value:
+              "strict-origin-when-cross-origin",
           },
 
           {

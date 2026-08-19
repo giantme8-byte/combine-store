@@ -77,7 +77,7 @@ export default function ZoomImage({
    * ============================================================
    *
    * When the selected Variant / Colour changes,
-   * preload the optimized image so the browser can start
+   * preload the current image so the browser can start
    * downloading it immediately.
    *
    * This helps reduce the small pause when switching
@@ -220,6 +220,7 @@ export default function ZoomImage({
         alt={alt}
         fill
         priority={priority}
+        unoptimized
         sizes="
           (max-width: 640px) 100vw,
           (max-width: 1024px) 58vw,
