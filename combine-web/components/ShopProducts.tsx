@@ -4,6 +4,9 @@ import ShopClient from "./ShopClient";
 
 const PAGE_SIZE = 24;
 
+const MALAYSIA_OFFSET_MS =
+  8 * 60 * 60 * 1000;
+
 type ShopProductsProps = {
   brand?: string;
   category?: string;
@@ -172,12 +175,15 @@ function buildWhere({
  * Product Ordering
  * =========================================================
  *
- * Random is handled separately below.
+ * Recommended is handled separately.
  *
- * IMPORTANT:
- * Random cannot use Prisma's normal orderBy because
- * Prisma does not provide a database-independent
- * random orderBy.
+ * Recommended means:
+ *
+ * - Daily deterministic random order
+ * - Same order throughout the same Malaysia day
+ * - Pagination remains stable
+ *
+ * Other sorting modes continue using Prisma orderBy.
  * =========================================================
  */
 
@@ -217,6 +223,22 @@ function getOrderBy(sort?: string) {
       ];
 
     case "Newest":
+      return [
+        {
+          featured: "desc" as const,
+        },
+        {
+          displayOrder: "asc" as const,
+        },
+        {
+          createdAt: "desc" as const,
+        },
+        {
+          id: "desc" as const,
+        },
+      ];
+
+    case "Recommended":
     default:
       return [
         {
@@ -237,42 +259,166 @@ function getOrderBy(sort?: string) {
 
 /*
  * =========================================================
- * Random Shuffle
+ * Malaysia Date Key
  * =========================================================
  *
- * Fisher-Yates shuffle.
+ * Returns:
  *
- * This shuffles the complete matching product collection
- * before pagination.
+ * YYYY-MM-DD
+ *
+ * based on Asia/Kuala_Lumpur.
+ *
+ * Example:
+ *
+ * 2026-08-19
+ *
+ * The date key is used as the daily random seed.
  * =========================================================
  */
 
-function shuffleProducts<T>(
-  items: T[],
-): T[] {
-  const shuffled = [...items];
+function getMalaysiaDateKey(
+  date: Date
+) {
+  const malaysiaDate =
+    new Date(
+      date.getTime() +
+        MALAYSIA_OFFSET_MS
+    );
+
+  return [
+    malaysiaDate.getUTCFullYear(),
+    String(
+      malaysiaDate.getUTCMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      malaysiaDate.getUTCDate()
+    ).padStart(2, "0"),
+  ].join("-");
+}
+
+/*
+ * =========================================================
+ * Deterministic Hash
+ * =========================================================
+ *
+ * Produces a stable unsigned integer from a string.
+ *
+ * The same input always produces the same output.
+ *
+ * This allows us to create a "random-looking"
+ * product order without Math.random().
+ * =========================================================
+ */
+
+function hashString(
+  value: string
+) {
+  let hash = 2166136261;
 
   for (
-    let index = shuffled.length - 1;
-    index > 0;
-    index -= 1
+    let index = 0;
+    index < value.length;
+    index += 1
   ) {
-    const randomIndex =
-      Math.floor(
-        Math.random() *
-          (index + 1),
-      );
+    hash ^= value.charCodeAt(
+      index
+    );
 
-    [
-      shuffled[index],
-      shuffled[randomIndex],
-    ] = [
-      shuffled[randomIndex],
-      shuffled[index],
-    ];
+    hash =
+      Math.imul(
+        hash,
+        16777619
+      );
   }
 
-  return shuffled;
+  hash +=
+    hash << 13;
+
+  hash ^=
+    hash >>> 7;
+
+  hash +=
+    hash << 3;
+
+  hash ^=
+    hash >>> 17;
+
+  hash +=
+    hash << 5;
+
+  return (
+    hash >>> 0
+  );
+}
+
+/*
+ * =========================================================
+ * Daily Deterministic Shuffle
+ * =========================================================
+ *
+ * IMPORTANT:
+ *
+ * We do NOT use Math.random().
+ *
+ * Every product receives a stable random score based on:
+ *
+ * daily seed + product ID
+ *
+ * Therefore:
+ *
+ * Same day:
+ *   Product A → same position
+ *   Product B → same position
+ *
+ * Next day:
+ *   New seed
+ *   New order
+ *
+ * This guarantees pagination stability.
+ * =========================================================
+ */
+
+function shuffleProductsDaily<
+  T extends {
+    id: number;
+  }
+>(
+  items: T[],
+  dateKey: string
+): T[] {
+  const seed =
+    `combine-recommended-${dateKey}`;
+
+  return [...items].sort(
+    (a, b) => {
+      const scoreA =
+        hashString(
+          `${seed}-${a.id}`
+        );
+
+      const scoreB =
+        hashString(
+          `${seed}-${b.id}`
+        );
+
+      if (
+        scoreA !==
+        scoreB
+      ) {
+        return (
+          scoreA -
+          scoreB
+        );
+      }
+
+      /*
+       * Extremely unlikely hash collision
+       * fallback.
+       */
+
+      return a.id - b.id;
+    }
+  );
 }
 
 /*
@@ -356,8 +502,38 @@ export default async function ShopProducts({
     search,
   });
 
-  const isRandom =
-    sort === "Random";
+  /*
+   * =======================================================
+   * Recommended Mode
+   * =======================================================
+   *
+   * IMPORTANT:
+   *
+   * No sort parameter means Recommended.
+   *
+   * "Recommended" is also explicitly supported.
+   *
+   * Therefore:
+   *
+   * /shop
+   *
+   * and:
+   *
+   * /shop?sort=Recommended
+   *
+   * both use daily random ordering.
+   * =======================================================
+   */
+
+  const isRecommended =
+    !sort ||
+    sort === "Recommended";
+
+  /*
+   * =======================================================
+   * Normal Database Ordering
+   * =======================================================
+   */
 
   const orderBy =
     getOrderBy(sort);
@@ -373,11 +549,11 @@ export default async function ShopProducts({
 
   const parsedPage =
     Number.isFinite(
-      requestedPage,
+      requestedPage
     ) &&
     requestedPage >= 1
       ? Math.floor(
-          requestedPage,
+          requestedPage
         )
       : 1;
 
@@ -400,7 +576,7 @@ export default async function ShopProducts({
 
   const totalPages =
     Math.ceil(
-      total / PAGE_SIZE,
+      total / PAGE_SIZE
     );
 
   /*
@@ -413,7 +589,7 @@ export default async function ShopProducts({
     totalPages > 0
       ? Math.min(
           parsedPage,
-          totalPages,
+          totalPages
         )
       : 1;
 
@@ -426,6 +602,17 @@ export default async function ShopProducts({
   const skip =
     (safeCurrentPage - 1) *
     PAGE_SIZE;
+
+  /*
+   * =======================================================
+   * Daily Random Seed
+   * =======================================================
+   */
+
+  const todayKey =
+    getMalaysiaDateKey(
+      new Date()
+    );
 
   /*
    * =======================================================
@@ -442,18 +629,12 @@ export default async function ShopProducts({
 
     /*
      * Product Category Relations
-     *
-     * Used only to determine which
-     * categories actually have products.
      */
 
     productCategoryRecords,
 
     /*
      * Product Sub-Category Relations
-     *
-     * Used only to determine which
-     * sub-categories actually have products.
      */
 
     productSubCategoryRecords,
@@ -463,15 +644,23 @@ export default async function ShopProducts({
      * Current Page Products
      * =====================================================
      *
-     * Random:
-     * Fetch ALL matching products, shuffle them,
-     * then paginate in memory.
+     * Recommended:
      *
-     * Normal:
-     * Use Prisma database pagination as before.
+     * 1. Fetch ALL matching products
+     * 2. Apply deterministic daily shuffle
+     * 3. Slice current page
+     *
+     * This is necessary because normal database
+     * pagination cannot preserve a custom daily
+     * random order by itself.
+     *
+     * Normal sorting:
+     *
+     * Use Prisma database pagination.
+     * =====================================================
      */
 
-    isRandom
+    isRecommended
       ? prisma.product
           .findMany({
             where,
@@ -479,17 +668,22 @@ export default async function ShopProducts({
             select:
               productSelect,
           })
-          .then((allProducts) => {
-            const shuffled =
-              shuffleProducts(
-                allProducts,
-              );
+          .then(
+            (
+              allProducts
+            ) => {
+              const shuffled =
+                shuffleProductsDaily(
+                  allProducts,
+                  todayKey
+                );
 
-            return shuffled.slice(
-              skip,
-              skip + PAGE_SIZE,
-            );
-          })
+              return shuffled.slice(
+                skip,
+                skip + PAGE_SIZE
+              );
+            }
+          )
       : prisma.product.findMany({
           where,
 
@@ -497,7 +691,8 @@ export default async function ShopProducts({
 
           skip,
 
-          take: PAGE_SIZE,
+          take:
+            PAGE_SIZE,
 
           select:
             productSelect,
@@ -517,7 +712,9 @@ export default async function ShopProducts({
         brand: true,
       },
 
-      distinct: ["brand"],
+      distinct: [
+        "brand",
+      ],
 
       orderBy: {
         brand: "asc",
@@ -529,9 +726,6 @@ export default async function ShopProducts({
      * Category Options
      *
      * Only active Categories are loaded.
-     *
-     * Product existence is checked separately
-     * below using Product.categoryRecord.
      * =====================================================
      */
 
@@ -586,8 +780,10 @@ export default async function ShopProducts({
 
       orderBy: [
         {
-          sortOrder: "asc",
+          sortOrder:
+            "asc",
         },
+
         {
           name: "asc",
         },
@@ -607,7 +803,8 @@ export default async function ShopProducts({
 
       orderBy: [
         {
-          createdAt: "desc",
+          createdAt:
+            "desc",
         },
 
         {
@@ -625,11 +822,8 @@ export default async function ShopProducts({
      * =====================================================
      * Existing Product Categories
      *
-     * This query gives us the actual Categories
-     * currently connected to Products.
-     *
-     * Therefore an empty Category will never
-     * appear on the customer-facing Shop.
+     * Only Categories that are actually connected
+     * to Products should appear on Shop.
      * =====================================================
      */
 
@@ -654,11 +848,8 @@ export default async function ShopProducts({
      * =====================================================
      * Existing Product Sub-Categories
      *
-     * This query gives us the actual Sub-Categories
-     * currently connected to Products.
-     *
-     * Therefore an empty Sub-Category will never
-     * appear on the customer-facing Shop.
+     * Only Sub-Categories that are actually connected
+     * to Products should appear on Shop.
      * =====================================================
      */
 
@@ -693,17 +884,23 @@ export default async function ShopProducts({
   const existingCategoryNames =
     new Set<string>();
 
-  for (const product of
-    productCategoryRecords) {
+  for (
+    const product of
+      productCategoryRecords
+  ) {
     if (
       product.categoryRecord
     ) {
       existingCategoryIds.add(
-        product.categoryRecord.id,
+        product
+          .categoryRecord
+          .id
       );
 
       existingCategoryNames.add(
-        product.categoryRecord.name,
+        product
+          .categoryRecord
+          .name
       );
     }
   }
@@ -720,17 +917,23 @@ export default async function ShopProducts({
   const existingSubCategoryNames =
     new Set<string>();
 
-  for (const product of
-    productSubCategoryRecords) {
+  for (
+    const product of
+      productSubCategoryRecords
+  ) {
     if (
       product.subCategoryRecord
     ) {
       existingSubCategoryIds.add(
-        product.subCategoryRecord.id,
+        product
+          .subCategoryRecord
+          .id
       );
 
       existingSubCategoryNames.add(
-        product.subCategoryRecord.name,
+        product
+          .subCategoryRecord
+          .name
       );
     }
   }
@@ -744,12 +947,13 @@ export default async function ShopProducts({
   const formatProduct = (
     product:
       | (typeof products)[number]
-      | (typeof featuredProducts)[number],
+      | (typeof featuredProducts)[number]
   ) => ({
     id: product.id,
 
     slug:
-      product.slug ?? "",
+      product.slug ??
+      "",
 
     brand:
       product.brand,
@@ -770,11 +974,13 @@ export default async function ShopProducts({
       product.displayOrder,
 
     image:
-      product.images[0]?.url ??
+      product.images[0]
+        ?.url ??
       "/placeholder.png",
 
     secondImage:
-      product.images[1]?.url,
+      product.images[1]
+        ?.url,
 
     category:
       product.category,
@@ -812,21 +1018,19 @@ export default async function ShopProducts({
 
   const formattedProducts =
     products.map(
-      formatProduct,
+      formatProduct
     );
 
   const formattedFeaturedProducts =
     featuredProducts.map(
-      formatProduct,
+      formatProduct
     );
 
   /*
    * =========================================================
    * Brand Options
    *
-   * These already come from Product,
-   * so every listed Brand has at least
-   * one Product.
+   * Every Brand comes from an actual Product.
    * =========================================================
    */
 
@@ -836,13 +1040,13 @@ export default async function ShopProducts({
     ...brands
       .map(
         (item) =>
-          item.brand,
+          item.brand
       )
       .filter(
         (
-          value,
+          value
         ): value is string =>
-          Boolean(value),
+          Boolean(value)
       ),
   ];
 
@@ -850,14 +1054,10 @@ export default async function ShopProducts({
    * =========================================================
    * Category Options
    *
-   * IMPORTANT:
-   *
    * Only Categories that:
    *
    * 1. Are active
    * 2. Have at least one Product
-   *
-   * will appear.
    * =========================================================
    */
 
@@ -866,23 +1066,27 @@ export default async function ShopProducts({
 
     ...categories
       .filter(
-        (categoryItem) =>
+        (
+          categoryItem
+        ) =>
           existingCategoryIds.has(
-            categoryItem.id,
+            categoryItem.id
           ) &&
           existingCategoryNames.has(
-            categoryItem.name,
-          ),
+            categoryItem.name
+          )
       )
       .map(
-        (categoryItem) =>
-          categoryItem.name,
+        (
+          categoryItem
+        ) =>
+          categoryItem.name
       )
       .filter(
         (
-          value,
+          value
         ): value is string =>
-          Boolean(value),
+          Boolean(value)
       ),
   ];
 
@@ -890,17 +1094,12 @@ export default async function ShopProducts({
    * =========================================================
    * Sub Category Options
    *
-   * IMPORTANT:
-   *
    * Only Sub-Categories that:
    *
    * 1. Are active
-   * 2. Belong to the selected Category
-   *    when a Category is selected
+   * 2. Belong to selected Category when selected
    * 3. Have at least one Product
    * 4. Follow Admin sortOrder
-   *
-   * will appear.
    * =========================================================
    */
 
@@ -909,23 +1108,27 @@ export default async function ShopProducts({
 
     ...subCategories
       .filter(
-        (subCategoryItem) =>
+        (
+          subCategoryItem
+        ) =>
           existingSubCategoryIds.has(
-            subCategoryItem.id,
+            subCategoryItem.id
           ) &&
           existingSubCategoryNames.has(
-            subCategoryItem.name,
-          ),
+            subCategoryItem.name
+          )
       )
       .map(
-        (subCategoryItem) =>
-          subCategoryItem.name,
+        (
+          subCategoryItem
+        ) =>
+          subCategoryItem.name
       )
       .filter(
         (
-          value,
+          value
         ): value is string =>
-          Boolean(value),
+          Boolean(value)
       ),
   ];
 

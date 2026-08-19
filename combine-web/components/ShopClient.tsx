@@ -120,9 +120,22 @@ export default function ShopClient({
     searchParams.get("search") ??
     "";
 
+  /*
+   * =========================================================
+   * Sort
+   *
+   * IMPORTANT:
+   *
+   * No sort parameter means Recommended.
+   *
+   * Recommended is handled by ShopProducts
+   * as the default daily-random collection order.
+   * =========================================================
+   */
+
   const urlSort =
     searchParams.get("sort") ??
-    "Newest";
+    "Recommended";
 
   /*
    * =========================================================
@@ -594,6 +607,16 @@ export default function ShopClient({
    * =========================================================
    * Sort
    * =========================================================
+   *
+   * Recommended is the default.
+   *
+   * When Recommended is selected,
+   * the sort parameter is removed from
+   * the URL so /shop remains clean.
+   *
+   * ShopProducts interprets the absence
+   * of sort as Recommended / daily-random.
+   * =========================================================
    */
 
   function handleSortChange(
@@ -603,7 +626,7 @@ export default function ShopClient({
 
     updateParams({
       sort:
-        value === "Newest"
+        value === "Recommended"
           ? null
           : value,
     });
@@ -622,7 +645,7 @@ export default function ShopClient({
 
     setSubCategories([]);
 
-    setSort("Newest");
+    setSort("Recommended");
 
     router.push("/shop");
   }
@@ -775,6 +798,10 @@ export default function ShopClient({
    * =========================================================
    * Active Filters
    * =========================================================
+   *
+   * Recommended is the default state,
+   * so it is NOT treated as an active filter.
+   * =========================================================
    */
 
   const hasActiveFilters =
@@ -782,7 +809,7 @@ export default function ShopClient({
     category !== "All" ||
     brand !== "All" ||
     subCategories.length > 0 ||
-    sort !== "Newest";
+    sort !== "Recommended";
 
   /*
    * =========================================================
@@ -887,14 +914,14 @@ export default function ShopClient({
             />
           </div>
 
-{/* ================================================= */}
-{/* Sub Category
- *
- * Give Sub Category two
- * desktop grid columns.
- *
- * This is the important fix.
- * ================================================= */}
+          {/* ================================================= */}
+          {/* Sub Category
+           *
+           * Give Sub Category two
+           * desktop grid columns.
+           *
+           * This is the important fix.
+           * ================================================= */}
 
           <div
             className="

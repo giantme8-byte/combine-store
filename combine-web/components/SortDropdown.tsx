@@ -79,12 +79,8 @@ export default function SortDropdown({
             sm:text-[15px]
           "
         >
-          <option value="Newest">
-            Newest
-          </option>
-
-          <option value="Random">
-            Random · Shuffle
+          <option value="Recommended">
+            Recommended
           </option>
 
           <option value="Price Low">
