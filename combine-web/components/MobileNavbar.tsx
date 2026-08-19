@@ -1,17 +1,30 @@
 "use client";
 
 import Link from "next/link";
+
 import {
   Menu,
   X,
   ClipboardList,
   Heart,
   MessageCircle,
+  ShoppingBag,
 } from "lucide-react";
+
 import { useState } from "react";
 
-import { useInquiry } from "@/components/providers/InquiryProvider";
-import { useQuickView } from "@/components/providers/QuickViewProvider";
+import {
+  useInquiry,
+} from "@/components/providers/InquiryProvider";
+
+import {
+  useQuickView,
+} from "@/components/providers/QuickViewProvider";
+
+import {
+  useCart,
+} from "@/app/(site)/_components/CartProvider";
+
 
 const navigation = [
   {
@@ -32,25 +45,64 @@ const navigation = [
   },
 ];
 
+
 export default function MobileNavbar() {
-  const [open, setOpen] = useState(false);
+
+  const [
+    open,
+    setOpen,
+  ] = useState(false);
+
 
   const {
     totalItems,
     openDrawer,
   } = useInquiry();
 
-  const { close } = useQuickView();
+
+  const {
+    close,
+  } = useQuickView();
+
+
+  const {
+    itemCount,
+  } = useCart();
+
+
+  // ==========================================================
+  // INQUIRY
+  // ==========================================================
 
   function handleInquiry() {
+
     close();
+
     openDrawer();
+
     setOpen(false);
+
   }
+
+
+  // ==========================================================
+  // CLOSE MENU
+  // ==========================================================
+
+  function handleCloseMenu() {
+
+    setOpen(false);
+
+  }
+
 
   return (
     <>
-      {/* Header */}
+
+      {/* ======================================================
+          HEADER
+          ====================================================== */}
+
       <header
         className="
           fixed
@@ -69,10 +121,17 @@ export default function MobileNavbar() {
           md:hidden
         "
       >
-        {/* Menu */}
+
+        {/* ==================================================
+            MENU
+            ================================================== */}
+
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() =>
+            setOpen(true)
+          }
+          aria-label="Open menu"
           className="
             flex
             h-11
@@ -84,15 +143,22 @@ export default function MobileNavbar() {
             hover:bg-neutral-100
           "
         >
+
           <Menu
             size={24}
             strokeWidth={1.6}
           />
+
         </button>
 
-        {/* Logo */}
+
+        {/* ==================================================
+            LOGO
+            ================================================== */}
+
         <Link
           href="/"
+          aria-label="COMBINE Home"
           className="
             text-[24px]
             font-extralight
@@ -102,55 +168,164 @@ export default function MobileNavbar() {
           COMBINE
         </Link>
 
-        {/* Inquiry */}
-        <button
-          type="button"
-          onClick={handleInquiry}
+
+        {/* ==================================================
+            RIGHT ACTIONS
+            ================================================== */}
+
+        <div
           className="
-            relative
             flex
-            h-11
-            w-11
             items-center
-            justify-center
-            rounded-full
-            transition
-            hover:bg-neutral-100
+            gap-1
           "
         >
-          <ClipboardList
-            size={21}
-            strokeWidth={1.6}
-          />
 
-          {totalItems > 0 && (
-            <span
-              className="
-                absolute
-                right-1
-                top-1
-                flex
-                h-5
-                min-w-5
-                items-center
-                justify-center
-                rounded-full
-                bg-black
-                px-1
-                text-[9px]
-                font-medium
-                text-white
-              "
-            >
-              {totalItems}
-            </span>
-          )}
-        </button>
+          {/* ================================================
+              CART
+              ================================================ */}
+
+          <Link
+            href="/cart"
+            aria-label={
+              itemCount > 0
+                ? `Cart with ${itemCount} item${
+                    itemCount === 1
+                      ? ""
+                      : "s"
+                  }`
+                : "Cart"
+            }
+            className="
+              relative
+              flex
+              h-11
+              w-11
+              items-center
+              justify-center
+              rounded-full
+              transition
+              hover:bg-neutral-100
+            "
+          >
+
+            <ShoppingBag
+              size={21}
+              strokeWidth={1.6}
+            />
+
+
+            {itemCount > 0 && (
+
+              <span
+                className="
+                  absolute
+                  right-1
+                  top-1
+                  flex
+                  h-5
+                  min-w-5
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-black
+                  px-1
+                  text-[9px]
+                  font-medium
+                  leading-none
+                  text-white
+                "
+              >
+                {itemCount > 99
+                  ? "99+"
+                  : itemCount}
+              </span>
+
+            )}
+
+          </Link>
+
+
+          {/* ================================================
+              INQUIRY
+              ================================================ */}
+
+          <button
+            type="button"
+            onClick={
+              handleInquiry
+            }
+            aria-label={
+              totalItems > 0
+                ? `Inquiry with ${totalItems} item${
+                    totalItems === 1
+                      ? ""
+                      : "s"
+                  }`
+                : "Inquiry"
+            }
+            className="
+              relative
+              flex
+              h-11
+              w-11
+              items-center
+              justify-center
+              rounded-full
+              transition
+              hover:bg-neutral-100
+            "
+          >
+
+            <ClipboardList
+              size={21}
+              strokeWidth={1.6}
+            />
+
+
+            {totalItems > 0 && (
+
+              <span
+                className="
+                  absolute
+                  right-1
+                  top-1
+                  flex
+                  h-5
+                  min-w-5
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-black
+                  px-1
+                  text-[9px]
+                  font-medium
+                  leading-none
+                  text-white
+                "
+              >
+                {totalItems > 99
+                  ? "99+"
+                  : totalItems}
+              </span>
+
+            )}
+
+          </button>
+
+        </div>
+
       </header>
 
-      {/* Overlay */}
+
+      {/* ======================================================
+          OVERLAY
+          ====================================================== */}
+
       <div
-        onClick={() => setOpen(false)}
+        onClick={
+          handleCloseMenu
+        }
         className={`
           fixed
           inset-0
@@ -168,7 +343,11 @@ export default function MobileNavbar() {
         `}
       />
 
-      {/* Drawer */}
+
+      {/* ======================================================
+          DRAWER
+          ====================================================== */}
+
       <aside
         className={`
           fixed
@@ -193,8 +372,19 @@ export default function MobileNavbar() {
           }
         `}
       >
-        {/* Top */}
-        <div className="flex items-center justify-between">
+
+        {/* ==================================================
+            TOP
+            ================================================== */}
+
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+          "
+        >
+
           <p
             className="
               text-[11px]
@@ -206,9 +396,13 @@ export default function MobileNavbar() {
             COMBINE
           </p>
 
+
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={
+              handleCloseMenu
+            }
+            aria-label="Close menu"
             className="
               flex
               h-10
@@ -219,42 +413,89 @@ export default function MobileNavbar() {
               hover:bg-neutral-100
             "
           >
+
             <X
               size={22}
               strokeWidth={1.6}
             />
+
           </button>
+
         </div>
 
-        {/* Navigation */}
-        <nav className="mt-14 space-y-7">
-          {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="
-                block
-                text-[15px]
-                font-light
-                uppercase
-                tracking-[0.28em]
-                text-neutral-800
-                transition
-                hover:text-[#B08D57]
-              "
-            >
-              {item.label}
-            </Link>
-          ))}
+
+        {/* ==================================================
+            NAVIGATION
+            ================================================== */}
+
+        <nav
+          className="
+            mt-14
+            space-y-7
+          "
+        >
+
+          {navigation.map(
+            (item) => (
+
+              <Link
+                key={
+                  item.href
+                }
+                href={
+                  item.href
+                }
+                onClick={
+                  handleCloseMenu
+                }
+                className="
+                  block
+                  text-[15px]
+                  font-light
+                  uppercase
+                  tracking-[0.28em]
+                  text-neutral-800
+                  transition
+                  hover:text-[#B08D57]
+                "
+              >
+                {item.label}
+              </Link>
+
+            )
+          )}
+
         </nav>
 
-        {/* Bottom */}
-        <div className="mt-auto border-t border-neutral-200 pt-8">
-          <div className="space-y-6">
+
+        {/* ==================================================
+            BOTTOM
+            ================================================== */}
+
+        <div
+          className="
+            mt-auto
+            border-t
+            border-neutral-200
+            pt-8
+          "
+        >
+
+          <div
+            className="
+              space-y-6
+            "
+          >
+
+            {/* ==============================================
+                CART
+                ============================================== */}
+
             <Link
-              href="/wishlist"
-              onClick={() => setOpen(false)}
+              href="/cart"
+              onClick={
+                handleCloseMenu
+              }
               className="
                 flex
                 items-center
@@ -265,13 +506,66 @@ export default function MobileNavbar() {
                 hover:text-[#B08D57]
               "
             >
-              <Heart size={18} />
-              Wishlist
+
+              <ShoppingBag
+                size={18}
+              />
+
+              Cart
+
+              {itemCount > 0 && (
+
+                <span
+                  className="
+                    text-neutral-500
+                  "
+                >
+                  ({itemCount})
+                </span>
+
+              )}
+
             </Link>
+
+
+            {/* ==============================================
+                WISHLIST
+                ============================================== */}
+
+            <Link
+              href="/wishlist"
+              onClick={
+                handleCloseMenu
+              }
+              className="
+                flex
+                items-center
+                gap-3
+                text-sm
+                tracking-[0.18em]
+                transition
+                hover:text-[#B08D57]
+              "
+            >
+
+              <Heart
+                size={18}
+              />
+
+              Wishlist
+
+            </Link>
+
+
+            {/* ==============================================
+                INQUIRY
+                ============================================== */}
 
             <button
               type="button"
-              onClick={handleInquiry}
+              onClick={
+                handleInquiry
+              }
               className="
                 flex
                 items-center
@@ -282,15 +576,31 @@ export default function MobileNavbar() {
                 hover:text-[#B08D57]
               "
             >
-              <ClipboardList size={18} />
+
+              <ClipboardList
+                size={18}
+              />
+
               Inquiry
 
               {totalItems > 0 && (
-                <span className="text-neutral-500">
+
+                <span
+                  className="
+                    text-neutral-500
+                  "
+                >
                   ({totalItems})
                 </span>
+
               )}
+
             </button>
+
+
+            {/* ==============================================
+                WHATSAPP
+                ============================================== */}
 
             <a
               href="https://wa.me/60168848453"
@@ -315,12 +625,21 @@ export default function MobileNavbar() {
                 hover:bg-[#B08D57]
               "
             >
-              <MessageCircle size={18} />
+
+              <MessageCircle
+                size={18}
+              />
+
               WhatsApp Us
+
             </a>
+
           </div>
+
         </div>
+
       </aside>
+
     </>
   );
 }

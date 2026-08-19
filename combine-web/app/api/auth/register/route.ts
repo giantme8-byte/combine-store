@@ -7,106 +7,223 @@ import { prisma } from "@/lib/prisma";
 const emailRegex =
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request
+) {
+
   try {
-    const body = await request.json();
 
-    const name = body.name?.trim();
-    const email = body.email?.trim().toLowerCase();
-    const password = body.password;
+    const body =
+      await request.json();
 
-    if (!name || !email || !password) {
+
+    const name =
+      body.name
+        ?.trim();
+
+
+    const email =
+      body.email
+        ?.trim()
+        .toLowerCase();
+
+
+    const password =
+      body.password;
+
+
+    // ========================================================
+    // REQUIRED FIELDS
+    // ========================================================
+
+    if (
+      !name ||
+      !email ||
+      !password
+    ) {
+
       return NextResponse.json(
         {
           success: false,
-          message: "Please fill in all fields.",
+          message:
+            "Please fill in all fields.",
         },
         {
           status: 400,
         }
       );
+
     }
 
-    if (name.length < 2) {
+
+    // ========================================================
+    // NAME
+    // ========================================================
+
+    if (
+      name.length < 2
+    ) {
+
       return NextResponse.json(
         {
           success: false,
-          message: "Name must be at least 2 characters.",
+          message:
+            "Name must be at least 2 characters.",
         },
         {
           status: 400,
         }
       );
+
     }
 
-    if (!emailRegex.test(email)) {
+
+    // ========================================================
+    // EMAIL
+    // ========================================================
+
+    if (
+      !emailRegex.test(email)
+    ) {
+
       return NextResponse.json(
         {
           success: false,
-          message: "Please enter a valid email address.",
+          message:
+            "Please enter a valid email address.",
         },
         {
           status: 400,
         }
       );
+
     }
 
-    if (password.length < 8) {
+
+    // ========================================================
+    // PASSWORD
+    // ========================================================
+
+    if (
+      password.length < 8
+    ) {
+
       return NextResponse.json(
         {
           success: false,
-          message: "Password must be at least 8 characters.",
+          message:
+            "Password must be at least 8 characters.",
         },
         {
           status: 400,
         }
       );
+
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
 
-    if (existingUser) {
+    // ========================================================
+    // EXISTING USER
+    // ========================================================
+
+    const existingUser =
+      await prisma.user.findUnique({
+
+        where: {
+          email,
+        },
+
+      });
+
+
+    if (
+      existingUser
+    ) {
+
       return NextResponse.json(
         {
           success: false,
-          message: "Email already exists.",
+          message:
+            "Email already exists.",
         },
         {
           status: 400,
         }
       );
+
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ========================================================
+    // PASSWORD HASH
+    // ========================================================
+
+    const hashedPassword =
+      await bcrypt.hash(
+        password,
+        10
+      );
+
+
+    // ========================================================
+    // CREATE CUSTOMER
+    // ========================================================
 
     await prisma.user.create({
+
       data: {
+
         name,
+
         email,
-        password: hashedPassword,
-        role: UserRole.CUSTOMER,
+
+        password:
+          hashedPassword,
+
+        role:
+          UserRole.CUSTOMER,
+
+        active:
+          true,
+
       },
+
     });
 
+
+    // ========================================================
+    // SUCCESS
+    // ========================================================
+
     return NextResponse.json({
+
       success: true,
-      message: "Registration successful.",
+
+      message:
+        "Registration successful.",
+
     });
+
+
   } catch (error) {
-    console.error("Registration failed:", error);
+
+    console.error(
+      "Registration failed:",
+      error
+    );
+
 
     return NextResponse.json(
       {
         success: false,
-        message: "Something went wrong.",
+        message:
+          "Something went wrong.",
       },
       {
         status: 500,
       }
     );
+
   }
+
 }

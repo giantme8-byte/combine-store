@@ -131,9 +131,34 @@ export default async function ProductsPage({
       take: pageSize,
 
       include: {
+        // -----------------------------------------------------
+        // Product Images
+        // -----------------------------------------------------
+
         images: {
           orderBy: {
             sortOrder: "asc",
+          },
+        },
+
+        // -----------------------------------------------------
+        // Product Variants
+        //
+        // Each Variant contains:
+        //
+        // - Color
+        // - Size
+        // - Cost Price CNY
+        // - Exchange Rate
+        // - Selling Price
+        //
+        // ProductRow uses these values to display
+        // Variant-level pricing.
+        // -----------------------------------------------------
+
+        variants: {
+          include: {
+            color: true,
           },
         },
       },

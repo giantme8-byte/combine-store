@@ -36,7 +36,15 @@ type VariantManagerProps = {
   variants: ProductVariantItem[];
   colors: ColorImageItem[];
   onChange: (variants: ProductVariantItem[]) => void;
+
+  /**
+   * Global/default CNY -> MYR exchange rate.
+   *
+   * A Variant-specific exchange rate takes priority.
+   */
+  defaultExchangeRate?: number | null;
 };
+
 
 /* =========================================================
  * Cloudinary Upload
@@ -47,40 +55,59 @@ type UploadResponse = {
   publicId: string;
 };
 
+
 async function uploadVariantGalleryImage(
   file: File
 ): Promise<UploadResponse> {
+
   const formData = new FormData();
 
-  formData.append("file", file);
-  formData.append("folder", "variants");
-
-  const response = await fetch(
-    "/api/upload",
-    {
-      method: "POST",
-      body: formData,
-    }
+  formData.append(
+    "file",
+    file
   );
 
-  const data = await response.json();
+  formData.append(
+    "folder",
+    "variants"
+  );
+
+
+  const response =
+    await fetch(
+      "/api/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+
+  const data =
+    await response.json();
+
 
   if (
     !response.ok ||
     !data?.url ||
     !data?.publicId
   ) {
+
     throw new Error(
       data?.error ||
         "Variant image upload failed."
     );
+
   }
+
 
   return {
     url: data.url,
     publicId: data.publicId,
   };
+
 }
+
 
 /* =========================================================
  * Sortable Variant Image
@@ -108,6 +135,7 @@ function SortableVariantImage({
     id: string
   ) => void;
 }) {
+
   const {
     attributes,
     listeners,
@@ -119,6 +147,7 @@ function SortableVariantImage({
     id: image.id,
   });
 
+
   const style = {
     transform:
       CSS.Transform.toString(
@@ -126,6 +155,7 @@ function SortableVariantImage({
       ),
     transition,
   };
+
 
   return (
     <div
@@ -159,6 +189,7 @@ function SortableVariantImage({
         }
       `}
     >
+
       {/* =====================================================
        * IMAGE
        * =================================================== */}
@@ -181,6 +212,7 @@ function SortableVariantImage({
           }
         `}
       >
+
         <Image
           src={image.url}
           alt={`${colorName} Variant image ${
@@ -199,6 +231,7 @@ function SortableVariantImage({
             group-hover:scale-[1.02]
           "
         />
+
 
         {/* =================================================
          * IMAGE NUMBER
@@ -228,6 +261,7 @@ function SortableVariantImage({
           ).padStart(2, "0")}
         </div>
 
+
         {/* =================================================
          * ACTIONS
          * ================================================= */}
@@ -248,14 +282,20 @@ function SortableVariantImage({
             group-hover:opacity-100
           "
         >
+
           {/* Preview */}
 
           <button
             type="button"
-            onPointerDown={(event) => {
+            onPointerDown={(
+              event
+            ) => {
               event.stopPropagation();
             }}
-            onClick={(event) => {
+            onClick={(
+              event
+            ) => {
+
               event.stopPropagation();
 
               if (!image.url) {
@@ -268,6 +308,7 @@ function SortableVariantImage({
                   index + 1
                 }`
               );
+
             }}
             className="
               flex
@@ -290,16 +331,26 @@ function SortableVariantImage({
             <Eye size={16} />
           </button>
 
+
           {/* Delete */}
 
           <button
             type="button"
-            onPointerDown={(event) => {
+            onPointerDown={(
+              event
+            ) => {
               event.stopPropagation();
             }}
-            onClick={(event) => {
+            onClick={(
+              event
+            ) => {
+
               event.stopPropagation();
-              onDelete(image.id);
+
+              onDelete(
+                image.id
+              );
+
             }}
             className="
               flex
@@ -321,7 +372,9 @@ function SortableVariantImage({
           >
             <Trash2 size={15} />
           </button>
+
         </div>
+
 
         {/* =================================================
          * UPLOAD STATUS
@@ -351,6 +404,7 @@ function SortableVariantImage({
           </div>
         )}
 
+
         {image.uploadStatus ===
           "uploaded" && (
           <div
@@ -376,6 +430,7 @@ function SortableVariantImage({
           </div>
         )}
 
+
         {image.uploadStatus ===
           "error" && (
           <div
@@ -399,18 +454,28 @@ function SortableVariantImage({
               backdrop-blur-sm
             "
           >
+
             <span>
               Upload Failed
             </span>
 
             <button
               type="button"
-              onPointerDown={(event) => {
+              onPointerDown={(
+                event
+              ) => {
                 event.stopPropagation();
               }}
-              onClick={(event) => {
+              onClick={(
+                event
+              ) => {
+
                 event.stopPropagation();
-                onRetry(image.id);
+
+                onRetry(
+                  image.id
+                );
+
               }}
               className="
                 rounded-md
@@ -423,8 +488,10 @@ function SortableVariantImage({
             >
               Retry
             </button>
+
           </div>
         )}
+
 
         {/* =================================================
          * NEW IMAGE
@@ -451,6 +518,7 @@ function SortableVariantImage({
           </div>
         )}
 
+
         {/* =================================================
          * IMAGE TYPE
          * ================================================= */}
@@ -474,14 +542,19 @@ function SortableVariantImage({
             backdrop-blur-sm
           "
         >
+
           <ImageIcon size={11} />
 
           Image
+
         </div>
+
       </div>
+
     </div>
   );
 }
+
 
 /* =========================================================
  * Variant Image Gallery
@@ -498,27 +571,36 @@ function VariantImageGallery({
     images: ProductVariantImageItem[]
   ) => void;
 }) {
+
   const [preview, setPreview] =
     useState<{
       src: string;
       alt: string;
     } | null>(null);
 
+
   const imagesRef =
     useRef(images);
+
 
   useEffect(() => {
     imagesRef.current =
       images;
   }, [images]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 6,
-      },
-    })
-  );
+
+  const sensors =
+    useSensors(
+      useSensor(
+        PointerSensor,
+        {
+          activationConstraint: {
+            distance: 6,
+          },
+        }
+      )
+    );
+
 
   const activeImages =
     images.filter(
@@ -526,19 +608,26 @@ function VariantImageGallery({
         !image.deleted
     );
 
+
   function setImages(
     nextImages: ProductVariantImageItem[]
   ) {
+
     imagesRef.current =
       nextImages;
 
-    onChange(nextImages);
+    onChange(
+      nextImages
+    );
+
   }
+
 
   function updateImage(
     imageId: string,
     data: Partial<ProductVariantImageItem>
   ) {
+
     const nextImages =
       imagesRef.current.map(
         (image) =>
@@ -550,35 +639,51 @@ function VariantImageGallery({
             : image
       );
 
-    setImages(nextImages);
+
+    setImages(
+      nextImages
+    );
+
   }
+
 
   async function uploadNewImage(
     imageId: string,
     file: File
   ) {
+
     try {
+
       const result =
         await uploadVariantGalleryImage(
           file
         );
 
+
       updateImage(
         imageId,
         {
-          url: result.url,
+          url:
+            result.url,
+
           publicId:
             result.publicId,
-          file: undefined,
+
+          file:
+            undefined,
+
           uploadStatus:
             "uploaded",
         }
       );
+
     } catch (error) {
+
       console.error(
         "Variant image upload failed:",
         error
       );
+
 
       updateImage(
         imageId,
@@ -587,18 +692,24 @@ function VariantImageGallery({
             "error",
         }
       );
+
     }
+
   }
+
 
   function handleFiles(
     files: FileList | null
   ) {
+
     if (!files) {
       return;
     }
 
+
     const selectedFiles =
       Array.from(files);
+
 
     if (
       selectedFiles.length ===
@@ -606,6 +717,7 @@ function VariantImageGallery({
     ) {
       return;
     }
+
 
     const currentMaxOrder =
       activeImages.reduce(
@@ -620,24 +732,23 @@ function VariantImageGallery({
         0
       );
 
+
     const newImages =
       selectedFiles.map(
         (
           file,
           index
         ) => ({
-          id: crypto.randomUUID(),
+          id:
+            crypto.randomUUID(),
 
-          /*
-           * Keep local preview while
-           * Cloudinary upload is running.
-           */
           url:
             URL.createObjectURL(
               file
             ),
 
-          publicId: "",
+          publicId:
+            "",
 
           sortOrder:
             currentMaxOrder +
@@ -646,28 +757,32 @@ function VariantImageGallery({
 
           file,
 
-          isNew: true,
+          isNew:
+            true,
 
-          deleted: false,
+          deleted:
+            false,
 
           uploadStatus:
             "uploading" as const,
         })
       );
 
+
     const nextImages = [
       ...imagesRef.current,
       ...newImages,
     ];
 
-    setImages(nextImages);
 
-    /*
-     * Start all uploads immediately.
-     * Each image updates independently.
-     */
+    setImages(
+      nextImages
+    );
+
+
     newImages.forEach(
       (image) => {
+
         if (!image.file) {
           return;
         }
@@ -676,22 +791,28 @@ function VariantImageGallery({
           image.id,
           image.file
         );
+
       }
     );
+
   }
+
 
   function retryImage(
     imageId: string
   ) {
+
     const image =
       imagesRef.current.find(
         (item) =>
           item.id === imageId
       );
 
+
     if (!image?.file) {
       return;
     }
+
 
     updateImage(
       imageId,
@@ -701,36 +822,46 @@ function VariantImageGallery({
       }
     );
 
+
     void uploadNewImage(
       imageId,
       image.file
     );
+
   }
+
 
   function handleDelete(
     imageId: string
   ) {
+
     const image =
       imagesRef.current.find(
         (item) =>
           item.id === imageId
       );
 
+
     if (!image) {
       return;
     }
+
 
     if (
       image.url.startsWith(
         "blob:"
       )
     ) {
+
       URL.revokeObjectURL(
         image.url
       );
+
     }
 
+
     if (image.isNew) {
+
       setImages(
         imagesRef.current.filter(
           (item) =>
@@ -740,7 +871,9 @@ function VariantImageGallery({
       );
 
       return;
+
     }
+
 
     setImages(
       imagesRef.current.map(
@@ -754,15 +887,19 @@ function VariantImageGallery({
             : item
       )
     );
+
   }
+
 
   function handleDragEnd(
     event: DragEndEvent
   ) {
+
     const {
       active,
       over,
     } = event;
+
 
     if (
       !over ||
@@ -772,14 +909,17 @@ function VariantImageGallery({
       return;
     }
 
+
     const currentImages =
       imagesRef.current;
+
 
     const activeImagesNow =
       currentImages.filter(
         (image) =>
           !image.deleted
       );
+
 
     const oldIndex =
       activeImagesNow.findIndex(
@@ -788,12 +928,14 @@ function VariantImageGallery({
           active.id
       );
 
+
     const newIndex =
       activeImagesNow.findIndex(
         (image) =>
           image.id ===
           over.id
       );
+
 
     if (
       oldIndex === -1 ||
@@ -802,9 +944,11 @@ function VariantImageGallery({
       return;
     }
 
+
     const reordered = [
       ...activeImagesNow,
     ];
+
 
     const [
       movedImage,
@@ -813,11 +957,13 @@ function VariantImageGallery({
       1
     );
 
+
     reordered.splice(
       newIndex,
       0,
       movedImage
     );
+
 
     const updatedImages =
       reordered.map(
@@ -831,27 +977,35 @@ function VariantImageGallery({
         })
       );
 
+
     const deletedImages =
       currentImages.filter(
         (image) =>
           image.deleted
       );
 
+
     setImages([
       ...updatedImages,
       ...deletedImages,
     ]);
+
   }
+
 
   return (
     <>
+
       <div className="space-y-4">
+
         {/* =================================================
          * HEADER
          * ================================================= */}
 
         <div className="flex items-center justify-between">
+
           <div>
+
             <p className="text-sm font-medium text-neutral-700">
               Variant Images
             </p>
@@ -860,7 +1014,9 @@ function VariantImageGallery({
               Upload multiple images and
               drag to reorder them.
             </p>
+
           </div>
+
 
           <div className="rounded-lg bg-neutral-100 px-3 py-1.5 text-xs font-medium text-neutral-600">
             {activeImages.length}{" "}
@@ -869,7 +1025,9 @@ function VariantImageGallery({
               ? "image"
               : "images"}
           </div>
+
         </div>
+
 
         {/* =================================================
          * IMAGE GRID
@@ -884,6 +1042,7 @@ function VariantImageGallery({
             handleDragEnd
           }
         >
+
           <SortableContext
             items={activeImages.map(
               (image) =>
@@ -893,6 +1052,7 @@ function VariantImageGallery({
               rectSortingStrategy
             }
           >
+
             <div
               className="
                 grid
@@ -902,11 +1062,13 @@ function VariantImageGallery({
                 lg:grid-cols-4
               "
             >
+
               {activeImages.map(
                 (
                   image,
                   index
                 ) => (
+
                   <SortableVariantImage
                     key={
                       image.id
@@ -938,8 +1100,10 @@ function VariantImageGallery({
                       retryImage
                     }
                   />
+
                 )
               )}
+
 
               {/* =================================================
                * UPLOAD
@@ -965,6 +1129,7 @@ function VariantImageGallery({
                   hover:shadow-sm
                 "
               >
+
                 <input
                   type="file"
                   accept="image/*"
@@ -973,6 +1138,7 @@ function VariantImageGallery({
                   onChange={(
                     event
                   ) => {
+
                     handleFiles(
                       event.target
                         .files
@@ -980,8 +1146,10 @@ function VariantImageGallery({
 
                     event.target.value =
                       "";
+
                   }}
                 />
+
 
                 <div
                   className="
@@ -998,10 +1166,13 @@ function VariantImageGallery({
                     shadow-sm
                   "
                 >
+
                   <ImageIcon
                     size={20}
                   />
+
                 </div>
+
 
                 <span className="mt-3 text-sm font-semibold text-neutral-800">
                   Add Images
@@ -1010,10 +1181,15 @@ function VariantImageGallery({
                 <span className="mt-1 px-3 text-center text-xs text-neutral-500">
                   Select multiple photos
                 </span>
+
               </label>
+
             </div>
+
           </SortableContext>
+
         </DndContext>
+
 
         {/* =================================================
          * EMPTY STATE
@@ -1022,6 +1198,7 @@ function VariantImageGallery({
         {activeImages.length ===
           0 && (
           <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-6 py-5 text-center">
+
             <p className="text-sm font-medium text-neutral-700">
               No Variant images yet.
             </p>
@@ -1031,23 +1208,34 @@ function VariantImageGallery({
               this specific Color + Size
               combination.
             </p>
+
           </div>
         )}
+
       </div>
+
 
       {preview && (
         <ImagePreviewModal
           open
-          src={preview.src}
-          alt={preview.alt}
+          src={
+            preview.src
+          }
+          alt={
+            preview.alt
+          }
           onClose={() =>
-            setPreview(null)
+            setPreview(
+              null
+            )
           }
         />
       )}
+
     </>
   );
 }
+
 
 /* =========================================================
  * Variant Manager
@@ -1057,12 +1245,15 @@ export default function VariantManager({
   variants,
   colors,
   onChange,
+  defaultExchangeRate = null,
 }: VariantManagerProps) {
+
   const availableColors =
     colors.filter(
       (color) =>
         !color.deleted
     );
+
 
   const activeVariants =
     variants.filter(
@@ -1070,104 +1261,175 @@ export default function VariantManager({
         !variant.deleted
     );
 
+
   const hasMultipleColors =
     availableColors.length > 1;
+
 
   const singleColorId =
     availableColors.length === 1
       ? availableColors[0].colorId
       : null;
 
+
   /* =========================================================
    * SINGLE COLOR PRODUCTS
-   * =======================================================
-   *
-   * When a product has exactly one Product Color, automatically
-   * link every active Variant to that color. The user should not
-   * have to select the same color repeatedly for every Variant.
-   *
-   * When there are multiple Product Colors, Variant colors remain
-   * selectable per Variant.
    * ======================================================= */
 
   useEffect(() => {
-    if (singleColorId == null) {
+
+    if (
+      singleColorId == null
+    ) {
       return;
     }
 
+
     let changed = false;
 
-    const next = variants.map((variant) => {
-      if (variant.deleted) {
-        return variant;
-      }
 
-      if (variant.colorId === singleColorId) {
-        return variant;
-      }
+    const next =
+      variants.map(
+        (variant) => {
 
-      changed = true;
+          if (
+            variant.deleted
+          ) {
+            return variant;
+          }
 
-      return {
-        ...variant,
-        colorId: singleColorId,
-      };
-    });
+
+          if (
+            variant.colorId ===
+            singleColorId
+          ) {
+            return variant;
+          }
+
+
+          changed = true;
+
+
+          return {
+            ...variant,
+            colorId:
+              singleColorId,
+          };
+
+        }
+      );
+
 
     if (changed) {
       onChange(next);
     }
-  }, [singleColorId, variants, onChange]);
+
+  }, [
+    singleColorId,
+    variants,
+    onChange,
+  ]);
+
+
+  /* =========================================================
+   * ADD VARIANT
+   * ======================================================= */
 
   function addVariant() {
+
     onChange([
       ...variants,
+
       {
-        id: crypto.randomUUID(),
+        id:
+          crypto.randomUUID(),
 
-        colorId: null,
+        colorId:
+          null,
 
-        size: "",
-        model: "",
-        dimensions: "",
+        size:
+          "",
 
-        imageUrl: "",
-        publicId: "",
+        costPriceCny:
+          null,
 
-        images: [],
+        exchangeRate:
+          null,
 
-        file: undefined,
+        price:
+          null,
 
-        isNew: true,
-        deleted: false,
+        model:
+          "",
+
+        dimensions:
+          "",
+
+        imageUrl:
+          "",
+
+        publicId:
+          "",
+
+        images:
+          [],
+
+        file:
+          undefined,
+
+        isNew:
+          true,
+
+        deleted:
+          false,
       },
     ]);
+
   }
+
+
+  /* =========================================================
+   * UPDATE VARIANT
+   * ======================================================= */
 
   function updateVariant(
     index: number,
     field: keyof ProductVariantItem,
     value: ProductVariantItem[keyof ProductVariantItem]
   ) {
+
     const next = [
       ...variants,
     ];
 
+
     next[index] = {
       ...next[index],
-      [field]: value,
+      [field]:
+        value,
     };
 
-    onChange(next);
+
+    onChange(
+      next
+    );
+
   }
+
+
+  /* =========================================================
+   * UPDATE VARIANT IMAGES
+   * ======================================================= */
 
   function updateVariantImages(
     index: number,
     images: ProductVariantImageItem[]
   ) {
+
     const next = [
       ...variants,
     ];
+
 
     const firstActiveImage =
       images.find(
@@ -1175,14 +1437,12 @@ export default function VariantManager({
           !image.deleted
       );
 
+
     next[index] = {
       ...next[index],
 
       images,
 
-      // Keep the legacy primary image
-      // synchronized with the first
-      // Variant gallery image.
       imageUrl:
         firstActiveImage?.url ??
         next[index].imageUrl ??
@@ -1194,25 +1454,36 @@ export default function VariantManager({
         "",
     };
 
-    onChange(next);
+
+    onChange(
+      next
+    );
+
   }
+
+
+  /* =========================================================
+   * REMOVE VARIANT
+   * ======================================================= */
 
   function removeVariant(
     index: number
   ) {
+
     const next = [
       ...variants,
     ];
 
+
     const variant =
       next[index];
+
 
     if (!variant) {
       return;
     }
 
-    // Revoke local preview URLs
-    // for newly uploaded images.
+
     variant.images
       .filter(
         (image) =>
@@ -1223,58 +1494,84 @@ export default function VariantManager({
       )
       .forEach(
         (image) => {
+
           URL.revokeObjectURL(
             image.url
           );
+
         }
       );
 
-    // Legacy image fallback
+
     if (
       variant.imageUrl?.startsWith(
         "blob:"
       )
     ) {
+
       URL.revokeObjectURL(
         variant.imageUrl
       );
+
     }
 
-    if (variant.isNew) {
-      next.splice(index, 1);
+
+    if (
+      variant.isNew
+    ) {
+
+      next.splice(
+        index,
+        1
+      );
+
     } else {
+
       next[index] = {
         ...variant,
-        deleted: true,
+        deleted:
+          true,
       };
+
     }
+
 
     onChange([
       ...next,
     ]);
+
   }
+
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+
       {/* =====================================================
        * HEADER
        * =================================================== */}
 
       <div className="mb-6 flex items-center justify-between">
+
         <div>
+
           <h2 className="text-xl font-semibold">
             Variants
           </h2>
 
           <p className="mt-1 text-sm text-neutral-500">
-            Manage color, size, specifications
+            Manage color, size,
+            price, specifications
             and Variant image galleries.
           </p>
+
         </div>
+
 
         <button
           type="button"
-          onClick={addVariant}
+          onClick={
+            addVariant
+          }
           className="
             rounded-xl
             bg-black
@@ -1289,7 +1586,9 @@ export default function VariantManager({
         >
           + Add Variant
         </button>
+
       </div>
+
 
       {/* =====================================================
        * NO COLORS WARNING
@@ -1298,6 +1597,7 @@ export default function VariantManager({
       {availableColors.length ===
         0 && (
         <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+
           <p className="text-sm font-medium text-amber-800">
             Add at least one Product Color
             first.
@@ -1307,8 +1607,10 @@ export default function VariantManager({
             Variant colors can only be selected
             from the Product Colors added above.
           </p>
+
         </div>
       )}
+
 
       {/* =====================================================
        * EMPTY STATE
@@ -1317,6 +1619,7 @@ export default function VariantManager({
       {activeVariants.length ===
         0 && (
         <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-6 py-10 text-center">
+
           <p className="text-sm font-medium text-neutral-700">
             No variants added yet.
           </p>
@@ -1326,27 +1629,33 @@ export default function VariantManager({
             different colors, sizes or
             specifications.
           </p>
+
         </div>
       )}
+
 
       {/* =====================================================
        * VARIANTS
        * =================================================== */}
 
       <div className="space-y-6">
+
         {variants.map(
           (
             variant,
             index
           ) => {
+
             if (
               variant.deleted
             ) {
               return null;
             }
 
+
             const actualIndex =
               index;
+
 
             const selectedColor =
               availableColors.find(
@@ -1355,11 +1664,42 @@ export default function VariantManager({
                   variant.colorId
               );
 
-                    const colorName =
+
+            const colorName =
               selectedColor?.name ??
-              (availableColors.length === 1
-                ? availableColors[0].name || "Variant"
-                : "Variant");
+              (
+                availableColors.length ===
+                1
+                  ? availableColors[0].name ||
+                    "Variant"
+                  : "Variant"
+              );
+
+            /**
+             * Profit Summary
+             *
+             * Variant-specific exchange rate takes priority.
+             * If it is empty, fall back to the global/default rate.
+             */
+            const effectiveExchangeRate =
+              variant.exchangeRate ??
+              defaultExchangeRate ??
+              null;
+
+            const estimatedCost =
+              variant.costPriceCny != null &&
+              effectiveExchangeRate != null
+                ? variant.costPriceCny *
+                  effectiveExchangeRate
+                : null;
+
+            const estimatedProfit =
+              estimatedCost != null &&
+              variant.price != null
+                ? variant.price -
+                  estimatedCost
+                : null;
+
 
             return (
               <div
@@ -1378,12 +1718,15 @@ export default function VariantManager({
                   hover:shadow-md
                 "
               >
+
                 {/* =================================================
                  * VARIANT HEADER
                  * ================================================= */}
 
                 <div className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-5 py-4">
+
                   <div>
+
                     <h3 className="font-semibold text-neutral-900">
                       Variant #
                       {activeVariants.findIndex(
@@ -1395,10 +1738,12 @@ export default function VariantManager({
 
                     <p className="text-xs text-neutral-500">
                       Configure color, size,
-                      model, dimensions and
-                      image gallery.
+                      price, model, dimensions
+                      and image gallery.
                     </p>
+
                   </div>
+
 
                   <button
                     type="button"
@@ -1420,27 +1765,37 @@ export default function VariantManager({
                   >
                     Delete
                   </button>
+
                 </div>
 
+
                 <div className="space-y-6 p-5">
+
                   {/* =================================================
                    * COLOR
                    * ================================================= */}
 
                   {hasMultipleColors ? (
+
                     <div>
+
                       <label className="mb-2 block text-sm font-medium text-neutral-700">
                         Color
                       </label>
+
 
                       <select
                         value={
                           variant.colorId ??
                           ""
                         }
-                        onChange={(e) => {
+                        onChange={(
+                          e
+                        ) => {
+
                           const value =
                             e.target.value;
+
 
                           updateVariant(
                             actualIndex,
@@ -1452,6 +1807,7 @@ export default function VariantManager({
                                   value
                                 )
                           );
+
                         }}
                         className="
                           w-full
@@ -1469,14 +1825,17 @@ export default function VariantManager({
                           focus:ring-black/5
                         "
                       >
+
                         <option value="">
                           Select Product Color
                         </option>
+
 
                         {availableColors.map(
                           (
                             color
                           ) => (
+
                             <option
                               key={
                                 color.id
@@ -1493,9 +1852,12 @@ export default function VariantManager({
                               {color.name ||
                                 "Unnamed Color"}
                             </option>
+
                           )
                         )}
+
                       </select>
+
 
                       {!variant.colorId && (
                         <p className="mt-2 text-xs text-amber-600">
@@ -1504,33 +1866,49 @@ export default function VariantManager({
                         </p>
                       )}
 
+
                       {selectedColor && (
                         <p className="mt-2 text-xs text-neutral-500">
+
                           This Variant is linked
                           to{" "}
+
                           <span className="font-medium text-neutral-800">
                             {
                               selectedColor.name
                             }
                           </span>
+
                           .
+
                         </p>
                       )}
+
                     </div>
-                  ) : availableColors.length === 1 ? (
+
+                  ) : availableColors.length ===
+                    1 ? (
+
                     <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+
                       <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
                         Color
                       </p>
+
                       <p className="mt-1 text-sm font-medium text-neutral-800">
                         {availableColors[0].name ||
                           "Unnamed Color"}
                       </p>
+
                       <p className="mt-1 text-xs text-neutral-500">
-                        Automatically applied to this Variant.
+                        Automatically applied to this
+                        Variant.
                       </p>
+
                     </div>
+
                   ) : null}
+
 
                   {/* =================================================
                    * VARIANT IMAGE GALLERY
@@ -1554,14 +1932,17 @@ export default function VariantManager({
                     }
                   />
 
+
                   {/* =================================================
                    * FIELDS
                    * ================================================= */}
 
                   <div className="grid gap-4 md:grid-cols-3">
+
                     {/* Size */}
 
                     <div>
+
                       <label className="mb-2 block text-sm font-medium text-neutral-700">
                         Size
                       </label>
@@ -1576,8 +1957,7 @@ export default function VariantManager({
                           updateVariant(
                             actualIndex,
                             "size",
-                            e.target
-                              .value
+                            e.target.value
                           )
                         }
                         placeholder="25cm (Small)"
@@ -1597,11 +1977,243 @@ export default function VariantManager({
                           focus:ring-black/5
                         "
                       />
+
                     </div>
+
+
+                    {/* Cost Price CNY */}
+
+                    <div>
+
+                      <label className="mb-2 block text-sm font-medium text-neutral-700">
+                        Cost Price (CNY)
+                      </label>
+
+                      <div className="relative">
+
+                        <span
+                          className="
+                            pointer-events-none
+                            absolute
+                            left-4
+                            top-1/2
+                            -translate-y-1/2
+                            text-sm
+                            text-neutral-400
+                          "
+                        >
+                          ¥
+                        </span>
+
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={
+                            variant.costPriceCny ??
+                            ""
+                          }
+                          onChange={(
+                            e
+                          ) => {
+
+                            const value =
+                              e.target.value;
+
+
+                            updateVariant(
+                              actualIndex,
+                              "costPriceCny",
+                              value ===
+                                ""
+                                ? null
+                                : Number(
+                                    value
+                                  )
+                            );
+
+                          }}
+                          placeholder="530"
+                          className="
+                            w-full
+                            rounded-xl
+                            border
+                            border-neutral-300
+                            bg-white
+                            py-3
+                            pl-11
+                            pr-4
+                            transition-all
+                            duration-200
+                            focus:border-black
+                            focus:outline-none
+                            focus:ring-2
+                            focus:ring-black/5
+                          "
+                        />
+
+                      </div>
+
+                      <p className="mt-1.5 text-xs text-neutral-400">
+                        Supplier cost in CNY.
+                      </p>
+
+                    </div>
+
+
+                    {/* Exchange Rate */}
+
+                    <div>
+
+                      <label className="mb-2 block text-sm font-medium text-neutral-700">
+                        Exchange Rate
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.0001"
+                        value={
+                          variant.exchangeRate ??
+                          ""
+                        }
+                        onChange={(
+                          e
+                        ) => {
+
+                          const value =
+                            e.target.value;
+
+
+                          updateVariant(
+                            actualIndex,
+                            "exchangeRate",
+                            value ===
+                              ""
+                              ? null
+                              : Number(
+                                  value
+                                )
+                          );
+
+                        }}
+                        placeholder={
+                          defaultExchangeRate != null
+                            ? String(
+                                defaultExchangeRate
+                              )
+                            : "0.60"
+                        }
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-neutral-300
+                          bg-white
+                          px-4
+                          py-3
+                          transition-all
+                          duration-200
+                          focus:border-black
+                          focus:outline-none
+                          focus:ring-2
+                          focus:ring-black/5
+                        "
+                      />
+
+                      <p className="mt-1.5 text-xs text-neutral-400">
+                        {defaultExchangeRate != null
+                          ? "Leave empty to use the system rate."
+                          : "CNY → MYR rate."}
+                      </p>
+
+                    </div>
+
+
+                    {/* Selling Price */}
+
+                    <div>
+
+                      <label className="mb-2 block text-sm font-medium text-neutral-700">
+                        Selling Price
+                      </label>
+
+                      <div className="relative">
+
+                        <span
+                          className="
+                            pointer-events-none
+                            absolute
+                            left-4
+                            top-1/2
+                            -translate-y-1/2
+                            text-sm
+                            text-neutral-400
+                          "
+                        >
+                          RM
+                        </span>
+
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={
+                            variant.price ??
+                            ""
+                          }
+                          onChange={(
+                            e
+                          ) => {
+
+                            const value =
+                              e.target.value;
+
+
+                            updateVariant(
+                              actualIndex,
+                              "price",
+                              value ===
+                                ""
+                                ? null
+                                : Number(
+                                    value
+                                  )
+                            );
+
+                          }}
+                          placeholder="1299"
+                          className="
+                            w-full
+                            rounded-xl
+                            border
+                            border-neutral-300
+                            bg-white
+                            py-3
+                            pl-11
+                            pr-4
+                            transition-all
+                            duration-200
+                            focus:border-black
+                            focus:outline-none
+                            focus:ring-2
+                            focus:ring-black/5
+                          "
+                        />
+
+                      </div>
+
+                      <p className="mt-1.5 text-xs text-neutral-400">
+                        Customer-facing selling price.
+                      </p>
+
+                    </div>
+
 
                     {/* Model */}
 
                     <div>
+
                       <label className="mb-2 block text-sm font-medium text-neutral-700">
                         Model
                       </label>
@@ -1616,8 +2228,7 @@ export default function VariantManager({
                           updateVariant(
                             actualIndex,
                             "model",
-                            e.target
-                              .value
+                            e.target.value
                           )
                         }
                         placeholder="M46703"
@@ -1637,11 +2248,14 @@ export default function VariantManager({
                           focus:ring-black/5
                         "
                       />
+
                     </div>
+
 
                     {/* Dimensions */}
 
                     <div>
+
                       <label className="mb-2 block text-sm font-medium text-neutral-700">
                         Dimensions
                       </label>
@@ -1656,8 +2270,7 @@ export default function VariantManager({
                           updateVariant(
                             actualIndex,
                             "dimensions",
-                            e.target
-                              .value
+                            e.target.value
                           )
                         }
                         placeholder="30 × 22 × 10 cm"
@@ -1677,14 +2290,144 @@ export default function VariantManager({
                           focus:ring-black/5
                         "
                       />
+
                     </div>
+
                   </div>
+
+
+                  {/* =================================================
+                   * PROFIT SUMMARY
+                   * ================================================= */}
+
+                  <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+
+                    <div className="mb-4">
+
+                      <h4 className="text-sm font-semibold text-neutral-900">
+                        Profit Summary
+                      </h4>
+
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Estimated figures based on this Variant's cost,
+                        exchange rate and selling price.
+                      </p>
+
+                    </div>
+
+
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+                      {/* Cost Price */}
+
+                      <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3">
+
+                        <p className="text-xs font-medium text-neutral-400">
+                          Cost Price (CNY)
+                        </p>
+
+                        <p className="mt-1 text-lg font-semibold text-neutral-900">
+                          {variant.costPriceCny != null
+                            ? `¥${variant.costPriceCny.toFixed(2)}`
+                            : "—"}
+                        </p>
+
+                      </div>
+
+
+                      {/* Exchange Rate */}
+
+                      <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3">
+
+                        <p className="text-xs font-medium text-neutral-400">
+                          Exchange Rate
+                        </p>
+
+                        <p className="mt-1 text-lg font-semibold text-neutral-900">
+                          {effectiveExchangeRate != null
+                            ? effectiveExchangeRate.toFixed(4)
+                            : "—"}
+                        </p>
+
+                        {variant.exchangeRate == null &&
+                          defaultExchangeRate != null && (
+                            <p className="mt-1 text-[10px] text-neutral-400">
+                              System rate
+                            </p>
+                          )}
+
+                      </div>
+
+
+                      {/* Estimated Cost */}
+
+                      <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3">
+
+                        <p className="text-xs font-medium text-neutral-400">
+                          Estimated Cost
+                        </p>
+
+                        <p className="mt-1 text-lg font-semibold text-neutral-900">
+                          {estimatedCost != null
+                            ? `RM${estimatedCost.toFixed(2)}`
+                            : "—"}
+                        </p>
+
+                      </div>
+
+
+                      {/* Estimated Profit */}
+
+                      <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3">
+
+                        <p className="text-xs font-medium text-neutral-400">
+                          Estimated Profit
+                        </p>
+
+                        <p
+                          className={`
+                            mt-1
+                            text-lg
+                            font-semibold
+                            ${
+                              estimatedProfit != null &&
+                              estimatedProfit < 0
+                                ? "text-red-600"
+                                : "text-neutral-900"
+                            }
+                          `}
+                        >
+                          {estimatedProfit != null
+                            ? `RM${estimatedProfit.toFixed(2)}`
+                            : "—"}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+
+                    {(variant.costPriceCny == null ||
+                      effectiveExchangeRate == null ||
+                      variant.price == null) && (
+                      <p className="mt-3 text-xs text-neutral-400">
+                        Enter Cost Price, Exchange Rate and Selling Price
+                        to calculate estimated profit.
+                      </p>
+                    )}
+
+                  </div>
+
                 </div>
+
               </div>
             );
+
           }
         )}
+
       </div>
+
     </div>
   );
 }

@@ -48,10 +48,46 @@ export type ProductVariantImageItem = {
     | "error";
 };
 
+
 export type ProductVariantItem = {
   id: string;
 
   size: string;
+
+  /**
+   * Variant-specific cost price in CNY.
+   *
+   * Example:
+   *
+   * Small -> 530
+   * Large -> 650
+   *
+   * null = cost price not set.
+   */
+  costPriceCny: number | null;
+
+  /**
+   * Variant-specific CNY -> MYR exchange rate.
+   *
+   * Example:
+   *
+   * 0.60
+   *
+   * null = use the system/default exchange rate.
+   */
+  exchangeRate: number | null;
+
+  /**
+   * Variant-specific selling price.
+   *
+   * Example:
+   *
+   * Small -> 899
+   * Large -> 1099
+   *
+   * null = use Product price as fallback.
+   */
+  price: number | null;
 
   model: string;
 

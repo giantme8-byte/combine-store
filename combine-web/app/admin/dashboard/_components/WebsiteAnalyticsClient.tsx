@@ -9,10 +9,20 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
+
+// ============================================================
+// ANALYTICS RANGE
+// ============================================================
+
 type AnalyticsRange =
   | "today"
   | "7days"
   | "30days";
+
+
+// ============================================================
+// DAILY DATA
+// ============================================================
 
 type DailyData = {
   date: string;
@@ -23,12 +33,22 @@ type DailyData = {
   whatsappClicks: number;
 };
 
+
+// ============================================================
+// TOP PRODUCT
+// ============================================================
+
 type TopProduct = {
   id: number;
   name: string;
   brand: string;
   views: number;
 };
+
+
+// ============================================================
+// PROPS
+// ============================================================
 
 type WebsiteAnalyticsClientProps = {
   dailyData: DailyData[];
@@ -43,16 +63,28 @@ type WebsiteAnalyticsClientProps = {
   };
 };
 
+
+// ============================================================
+// FORMAT NUMBER
+// ============================================================
+
 function formatNumber(
   value: number
 ) {
   return value.toLocaleString();
 }
 
+
+// ============================================================
+// GET RANGE DAYS
+// ============================================================
+
 function getRangeDays(
   range: AnalyticsRange
 ) {
+
   switch (range) {
+
     case "today":
       return 1;
 
@@ -61,59 +93,76 @@ function getRangeDays(
 
     case "30days":
       return 30;
+
   }
+
 }
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function WebsiteAnalyticsClient({
   dailyData,
   topProducts,
   todayStats,
 }: WebsiteAnalyticsClientProps) {
-  const [range, setRange] =
-    useState<AnalyticsRange>(
-      "today"
-    );
 
-  /*
-   * =========================================================
-   * SELECTED DAYS
-   * =========================================================
-   */
+
+  // ==========================================================
+  // RANGE
+  // ==========================================================
+
+  const [
+    range,
+    setRange,
+  ] = useState<AnalyticsRange>(
+    "today"
+  );
+
+
+  // ==========================================================
+  // SELECTED DAYS
+  // ==========================================================
 
   const selectedDays =
     useMemo(() => {
+
       const days =
-        getRangeDays(range);
+        getRangeDays(
+          range
+        );
 
       return dailyData.slice(
         -days
       );
+
     }, [
       dailyData,
       range,
     ]);
 
-  /*
-   * =========================================================
-   * SUMMARY
-   * =========================================================
-   */
+
+  // ==========================================================
+  // SUMMARY
+  // ==========================================================
 
   const summary =
     useMemo(() => {
-      /*
-       * Today
-       *
-       * Unique visitors need to use the
-       * original visitor IDs.
-       *
-       * The dailyData already contains
-       * unique visitors per day, so today
-       * can safely use todayStats.
-       */
 
-      if (range === "today") {
+
+      // ------------------------------------------------------
+      // TODAY
+      // ------------------------------------------------------
+
+      if (
+        range ===
+        "today"
+      ) {
+
         return {
+
           visitors:
             todayStats.visitors,
 
@@ -125,21 +174,18 @@ export default function WebsiteAnalyticsClient({
 
           whatsappClicks:
             todayStats.whatsappClicks,
+
         };
+
       }
 
-      /*
-       * For 7 / 30 days:
-       *
-       * We sum daily values.
-       *
-       * Page views, product views and
-       * WhatsApp clicks are additive.
-       *
-       * Visitors are daily unique visitors.
-       */
+
+      // ------------------------------------------------------
+      // 7 / 30 DAYS
+      // ------------------------------------------------------
 
       return {
+
         visitors:
           selectedDays.reduce(
             (
@@ -183,18 +229,19 @@ export default function WebsiteAnalyticsClient({
               day.whatsappClicks,
             0
           ),
+
       };
+
     }, [
       range,
       selectedDays,
       todayStats,
     ]);
 
-  /*
-   * =========================================================
-   * CHART
-   * =========================================================
-   */
+
+  // ==========================================================
+  // MAX VISITORS
+  // ==========================================================
 
   const maxVisitors =
     Math.max(
@@ -205,25 +252,37 @@ export default function WebsiteAnalyticsClient({
       )
     );
 
-  /*
-   * =========================================================
-   * TITLE
-   * =========================================================
-   */
+
+  // ==========================================================
+  // RANGE LABEL
+  // ==========================================================
 
   const rangeLabel =
-    range === "today"
+    range ===
+    "today"
       ? "Today"
-      : range === "7days"
-      ? "Last 7 Days"
-      : "Last 30 Days";
+      : range ===
+        "7days"
+        ? "Last 7 Days"
+        : "Last 30 Days";
+
+
+  // ==========================================================
+  // RETURN
+  // ==========================================================
 
   return (
-    <section className="space-y-6">
 
-      {/* ================================================= */}
-      {/* Header */}
-      {/* ================================================= */}
+    <section
+      className="
+        space-y-6
+      "
+    >
+
+
+      {/* ==================================================== */}
+      {/* HEADER */}
+      {/* ==================================================== */}
 
       <div
         className="
@@ -250,6 +309,7 @@ export default function WebsiteAnalyticsClient({
             Website Analytics
           </p>
 
+
           <h2
             className="
               mt-2
@@ -261,7 +321,14 @@ export default function WebsiteAnalyticsClient({
             Website Performance
           </h2>
 
-          <p className="mt-1 text-sm text-neutral-500">
+
+          <p
+            className="
+              mt-1
+              text-sm
+              text-neutral-500
+            "
+          >
             Anonymous visitor activity
             across your website.
           </p>
@@ -269,9 +336,9 @@ export default function WebsiteAnalyticsClient({
         </div>
 
 
-        {/* ================================================= */}
-        {/* Range Switcher */}
-        {/* ================================================= */}
+        {/* ================================================== */}
+        {/* RANGE SWITCHER */}
+        {/* ================================================== */}
 
         <div
           className="
@@ -285,10 +352,16 @@ export default function WebsiteAnalyticsClient({
           "
         >
 
+          {/* ================================================ */}
+          {/* TODAY */}
+          {/* ================================================ */}
+
           <button
             type="button"
             onClick={() =>
-              setRange("today")
+              setRange(
+                "today"
+              )
             }
             className={`
               rounded-lg
@@ -309,10 +382,16 @@ export default function WebsiteAnalyticsClient({
           </button>
 
 
+          {/* ================================================ */}
+          {/* 7 DAYS */}
+          {/* ================================================ */}
+
           <button
             type="button"
             onClick={() =>
-              setRange("7days")
+              setRange(
+                "7days"
+              )
             }
             className={`
               rounded-lg
@@ -333,10 +412,16 @@ export default function WebsiteAnalyticsClient({
           </button>
 
 
+          {/* ================================================ */}
+          {/* 30 DAYS */}
+          {/* ================================================ */}
+
           <button
             type="button"
             onClick={() =>
-              setRange("30days")
+              setRange(
+                "30days"
+              )
             }
             className={`
               rounded-lg
@@ -361,9 +446,9 @@ export default function WebsiteAnalyticsClient({
       </div>
 
 
-      {/* ================================================= */}
-      {/* Statistics */}
-      {/* ================================================= */}
+      {/* ==================================================== */}
+      {/* STATISTICS */}
+      {/* ==================================================== */}
 
       <div
         className="
@@ -374,151 +459,308 @@ export default function WebsiteAnalyticsClient({
         "
       >
 
-        {/* Unique Visitors */}
+
+        {/* ================================================== */}
+        {/* UNIQUE VISITORS */}
+        {/* ================================================== */}
 
         <Card>
-          <CardContent className="p-6">
 
-            <div className="flex items-start justify-between">
+          <CardContent
+            className="
+              p-6
+            "
+          >
+
+            <div
+              className="
+                flex
+                items-start
+                justify-between
+              "
+            >
 
               <div>
 
-                <p className="text-sm text-neutral-500">
+                <p
+                  className="
+                    text-sm
+                    text-neutral-500
+                  "
+                >
                   Unique Visitors
                 </p>
 
-                <p className="mt-2 text-3xl font-semibold text-neutral-900">
+
+                <p
+                  className="
+                    mt-2
+                    text-3xl
+                    font-semibold
+                    text-neutral-900
+                  "
+                >
                   {formatNumber(
                     summary.visitors
                   )}
                 </p>
 
-                <p className="mt-2 text-xs text-neutral-400">
+
+                <p
+                  className="
+                    mt-2
+                    text-xs
+                    text-neutral-400
+                  "
+                >
                   {rangeLabel}
                 </p>
 
               </div>
 
-              <span className="text-2xl">
+
+              <span
+                className="
+                  text-2xl
+                "
+              >
                 👤
               </span>
 
             </div>
 
           </CardContent>
+
         </Card>
 
 
-        {/* Page Views */}
+        {/* ================================================== */}
+        {/* PAGE VIEWS */}
+        {/* ================================================== */}
 
         <Card>
-          <CardContent className="p-6">
 
-            <div className="flex items-start justify-between">
+          <CardContent
+            className="
+              p-6
+            "
+          >
+
+            <div
+              className="
+                flex
+                items-start
+                justify-between
+              "
+            >
 
               <div>
 
-                <p className="text-sm text-neutral-500">
+                <p
+                  className="
+                    text-sm
+                    text-neutral-500
+                  "
+                >
                   Page Views
                 </p>
 
-                <p className="mt-2 text-3xl font-semibold text-neutral-900">
+
+                <p
+                  className="
+                    mt-2
+                    text-3xl
+                    font-semibold
+                    text-neutral-900
+                  "
+                >
                   {formatNumber(
                     summary.pageViews
                   )}
                 </p>
 
-                <p className="mt-2 text-xs text-neutral-400">
+
+                <p
+                  className="
+                    mt-2
+                    text-xs
+                    text-neutral-400
+                  "
+                >
                   {rangeLabel}
                 </p>
 
               </div>
 
-              <span className="text-2xl">
+
+              <span
+                className="
+                  text-2xl
+                "
+              >
                 👀
               </span>
 
             </div>
 
           </CardContent>
+
         </Card>
 
 
-        {/* Product Views */}
+        {/* ================================================== */}
+        {/* PRODUCT VIEWS */}
+        {/* ================================================== */}
 
         <Card>
-          <CardContent className="p-6">
 
-            <div className="flex items-start justify-between">
+          <CardContent
+            className="
+              p-6
+            "
+          >
+
+            <div
+              className="
+                flex
+                items-start
+                justify-between
+              "
+            >
 
               <div>
 
-                <p className="text-sm text-neutral-500">
+                <p
+                  className="
+                    text-sm
+                    text-neutral-500
+                  "
+                >
                   Product Views
                 </p>
 
-                <p className="mt-2 text-3xl font-semibold text-neutral-900">
+
+                <p
+                  className="
+                    mt-2
+                    text-3xl
+                    font-semibold
+                    text-neutral-900
+                  "
+                >
                   {formatNumber(
                     summary.productViews
                   )}
                 </p>
 
-                <p className="mt-2 text-xs text-neutral-400">
+
+                <p
+                  className="
+                    mt-2
+                    text-xs
+                    text-neutral-400
+                  "
+                >
                   {rangeLabel}
                 </p>
 
               </div>
 
-              <span className="text-2xl">
+
+              <span
+                className="
+                  text-2xl
+                "
+              >
                 🛍️
               </span>
 
             </div>
 
           </CardContent>
+
         </Card>
 
 
-        {/* WhatsApp Clicks */}
+        {/* ================================================== */}
+        {/* WHATSAPP CLICKS */}
+        {/* ================================================== */}
 
         <Card>
-          <CardContent className="p-6">
 
-            <div className="flex items-start justify-between">
+          <CardContent
+            className="
+              p-6
+            "
+          >
+
+            <div
+              className="
+                flex
+                items-start
+                justify-between
+              "
+            >
 
               <div>
 
-                <p className="text-sm text-neutral-500">
+                <p
+                  className="
+                    text-sm
+                    text-neutral-500
+                  "
+                >
                   WhatsApp Clicks
                 </p>
 
-                <p className="mt-2 text-3xl font-semibold text-neutral-900">
+
+                <p
+                  className="
+                    mt-2
+                    text-3xl
+                    font-semibold
+                    text-neutral-900
+                  "
+                >
                   {formatNumber(
                     summary.whatsappClicks
                   )}
                 </p>
 
-                <p className="mt-2 text-xs text-neutral-400">
+
+                <p
+                  className="
+                    mt-2
+                    text-xs
+                    text-neutral-400
+                  "
+                >
                   {rangeLabel}
                 </p>
 
               </div>
 
-              <span className="text-2xl">
+
+              <span
+                className="
+                  text-2xl
+                "
+              >
                 💬
               </span>
 
             </div>
 
           </CardContent>
+
         </Card>
 
       </div>
 
 
-      {/* ================================================= */}
-      {/* Chart + Top Products */}
-      {/* ================================================= */}
+      {/* ==================================================== */}
+      {/* CHART + TOP PRODUCTS */}
+      {/* ==================================================== */}
 
       <div
         className="
@@ -528,27 +770,49 @@ export default function WebsiteAnalyticsClient({
         "
       >
 
-        {/* ================================================= */}
-        {/* Visitors Chart */}
-        {/* ================================================= */}
 
-        <Card className="lg:col-span-2">
+        {/* ================================================== */}
+        {/* VISITORS CHART */}
+        {/* ================================================== */}
+
+        <Card
+          className="
+            lg:col-span-2
+          "
+        >
 
           <CardHeader>
+
             <CardTitle>
               Visitors — {rangeLabel}
             </CardTitle>
+
           </CardHeader>
+
 
           <CardContent>
 
             {selectedDays.length ===
             0 ? (
 
-              <div className="flex h-64 items-center justify-center">
-                <p className="text-sm text-neutral-500">
+              <div
+                className="
+                  flex
+                  h-64
+                  items-center
+                  justify-center
+                "
+              >
+
+                <p
+                  className="
+                    text-sm
+                    text-neutral-500
+                  "
+                >
                   No visitor data yet.
                 </p>
+
               </div>
 
             ) : (
@@ -558,6 +822,7 @@ export default function WebsiteAnalyticsClient({
                   flex
                   h-64
                   items-end
+                  justify-center
                   gap-2
                   border-b
                   border-neutral-200
@@ -576,25 +841,55 @@ export default function WebsiteAnalyticsClient({
                       Math.max(
                         4,
                         Math.round(
-                          (day.visitors /
-                            maxVisitors) *
-                            100
+                          (
+                            day.visitors /
+                            maxVisitors
+                          ) *
+                          100
                         )
                       );
 
+
+                    /*
+                     * IMPORTANT:
+                     *
+                     * Today contains only one day.
+                     *
+                     * Previously that one bar used
+                     * flex-1 + w-full, causing it to
+                     * occupy almost the entire chart.
+                     *
+                     * We give the single-day bar a
+                     * fixed width instead.
+                     */
+
+                    const isSingleDay =
+                      selectedDays.length ===
+                      1;
+
+
                     return (
+
                       <div
                         key={`${day.date}-${index}`}
-                        className="
+                        className={`
                           flex
                           h-full
-                          flex-1
                           flex-col
                           items-center
                           justify-end
                           gap-2
-                        "
+                          ${
+                            isSingleDay
+                              ? "w-24"
+                              : "min-w-0 flex-1"
+                          }
+                        `}
                       >
+
+                        {/* ================================== */}
+                        {/* VALUE */}
+                        {/* ================================== */}
 
                         <span
                           className="
@@ -608,30 +903,44 @@ export default function WebsiteAnalyticsClient({
                         </span>
 
 
+                        {/* ================================== */}
+                        {/* BAR AREA */}
+                        {/* ================================== */}
+
                         <div
                           className="
                             flex
                             w-full
                             flex-1
                             items-end
+                            justify-center
                           "
                         >
 
                           <div
-                            className="
-                              w-full
+                            className={`
                               rounded-t-xl
-                              bg-black
+                              bg-neutral-900
                               transition-all
                               duration-500
-                            "
+                              ${
+                                isSingleDay
+                                  ? "w-16"
+                                  : "w-full"
+                              }
+                            `}
                             style={{
-                              height: `${height}%`,
+                              height:
+                                `${height}%`,
                             }}
                           />
 
                         </div>
 
+
+                        {/* ================================== */}
+                        {/* DAY LABEL */}
+                        {/* ================================== */}
 
                         <span
                           className="
@@ -645,7 +954,9 @@ export default function WebsiteAnalyticsClient({
                         </span>
 
                       </div>
+
                     );
+
                   }
                 )}
 
@@ -658,26 +969,39 @@ export default function WebsiteAnalyticsClient({
         </Card>
 
 
-        {/* ================================================= */}
-        {/* Top Products */}
-        {/* ================================================= */}
+        {/* ================================================== */}
+        {/* TOP PRODUCTS */}
+        {/* ================================================== */}
 
         <Card>
 
           <CardHeader>
+
             <CardTitle>
               Top Products
             </CardTitle>
+
           </CardHeader>
+
 
           <CardContent>
 
             {topProducts.length ===
             0 ? (
 
-              <div className="py-10 text-center">
+              <div
+                className="
+                  py-10
+                  text-center
+                "
+              >
 
-                <p className="text-sm text-neutral-500">
+                <p
+                  className="
+                    text-sm
+                    text-neutral-500
+                  "
+                >
                   No product views yet.
                 </p>
 
@@ -685,7 +1009,11 @@ export default function WebsiteAnalyticsClient({
 
             ) : (
 
-              <div className="space-y-5">
+              <div
+                className="
+                  space-y-5
+                "
+              >
 
                 {topProducts.map(
                   (
@@ -703,6 +1031,10 @@ export default function WebsiteAnalyticsClient({
                         gap-4
                       "
                     >
+
+                      {/* ================================== */}
+                      {/* RANK */}
+                      {/* ================================== */}
 
                       <div
                         className="
@@ -723,7 +1055,16 @@ export default function WebsiteAnalyticsClient({
                       </div>
 
 
-                      <div className="min-w-0 flex-1">
+                      {/* ================================== */}
+                      {/* PRODUCT */}
+                      {/* ================================== */}
+
+                      <div
+                        className="
+                          min-w-0
+                          flex-1
+                        "
+                      >
 
                         <p
                           className="
@@ -738,7 +1079,15 @@ export default function WebsiteAnalyticsClient({
                           }
                         </p>
 
-                        <p className="mt-1 truncate text-xs text-neutral-400">
+
+                        <p
+                          className="
+                            mt-1
+                            truncate
+                            text-xs
+                            text-neutral-400
+                          "
+                        >
                           {
                             product.brand
                           }
@@ -747,9 +1096,24 @@ export default function WebsiteAnalyticsClient({
                       </div>
 
 
-                      <div className="shrink-0 text-right">
+                      {/* ================================== */}
+                      {/* VIEWS */}
+                      {/* ================================== */}
 
-                        <p className="text-sm font-semibold text-neutral-900">
+                      <div
+                        className="
+                          shrink-0
+                          text-right
+                        "
+                      >
+
+                        <p
+                          className="
+                            text-sm
+                            font-semibold
+                            text-neutral-900
+                          "
+                        >
                           {
                             formatNumber(
                               product.views
@@ -757,7 +1121,13 @@ export default function WebsiteAnalyticsClient({
                           }
                         </p>
 
-                        <p className="text-[11px] text-neutral-400">
+
+                        <p
+                          className="
+                            text-[11px]
+                            text-neutral-400
+                          "
+                        >
                           views
                         </p>
 
@@ -779,5 +1149,7 @@ export default function WebsiteAnalyticsClient({
       </div>
 
     </section>
+
   );
+
 }

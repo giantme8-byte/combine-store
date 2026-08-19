@@ -312,75 +312,81 @@ export default function ProductForm({
      * for backward compatibility.
      */
 
-    setVariants(
-      product.variants.map(
-        (variant) => ({
-          id:
-            variant.id.toString(),
+setVariants(
+  product.variants.map(
+    (variant) => ({
+      id:
+        variant.id.toString(),
 
-          colorId:
-            variant.colorId ??
-            null,
+      colorId:
+        variant.colorId ??
+        null,
 
-          size:
-            variant.size,
+      size:
+        variant.size,
 
-          model:
-            variant.model ??
-            "",
+      costPriceCny:
+        variant.costPriceCny ??
+        null,
 
-          dimensions:
-            variant.dimensions ??
-            "",
+      exchangeRate:
+        variant.exchangeRate ??
+        null,
 
-          /*
-           * Legacy single Variant image.
-           */
-          imageUrl:
-            variant.imageUrl ??
-            "",
+      price:
+        variant.price ??
+        null,
 
-          publicId:
-            variant.publicId ??
-            "",
+      model:
+        variant.model ??
+        "",
 
-          /*
-           * New Variant gallery.
-           */
-          images:
-            variant.images.map(
-              (image) => ({
-                id:
-                  image.id.toString(),
+      dimensions:
+        variant.dimensions ??
+        "",
 
-                url:
-                  image.url,
+      imageUrl:
+        variant.imageUrl ??
+        "",
 
-                publicId:
-                  image.publicId,
+      publicId:
+        variant.publicId ??
+        "",
 
-                sortOrder:
-                  image.sortOrder,
+      images:
+        variant.images.map(
+          (image) => ({
+            id:
+              image.id.toString(),
 
-                isNew:
-                  false,
+            url:
+              image.url,
 
-                deleted:
-                  false,
-              })
-            ),
+            publicId:
+              image.publicId,
 
-          file:
-            undefined,
+            sortOrder:
+              image.sortOrder,
 
-          isNew:
-            false,
+            isNew:
+              false,
 
-          deleted:
-            false,
-        })
-      )
-    );
+            deleted:
+              false,
+          })
+        ),
+
+      file:
+        undefined,
+
+      isNew:
+        false,
+
+      deleted:
+        false,
+    })
+  )
+);
 
     setCostPriceCny(
       product.costPriceCny ?? 0
@@ -879,6 +885,18 @@ export default function ProductForm({
 
             size:
               variant.size,
+
+            costPriceCny:
+              variant.costPriceCny ??
+              null,
+
+            exchangeRate:
+              variant.exchangeRate ??
+              null,
+
+            price:
+              variant.price ??
+              null,
 
             model:
               variant.model,
@@ -1566,6 +1584,9 @@ export default function ProductForm({
             }
             onChange={
               setVariants
+            }
+            defaultExchangeRate={
+              exchangeRate
             }
           />
 

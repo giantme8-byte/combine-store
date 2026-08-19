@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "OrderItem" ADD COLUMN     "profit" DOUBLE PRECISION,
+ADD COLUMN     "totalCost" DOUBLE PRECISION,
+ADD COLUMN     "unitCost" DOUBLE PRECISION;

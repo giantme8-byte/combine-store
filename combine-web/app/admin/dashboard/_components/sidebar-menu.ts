@@ -10,6 +10,8 @@ import {
   ChartColumn,
   ArrowUpDown,
   Box,
+  CreditCard,
+  TicketPercent,
   type LucideIcon,
 } from "lucide-react";
 
@@ -63,6 +65,17 @@ export const sidebarSections: {
           UserRole.ADMIN,
           UserRole.MANAGER,
           UserRole.STAFF,
+        ],
+      },
+
+      {
+        title: "Vouchers",
+        href: "/admin/dashboard/vouchers",
+        icon: TicketPercent,
+        roles: [
+          UserRole.OWNER,
+          UserRole.ADMIN,
+          UserRole.MANAGER,
         ],
       },
 
@@ -147,6 +160,16 @@ export const sidebarSections: {
         title: "Analytics",
         href: "/admin/dashboard/analytics",
         icon: ChartColumn,
+        roles: [
+          UserRole.OWNER,
+          UserRole.ADMIN,
+        ],
+      },
+
+      {
+        title: "Payment Methods",
+        href: "/admin/dashboard/payment-methods",
+        icon: CreditCard,
         roles: [
           UserRole.OWNER,
           UserRole.ADMIN,

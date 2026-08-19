@@ -19,10 +19,28 @@ export default async function ProductSortingPage() {
         orderBy: {
           displayOrder: "asc",
         },
+
         include: {
+          // ===================================================
+          // Product Images
+          // ===================================================
+
           images: {
             orderBy: {
               sortOrder: "asc",
+            },
+          },
+
+          // ===================================================
+          // Product Variants
+          //
+          // Included because ProductWithImages now contains
+          // Variant data and Variant Color relation.
+          // ===================================================
+
+          variants: {
+            include: {
+              color: true,
             },
           },
         },

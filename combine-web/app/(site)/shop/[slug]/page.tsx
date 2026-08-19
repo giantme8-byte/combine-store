@@ -85,42 +85,48 @@ export async function generateMetadata({
     );
 
   return {
-    title: `${product.brand} ${product.name}`,
+    title:
+      `${product.brand} ${product.name}`,
 
     description,
 
     openGraph: {
-      title: `${product.brand} ${product.name}`,
+      title:
+        `${product.brand} ${product.name}`,
 
       description,
 
-      images: product.images.length
-        ? [
-            {
-              url:
-                product.images[0]
-                  .url,
+      images:
+        product.images.length
+          ? [
+              {
+                url:
+                  product.images[0]
+                    .url,
 
-              alt:
-                product.name,
-            },
-          ]
-        : [],
+                alt:
+                  product.name,
+              },
+            ]
+          : [],
     },
 
     twitter: {
-      card: "summary_large_image",
+      card:
+        "summary_large_image",
 
-      title: `${product.brand} ${product.name}`,
+      title:
+        `${product.brand} ${product.name}`,
 
       description,
 
-      images: product.images.length
-        ? [
-            product.images[0]
-              .url,
-          ]
-        : [],
+      images:
+        product.images.length
+          ? [
+              product.images[0]
+                .url,
+            ]
+          : [],
     },
   };
 }
@@ -150,47 +156,95 @@ export default async function ProductPage({
 
       select: {
         id: true,
+
         slug: true,
 
+        // ======================================================
+        // BASIC PRODUCT INFORMATION
+        // ======================================================
+
         brand: true,
+
         name: true,
+
         model: true,
+
         sku: true,
 
+        // ======================================================
+        // PRICE
+        // ======================================================
+
+        price: true,
+
+        // ======================================================
+        // DESCRIPTION
+        // ======================================================
+
         shortDescription: true,
+
         description: true,
 
+        // ======================================================
+        // CATEGORY
+        // ======================================================
+
         category: true,
+
         subCategory: true,
 
+        // ======================================================
+        // PRODUCT INFORMATION
+        // ======================================================
+
         mainColor: true,
+
         dimensions: true,
 
+        // ======================================================
+        // BADGES
+        // ======================================================
+
         featured: true,
+
         newArrival: true,
+
         bestSeller: true,
+
         limited: true,
+
         onSale: true,
 
         /*
+         * ------------------------------------------------------
          * Product-specific custom packaging.
+         * ------------------------------------------------------
          */
 
         customPackaging: {
           select: {
             id: true,
+
             key: true,
+
             name: true,
+
             brand: true,
+
             title: true,
+
             description: true,
+
             active: true,
 
             images: {
               select: {
                 id: true,
+
                 url: true,
+
                 altText: true,
+
                 caption: true,
               },
 
@@ -203,6 +257,7 @@ export default async function ProductPage({
             items: {
               select: {
                 id: true,
+
                 name: true,
               },
 
@@ -215,7 +270,9 @@ export default async function ProductPage({
         },
 
         /*
+         * ------------------------------------------------------
          * Product Gallery
+         * ------------------------------------------------------
          */
 
         images: {
@@ -224,7 +281,8 @@ export default async function ProductPage({
           },
 
           orderBy: {
-            sortOrder: "asc",
+            sortOrder:
+              "asc",
           },
         },
 
@@ -250,14 +308,19 @@ export default async function ProductPage({
         colors: {
           select: {
             id: true,
+
             name: true,
+
             imageUrl: true,
 
             images: {
               select: {
                 id: true,
+
                 url: true,
+
                 publicId: true,
+
                 sortOrder: true,
               },
 
@@ -302,8 +365,33 @@ export default async function ProductPage({
         variants: {
           select: {
             id: true,
+
+            /*
+             * Global Color relation.
+             *
+             * Required by ProductOptions so the
+             * customer-facing page can correctly
+             * match:
+             *
+             * Color × Size = Variant
+             */
+
+            colorId: true,
+
             size: true,
+
+            /*
+             * Variant-specific price.
+             *
+             * If a variant has its own price,
+             * ProductActions can use this price
+             * after the variant is selected.
+             */
+
+            price: true,
+
             model: true,
+
             dimensions: true,
 
             /*
@@ -319,10 +407,15 @@ export default async function ProductPage({
             images: {
               select: {
                 id: true,
+
                 url: true,
+
                 publicId: true,
+
                 altText: true,
+
                 caption: true,
+
                 sortOrder: true,
               },
 
@@ -379,17 +472,25 @@ export default async function ProductPage({
 
       select: {
         id: true,
+
         key: true,
+
         name: true,
+
         brand: true,
+
         title: true,
+
         description: true,
 
         images: {
           select: {
             id: true,
+
             url: true,
+
             altText: true,
+
             caption: true,
           },
 
@@ -402,6 +503,7 @@ export default async function ProductPage({
         items: {
           select: {
             id: true,
+
             name: true,
           },
 
@@ -483,7 +585,9 @@ export default async function ProductPage({
       {/* ===================================================== */}
 
       <ProductViewTracker
-        productId={product.id}
+        productId={
+          product.id
+        }
       />
 
       {/* ===================================================== */}
@@ -504,12 +608,14 @@ export default async function ProductPage({
         items={[
           {
             label: "Home",
+
             href: "/",
           },
 
           {
             label:
               "Collection",
+
             href: "/shop",
           },
 
@@ -533,6 +639,7 @@ export default async function ProductPage({
         colors={
           product.colors
         }
+
         variants={
           product.variants
         }
@@ -556,10 +663,13 @@ export default async function ProductPage({
 
           <ProductGallery
             cover={cover}
+
             gallery={gallery}
+
             colors={
               product.colors
             }
+
             name={
               product.name
             }
@@ -612,7 +722,9 @@ export default async function ProductPage({
 
             <ProductOptions />
 
-            {/* Product Actions */}
+            {/* =================================================
+                Product Actions
+                ================================================= */}
 
             <ProductActions
               productId={
@@ -641,6 +753,14 @@ export default async function ProductPage({
 
               dimensions={
                 product.dimensions
+              }
+
+              price={
+                product.price
+              }
+
+              image={
+                cover
               }
             />
 
@@ -736,8 +856,10 @@ export default async function ProductPage({
                 lg:text-5xl
               "
             >
-              {packaging.title ??
-                packaging.name}
+              {
+                packaging.title ??
+                packaging.name
+              }
             </h2>
 
             <div
@@ -805,8 +927,7 @@ export default async function ProductPage({
                     index
                   ) => {
                     const isFirst =
-                      index ===
-                      0;
+                      index === 0;
 
                     return (
                       <div
@@ -1078,6 +1199,7 @@ export default async function ProductPage({
             currentId={
               product.id
             }
+
             category={
               product.category
             }

@@ -15,30 +15,85 @@ export default async function ProductPage({
 }) {
   const { id } = await params;
 
-const [product, settings] = await Promise.all([
-  prisma.product.findUnique({
-    where: {
-      id: Number(id),
-    },
+  // =========================================================
+  // DATABASE
+  // =========================================================
 
-    include: {
-      images: {
-        orderBy: {
-          sortOrder: "asc",
+  const [product, settings] =
+    await Promise.all([
+      prisma.product.findUnique({
+        where: {
+          id: Number(id),
         },
-      },
-    },
-  }),
 
-  prisma.setting.findFirst(),
-]);
+        include: {
+          // -------------------------------------------------
+          // Product Images
+          // -------------------------------------------------
+
+          images: {
+            orderBy: {
+              sortOrder: "asc",
+            },
+          },
+
+          // -------------------------------------------------
+          // Product Variants
+          //
+          // Each Variant contains:
+          //
+          // - Color
+          // - Size
+          // - Cost Price CNY
+          // - Exchange Rate
+          // - Selling Price
+          //
+          // -------------------------------------------------
+
+          variants: {
+            include: {
+              color: true,
+            },
+
+            orderBy: {
+              sortOrder: "asc",
+            },
+          },
+        },
+      }),
+
+      prisma.setting.findFirst(),
+    ]);
+
+  // =========================================================
+  // NOT FOUND
+  // =========================================================
 
   if (!product) {
     notFound();
   }
 
+  // =========================================================
+  // DEFAULT EXCHANGE RATE
+  // =========================================================
+  //
+  // Variant.exchangeRate takes priority.
+  //
+  // If a Variant does not have its own exchange rate,
+  // Product / Dashboard exchange rate is used.
+  //
+  // =========================================================
+
   const exchangeRate =
     settings?.exchangeRate ?? 0.60;
+
+  // =========================================================
+  // PRODUCT-LEVEL PRICING
+  // =========================================================
+  //
+  // Used as fallback for products without Variants.
+  //
+  // =========================================================
 
   const pricing =
     calculateProductProfit(
@@ -46,12 +101,21 @@ const [product, settings] = await Promise.all([
       exchangeRate
     );
 
+  // =========================================================
+  // RENDER
+  // =========================================================
+
   return (
     <main className="space-y-8">
+
+      {/* ================================================= */}
+      {/* Header */}
+      {/* ================================================= */}
 
       <div className="flex items-center justify-between">
 
         <div>
+
           <h1 className="text-4xl font-light">
             {product.name}
           </h1>
@@ -64,25 +128,38 @@ const [product, settings] = await Promise.all([
 
       </div>
 
+      {/* ================================================= */}
+      {/* Main Content */}
+      {/* ================================================= */}
+
       <div className="grid gap-8 xl:grid-cols-[520px_1fr]">
+
+        {/* ================================================= */}
+        {/* Gallery */}
+        {/* ================================================= */}
 
         <ProductGallery
           product={product}
         />
 
-<div className="space-y-6">
+        {/* ================================================= */}
+        {/* Information + Pricing */}
+        {/* ================================================= */}
 
-  <ProductInformationCard
-    product={product}
-  />
+        <div className="space-y-6">
 
-  <ProductPricingCard
-    product={product}
-    pricing={pricing}
-    exchangeRate={exchangeRate}
-  />
+          <ProductInformationCard
+            product={product}
+          />
 
-</div>
+          <ProductPricingCard
+            product={product}
+            variants={product.variants}
+            pricing={pricing}
+            exchangeRate={exchangeRate}
+          />
+
+        </div>
 
       </div>
 

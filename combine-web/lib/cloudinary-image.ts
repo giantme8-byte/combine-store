@@ -5,11 +5,8 @@
  * This only changes the URL used when the image is delivered
  * to the customer.
  *
- * TEST VERSION
- *
- * Uses Cloudinary padding to create a more consistent
- * 4:5 visual canvas while keeping the original product
- * fully visible.
+ * Uses Cloudinary automatic format and quality optimisation
+ * without changing the original image dimensions or crop.
  */
 export function optimizeCloudinaryImage(
   url: string,
@@ -29,34 +26,40 @@ export function optimizeCloudinaryImage(
 
   // Avoid adding the transformation twice.
   if (
-    url.includes("/f_auto,q_auto") ||
-    url.includes("/q_auto,f_auto")
+    url.includes("/f_auto,q_auto/") ||
+    url.includes("/q_auto,f_auto/")
   ) {
     return url;
   }
 
   /*
    * =========================================================
-   * TEST IMAGE TRANSFORMATION
+   * DELIVERY OPTIMISATION
    * =========================================================
    *
-   * 4:5 product canvas
-   * Keep the complete product visible
-   * Add automatic padding when necessary
+   * Important:
    *
-   * width 800
-   * height 1000
+   * - Do NOT crop the product.
+   * - Do NOT force a fixed height.
+   * - Do NOT use c_auto_pad.
+   * - Do NOT use g_auto.
    *
-   * The original image itself is NOT modified.
+   * The original product image should remain intact.
+   *
+   * Cloudinary will automatically optimise:
+   *
+   *   f_auto  → best supported image format
+   *   q_auto  → automatic quality optimisation
+   *
+   * The width parameter is intentionally not used here.
+   *
+   * This keeps the original image dimensions and avoids
+   * introducing a transformation that may break delivery.
    * =========================================================
    */
 
-  const height = Math.round(
-    width * 1.25
-  );
-
   return url.replace(
     "/image/upload/",
-    `/image/upload/f_auto,q_auto,c_auto_pad,g_auto,w_${width},h_${height}/`
+    "/image/upload/f_auto,q_auto/"
   );
 }

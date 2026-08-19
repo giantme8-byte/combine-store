@@ -3,12 +3,19 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [showPassword, setShowPassword] =
+    useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,40 +32,57 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      const res = await fetch(
+        "/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
 
-      const data = await res.json();
+      const data =
+        await res.json();
 
       if (!res.ok) {
-        setError(data.message ?? "Login failed.");
+        setError(
+          data.message ??
+            "Login failed."
+        );
         return;
       }
 
       router.replace("/admin");
       router.refresh();
+
     } catch (error) {
+
       console.error(error);
+
       setError(
         "Something went wrong. Please try again."
       );
+
     } finally {
+
       setLoading(false);
+
     }
   }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[1440px] items-center justify-center px-8 py-24 lg:px-12">
+
       <div className="w-full max-w-xl rounded-[40px] border border-neutral-200 bg-white p-12 shadow-[0_30px_80px_rgba(0,0,0,.05)]">
+
         <div className="text-center">
+
           <p className="text-xs uppercase tracking-[0.55em] text-neutral-400">
             ACCOUNT
           </p>
@@ -74,10 +98,21 @@ export default function LoginPage() {
             Sign in to access your wishlist,
             enquiry history and account.
           </p>
+
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-14 space-y-8">
+
+        <form
+          onSubmit={handleSubmit}
+          className="mt-14 space-y-8"
+        >
+
+          {/* ==================================================
+              EMAIL
+          ================================================== */}
+
           <div>
+
             <label
               htmlFor="email"
               className="text-[11px] uppercase tracking-[0.35em] text-neutral-400"
@@ -91,14 +126,24 @@ export default function LoginPage() {
               required
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
               placeholder="Enter your email"
               className="mt-3 w-full rounded-2xl border border-neutral-200 px-6 py-4 text-neutral-900 outline-none transition-all duration-300 focus:border-[#C8A96A] focus:ring-4 focus:ring-[#C8A96A]/10"
             />
+
           </div>
 
+
+          {/* ==================================================
+              PASSWORD
+          ================================================== */}
+
           <div>
+
             <div className="flex items-center justify-between">
+
               <label
                 htmlFor="password"
                 className="text-[11px] uppercase tracking-[0.35em] text-neutral-400"
@@ -112,19 +157,74 @@ export default function LoginPage() {
               >
                 Forgot Password?
               </Link>
+
             </div>
 
-            <input
-              id="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="mt-3 w-full rounded-2xl border border-neutral-200 px-6 py-4 text-neutral-900 outline-none transition-all duration-300 focus:border-[#C8A96A] focus:ring-4 focus:ring-[#C8A96A]/10"
-            />
+
+            {/* ==================================================
+                PASSWORD INPUT + EYE
+            ================================================== */}
+
+            <div className="relative mt-3">
+
+              <input
+                id="password"
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(
+                    e.target.value
+                  )
+                }
+                placeholder="Enter your password"
+                className="w-full rounded-2xl border border-neutral-200 px-6 py-4 pr-14 text-neutral-900 outline-none transition-all duration-300 focus:border-[#C8A96A] focus:ring-4 focus:ring-[#C8A96A]/10"
+              />
+
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPassword(
+                    (current) =>
+                      !current
+                  )
+                }
+                aria-label={
+                  showPassword
+                    ? "Hide password"
+                    : "Show password"
+                }
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-[#C8A96A]"
+              >
+
+                {showPassword ? (
+                  <EyeOff
+                    size={20}
+                    strokeWidth={1.8}
+                  />
+                ) : (
+                  <Eye
+                    size={20}
+                    strokeWidth={1.8}
+                  />
+                )}
+
+              </button>
+
+            </div>
+
           </div>
+
+
+          {/* ==================================================
+              ERROR
+          ================================================== */}
 
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600">
@@ -132,16 +232,30 @@ export default function LoginPage() {
             </div>
           )}
 
+
+          {/* ==================================================
+              SIGN IN
+          ================================================== */}
+
           <button
             type="submit"
             disabled={loading}
             className="inline-flex w-full items-center justify-center rounded-full bg-black px-8 py-4 text-[11px] font-medium uppercase tracking-[0.3em] text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#C8A96A] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Signing In..." : "Sign In"}
+            {loading
+              ? "Signing In..."
+              : "Sign In"}
           </button>
+
         </form>
 
+
+        {/* ==================================================
+            CREATE ACCOUNT
+        ================================================== */}
+
         <div className="mt-12 border-t border-neutral-200 pt-10 text-center">
+
           <p className="text-neutral-500">
             Don&apos;t have an account?
           </p>
@@ -152,8 +266,11 @@ export default function LoginPage() {
           >
             Create Account
           </Link>
+
         </div>
+
       </div>
+
     </main>
   );
 }

@@ -341,12 +341,14 @@ export default function ProductGallery({
       "color"
     );
 
-    setSelectedColor({
-      id: color.id,
-      name: color.name,
-      imageUrl:
-        color.imageUrl ?? "",
-    });
+setSelectedColor({
+  id: color.id,
+  name: color.name,
+  imageUrl:
+    color.imageUrl ?? null,
+  images:
+    color.images ?? [],
+});
 
     const selectedColorImages =
       Array.from(

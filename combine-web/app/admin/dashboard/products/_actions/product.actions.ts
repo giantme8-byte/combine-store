@@ -182,6 +182,69 @@ export async function quickUpdateProductPrice(
   );
 }
 
+export async function quickUpdateProductVariantPrice(
+  variantId: number,
+  price: number
+) {
+  await requireRole([
+    UserRole.STAFF,
+    UserRole.MANAGER,
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  ]);
+
+  if (
+    !Number.isInteger(variantId) ||
+    variantId <= 0
+  ) {
+    throw new Error("Invalid variant ID.");
+  }
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    throw new Error("Invalid variant price.");
+  }
+
+  const variant =
+    await prisma.productVariant.findUnique({
+      where: {
+        id: variantId,
+      },
+      select: {
+        id: true,
+        productId: true,
+      },
+    });
+
+  if (!variant) {
+    throw new Error("Product variant not found.");
+  }
+
+  await prisma.productVariant.update({
+    where: {
+      id: variantId,
+    },
+    data: {
+      price,
+    },
+  });
+
+  revalidatePath(
+    "/admin/dashboard/products"
+  );
+
+  revalidatePath(
+    `/admin/dashboard/products/${variant.productId}/edit`
+  );
+
+  return {
+    success: true,
+  };
+}
+
+
 export async function createProduct(
   formData: FormData
 ) {
@@ -267,6 +330,22 @@ export async function createProduct(
       id: string;
       colorId: number | null;
       size: string;
+
+      /**
+       * Variant-specific cost in CNY.
+       */
+      costPriceCny: number | null;
+
+      /**
+       * Variant-specific exchange rate.
+       */
+      exchangeRate: number | null;
+
+      /**
+       * Variant-specific selling price.
+       */
+      price: number | null;
+
       model: string;
       dimensions: string;
       imageUrl?: string;
@@ -588,6 +667,18 @@ export async function createProduct(
                   size:
                     variant.size,
 
+                  costPriceCny:
+                    variant.costPriceCny ??
+                    null,
+
+                  exchangeRate:
+                    variant.exchangeRate ??
+                    null,
+
+                  price:
+                    variant.price ??
+                    null,
+
                   model:
                     variant.model ||
                     null,
@@ -816,6 +907,22 @@ export async function updateProduct(
       id: string;
       colorId: number | null;
       size: string;
+
+      /**
+       * Variant-specific cost in CNY.
+       */
+      costPriceCny: number | null;
+
+      /**
+       * Variant-specific exchange rate.
+       */
+      exchangeRate: number | null;
+
+      /**
+       * Variant-specific selling price.
+       */
+      price: number | null;
+
       model: string;
       dimensions: string;
       imageUrl?: string;
@@ -1493,6 +1600,18 @@ export async function updateProduct(
           size:
             variant.size,
 
+          costPriceCny:
+            variant.costPriceCny ??
+            null,
+
+          exchangeRate:
+            variant.exchangeRate ??
+            null,
+
+          price:
+            variant.price ??
+            null,
+
           model:
             variant.model ||
             null,
@@ -1639,6 +1758,18 @@ export async function updateProduct(
 
             size:
               variant.size,
+
+            costPriceCny:
+              variant.costPriceCny ??
+              null,
+
+            exchangeRate:
+              variant.exchangeRate ??
+              null,
+
+            price:
+              variant.price ??
+              null,
 
             model:
               variant.model ||
@@ -1883,6 +2014,15 @@ export async function duplicateProduct(
 
                 size:
                   variant.size,
+
+                costPriceCny:
+                  variant.costPriceCny,
+
+                exchangeRate:
+                  variant.exchangeRate,
+
+                price:
+                  variant.price,
 
                 model:
                   variant.model,

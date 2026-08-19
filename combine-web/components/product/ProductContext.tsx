@@ -8,10 +8,19 @@ import {
   type ReactNode,
 } from "react";
 
+export type ProductColorImage = {
+  id: number;
+  url: string;
+  publicId: string;
+  sortOrder: number;
+};
+
 export type ProductColor = {
   id: number;
   name: string;
   imageUrl: string | null;
+
+  images: ProductColorImage[];
 };
 
 export type ProductVariantImage = {
@@ -25,11 +34,54 @@ export type ProductVariantImage = {
 
 export type ProductVariant = {
   id: number;
+
+  /**
+   * Global Color relation.
+   *
+   * This identifies which Product Color
+   * this Variant belongs to.
+   *
+   * Example:
+   *
+   * Black / Small
+   * colorId = 1
+   */
+  colorId: number | null;
+
+  /**
+   * Variant size.
+   *
+   * Example:
+   *
+   * Small
+   * Medium
+   * Large
+   */
   size: string;
+
+  /**
+   * Variant-specific selling price.
+   *
+   * This is the ONLY pricing field
+   * required by the customer-facing page.
+   *
+   * Cost price, exchange rate and profit
+   * are intentionally NOT exposed here.
+   *
+   * null = use Product price as fallback.
+   */
+  price: number | null;
+
   model: string | null;
   dimensions: string | null;
   imageUrl: string | null;
 
+  /**
+   * Variant gallery.
+   *
+   * The gallery belongs to the exact
+   * Color + Size Variant.
+   */
   images: ProductVariantImage[];
 };
 
@@ -39,14 +91,17 @@ export type ProductGallerySelection =
 
 type ProductContextType = {
   colors: ProductColor[];
+
   variants: ProductVariant[];
 
   selectedColor: ProductColor | null;
+
   setSelectedColor: (
     color: ProductColor | null
   ) => void;
 
   selectedVariant: ProductVariant | null;
+
   setSelectedVariant: (
     variant: ProductVariant | null
   ) => void;
@@ -58,6 +113,7 @@ type ProductContextType = {
   ) => void;
 
   quantity: number;
+
   setQuantity: (
     quantity: number
   ) => void;
@@ -70,7 +126,9 @@ const ProductContext =
 
 type ProviderProps = {
   colors: ProductColor[];
+
   variants: ProductVariant[];
+
   children: ReactNode;
 };
 
@@ -79,7 +137,10 @@ export function ProductProvider({
   variants,
   children,
 }: ProviderProps) {
-  const [selectedColor, setSelectedColor] =
+  const [
+    selectedColor,
+    setSelectedColor,
+  ] =
     useState<ProductColor | null>(
       colors[0] ?? null
     );
@@ -87,26 +148,10 @@ export function ProductProvider({
   const [
     selectedVariant,
     setSelectedVariant,
-  ] = useState<ProductVariant | null>(
-    variants[0] ?? null
-  );
-
-  /*
-   * ============================================================
-   * Gallery Selection Source
-   * ============================================================
-   *
-   * This tells ProductGallery which gallery should be active.
-   *
-   * "color"
-   *   → Colour Gallery
-   *
-   * "variant"
-   *   → Variant Gallery
-   *
-   * Default:
-   *   Colour
-   */
+  ] =
+    useState<ProductVariant | null>(
+      variants[0] ?? null
+    );
 
   const [
     selectionSource,
@@ -116,35 +161,48 @@ export function ProductProvider({
       "color"
     );
 
-  const [quantity, setQuantity] =
-    useState(1);
+  const [
+    quantity,
+    setQuantity,
+  ] = useState(1);
 
-  const value = useMemo(
-    () => ({
-      colors,
-      variants,
+  const value =
+    useMemo(
+      () => ({
+        colors,
 
-      selectedColor,
-      setSelectedColor,
+        variants,
 
-      selectedVariant,
-      setSelectedVariant,
+        selectedColor,
 
-      selectionSource,
-      setSelectionSource,
+        setSelectedColor,
 
-      quantity,
-      setQuantity,
-    }),
-    [
-      colors,
-      variants,
-      selectedColor,
-      selectedVariant,
-      selectionSource,
-      quantity,
-    ]
-  );
+        selectedVariant,
+
+        setSelectedVariant,
+
+        selectionSource,
+
+        setSelectionSource,
+
+        quantity,
+
+        setQuantity,
+      }),
+      [
+        colors,
+
+        variants,
+
+        selectedColor,
+
+        selectedVariant,
+
+        selectionSource,
+
+        quantity,
+      ]
+    );
 
   return (
     <ProductContext.Provider
@@ -157,7 +215,9 @@ export function ProductProvider({
 
 export function useProduct() {
   const context =
-    useContext(ProductContext);
+    useContext(
+      ProductContext
+    );
 
   if (!context) {
     throw new Error(

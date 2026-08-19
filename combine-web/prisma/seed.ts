@@ -60,27 +60,29 @@ function slugify(text: string) {
 async function main() {
   console.log("🌱 Seeding Admin User...");
 
-  const hashedPassword = await bcrypt.hash(
-    "admin123",
-    10
-  );
+const hashedPassword = await bcrypt.hash(
+  "Combineluxe@2026",
+  10
+);
 
-  await prisma.user.upsert({
-    where: {
-      email: "admin@combine.com",
-    },
-    update: {
-      name: "Administrator",
-      password: hashedPassword,
-      role: UserRole.ADMIN,
-    },
-    create: {
-      name: "Administrator",
-      email: "admin@combine.com",
-      password: hashedPassword,
-      role: UserRole.ADMIN,
-    },
-  });
+await prisma.user.upsert({
+  where: {
+    email: "admin@combineluxe.com",
+  },
+  update: {
+    name: "COMBINE Administrator",
+    password: hashedPassword,
+    role: UserRole.OWNER,
+    active: true,
+  },
+  create: {
+    name: "COMBINE Administrator",
+    email: "admin@combineluxe.com",
+    password: hashedPassword,
+    role: UserRole.OWNER,
+    active: true,
+  },
+});
 
   console.log("🌱 Seeding Brands...");
 

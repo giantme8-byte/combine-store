@@ -4,8 +4,14 @@ import { redirect } from "next/navigation";
 import { prisma } from "./prisma";
 
 
+// ============================================================
+// GET CURRENT USER
+// ============================================================
+
 export async function getCurrentUser() {
-  const cookieStore = await cookies();
+
+  const cookieStore =
+    await cookies();
 
 
   const sessionCookie =
@@ -14,33 +20,73 @@ export async function getCurrentUser() {
     );
 
 
+  // ==========================================================
+  // NO SESSION
+  // ==========================================================
+
   if (!sessionCookie) {
     return null;
   }
 
 
+  // ==========================================================
+  // FIND SESSION
+  // ==========================================================
 
   const session =
     await prisma.session.findUnique({
+
       where: {
-        token: sessionCookie.value,
+        token:
+          sessionCookie.value,
       },
 
       include: {
+
         user: {
+
           select: {
+
             id: true,
+
             name: true,
+
             email: true,
+
+            // ------------------------------------------------
+            // CUSTOMER PROFILE
+            // ------------------------------------------------
+
+            phone: true,
+
+            image: true,
+
+            // ------------------------------------------------
+            // USER ROLE
+            // ------------------------------------------------
+
             role: true,
+
+            // ------------------------------------------------
+            // TIMESTAMPS
+            // ------------------------------------------------
+
             createdAt: true,
+
             updatedAt: true,
+
           },
+
         },
+
       },
+
     });
 
 
+  // ==========================================================
+  // INVALID SESSION
+  // ==========================================================
 
   if (!session) {
 
@@ -52,17 +98,22 @@ export async function getCurrentUser() {
   }
 
 
+  // ==========================================================
+  // SESSION EXPIRED
+  // ==========================================================
 
-  // Session expired
   if (
     session.expiresAt <
     new Date()
   ) {
 
     await prisma.session.delete({
+
       where: {
-        id: session.id,
+        id:
+          session.id,
       },
+
     });
 
 
@@ -75,20 +126,30 @@ export async function getCurrentUser() {
   }
 
 
+  // ==========================================================
+  // RETURN CURRENT USER
+  // ==========================================================
 
   return session.user;
 }
 
 
-
+// ============================================================
+// REQUIRE USER
+// ============================================================
 
 export async function requireUser() {
+
   const user =
     await getCurrentUser();
 
 
   if (!user) {
-    redirect("/login");
+
+    redirect(
+      "/login"
+    );
+
   }
 
 
