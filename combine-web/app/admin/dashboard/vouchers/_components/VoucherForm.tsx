@@ -263,7 +263,10 @@ export default function VoucherForm({
       onSubmit={
         handleSubmit
       }
-      className="space-y-8"
+      className="
+        space-y-6
+        sm:space-y-8
+      "
     >
 
       {/* ================================================== */}
@@ -278,10 +281,14 @@ export default function VoucherForm({
             border
             border-red-200
             bg-red-50
-            px-4
+            px-3
             py-3
-            text-sm
+            text-xs
+            leading-5
             text-red-700
+            sm:px-4
+            sm:text-sm
+            sm:leading-normal
           "
         >
           {error}
@@ -300,8 +307,9 @@ export default function VoucherForm({
           border
           border-gray-200
           bg-white
-          p-6
+          p-4
           shadow-sm
+          sm:p-6
         "
       >
 
@@ -334,7 +342,8 @@ export default function VoucherForm({
           className="
             grid
             grid-cols-1
-            gap-6
+            gap-4
+            sm:gap-6
             md:grid-cols-2
           "
         >
@@ -383,9 +392,10 @@ export default function VoucherForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 uppercase
                 outline-none
                 transition
@@ -443,9 +453,10 @@ export default function VoucherForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -525,10 +536,11 @@ export default function VoucherForm({
                   border
                   border-gray-300
                   bg-white
-                  px-4
+                  px-3
                   py-3
-                  pr-12
+                  pr-11
                   text-sm
+                  sm:px-4
                   outline-none
                   focus:border-gray-900
                   focus:ring-1
@@ -541,8 +553,9 @@ export default function VoucherForm({
                 className="
                   pointer-events-none
                   absolute
-                  right-4
+                  right-3
                   top-1/2
+                  sm:right-4
                   -translate-y-1/2
                   text-sm
                   text-gray-400
@@ -588,8 +601,9 @@ export default function VoucherForm({
           border
           border-gray-200
           bg-white
-          p-6
+          p-4
           shadow-sm
+          sm:p-6
         "
       >
 
@@ -622,7 +636,8 @@ export default function VoucherForm({
           className="
             grid
             grid-cols-1
-            gap-6
+            gap-4
+            sm:gap-6
             md:grid-cols-2
           "
         >
@@ -655,8 +670,9 @@ export default function VoucherForm({
                 className="
                   pointer-events-none
                   absolute
-                  left-4
+                  left-3
                   top-1/2
+                  sm:left-4
                   -translate-y-1/2
                   text-sm
                   text-gray-400
@@ -688,8 +704,10 @@ export default function VoucherForm({
                   border-gray-300
                   bg-white
                   py-3
-                  pl-11
-                  pr-4
+                  pl-10
+                  pr-3
+                  sm:pl-11
+                  sm:pr-4
                   text-sm
                   outline-none
                   focus:border-gray-900
@@ -742,8 +760,9 @@ export default function VoucherForm({
                 className="
                   pointer-events-none
                   absolute
-                  left-4
+                  left-3
                   top-1/2
+                  sm:left-4
                   -translate-y-1/2
                   text-sm
                   text-gray-400
@@ -779,8 +798,10 @@ export default function VoucherForm({
                   border-gray-300
                   bg-white
                   py-3
-                  pl-11
-                  pr-4
+                  pl-10
+                  pr-3
+                  sm:pl-11
+                  sm:pr-4
                   text-sm
                   outline-none
                   transition
@@ -848,9 +869,10 @@ export default function VoucherForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -908,8 +930,9 @@ export default function VoucherForm({
           border
           border-gray-200
           bg-white
-          p-6
+          p-4
           shadow-sm
+          sm:p-6
         "
       >
 
@@ -942,7 +965,8 @@ export default function VoucherForm({
           className="
             grid
             grid-cols-1
-            gap-6
+            gap-4
+            sm:gap-6
             md:grid-cols-2
           "
         >
@@ -984,9 +1008,10 @@ export default function VoucherForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -1033,9 +1058,10 @@ export default function VoucherForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -1096,9 +1122,10 @@ export default function VoucherForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -1159,9 +1186,10 @@ export default function VoucherForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -1347,14 +1375,17 @@ export default function VoucherForm({
           href="/admin/dashboard/vouchers"
           className="
             inline-flex
+            w-full
             items-center
             justify-center
             rounded-xl
             border
             border-gray-300
             bg-white
-            px-6
+            px-5
             py-3
+            sm:w-auto
+            sm:px-6
             text-sm
             font-medium
             text-gray-700
@@ -1373,12 +1404,15 @@ export default function VoucherForm({
           }
           className="
             inline-flex
+            w-full
             items-center
             justify-center
             rounded-xl
             bg-black
-            px-7
+            px-6
             py-3
+            sm:w-auto
+            sm:px-7
             text-sm
             font-medium
             text-white

@@ -24,6 +24,7 @@ import {
 
 import { toast } from "sonner";
 
+
 type ProductRowProps = {
   product: ProductWithImages;
 
@@ -34,7 +35,27 @@ type ProductRowProps = {
   onToggle: () => void;
 
   canDelete: boolean;
+
+  /*
+   * Current Products page state.
+   *
+   * Used by Edit Product so the admin
+   * can return to the same list state.
+   */
+
+  page: number;
+
+  search: string;
+
+  brand: string;
+
+  category: string;
+
+  availability: string;
+
+  sort: string;
 };
+
 
 export default function ProductRow({
   product,
@@ -42,7 +63,15 @@ export default function ProductRow({
   selected,
   onToggle,
   canDelete,
+
+  page,
+  search,
+  brand,
+  category,
+  availability,
+  sort,
 }: ProductRowProps) {
+
   // =========================================================
   // PRODUCT-LEVEL PROFIT
   // =========================================================
@@ -56,6 +85,7 @@ export default function ProductRow({
       product,
       exchangeRate
     );
+
 
   // =========================================================
   // SORTABLE
@@ -72,13 +102,16 @@ export default function ProductRow({
     id: product.id,
   });
 
+
   const style: CSSProperties = {
     transform:
       CSS.Transform.toString(
         transform
       ),
+
     transition,
   };
+
 
   // =========================================================
   // VARIANT PROFIT CALCULATION
@@ -105,33 +138,42 @@ export default function ProductRow({
   function calculateVariantProfit(
     variant: ProductWithImages["variants"][number]
   ) {
+
     const effectiveExchangeRate =
       variant.exchangeRate ??
       exchangeRate;
+
 
     const costPriceCny =
       variant.costPriceCny ??
       product.costPriceCny ??
       0;
 
+
     const costMyr =
       costPriceCny *
       effectiveExchangeRate;
+
 
     const sellingPrice =
       variant.price ??
       product.price;
 
+
     const profit =
       sellingPrice -
       costMyr;
 
+
     const margin =
       sellingPrice <= 0
         ? 0
-        : (profit /
-            sellingPrice) *
+        : (
+            profit /
+            sellingPrice
+          ) *
           100;
+
 
     return {
       costPriceCny,
@@ -142,6 +184,7 @@ export default function ProductRow({
       margin,
     };
   }
+
 
   // =========================================================
   // RENDER
@@ -158,6 +201,7 @@ export default function ProductRow({
         duration-200
         hover:bg-neutral-50
         hover:shadow-sm
+
         ${
           isDragging
             ? "relative z-20 bg-white opacity-70 shadow-xl"
@@ -165,11 +209,23 @@ export default function ProductRow({
         }
       `}
     >
+
       {/* ================================================= */}
       {/* Selection */}
       {/* ================================================= */}
 
-      <td className="w-16 px-4 py-6 align-top">
+      <td
+        className="
+          w-16
+          px-3
+          py-4
+          align-top
+
+          lg:px-4
+          lg:py-6
+        "
+      >
+
         <div className="flex flex-col items-center gap-3">
 
           <GripVertical
@@ -185,6 +241,7 @@ export default function ProductRow({
             "
           />
 
+
           <input
             type="checkbox"
             checked={selected}
@@ -199,28 +256,45 @@ export default function ProductRow({
           />
 
         </div>
+
       </td>
+
 
       {/* ================================================= */}
       {/* Product */}
       {/* ================================================= */}
 
-      <td className="px-6 py-6 align-top">
-        <div className="flex gap-5">
+      <td
+        className="
+          px-3
+          py-4
+          align-top
+
+          lg:px-6
+          lg:py-6
+        "
+      >
+
+        <div className="flex gap-3 sm:gap-5">
 
           {product.images.length > 0 ? (
-            <div className="overflow-hidden rounded-2xl">
+
+            <div className="shrink-0 overflow-hidden rounded-2xl">
 
               <Image
-                src={product.images[0].url}
+                src={
+                  product.images[0].url
+                }
                 alt={product.name}
                 width={96}
                 height={96}
                 sizes="100px"
                 className="
-                  h-24
-                  w-24
+                  h-20
+                  w-20
                   rounded-2xl
+                  sm:h-24
+                  sm:w-24
                   border
                   border-neutral-200
                   bg-white
@@ -233,7 +307,9 @@ export default function ProductRow({
               />
 
             </div>
+
           ) : (
+
             <div
               className="
                 flex
@@ -251,7 +327,9 @@ export default function ProductRow({
             >
               No Image
             </div>
+
           )}
+
 
           <div className="min-w-0 flex-1">
 
@@ -266,6 +344,7 @@ export default function ProductRow({
             >
               {product.brand}
             </p>
+
 
             <h3
               className="
@@ -282,17 +361,22 @@ export default function ProductRow({
               {product.name}
             </h3>
 
+
             <p className="mt-2 text-sm text-neutral-500">
               Reference · {product.sku ?? "-"}
             </p>
 
+
             <p className="mt-1 text-sm text-neutral-500">
+
               {product.category}
 
               {product.subCategory
                 ? ` • ${product.subCategory}`
                 : ""}
+
             </p>
+
 
             <div className="mt-4 flex flex-wrap gap-2">
 
@@ -302,11 +386,13 @@ export default function ProductRow({
                 </Badge>
               )}
 
+
               {product.featured && (
                 <Badge>
                   FEATURED
                 </Badge>
               )}
+
 
               {product.bestSeller && (
                 <Badge>
@@ -314,11 +400,13 @@ export default function ProductRow({
                 </Badge>
               )}
 
+
               {product.limited && (
                 <Badge variant="warning">
                   LIMITED
                 </Badge>
               )}
+
 
               {product.onSale && (
                 <Badge variant="success">
@@ -327,21 +415,28 @@ export default function ProductRow({
               )}
 
             </div>
+
           </div>
+
         </div>
+
       </td>
+
 
       {/* ================================================= */}
       {/* Pricing */}
       {/* ================================================= */}
 
-      <td className="px-6 py-6 align-top">
+      <td
+        className="
+          px-3
+          py-4
+          align-top
 
-        {/*
-         * ====================================================
-         * PRODUCT WITH VARIANTS
-         * ====================================================
-         */}
+          lg:px-6
+          lg:py-6
+        "
+      >
 
         {product.variants.length > 0 ? (
 
@@ -354,6 +449,7 @@ export default function ProductRow({
                   calculateVariantProfit(
                     variant
                   );
+
 
                 /*
                  * Color name comes from the
@@ -370,6 +466,7 @@ export default function ProductRow({
                       ? `Color #${variant.colorId}`
                       : null
                   );
+
 
                 return (
                   <div
@@ -401,6 +498,7 @@ export default function ProductRow({
                         Variant
                       </p>
 
+
                       <p
                         className="
                           mt-1
@@ -415,6 +513,7 @@ export default function ProductRow({
                       </p>
 
                     </div>
+
 
                     {/* ====================================== */}
                     {/* Cost */}
@@ -433,6 +532,7 @@ export default function ProductRow({
                         Cost
                       </p>
 
+
                       <div
                         className="
                           mt-2
@@ -443,23 +543,29 @@ export default function ProductRow({
                       >
 
                         <p>
+
                           {variant.costPriceCny != null
                             ? `¥ ${variant.costPriceCny.toFixed(2)}`
                             : product.costPriceCny != null
                               ? `¥ ${product.costPriceCny.toFixed(2)}`
                               : "-"}
+
                         </p>
 
+
                         <p className="text-neutral-500">
+
                           RM{" "}
                           {result.costMyr.toFixed(
                             2
                           )}
+
                         </p>
 
                       </div>
 
                     </div>
+
 
                     {/* ====================================== */}
                     {/* Selling */}
@@ -485,17 +591,24 @@ export default function ProductRow({
                         Selling
                       </p>
 
+
                       {/* ================================================= */}
                       {/* DIRECT VARIANT PRICE EDIT */}
                       {/* ================================================= */}
 
                       <EditableField
-                        value={result.sellingPrice.toFixed(2)}
+                        value={
+                          result.sellingPrice.toFixed(
+                            2
+                          )
+                        }
+
                         className="
                           mt-2
                           font-semibold
                           tabular-nums
                         "
+
                         onSave={async (
                           value
                         ) => {
@@ -503,12 +616,14 @@ export default function ProductRow({
                           const price =
                             Number(value);
 
+
                           if (
                             !Number.isFinite(
                               price
                             ) ||
                             price < 0
                           ) {
+
                             toast.error(
                               "Invalid selling price"
                             );
@@ -516,12 +631,14 @@ export default function ProductRow({
                             return;
                           }
 
+
                           try {
 
                             await quickUpdateProductVariantPrice(
                               variant.id,
                               price
                             );
+
 
                             toast.success(
                               "Variant price updated"
@@ -533,6 +650,7 @@ export default function ProductRow({
                               error
                             );
 
+
                             toast.error(
                               "Failed to update variant price"
                             );
@@ -543,6 +661,7 @@ export default function ProductRow({
                       />
 
                     </div>
+
 
                     {/* ====================================== */}
                     {/* Profit */}
@@ -568,11 +687,13 @@ export default function ProductRow({
                         Profit
                       </p>
 
+
                       <p
                         className={`
                           mt-2
                           font-semibold
                           tabular-nums
+
                           ${
                             result.profit >= 0
                               ? "text-green-600"
@@ -580,11 +701,14 @@ export default function ProductRow({
                           }
                         `}
                       >
+
                         RM{" "}
                         {result.profit.toFixed(
                           2
                         )}
+
                       </p>
+
 
                       <p
                         className="
@@ -594,16 +718,19 @@ export default function ProductRow({
                           tabular-nums
                         "
                       >
+
                         {result.margin.toFixed(
                           1
                         )}
                         %
+
                       </p>
 
                     </div>
 
                   </div>
                 );
+
               }
             )}
 
@@ -636,6 +763,7 @@ export default function ProductRow({
                 Cost
               </p>
 
+
               <div
                 className="
                   mt-2
@@ -646,21 +774,27 @@ export default function ProductRow({
               >
 
                 <p>
+
                   {product.costPriceCny != null
                     ? `¥ ${product.costPriceCny.toFixed(2)}`
                     : "-"}
+
                 </p>
 
+
                 <p className="text-neutral-500">
+
                   RM{" "}
                   {productResult.costMyr.toFixed(
                     2
                   )}
+
                 </p>
 
               </div>
 
             </div>
+
 
             {/* ============================================== */}
             {/* Selling */}
@@ -685,21 +819,27 @@ export default function ProductRow({
                 Selling
               </p>
 
+
               <EditableField
-                value={product.price.toFixed(
-                  2
-                )}
+                value={
+                  product.price.toFixed(
+                    2
+                  )
+                }
+
                 className="
                   mt-2
                   font-semibold
                   tabular-nums
                 "
+
                 onSave={async (
                   value
                 ) => {
 
                   const price =
                     Number(value);
+
 
                   if (
                     Number.isNaN(
@@ -714,18 +854,22 @@ export default function ProductRow({
                     return;
                   }
 
+
                   await quickUpdateProductPrice(
                     product.id,
                     price
                   );
 
+
                   toast.success(
                     "Price updated"
                   );
+
                 }}
               />
 
             </div>
+
 
             {/* ============================================== */}
             {/* Profit */}
@@ -750,11 +894,13 @@ export default function ProductRow({
                 Profit
               </p>
 
+
               <p
                 className={`
                   mt-2
                   font-semibold
                   tabular-nums
+
                   ${
                     productResult.profit >= 0
                       ? "text-green-600"
@@ -762,11 +908,14 @@ export default function ProductRow({
                   }
                 `}
               >
+
                 RM{" "}
                 {productResult.profit.toFixed(
                   2
                 )}
+
               </p>
+
 
               <p
                 className="
@@ -776,10 +925,12 @@ export default function ProductRow({
                   tabular-nums
                 "
               >
+
                 {productResult.margin.toFixed(
                   1
                 )}
                 %
+
               </p>
 
             </div>
@@ -790,11 +941,21 @@ export default function ProductRow({
 
       </td>
 
+
       {/* ================================================= */}
       {/* Availability */}
       {/* ================================================= */}
 
-      <td className="px-6 py-6 align-top">
+      <td
+        className="
+          px-3
+          py-4
+          align-top
+
+          lg:px-6
+          lg:py-6
+        "
+      >
 
         <div className="space-y-4">
 
@@ -810,6 +971,7 @@ export default function ProductRow({
             >
               Status
             </p>
+
 
             <div className="mt-2">
 
@@ -846,6 +1008,7 @@ export default function ProductRow({
 
           </div>
 
+
           <div
             className="
               border-t
@@ -865,6 +1028,7 @@ export default function ProductRow({
               Inventory
             </p>
 
+
             <p className="mt-2 text-sm text-neutral-500">
               Unlimited
             </p>
@@ -875,18 +1039,64 @@ export default function ProductRow({
 
       </td>
 
+
       {/* ================================================= */}
       {/* Actions */}
       {/* ================================================= */}
 
-      <td className="px-6 py-6 align-top">
+      <td
+        className="
+          w-[390px]
+          min-w-[390px]
+          px-3
+          py-4
+          align-top
 
-        <div className="flex justify-end">
+          lg:w-[430px]
+          lg:min-w-[430px]
+          lg:px-6
+          lg:py-6
+        "
+      >
+
+        <div className="flex justify-end whitespace-nowrap">
 
           <ProductActions
-            productId={product.id}
-            productName={product.name}
-            canDelete={canDelete}
+            productId={
+              product.id
+            }
+
+            productName={
+              product.name
+            }
+
+            canDelete={
+              canDelete
+            }
+
+            page={
+              page
+            }
+
+            search={
+              search
+            }
+
+            brand={
+              brand
+            }
+
+            category={
+              category
+            }
+
+            availability={
+              availability
+            }
+
+            sort={
+              sort
+            }
           />
 
         </div>

@@ -252,7 +252,8 @@ export default async function VoucherUsagePage({
 
     <main
       className="
-        space-y-8
+        space-y-6
+        sm:space-y-8
       "
     >
 
@@ -268,8 +269,13 @@ export default async function VoucherUsagePage({
         <div
           className="
             flex
-            items-center
-            gap-3
+            w-full
+            flex-col
+            gap-2
+            sm:w-auto
+            sm:flex-row
+            sm:items-center
+            sm:gap-3
           "
         >
 
@@ -277,7 +283,9 @@ export default async function VoucherUsagePage({
             href={`/admin/dashboard/vouchers/${voucher.id}`}
             className="
               inline-flex
+              w-full
               items-center
+              justify-center
               rounded-xl
               border
               border-neutral-200
@@ -285,6 +293,7 @@ export default async function VoucherUsagePage({
               px-4
               py-2.5
               text-sm
+              sm:w-auto
               font-medium
               text-neutral-700
               transition-colors
@@ -299,7 +308,9 @@ export default async function VoucherUsagePage({
             href="/admin/dashboard/vouchers"
             className="
               inline-flex
+              w-full
               items-center
+              justify-center
               rounded-xl
               border
               border-neutral-200
@@ -307,6 +318,7 @@ export default async function VoucherUsagePage({
               px-4
               py-2.5
               text-sm
+              sm:w-auto
               font-medium
               text-neutral-700
               transition-colors
@@ -328,8 +340,9 @@ export default async function VoucherUsagePage({
       <div
         className="
           grid
-          grid-cols-1
-          gap-4
+          grid-cols-2
+          gap-3
+          sm:gap-4
           md:grid-cols-3
         "
       >
@@ -353,8 +366,9 @@ export default async function VoucherUsagePage({
           <div
             className="
               mt-2
-              text-2xl
+              text-xl
               font-semibold
+              sm:text-2xl
               text-neutral-900
             "
           >
@@ -397,8 +411,9 @@ export default async function VoucherUsagePage({
           <div
             className="
               mt-2
-              text-2xl
+              text-xl
               font-semibold
+              sm:text-2xl
               text-neutral-900
             "
           >
@@ -440,8 +455,9 @@ export default async function VoucherUsagePage({
           <div
             className="
               mt-2
-              text-2xl
+              text-xl
               font-semibold
+              sm:text-2xl
               text-neutral-900
             "
           >
@@ -494,10 +510,281 @@ export default async function VoucherUsagePage({
           />
 
         ) : (
+          <>
+            {/* ==================================================
+                MOBILE USAGE LIST
+                ================================================== */}
+
+            <div className="divide-y divide-neutral-100 md:hidden">
+
+            {usages.map(
+              (usage) => (
+
+                <div
+                  key={usage.id}
+                  className="
+                    min-w-0
+                    p-4
+                    transition-colors
+                    hover:bg-neutral-50
+                  "
+                >
+
+                  {/* Customer + Status */}
+
+                  <div
+                    className="
+                      flex
+                      min-w-0
+                      items-start
+                      justify-between
+                      gap-3
+                    "
+                  >
+
+                    <div className="min-w-0">
+
+                      <p
+                        className="
+                          truncate
+                          text-sm
+                          font-medium
+                          text-neutral-900
+                        "
+                      >
+                        {usage.user?.name ||
+                          usage.order.customerName}
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+                          truncate
+                          text-[11px]
+                          text-neutral-400
+                        "
+                      >
+                        {usage.user?.email ||
+                          usage.order.customerPhone}
+                      </p>
+
+                    </div>
+
+                    <span
+                      className="
+                        shrink-0
+                        rounded-full
+                        bg-neutral-100
+                        px-2.5
+                        py-1
+                        text-[10px]
+                        font-medium
+                        text-neutral-700
+                      "
+                    >
+                      {usage.order.status}
+                    </span>
+
+                  </div>
+
+
+                  {/* Order */}
+
+                  <div
+                    className="
+                      mt-4
+                      rounded-xl
+                      bg-neutral-50
+                      p-3
+                    "
+                  >
+
+                    <div
+                      className="
+                        flex
+                        items-center
+                        justify-between
+                        gap-3
+                      "
+                    >
+
+                      <div>
+
+                        <p
+                          className="
+                            text-[10px]
+                            uppercase
+                            tracking-[0.18em]
+                            text-neutral-400
+                          "
+                        >
+                          Order
+                        </p>
+
+                        <Link
+                          href={`/admin/dashboard/orders/${usage.order.id}`}
+                          className="
+                            mt-1
+                            inline-block
+                            text-sm
+                            font-medium
+                            text-neutral-900
+                            underline-offset-4
+                            hover:underline
+                          "
+                        >
+                          #{usage.order.id}
+                        </Link>
+
+                      </div>
+
+                      <div className="text-right">
+
+                        <p
+                          className="
+                            text-[10px]
+                            uppercase
+                            tracking-[0.18em]
+                            text-neutral-400
+                          "
+                        >
+                          Order Total
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
+                            text-sm
+                            font-semibold
+                            text-neutral-900
+                          "
+                        >
+                          {formatAmount(
+                            usage.order.finalAmount
+                          )}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <p
+                      className="
+                        mt-2
+                        text-[10px]
+                        text-neutral-400
+                      "
+                    >
+                      {formatDateTime(
+                        usage.order.createdAt
+                      )}
+                    </p>
+
+                  </div>
+
+
+                  {/* Discount + Used At */}
+
+                  <div
+                    className="
+                      mt-3
+                      grid
+                      grid-cols-2
+                      gap-3
+                    "
+                  >
+
+                    <div
+                      className="
+                        rounded-xl
+                        border
+                        border-neutral-100
+                        p-3
+                      "
+                    >
+
+                      <p
+                        className="
+                          text-[10px]
+                          uppercase
+                          tracking-[0.18em]
+                          text-neutral-400
+                        "
+                      >
+                        Discount
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+                          text-sm
+                          font-semibold
+                          text-green-700
+                        "
+                      >
+                        -{" "}
+                        {formatAmount(
+                          usage.discount
+                        )}
+                      </p>
+
+                    </div>
+
+
+                    <div
+                      className="
+                        rounded-xl
+                        border
+                        border-neutral-100
+                        p-3
+                      "
+                    >
+
+                      <p
+                        className="
+                          text-[10px]
+                          uppercase
+                          tracking-[0.18em]
+                          text-neutral-400
+                        "
+                      >
+                        Used At
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+                          text-xs
+                          leading-5
+                          text-neutral-600
+                        "
+                      >
+                        {formatDateTime(
+                          usage.createdAt
+                        )}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              )
+            )}
+
+          </div>
+
+
+          {/* ==================================================
+              DESKTOP USAGE TABLE
+              ================================================== */}
 
           <div
             className="
+              hidden
               overflow-x-auto
+              md:block
             "
           >
 
@@ -819,6 +1106,7 @@ export default async function VoucherUsagePage({
 
           </div>
 
+          </>
         )}
 
       </Card>

@@ -287,7 +287,8 @@ export default async function OrderDetailPage({
 
     <main
       className="
-        space-y-8
+        space-y-6
+        sm:space-y-8
       "
     >
 
@@ -333,7 +334,8 @@ export default async function OrderDetailPage({
 
           <div
             className="
-              mt-5
+              mt-4
+              sm:mt-5
             "
           >
 
@@ -352,8 +354,9 @@ export default async function OrderDetailPage({
             <h1
               className="
                 mt-2
-                text-3xl
+                text-2xl
                 font-semibold
+                sm:text-3xl
                 tracking-tight
                 text-neutral-900
               "
@@ -387,7 +390,8 @@ export default async function OrderDetailPage({
           className="
             flex
             flex-wrap
-            gap-3
+            gap-2
+            sm:gap-3
           "
         >
 
@@ -397,10 +401,13 @@ export default async function OrderDetailPage({
               items-center
               rounded-full
               border
-              px-4
-              py-2
-              text-xs
+              px-3
+              py-1.5
+              text-[10px]
               font-medium
+              sm:px-4
+              sm:py-2
+              sm:text-xs
               uppercase
               tracking-[0.12em]
               ${getStatusClass(
@@ -424,10 +431,13 @@ export default async function OrderDetailPage({
                 items-center
                 rounded-full
                 border
-                px-4
-                py-2
-                text-xs
+                px-3
+                py-1.5
+                text-[10px]
                 font-medium
+                sm:px-4
+                sm:py-2
+                sm:text-xs
                 uppercase
                 tracking-[0.12em]
                 ${getStatusClass(
@@ -474,7 +484,8 @@ export default async function OrderDetailPage({
             border
             border-neutral-200
             bg-white
-            p-6
+            p-4
+            sm:p-6
           "
         >
 
@@ -493,8 +504,10 @@ export default async function OrderDetailPage({
 
           <div
             className="
-              mt-6
-              space-y-5
+              mt-5
+              space-y-4
+              sm:mt-6
+              sm:space-y-5
             "
           >
 
@@ -512,6 +525,7 @@ export default async function OrderDetailPage({
               <p
                 className="
                   mt-1
+                  break-words
                   font-medium
                   text-neutral-900
                 "
@@ -536,6 +550,7 @@ export default async function OrderDetailPage({
               <p
                 className="
                   mt-1
+                  break-words
                   font-medium
                   text-neutral-900
                 "
@@ -592,6 +607,7 @@ export default async function OrderDetailPage({
                   className="
                     mt-1
                     whitespace-pre-line
+                    break-words
                     text-sm
                     leading-6
                     text-neutral-700
@@ -619,7 +635,8 @@ export default async function OrderDetailPage({
             border
             border-neutral-200
             bg-white
-            p-6
+            p-4
+            sm:p-6
           "
         >
 
@@ -812,7 +829,8 @@ export default async function OrderDetailPage({
           className="
             border-b
             border-neutral-200
-            p-6
+            p-4
+            sm:p-6
           "
         >
 
@@ -854,10 +872,11 @@ export default async function OrderDetailPage({
                 "
               >
 
-                <div>
+                <div className="min-w-0">
 
                   <p
                     className="
+                      break-words
                       font-medium
                       text-neutral-900
                     "
@@ -948,8 +967,9 @@ export default async function OrderDetailPage({
 
                 <div
                   className="
+                    min-w-0
                     shrink-0
-                    min-w-[180px]
+                    md:min-w-[180px]
                     md:text-right
                   "
                 >
@@ -1223,9 +1243,12 @@ export default async function OrderDetailPage({
 
         <div
           className="
-            mt-8
+            mt-6
             grid
-            gap-4
+            grid-cols-2
+            gap-3
+            sm:mt-8
+            sm:gap-4
             md:grid-cols-2
             xl:grid-cols-4
           "
@@ -1242,7 +1265,8 @@ export default async function OrderDetailPage({
               border
               border-neutral-200
               bg-neutral-50
-              p-5
+              p-4
+              sm:p-5
             "
           >
 
@@ -1260,9 +1284,11 @@ export default async function OrderDetailPage({
 
             <p
               className="
-                mt-3
-                text-2xl
+                mt-2
+                text-xl
                 font-semibold
+                sm:mt-3
+                sm:text-2xl
                 text-neutral-900
               "
             >
@@ -1284,7 +1310,8 @@ export default async function OrderDetailPage({
               border
               border-neutral-200
               bg-neutral-50
-              p-5
+              p-4
+              sm:p-5
             "
           >
 
@@ -1302,9 +1329,11 @@ export default async function OrderDetailPage({
 
             <p
               className="
-                mt-3
-                text-2xl
+                mt-2
+                text-xl
                 font-semibold
+                sm:mt-3
+                sm:text-2xl
                 text-neutral-900
               "
             >
@@ -1328,7 +1357,8 @@ export default async function OrderDetailPage({
               border
               border-neutral-200
               bg-neutral-50
-              p-5
+              p-4
+              sm:p-5
             "
           >
 
@@ -1346,9 +1376,11 @@ export default async function OrderDetailPage({
 
             <p
               className={`
-                mt-3
-                text-2xl
+                mt-2
+                text-xl
                 font-semibold
+                sm:mt-3
+                sm:text-2xl
                 ${
                   totalProfit !== null
                     ? totalProfit >= 0
@@ -1378,7 +1410,8 @@ export default async function OrderDetailPage({
               border
               border-neutral-200
               bg-neutral-50
-              p-5
+              p-4
+              sm:p-5
             "
           >
 
@@ -1396,9 +1429,11 @@ export default async function OrderDetailPage({
 
             <p
               className="
-                mt-3
-                text-2xl
+                mt-2
+                text-xl
                 font-semibold
+                sm:mt-3
+                sm:text-2xl
                 text-neutral-900
               "
             >
@@ -1421,9 +1456,13 @@ export default async function OrderDetailPage({
               border
               border-amber-200
               bg-amber-50
-              px-5
-              py-4
-              text-sm
+              px-4
+              py-3
+              text-xs
+              leading-5
+              sm:px-5
+              sm:py-4
+              sm:text-sm
               text-amber-700
             "
           >
@@ -1518,10 +1557,13 @@ export default async function OrderDetailPage({
                 w-fit
                 rounded-full
                 border
-                px-4
-                py-2
-                text-xs
+                px-3
+                py-1.5
+                text-[10px]
                 font-medium
+                sm:px-4
+                sm:py-2
+                sm:text-xs
                 uppercase
                 tracking-[0.12em]
                 ${getStatusClass(
@@ -1565,7 +1607,8 @@ export default async function OrderDetailPage({
                 className="
                   rounded-xl
                   bg-neutral-50
-                  p-5
+                  p-4
+                  sm:p-5
                 "
               >
 
@@ -1583,6 +1626,7 @@ export default async function OrderDetailPage({
                 <p
                   className="
                     mt-2
+                    break-words
                     font-medium
                     text-neutral-900
                   "
@@ -1601,7 +1645,8 @@ export default async function OrderDetailPage({
                 className="
                   rounded-xl
                   bg-neutral-50
-                  p-5
+                  p-4
+                  sm:p-5
                 "
               >
 
@@ -1619,6 +1664,7 @@ export default async function OrderDetailPage({
                 <p
                   className="
                     mt-2
+                    break-words
                     font-medium
                     text-neutral-900
                   "
@@ -1637,7 +1683,8 @@ export default async function OrderDetailPage({
                 className="
                   rounded-xl
                   bg-neutral-50
-                  p-5
+                  p-4
+                  sm:p-5
                 "
               >
 
@@ -1713,10 +1760,12 @@ export default async function OrderDetailPage({
 
         <div
           className="
-            mt-8
+            mt-6
             border-t
             border-neutral-200
-            pt-8
+            pt-6
+            sm:mt-8
+            sm:pt-8
           "
         >
 
@@ -1766,7 +1815,8 @@ export default async function OrderDetailPage({
 
             <div
               className="
-                mt-6
+                mt-5
+                sm:mt-6
               "
             >
 
@@ -1788,9 +1838,10 @@ export default async function OrderDetailPage({
                   width={1200}
                   height={1200}
                   className="
-                    max-h-[700px]
+                    max-h-[420px]
                     w-full
                     object-contain
+                    sm:max-h-[700px]
                   "
                 />
 
@@ -1806,14 +1857,18 @@ export default async function OrderDetailPage({
                 className="
                   mt-4
                   inline-flex
+                  max-w-full
                   items-center
+                  justify-center
                   gap-2
                   rounded-lg
                   border
                   border-neutral-300
-                  px-4
+                  px-3
                   py-2.5
-                  text-sm
+                  text-xs
+                  sm:px-4
+                  sm:text-sm
                   transition
                   hover:bg-neutral-100
                 "
@@ -1836,8 +1891,9 @@ export default async function OrderDetailPage({
                 mt-6
                 rounded-xl
                 bg-neutral-50
-                p-8
+                p-6
                 text-center
+                sm:p-8
               "
             >
 
@@ -1936,7 +1992,8 @@ export default async function OrderDetailPage({
 
         <div
           className="
-            mt-6
+            mt-5
+            sm:mt-6
           "
         >
 
@@ -2033,7 +2090,8 @@ export default async function OrderDetailPage({
 
         <div
           className="
-            mt-6
+            mt-5
+            sm:mt-6
           "
         >
 
@@ -2108,7 +2166,8 @@ export default async function OrderDetailPage({
 
         <div
           className="
-            mt-6
+            mt-5
+            sm:mt-6
           "
         >
 
@@ -2148,7 +2207,7 @@ export default async function OrderDetailPage({
                   "
                 >
 
-                  <div>
+                  <div className="min-w-0">
 
                     <p
                       className="
@@ -2172,7 +2231,7 @@ export default async function OrderDetailPage({
                   </div>
 
 
-                  <div>
+                  <div className="min-w-0">
 
                     <p
                       className="
@@ -2199,7 +2258,7 @@ export default async function OrderDetailPage({
 
                   {order.trackingUrl && (
 
-                    <div>
+                    <div className="min-w-0">
 
                       <p
                         className="

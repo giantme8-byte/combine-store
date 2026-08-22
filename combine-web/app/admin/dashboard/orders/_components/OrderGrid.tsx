@@ -624,8 +624,11 @@ export default function OrderGrid({
       <div
         className="
           grid
-          gap-6
+          grid-cols-1
+          gap-4
+          sm:gap-5
           md:grid-cols-2
+          md:gap-6
           xl:grid-cols-3
         "
       >
@@ -636,12 +639,16 @@ export default function OrderGrid({
             <div
               key={order.id}
               className="
+                min-w-0
+                overflow-hidden
                 rounded-2xl
                 border
                 border-neutral-200
                 bg-white
-                p-6
+                p-4
                 transition
+                sm:p-5
+                lg:p-6
                 hover:border-neutral-300
                 hover:shadow-sm
               "
@@ -654,9 +661,11 @@ export default function OrderGrid({
               <div
                 className="
                   flex
+                  min-w-0
                   items-start
                   justify-between
-                  gap-4
+                  gap-3
+                  sm:gap-4
                 "
               >
 
@@ -679,8 +688,10 @@ export default function OrderGrid({
                     className="
                       mt-1
                       block
-                      text-xl
+                      truncate
+                      text-lg
                       font-semibold
+                      sm:text-xl
                       text-neutral-900
                       hover:underline
                     "
@@ -720,7 +731,7 @@ export default function OrderGrid({
                   CUSTOMER
                   ============================================== */}
 
-              <div className="mt-6">
+              <div className="mt-5 sm:mt-6">
 
                 <p
                   className="
@@ -736,9 +747,11 @@ export default function OrderGrid({
 
                 <p
                   className="
-                    mt-2
+                    mt-1.5
+                    truncate
                     font-medium
                     text-neutral-900
+                    sm:mt-2
                   "
                 >
                   {order.customerName}
@@ -764,10 +777,12 @@ export default function OrderGrid({
 
               <div
                 className="
-                  mt-6
+                  mt-5
                   border-t
                   border-neutral-100
-                  pt-5
+                  pt-4
+                  sm:mt-6
+                  sm:pt-5
                 "
               >
 
@@ -968,10 +983,12 @@ export default function OrderGrid({
 
               <div
                 className="
-                  mt-6
+                  mt-5
                   border-t
                   border-neutral-100
-                  pt-5
+                  pt-4
+                  sm:mt-6
+                  sm:pt-5
                 "
               >
 
@@ -1062,10 +1079,12 @@ export default function OrderGrid({
 
               <div
                 className="
-                  mt-6
+                  mt-5
                   border-t
                   border-neutral-100
-                  pt-5
+                  pt-4
+                  sm:mt-6
+                  sm:pt-5
                 "
               >
 
@@ -1094,7 +1113,7 @@ export default function OrderGrid({
                     <p className="text-[10px] uppercase tracking-[0.1em] text-neutral-400">
                       Cost
                     </p>
-                    <p className="mt-1 text-sm font-medium text-neutral-900">
+                    <p className="mt-1 truncate text-xs font-medium text-neutral-900 sm:text-sm">
                       {getOrderCost(order) === null
                         ? "—"
                         : formatAmount(getOrderCost(order) ?? 0)}
@@ -1106,7 +1125,7 @@ export default function OrderGrid({
                     <p className="text-[10px] uppercase tracking-[0.1em] text-neutral-400">
                       Profit
                     </p>
-                    <p className="mt-1 text-sm font-medium text-emerald-700">
+                    <p className="mt-1 truncate text-xs font-medium text-emerald-700 sm:text-sm">
                       {getOrderProfit(order) === null
                         ? "—"
                         : formatAmount(getOrderProfit(order) ?? 0)}
@@ -1118,7 +1137,7 @@ export default function OrderGrid({
                     <p className="text-[10px] uppercase tracking-[0.1em] text-neutral-400">
                       Margin
                     </p>
-                    <p className="mt-1 text-sm font-medium text-neutral-900">
+                    <p className="mt-1 truncate text-xs font-medium text-neutral-900 sm:text-sm">
                       {getOrderMargin(order) === null
                         ? "—"
                         : `${getOrderMargin(order)?.toFixed(1)}%`}
@@ -1136,10 +1155,12 @@ export default function OrderGrid({
 
               <div
                 className="
-                  mt-6
+                  mt-5
                   border-t
                   border-neutral-100
-                  pt-5
+                  pt-4
+                  sm:mt-6
+                  sm:pt-5
                 "
               >
 
@@ -1273,13 +1294,17 @@ export default function OrderGrid({
 
               <div
                 className="
-                  mt-6
+                  mt-5
                   flex
+                  min-w-0
                   items-center
                   justify-between
+                  gap-3
                   border-t
                   border-neutral-100
-                  pt-5
+                  pt-4
+                  sm:mt-6
+                  sm:pt-5
                 "
               >
 
@@ -1301,11 +1326,14 @@ export default function OrderGrid({
                     rounded-lg
                     border
                     border-neutral-300
-                    px-4
+                    shrink-0
+                    px-3
                     py-2
-                    text-sm
+                    text-xs
                     transition
                     hover:bg-neutral-100
+                    sm:px-4
+                    sm:text-sm
                   "
                 >
                   View Order

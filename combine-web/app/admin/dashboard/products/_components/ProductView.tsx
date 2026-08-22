@@ -14,6 +14,7 @@ import type {
 import ProductTable from "./ProductTable";
 import ProductGrid from "./ProductGrid";
 
+
 type ProductViewProps = {
   products: ProductWithImages[];
 
@@ -36,7 +37,28 @@ type ProductViewProps = {
   pageSize: number;
 
   sort: string;
+
+  /*
+   * =========================================================
+   * CURRENT PRODUCTS PAGE STATE
+   * =========================================================
+   *
+   * These values represent the actual filters currently
+   * applied on the Products page.
+   *
+   * They are passed to both ProductGrid and ProductTable
+   * so Edit Product can return to the exact same list state.
+   */
+
+  search: string;
+
+  brand: string;
+
+  category: string;
+
+  availability: string;
 };
+
 
 export default function ProductView({
   products,
@@ -47,98 +69,140 @@ export default function ProductView({
   page,
   pageSize,
   sort,
+  search,
+  brand,
+  category,
+  availability,
 }: ProductViewProps) {
-  /*
-   * =========================================================
-   * VIEW STATE
-   * =========================================================
-   */
 
-  const [view, setView] =
-    useState<"table" | "grid">(
-      "table"
-    );
+  // =========================================================
+  // VIEW STATE
+  // =========================================================
 
-  const [mounted, setMounted] =
-    useState(false);
+  const [
+    view,
+    setView,
+  ] = useState<
+    "table" | "grid"
+  >("table");
 
-  /*
-   * =========================================================
-   * HYDRATION
-   * =========================================================
-   */
+
+  const [
+    mounted,
+    setMounted,
+  ] = useState(false);
+
+
+  // =========================================================
+  // HYDRATION
+  // =========================================================
 
   useEffect(() => {
+
     setMounted(true);
+
 
     const savedView =
       localStorage.getItem(
         "product-view"
       );
 
+
     if (
       savedView === "table" ||
       savedView === "grid"
     ) {
-      setView(savedView);
+
+      setView(
+        savedView
+      );
+
     }
+
   }, []);
 
-  /*
-   * =========================================================
-   * SAVE VIEW PREFERENCE
-   * =========================================================
-   */
+
+  // =========================================================
+  // SAVE VIEW PREFERENCE
+  // =========================================================
 
   useEffect(() => {
+
     if (!mounted) {
       return;
     }
+
 
     localStorage.setItem(
       "product-view",
       view
     );
+
   }, [
     view,
     mounted,
   ]);
 
-  /*
-   * =========================================================
-   * ACTIVE VIEW
-   * =========================================================
-   */
 
-  const activeView =
+  // =========================================================
+  // DESKTOP VIEW
+  //
+  // Mobile is always Grid.
+  // Desktop remembers selected view.
+  // =========================================================
+
+  const desktopView =
     mounted
       ? view
       : "table";
 
-  /*
-   * =========================================================
-   * RENDER
-   * =========================================================
-   */
+
+  // =========================================================
+  // RENDER
+  // =========================================================
 
   return (
     <div className="space-y-4">
 
       {/* ================================================= */}
-      {/* Toolbar */}
+      {/* TOOLBAR */}
       {/* ================================================= */}
 
-      <div className="flex items-center justify-between">
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          gap-3
+        "
+      >
 
         {/* ================================================= */}
-        {/* Left Side */}
+        {/* LEFT */}
         {/* ================================================= */}
 
-        <div className="flex items-center gap-3">
+        <div
+          className="
+            flex
+            min-w-0
+            items-center
+            gap-2
 
-          <span className="text-sm text-neutral-500">
+            sm:gap-3
+          "
+        >
+
+          <span
+            className="
+              text-xs
+              text-neutral-500
+
+              sm:text-sm
+            "
+          >
             0 selected
           </span>
+
 
           <button
             type="button"
@@ -146,25 +210,49 @@ export default function ProductView({
               rounded-lg
               border
               border-neutral-200
-              px-4
+              px-3
               py-2
-              text-sm
+              text-xs
               transition
               hover:bg-neutral-100
+
+              sm:px-4
+              sm:text-sm
             "
           >
-            Bulk Actions
+
+            <span className="sm:hidden">
+              Bulk
+            </span>
+
+            <span className="hidden sm:inline">
+              Bulk Actions
+            </span>
+
           </button>
 
         </div>
 
+
         {/* ================================================= */}
-        {/* View Switcher */}
+        {/* VIEW SWITCHER */}
         {/* ================================================= */}
 
-        <div className="flex rounded-xl border border-neutral-200 bg-white p-1">
+        <div
+          className="
+            flex
+            shrink-0
+            rounded-xl
+            border
+            border-neutral-200
+            bg-white
+            p-1
+          "
+        >
 
-          {/* Table */}
+          {/* ================================================= */}
+          {/* TABLE */}
+          {/* ================================================= */}
 
           <button
             type="button"
@@ -172,27 +260,39 @@ export default function ProductView({
               setView("table")
             }
             className={`
-              flex
+              hidden
               items-center
               gap-2
               rounded-lg
-              px-4
+              px-3
               py-2
               text-sm
               transition
+
+              sm:flex
+              sm:px-4
+
               ${
-                activeView === "table"
+                desktopView ===
+                "table"
                   ? "bg-black text-white"
                   : "text-neutral-600 hover:bg-neutral-100"
               }
             `}
           >
-            <Table size={18} />
+
+            <Table
+              size={17}
+            />
 
             Table
+
           </button>
 
-          {/* Grid */}
+
+          {/* ================================================= */}
+          {/* GRID */}
+          {/* ================================================= */}
 
           <button
             type="button"
@@ -204,53 +304,190 @@ export default function ProductView({
               items-center
               gap-2
               rounded-lg
-              px-4
+              px-3
               py-2
               text-sm
               transition
+
+              sm:px-4
+
               ${
-                activeView === "grid"
+                desktopView ===
+                "grid"
                   ? "bg-black text-white"
                   : "text-neutral-600 hover:bg-neutral-100"
               }
             `}
           >
-            <LayoutGrid size={18} />
 
-            Grid
+            <LayoutGrid
+              size={17}
+            />
+
+            <span className="hidden sm:inline">
+              Grid
+            </span>
+
           </button>
 
         </div>
 
       </div>
 
+
       {/* ================================================= */}
-      {/* Product View */}
+      {/* MOBILE */}
       {/* ================================================= */}
 
-      {activeView === "table" ? (
-
-        <ProductTable
-          products={products}
-          exchangeRate={exchangeRate}
-          brands={brands}
-          categories={categories}
-          canDelete={canDelete}
-          page={page}
-          pageSize={pageSize}
-          sort={sort}
-        />
-
-      ) : (
+      <div className="block sm:hidden">
 
         <ProductGrid
-          products={products}
-          page={page}
-          pageSize={pageSize}
-          sort={sort}
+          products={
+            products
+          }
+
+          page={
+            page
+          }
+
+          pageSize={
+            pageSize
+          }
+
+          sort={
+            sort
+          }
+
+          search={
+            search
+          }
+
+          brand={
+            brand
+          }
+
+          category={
+            category
+          }
+
+          availability={
+            availability
+          }
         />
 
-      )}
+      </div>
+
+
+      {/* ================================================= */}
+      {/* DESKTOP */}
+      {/* ================================================= */}
+
+      <div className="hidden sm:block">
+
+        {desktopView ===
+        "table" ? (
+
+          <ProductTable
+            products={
+              products
+            }
+
+            exchangeRate={
+              exchangeRate
+            }
+
+            brands={
+              brands
+            }
+
+            categories={
+              categories
+            }
+
+            canDelete={
+              canDelete
+            }
+
+            page={
+              page
+            }
+
+            pageSize={
+              pageSize
+            }
+
+            sort={
+              sort
+            }
+
+            /*
+             * =================================================
+             * CURRENT PAGE STATE
+             * =================================================
+             *
+             * IMPORTANT:
+             *
+             * These are the actual Products page filters.
+             *
+             * Do NOT use ProductTable's Bulk Action state here.
+             */
+
+            search={
+              search
+            }
+
+            brand={
+              brand
+            }
+
+            category={
+              category
+            }
+
+            availability={
+              availability
+            }
+          />
+
+        ) : (
+
+          <ProductGrid
+            products={
+              products
+            }
+
+            page={
+              page
+            }
+
+            pageSize={
+              pageSize
+            }
+
+            sort={
+              sort
+            }
+
+            search={
+              search
+            }
+
+            brand={
+              brand
+            }
+
+            category={
+              category
+            }
+
+            availability={
+              availability
+            }
+          />
+
+        )}
+
+      </div>
 
     </div>
   );

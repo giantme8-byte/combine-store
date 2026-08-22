@@ -1,6 +1,9 @@
 import CheckoutForm from "./_components/CheckoutForm";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function CheckoutPage() {
+export default async function CheckoutPage() {
+  const user = await getCurrentUser();
+
   return (
     <main className="mx-auto max-w-[1440px] px-6 pb-32 pt-32 sm:px-10 lg:px-12">
       <div className="mx-auto mb-16 max-w-4xl text-center">
@@ -49,7 +52,7 @@ export default function CheckoutPage() {
         </p>
       </div>
 
-      <CheckoutForm />
+      <CheckoutForm isLoggedIn={Boolean(user)} />
     </main>
   );
 }

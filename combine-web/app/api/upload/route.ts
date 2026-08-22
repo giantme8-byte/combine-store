@@ -8,7 +8,6 @@ import { getCurrentUser } from "@/lib/auth";
 
 import { UserRole } from "@prisma/client";
 
-
 // ============================================================
 // ALLOWED FOLDERS
 // ============================================================
@@ -18,12 +17,11 @@ const CUSTOMER_FOLDERS = [
   "payment-proofs",
 ] as const;
 
-
 const ADMIN_FOLDERS = [
   "products",
   "gallery",
+  "colors",
 ] as const;
-
 
 // ============================================================
 // FILE LIMITS
@@ -32,14 +30,12 @@ const ADMIN_FOLDERS = [
 const MAX_FILE_SIZE =
   10 * 1024 * 1024;
 
-
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",
   "image/png",
   "image/webp",
 ] as const;
-
 
 // ============================================================
 // ADMIN ROLES
@@ -52,7 +48,6 @@ const ADMIN_ROLES: UserRole[] = [
   UserRole.STAFF,
 ];
 
-
 // ============================================================
 // POST
 // ============================================================
@@ -60,9 +55,7 @@ const ADMIN_ROLES: UserRole[] = [
 export async function POST(
   req: Request
 ) {
-
   try {
-
     // ========================================================
     // AUTHENTICATION
     // ========================================================
@@ -70,9 +63,7 @@ export async function POST(
     const user =
       await getCurrentUser();
 
-
     if (!user) {
-
       return NextResponse.json(
         {
           error:
@@ -82,9 +73,7 @@ export async function POST(
           status: 401,
         }
       );
-
     }
-
 
     // ========================================================
     // FORM DATA
@@ -93,27 +82,22 @@ export async function POST(
     const formData =
       await req.formData();
 
-
     const file =
       formData.get("file") as File | null;
 
-
     const requestedFolder =
       formData.get("folder");
-
 
     const folder =
       typeof requestedFolder === "string"
         ? requestedFolder.trim()
         : "";
 
-
     // ========================================================
     // FILE REQUIRED
     // ========================================================
 
     if (!file) {
-
       return NextResponse.json(
         {
           error:
@@ -123,16 +107,13 @@ export async function POST(
           status: 400,
         }
       );
-
     }
-
 
     // ========================================================
     // FOLDER REQUIRED
     // ========================================================
 
     if (!folder) {
-
       return NextResponse.json(
         {
           error:
@@ -142,9 +123,7 @@ export async function POST(
           status: 400,
         }
       );
-
     }
-
 
     // ========================================================
     // FOLDER PERMISSION
@@ -157,14 +136,12 @@ export async function POST(
         )[number]
       );
 
-
     const isAdminFolder =
       ADMIN_FOLDERS.includes(
         folder as (
           typeof ADMIN_FOLDERS
         )[number]
       );
-
 
     // ========================================================
     // UNKNOWN FOLDER
@@ -174,7 +151,6 @@ export async function POST(
       !isCustomerFolder &&
       !isAdminFolder
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -184,22 +160,18 @@ export async function POST(
           status: 400,
         }
       );
-
     }
-
 
     // ========================================================
     // ADMIN FOLDER PERMISSION
     // ========================================================
 
     if (isAdminFolder) {
-
       if (
         !ADMIN_ROLES.includes(
           user.role
         )
       ) {
-
         return NextResponse.json(
           {
             error:
@@ -209,22 +181,8 @@ export async function POST(
             status: 403,
           }
         );
-
       }
-
     }
-
-
-    // ========================================================
-    // CUSTOMER FOLDER
-    //
-    // Any authenticated customer or staff account
-    // may use customer folders.
-    //
-    // The important restriction is that the user
-    // must be authenticated.
-    // ========================================================
-
 
     // ========================================================
     // FILE TYPE
@@ -237,7 +195,6 @@ export async function POST(
         )[number]
       )
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -247,9 +204,7 @@ export async function POST(
           status: 400,
         }
       );
-
     }
-
 
     // ========================================================
     // FILE SIZE
@@ -259,7 +214,6 @@ export async function POST(
       file.size >
       MAX_FILE_SIZE
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -269,9 +223,7 @@ export async function POST(
           status: 400,
         }
       );
-
     }
-
 
     // ========================================================
     // FILE EMPTY CHECK
@@ -280,7 +232,6 @@ export async function POST(
     if (
       file.size <= 0
     ) {
-
       return NextResponse.json(
         {
           error:
@@ -290,9 +241,7 @@ export async function POST(
           status: 400,
         }
       );
-
     }
-
 
     // ========================================================
     // CONVERT TO BUFFER
@@ -301,18 +250,11 @@ export async function POST(
     const bytes =
       await file.arrayBuffer();
 
-
     const buffer =
       Buffer.from(bytes);
 
-
     // ========================================================
     // CLOUDINARY UPLOAD
-    //
-    // Original asset is preserved.
-    //
-    // Customer delivery optimization will be handled
-    // through Cloudinary transformations later.
     // ========================================================
 
     const result =
@@ -321,11 +263,8 @@ export async function POST(
           resolve,
           reject
         ) => {
-
           cloudinary.uploader.upload_stream(
-
             {
-
               folder:
                 `combine-store/${folder}`,
 
@@ -333,7 +272,6 @@ export async function POST(
                 "image",
 
               context: {
-
                 uploaded_by:
                   "combine",
 
@@ -342,47 +280,32 @@ export async function POST(
 
                 uploaded_folder:
                   folder,
-
               },
-
             },
 
             (
               error,
               result
             ) => {
-
               if (error) {
-
                 reject(error);
-
                 return;
-
               }
-
 
               if (result) {
-
                 resolve(result);
-
                 return;
-
               }
-
 
               reject(
                 new Error(
                   "Cloudinary upload returned no result."
                 )
               );
-
             }
-
           ).end(buffer);
-
         }
       );
-
 
     // ========================================================
     // RESPONSE
@@ -390,7 +313,6 @@ export async function POST(
 
     return NextResponse.json(
       {
-
         success: true,
 
         url:
@@ -412,21 +334,16 @@ export async function POST(
           result.bytes,
 
         folder,
-
       },
       {
         status: 200,
       }
     );
-
-
   } catch (error) {
-
     console.error(
       "Cloudinary upload error:",
       error
     );
-
 
     return NextResponse.json(
       {
@@ -437,7 +354,5 @@ export async function POST(
         status: 500,
       }
     );
-
   }
-
 }

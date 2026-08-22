@@ -21,12 +21,33 @@ const allowedEvents =
     AnalyticsEventType.INSTAGRAM_CLICK,
   ]);
 
+function isValidVisitorId(
+  value: string
+) {
+  /*
+   * crypto.randomUUID() generates UUID v4.
+   *
+   * Example:
+   * 550e8400-e29b-41d4-a716-446655440000
+   */
+
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
 export async function POST(
   request: Request
 ) {
   try {
     const body =
       (await request.json()) as TrackRequestBody;
+
+    /*
+     * =========================================================
+     * BASIC INPUT
+     * =========================================================
+     */
 
     const visitorId =
       typeof body.visitorId === "string"
@@ -38,17 +59,19 @@ export async function POST(
 
     const path =
       typeof body.path === "string"
-        ? body.path.slice(0, 500)
+        ? body.path.trim().slice(0, 500)
         : null;
 
     const productId =
-      typeof body.productId === "number"
+      typeof body.productId === "number" &&
+      Number.isInteger(body.productId) &&
+      body.productId > 0
         ? body.productId
         : null;
 
     /*
      * =========================================================
-     * VALIDATION
+     * VALIDATE VISITOR ID
      * =========================================================
      */
 
@@ -63,6 +86,24 @@ export async function POST(
         }
       );
     }
+
+    if (!isValidVisitorId(visitorId)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid visitorId.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * =========================================================
+     * VALIDATE EVENT
+     * =========================================================
+     */
 
     if (
       !event ||
@@ -81,43 +122,69 @@ export async function POST(
 
     /*
      * =========================================================
-     * VISITOR
+     * EVENT / PRODUCT RULES
      * =========================================================
      *
-     * Create the anonymous visitor if this is the first time
-     * this browser has visited the website.
+     * PAGE_VIEW
+     * → productId should not be provided.
      *
-     * If the visitor already exists, update lastSeenAt.
+     * PRODUCT_VIEW
+     * → productId is required.
+     *
+     * WHATSAPP_CLICK
+     * → productId optional.
+     *
+     * INSTAGRAM_CLICK
+     * → productId optional.
      */
 
-    await prisma.analyticsVisitor.upsert({
-      where: {
-        visitorId,
-      },
+    if (
+      event ===
+        AnalyticsEventType.PAGE_VIEW &&
+      productId !== null
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "PAGE_VIEW cannot contain productId.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
-      create: {
-        visitorId,
-      },
-
-      update: {
-        lastSeenAt: new Date(),
-      },
-    });
+    if (
+      event ===
+        AnalyticsEventType.PRODUCT_VIEW &&
+      productId === null
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "PRODUCT_VIEW requires productId.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     /*
      * =========================================================
-     * PRODUCT VALIDATION
+     * VALIDATE PRODUCT
      * =========================================================
      *
-     * Only accept a productId that actually exists.
+     * Only PRODUCT_VIEW strictly requires
+     * a valid existing product.
      */
 
     let validProductId:
       number | null = null;
 
-    if (
-      productId !== null
-    ) {
+    if (productId !== null) {
       const product =
         await prisma.product.findUnique({
           where: {
@@ -129,11 +196,45 @@ export async function POST(
           },
         });
 
-      if (product) {
-        validProductId =
-          product.id;
+      if (!product) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Product not found.",
+          },
+          {
+            status: 404,
+          }
+        );
       }
+
+      validProductId =
+        product.id;
     }
+
+    /*
+     * =========================================================
+     * VISITOR
+     * =========================================================
+     *
+     * Create the anonymous visitor if this browser
+     * has never been seen before.
+     *
+     * Existing visitors automatically update
+     * lastSeenAt because it uses @updatedAt.
+     */
+
+    await prisma.analyticsVisitor.upsert({
+      where: {
+        visitorId,
+      },
+
+      create: {
+        visitorId,
+      },
+
+      update: {},
+    });
 
     /*
      * =========================================================
@@ -151,6 +252,12 @@ export async function POST(
       },
     });
 
+    /*
+     * =========================================================
+     * SUCCESS
+     * =========================================================
+     */
+
     return NextResponse.json({
       success: true,
     });
@@ -162,7 +269,8 @@ export async function POST(
     );
 
     /*
-     * Analytics should NEVER break the customer's website.
+     * Analytics must NEVER break
+     * the customer's website.
      */
 
     return NextResponse.json(

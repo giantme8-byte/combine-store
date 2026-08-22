@@ -1,13 +1,15 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type {
+  CSSProperties,
+  MouseEvent,
+} from "react";
 
 import Link from "next/link";
 import Image from "next/image";
 
 import {
   useEffect,
-  useRef,
   useState,
 } from "react";
 
@@ -21,8 +23,8 @@ import {
   useSensor,
   useSensors,
   closestCenter,
-  DragEndEvent,
-  DragStartEvent,
+  type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 
 import {
@@ -44,6 +46,11 @@ import {
   updateProductDisplayOrder,
 } from "../_actions/product.actions";
 
+
+// ============================================================
+// TYPES
+// ============================================================
+
 type ProductGridProps = {
   products: ProductWithImages[];
 
@@ -52,23 +59,149 @@ type ProductGridProps = {
   pageSize: number;
 
   sort: string;
+
+  /*
+   * Current Products page state.
+   *
+   * Used to build the returnTo URL when opening Edit Product.
+   */
+
+  search: string;
+
+  brand: string;
+
+  category: string;
+
+  availability: string;
 };
 
-/*
- * =========================================================
- * SORTABLE PRODUCT CARD
- * =========================================================
- */
 
 type SortableProductCardProps = {
   product: ProductWithImages;
+
   dragActive: boolean;
+
+  editUrl: string;
 };
+
+
+// ============================================================
+// PRICE FORMATTER
+// ============================================================
+
+function formatPrice(
+  price: number
+) {
+  return `RM ${price.toLocaleString(
+    "en-MY",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  )}`;
+}
+
+
+// ============================================================
+// PRODUCT PRICE DISPLAY
+// ============================================================
+
+function getProductPriceDisplay(
+  product: ProductWithImages
+) {
+
+  const variantPrices =
+    product.variants
+      ?.map(
+        (variant) =>
+          variant.price
+      )
+      .filter(
+        (
+          price
+        ): price is number =>
+          typeof price ===
+            "number" &&
+          Number.isFinite(price)
+      ) ?? [];
+
+
+  const uniquePrices =
+    Array.from(
+      new Set(
+        variantPrices
+      )
+    ).sort(
+      (
+        a,
+        b
+      ) =>
+        a - b
+    );
+
+
+  /*
+   * No Variant price.
+   */
+
+  if (
+    uniquePrices.length === 0
+  ) {
+
+    return formatPrice(
+      product.price
+    );
+
+  }
+
+
+  /*
+   * Only one unique price.
+   */
+
+  if (
+    uniquePrices.length === 1
+  ) {
+
+    return formatPrice(
+      uniquePrices[0]
+    );
+
+  }
+
+
+  /*
+   * Multiple different prices.
+   */
+
+  const minPrice =
+    uniquePrices[0];
+
+
+  const maxPrice =
+    uniquePrices[
+      uniquePrices.length - 1
+    ];
+
+
+  return `${formatPrice(
+    minPrice
+  )} – ${formatPrice(
+    maxPrice
+  )}`;
+}
+
+
+// ============================================================
+// SORTABLE PRODUCT CARD
+// ============================================================
 
 function SortableProductCard({
   product,
   dragActive,
+  editUrl,
 }: SortableProductCardProps) {
+
   const {
     attributes,
     listeners,
@@ -80,33 +213,42 @@ function SortableProductCard({
     id: product.id,
   });
 
+
   const style: CSSProperties = {
     transform:
       CSS.Transform.toString(
         transform
       ),
+
     transition,
   };
 
+
+  const priceDisplay =
+    getProductPriceDisplay(
+      product
+    );
+
+
   /*
-   * =========================================================
-   * PREVENT CLICK AFTER DRAG
-   * =========================================================
-   *
-   * When the user drags a card, the browser may still fire
-   * a click event after the pointer is released.
-   *
-   * We prevent that click only when a drag was active.
+   * Prevent the product link from
+   * opening immediately after drag.
    */
 
   const handleClickCapture = (
-    event: React.MouseEvent
+    event: MouseEvent
   ) => {
+
     if (dragActive) {
+
       event.preventDefault();
+
       event.stopPropagation();
+
     }
+
   };
+
 
   return (
     <div
@@ -122,15 +264,17 @@ function SortableProductCard({
         relative
         flex
         h-full
+        min-w-0
         touch-none
         flex-col
         overflow-hidden
-        rounded-2xl
+        rounded-xl
         border
         border-neutral-200
         bg-white
         transition-[box-shadow,opacity,border-color]
         duration-200
+
         ${
           isDragging
             ? `
@@ -149,12 +293,12 @@ function SortableProductCard({
       `}
     >
 
-      {/* ================================================= */}
-      {/* Product Image */}
-      {/* ================================================= */}
+      {/* ================================================== */}
+      {/* PRODUCT IMAGE */}
+      {/* ================================================== */}
 
       <Link
-        href={`/admin/dashboard/products/${product.id}/edit`}
+        href={editUrl}
         draggable={false}
         className="
           relative
@@ -174,6 +318,11 @@ function SortableProductCard({
           alt={product.name}
           fill
           draggable={false}
+          sizes="
+            (max-width: 639px) 100vw,
+            (max-width: 1279px) 50vw,
+            25vw
+          "
           className="
             object-cover
             transition-transform
@@ -182,115 +331,292 @@ function SortableProductCard({
           "
         />
 
-        {/* ================================================= */}
-        {/* Badges */}
-        {/* ================================================= */}
+
+        {/* ================================================== */}
+        {/* BADGES */}
+        {/* ================================================== */}
 
         <div
           className="
             pointer-events-none
             absolute
-            left-3
-            top-3
+            left-2.5
+            top-2.5
             flex
             flex-wrap
-            gap-2
+            gap-1
+
+            sm:left-3
+            sm:top-3
+            sm:gap-1.5
           "
         >
 
           {product.newArrival && (
-            <span className="rounded-full bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white">
+
+            <span
+              className="
+                rounded-full
+                bg-blue-600
+                px-2
+                py-1
+                text-[9px]
+                font-semibold
+                text-white
+
+                sm:text-[10px]
+              "
+            >
               NEW
             </span>
+
           )}
+
 
           {product.bestSeller && (
-            <span className="rounded-full bg-amber-500 px-2 py-1 text-[10px] font-semibold text-white">
+
+            <span
+              className="
+                rounded-full
+                bg-amber-500
+                px-2
+                py-1
+                text-[9px]
+                font-semibold
+                text-white
+
+                sm:text-[10px]
+              "
+            >
               BEST
             </span>
+
           )}
+
 
           {product.featured && (
-            <span className="rounded-full bg-black px-2 py-1 text-[10px] font-semibold text-white">
+
+            <span
+              className="
+                rounded-full
+                bg-black
+                px-2
+                py-1
+                text-[9px]
+                font-semibold
+                text-white
+
+                sm:text-[10px]
+              "
+            >
               FEATURED
             </span>
+
           )}
+
 
           {product.limited && (
-            <span className="rounded-full bg-red-600 px-2 py-1 text-[10px] font-semibold text-white">
+
+            <span
+              className="
+                rounded-full
+                bg-red-600
+                px-2
+                py-1
+                text-[9px]
+                font-semibold
+                text-white
+
+                sm:text-[10px]
+              "
+            >
               LIMITED
             </span>
+
           )}
 
+
           {product.onSale && (
-            <span className="rounded-full bg-green-600 px-2 py-1 text-[10px] font-semibold text-white">
+
+            <span
+              className="
+                rounded-full
+                bg-green-600
+                px-2
+                py-1
+                text-[9px]
+                font-semibold
+                text-white
+
+                sm:text-[10px]
+              "
+            >
               SALE
             </span>
+
           )}
 
         </div>
 
       </Link>
 
-      {/* ================================================= */}
-      {/* Product Info */}
-      {/* ================================================= */}
+
+      {/* ================================================== */}
+      {/* PRODUCT INFO */}
+      {/* ================================================== */}
 
       <Link
-        href={`/admin/dashboard/products/${product.id}/edit`}
+        href={editUrl}
         draggable={false}
         className="
           flex
+          min-w-0
           flex-1
           flex-col
-          p-5
+          p-3
+
+          sm:p-5
         "
       >
 
-        <div>
+        {/* ================================================= */}
+        {/* PRODUCT NAME + BRAND */}
+        {/* ================================================= */}
 
-          <h3 className="font-semibold leading-6 text-neutral-900">
+        <div
+          className="
+            min-w-0
+          "
+        >
+
+          {/* ================================================= */}
+          {/* PRODUCT NAME */}
+          {/* ================================================= */}
+
+          <h3
+            className="
+              line-clamp-2
+              min-h-[40px]
+              text-sm
+              font-semibold
+              leading-5
+              tracking-tight
+              text-neutral-900
+
+              sm:min-h-[48px]
+              sm:text-lg
+              sm:leading-6
+            "
+          >
             {product.name}
           </h3>
 
-          <p className="mt-1 text-sm text-neutral-500">
+
+          {/* ================================================= */}
+          {/* BRAND */}
+          {/* ================================================= */}
+
+          <p
+            className="
+              mt-1
+              min-h-4
+              truncate
+              text-[11px]
+              leading-4
+              text-neutral-500
+
+              sm:mt-1.5
+              sm:min-h-5
+              sm:text-sm
+              sm:leading-5
+            "
+          >
             {product.brand}
           </p>
 
         </div>
 
+
         {/* ================================================= */}
-        {/* Price + Availability */}
+        {/* PRICE + AVAILABILITY */}
         {/* ================================================= */}
 
-        <div className="mt-auto flex items-center justify-between gap-3 pt-6">
+        <div
+          className="
+            mt-auto
+            min-w-0
+            pt-3
 
-          <p className="shrink-0 text-lg font-bold text-neutral-900">
-            RM{" "}
-            {product.price.toFixed(2)}
+            sm:pt-6
+          "
+        >
+
+          {/* ================================================= */}
+          {/* PRICE */}
+          {/* ================================================= */}
+
+          <p
+            className="
+              whitespace-nowrap
+              text-sm
+              font-bold
+              leading-5
+              tracking-tight
+              text-neutral-900
+
+              sm:text-base
+              sm:leading-6
+
+              lg:text-lg
+            "
+          >
+            {priceDisplay}
           </p>
 
-          <span
-            className={`
-              shrink-0
-              rounded-full
-              px-3
-              py-1
-              text-xs
-              font-medium
-              ${
-                product.availability ===
-                Availability.IN_STOCK
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }
-            `}
+
+          {/* ================================================= */}
+          {/* AVAILABILITY */}
+          {/* ================================================= */}
+
+          <div
+            className="
+              mt-2
+              flex
+              min-w-0
+              items-center
+            "
           >
-            {product.availability ===
-            Availability.IN_STOCK
-              ? "In Stock"
-              : "Out of Stock"}
-          </span>
+
+            <span
+              className={`
+                shrink-0
+                rounded-full
+                px-2
+                py-0.5
+                text-[9px]
+                font-medium
+
+                sm:px-3
+                sm:py-1
+                sm:text-xs
+
+                ${
+                  product.availability ===
+                  Availability.IN_STOCK
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }
+              `}
+            >
+
+              {product.availability ===
+              Availability.IN_STOCK
+                ? "In Stock"
+                : "Out of Stock"}
+
+            </span>
+
+          </div>
 
         </div>
 
@@ -300,26 +626,29 @@ function SortableProductCard({
   );
 }
 
-/*
- * =========================================================
- * PRODUCT GRID
- * =========================================================
- */
+
+// ============================================================
+// PRODUCT GRID
+// ============================================================
 
 export default function ProductGrid({
   products,
   page,
   pageSize,
   sort,
+  search,
+  brand,
+  category,
+  availability,
 }: ProductGridProps) {
+
   const router =
     useRouter();
 
-  /*
-   * =========================================================
-   * DISPLAY PRODUCTS
-   * =========================================================
-   */
+
+  // ==========================================================
+  // DISPLAY PRODUCTS
+  // ==========================================================
 
   const [
     displayProducts,
@@ -328,43 +657,166 @@ export default function ProductGrid({
     products
   );
 
-  /*
-   * =========================================================
-   * SAVING STATE
-   * =========================================================
-   */
+
+  // ==========================================================
+  // SAVING STATE
+  // ==========================================================
 
   const [
     isSavingOrder,
     setIsSavingOrder,
   ] = useState(false);
 
-  /*
-   * =========================================================
-   * DRAG STATE
-   * =========================================================
-   */
+
+  // ==========================================================
+  // DRAG STATE
+  // ==========================================================
 
   const [
     dragActive,
     setDragActive,
   ] = useState(false);
 
-  /*
-   * =========================================================
-   * MANUAL ORDER
-   * =========================================================
-   */
+
+  // ==========================================================
+  // MANUAL ORDER
+  // ==========================================================
 
   const isManualOrder =
     sort === "manual" ||
     sort === "featured";
 
+
+  // ==========================================================
+  // RETURN URL
+  // ==========================================================
+
   /*
-   * =========================================================
-   * DRAG SENSOR
-   * =========================================================
+   * Build the exact Products URL that the admin is currently
+   * viewing.
+   *
+   * Example:
+   *
+   * /admin/dashboard/products?page=3&search=LV&brand=Louis+Vuitton&sort=manual
    */
+
+  const returnTo = (() => {
+
+    const params =
+      new URLSearchParams();
+
+
+    /*
+     * Always preserve page.
+     */
+
+    params.set(
+      "page",
+      String(page)
+    );
+
+
+    /*
+     * Preserve search.
+     */
+
+    if (search) {
+
+      params.set(
+        "search",
+        search
+      );
+
+    }
+
+
+    /*
+     * Preserve brand.
+     */
+
+    if (brand) {
+
+      params.set(
+        "brand",
+        brand
+      );
+
+    }
+
+
+    /*
+     * Preserve category.
+     */
+
+    if (category) {
+
+      params.set(
+        "category",
+        category
+      );
+
+    }
+
+
+    /*
+     * Preserve availability.
+     */
+
+    if (availability) {
+
+      params.set(
+        "availability",
+        availability
+      );
+
+    }
+
+
+    /*
+     * Preserve sort.
+     */
+
+    if (sort) {
+
+      params.set(
+        "sort",
+        sort
+      );
+
+    }
+
+
+    return `/admin/dashboard/products?${params.toString()}`;
+
+  })();
+
+
+  // ==========================================================
+  // EDIT URL
+  // ==========================================================
+
+  function getEditUrl(
+    productId: number
+  ) {
+
+    const params =
+      new URLSearchParams();
+
+
+    params.set(
+      "returnTo",
+      returnTo
+    );
+
+
+    return `/admin/dashboard/products/${productId}/edit?${params.toString()}`;
+
+  }
+
+
+  // ==========================================================
+  // DRAG SENSOR
+  // ==========================================================
 
   const sensors =
     useSensors(
@@ -378,113 +830,157 @@ export default function ProductGrid({
       )
     );
 
-  /*
-   * =========================================================
-   * SYNC SERVER DATA
-   * =========================================================
-   */
+
+  // ==========================================================
+  // SYNC SERVER DATA
+  // ==========================================================
 
   useEffect(() => {
+
     setDisplayProducts(
       products
     );
-  }, [products]);
 
-  /*
-   * =========================================================
-   * DRAG START
-   * =========================================================
-   */
+  }, [
+    products,
+  ]);
+
+
+  // ==========================================================
+  // DRAG START
+  // ==========================================================
 
   function handleDragStart(
     _event: DragStartEvent
   ) {
-    setDragActive(true);
+
+    setDragActive(
+      true
+    );
+
   }
 
-  /*
-   * =========================================================
-   * DRAG END
-   * =========================================================
-   */
+
+  // ==========================================================
+  // DRAG END
+  // ==========================================================
 
   async function handleDragEnd(
     event: DragEndEvent
   ) {
-    /*
-     * Keep dragActive true until after the click event
-     * generated by the browser has been blocked.
-     */
 
     if (isSavingOrder) {
-      setDragActive(false);
+
+      setDragActive(
+        false
+      );
+
       return;
+
     }
 
+
+    // ========================================================
+    // MANUAL ORDER CHECK
+    // ========================================================
+
     if (!isManualOrder) {
-      setDragActive(false);
+
+      setDragActive(
+        false
+      );
 
       toast.error(
         "Switch to Manual Order before dragging products."
       );
 
       return;
+
     }
+
 
     const {
       active,
       over,
     } = event;
 
+
     if (!over) {
-      setDragActive(false);
+
+      setDragActive(
+        false
+      );
+
       return;
+
     }
+
 
     if (
       active.id ===
       over.id
     ) {
-      setDragActive(false);
+
+      setDragActive(
+        false
+      );
+
       return;
+
     }
+
+
+    // ========================================================
+    // FIND INDEXES
+    // ========================================================
 
     const oldIndex =
       displayProducts.findIndex(
         (product) =>
           product.id ===
-          Number(active.id)
+          Number(
+            active.id
+          )
       );
+
 
     const newIndex =
       displayProducts.findIndex(
         (product) =>
           product.id ===
-          Number(over.id)
+          Number(
+            over.id
+          )
       );
+
 
     if (
       oldIndex === -1 ||
       newIndex === -1
     ) {
-      setDragActive(false);
+
+      setDragActive(
+        false
+      );
+
       return;
+
     }
 
-    /*
-     * -------------------------------------------------------
-     * Save previous state.
-     * -------------------------------------------------------
-     */
+
+    // ========================================================
+    // PREVIOUS STATE
+    // ========================================================
 
     const previousProducts =
-      [...displayProducts];
+      [
+        ...displayProducts,
+      ];
 
-    /*
-     * -------------------------------------------------------
-     * Optimistic reorder.
-     * -------------------------------------------------------
-     */
+
+    // ========================================================
+    // OPTIMISTIC REORDER
+    // ========================================================
 
     const reordered =
       arrayMove(
@@ -493,17 +989,15 @@ export default function ProductGrid({
         newIndex
       );
 
+
     setDisplayProducts(
       reordered
     );
 
-    /*
-     * -------------------------------------------------------
-     * Send ONLY IDs.
-     *
-     * Server calculates the real global displayOrder.
-     * -------------------------------------------------------
-     */
+
+    // ========================================================
+    // ORDERED IDS
+    // ========================================================
 
     const orderedIds =
       reordered.map(
@@ -511,81 +1005,89 @@ export default function ProductGrid({
           product.id
       );
 
+
     setIsSavingOrder(
       true
     );
 
+
     try {
+
       await updateProductDisplayOrder(
         orderedIds
       );
+
 
       toast.success(
         "Product order updated."
       );
 
-      /*
-       * Refresh server data.
-       */
 
       router.refresh();
 
     } catch (error) {
+
       console.error(
         "Failed to save product order:",
         error
       );
 
-      /*
-       * Restore previous order.
-       */
 
       setDisplayProducts(
         previousProducts
       );
+
 
       const message =
         error instanceof Error
           ? error.message
           : "Unable to save product order.";
 
+
       toast.error(
         message
       );
 
     } finally {
+
       setIsSavingOrder(
         false
       );
 
-      /*
-       * Delay clearing drag state slightly so the browser's
-       * post-drag click can still be blocked.
-       */
 
       window.setTimeout(
         () => {
-          setDragActive(false);
+
+          setDragActive(
+            false
+          );
+
         },
         100
       );
+
     }
+
   }
 
-  /*
-   * =========================================================
-   * RENDER
-   * =========================================================
-   */
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
-    <div className="space-y-4">
+    <div
+      className="
+        space-y-4
+      "
+    >
 
-      {/* ================================================= */}
-      {/* Manual Order Notice */}
-      {/* ================================================= */}
+      {/* ================================================== */}
+      {/* MANUAL ORDER NOTICE */}
+      {/* ================================================== */}
 
       {!isManualOrder && (
+
         <div
           className="
             rounded-xl
@@ -607,13 +1109,16 @@ export default function ProductGrid({
           products.
 
         </div>
+
       )}
 
-      {/* ================================================= */}
-      {/* Saving Notice */}
-      {/* ================================================= */}
+
+      {/* ================================================== */}
+      {/* SAVING NOTICE */}
+      {/* ================================================== */}
 
       {isSavingOrder && (
+
         <div
           className="
             rounded-xl
@@ -628,14 +1133,18 @@ export default function ProductGrid({
         >
           Saving product order...
         </div>
+
       )}
 
-      {/* ================================================= */}
-      {/* Drag & Drop */}
-      {/* ================================================= */}
+
+      {/* ================================================== */}
+      {/* DRAG & DROP */}
+      {/* ================================================== */}
 
       <DndContext
-        sensors={sensors}
+        sensors={
+          sensors
+        }
         collisionDetection={
           closestCenter
         }
@@ -662,14 +1171,20 @@ export default function ProductGrid({
           <div
             className="
               grid
-              gap-6
+              grid-cols-1
+              gap-4
+
               sm:grid-cols-2
+              sm:gap-5
+
               xl:grid-cols-4
+              xl:gap-6
             "
           >
 
             {displayProducts.map(
               (product) => (
+
                 <SortableProductCard
                   key={
                     product.id
@@ -680,7 +1195,13 @@ export default function ProductGrid({
                   dragActive={
                     dragActive
                   }
+                  editUrl={
+                    getEditUrl(
+                      product.id
+                    )
+                  }
                 />
+
               )
             )}
 

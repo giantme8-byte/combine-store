@@ -7,62 +7,141 @@ import { prisma } from "@/lib/prisma";
 import InquirySearch from "./_components/InquirySearch";
 import InquiryTable from "./_components/InquiryTable";
 
+
+// ============================================================
+// PAGE
+// ============================================================
+
 export default async function InquiriesPage({
   searchParams,
 }: {
-searchParams: Promise<{
-  status?: string;
-  search?: string;
-  page?: string;
-}>;
+  searchParams: Promise<{
+    status?: string;
+    search?: string;
+    page?: string;
+  }>;
 }) {
-  const { status, search, page } = await searchParams;
 
-const currentPage = Math.max(
-  1,
-  Number(page ?? "1") || 1
-);
-const pageSize = 20;
-const skip = (currentPage - 1) * pageSize;
+  const {
+    status,
+    search,
+    page,
+  } = await searchParams;
+
+
+  // ==========================================================
+  // PAGINATION
+  // ==========================================================
+
+  const currentPage =
+    Math.max(
+      1,
+      Number(page ?? "1") || 1
+    );
+
+
+  const pageSize = 20;
+
+
+  const skip =
+    (currentPage - 1) *
+    pageSize;
+
+
+  // ==========================================================
+  // STATUS BUTTONS
+  // ==========================================================
 
   const activeClass =
-    "rounded-lg border border-black bg-black px-4 py-2 text-sm text-white";
+    `
+      rounded-lg
+      border
+      border-black
+      bg-black
+      px-4
+      py-2
+      text-sm
+      text-white
+      transition
+    `;
+
 
   const inactiveClass =
-    "rounded-lg border px-4 py-2 text-sm hover:bg-neutral-100";
+    `
+      rounded-lg
+      border
+      border-neutral-200
+      bg-white
+      px-4
+      py-2
+      text-sm
+      text-neutral-700
+      transition
+      hover:bg-neutral-100
+    `;
 
-    const where = {
-  ...(status && status !== "ALL"
-    ? {
-        status: status as InquiryStatus,
-      }
-    : {}),
 
-  ...(search
-    ? {
-        OR: [
-          {
-            name: {
-              contains: search,
-              mode: "insensitive" as const,
+  // ==========================================================
+  // WHERE
+  // ==========================================================
+
+  const where = {
+
+    ...(status &&
+    status !== "ALL"
+      ? {
+          status:
+            status as InquiryStatus,
+        }
+      : {}),
+
+
+    ...(search
+      ? {
+
+          OR: [
+
+            {
+              name: {
+                contains:
+                  search,
+
+                mode:
+                  "insensitive" as const,
+              },
             },
-          },
-          {
-            email: {
-              contains: search,
-              mode: "insensitive" as const,
+
+            {
+              email: {
+                contains:
+                  search,
+
+                mode:
+                  "insensitive" as const,
+              },
             },
-          },
-          {
-            whatsapp: {
-              contains: search,
-              mode: "insensitive" as const,
+
+            {
+              whatsapp: {
+                contains:
+                  search,
+
+                mode:
+                  "insensitive" as const,
+              },
             },
-          },
-        ],
-      }
-    : {}),
-};
+
+          ],
+
+        }
+      : {}),
+
+  };
+
+
+  // ==========================================================
+  // LOAD DATA
+  // ==========================================================
 
   const [
     totalCount,
@@ -72,133 +151,299 @@ const skip = (currentPage - 1) * pageSize;
     cancelledCount,
     inquiries,
   ] = await Promise.all([
+
+    // --------------------------------------------------------
+    // TOTAL
+    // --------------------------------------------------------
+
     prisma.inquiry.count({
-  where,
-}),
+      where,
+    }),
+
+
+    // --------------------------------------------------------
+    // PENDING
+    // --------------------------------------------------------
 
     prisma.inquiry.count({
       where: {
-        status: InquiryStatus.PENDING,
+        status:
+          InquiryStatus.PENDING,
       },
     }),
+
+
+    // --------------------------------------------------------
+    // CONTACTED
+    // --------------------------------------------------------
 
     prisma.inquiry.count({
       where: {
-        status: InquiryStatus.CONTACTED,
+        status:
+          InquiryStatus.CONTACTED,
       },
     }),
+
+
+    // --------------------------------------------------------
+    // COMPLETED
+    // --------------------------------------------------------
 
     prisma.inquiry.count({
       where: {
-        status: InquiryStatus.COMPLETED,
+        status:
+          InquiryStatus.COMPLETED,
       },
     }),
+
+
+    // --------------------------------------------------------
+    // CANCELLED
+    // --------------------------------------------------------
 
     prisma.inquiry.count({
       where: {
-        status: InquiryStatus.CANCELLED,
+        status:
+          InquiryStatus.CANCELLED,
       },
     }),
 
-prisma.inquiry.findMany({
-  where,
 
-  include: {
-    items: {
+    // --------------------------------------------------------
+    // INQUIRIES
+    // --------------------------------------------------------
+
+    prisma.inquiry.findMany({
+
+      where,
+
       include: {
-        product: true,
+
+        items: {
+
+          include: {
+            product: true,
+          },
+
+        },
+
       },
-    },
-  },
 
-  orderBy: {
-    createdAt: "desc",
-  },
+      orderBy: {
+        createdAt:
+          "desc",
+      },
 
-  skip,
-  take: pageSize,
-}),
+      skip,
+
+      take:
+        pageSize,
+
+    }),
+
   ]);
 
-  const totalPages = Math.max(
-  1,
-  Math.ceil(totalCount / pageSize)
-);
+
+  // ==========================================================
+  // TOTAL PAGES
+  // ==========================================================
+
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        totalCount /
+          pageSize
+      )
+    );
+
+
+  // ==========================================================
+  // RETURN
+  // ==========================================================
 
   return (
-    <div className="space-y-8">
+
+    <main
+      className="
+        space-y-6
+
+        sm:space-y-8
+      "
+    >
+
+      {/* ================================================== */}
+      {/* HEADER */}
+      {/* ================================================== */}
+
       <div>
-        <h1 className="text-3xl font-light">
+
+        <h1
+          className="
+            text-3xl
+            font-light
+            tracking-tight
+
+            sm:text-4xl
+          "
+        >
           Inquiries
         </h1>
 
-        <p className="mt-2 text-neutral-500">
+
+        <p
+          className="
+            mt-2
+            text-sm
+            leading-6
+            text-neutral-500
+
+            sm:text-base
+          "
+        >
           Manage customer inquiries.
         </p>
 
-        <div className="mt-6">
-  <InquirySearch />
-</div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        {/* ==================================================
+            SEARCH
+            ================================================== */}
+
+        <div
+          className="
+            mt-5
+
+            sm:mt-6
+          "
+        >
+
+          <InquirySearch />
+
+        </div>
+
+
+        {/* ==================================================
+            STATUS FILTERS
+            ================================================== */}
+
+        <div
+          className="
+            mt-4
+            flex
+            gap-2
+            overflow-x-auto
+            pb-1
+
+            sm:mt-6
+            sm:flex-wrap
+            sm:gap-3
+            sm:overflow-visible
+            sm:pb-0
+          "
+        >
+
+          {/* ================================================
+              ALL
+              ================================================ */}
+
           <Link
             href="/admin/dashboard/inquiries"
-            className={
-              !status || status === "ALL"
+            className={`
+              shrink-0
+              ${!status ||
+              status === "ALL"
                 ? activeClass
-                : inactiveClass
-            }
+                : inactiveClass}
+            `}
           >
             All ({totalCount})
           </Link>
 
+
+          {/* ================================================
+              PENDING
+              ================================================ */}
+
           <Link
             href="/admin/dashboard/inquiries?status=PENDING"
-            className={
-              status === "PENDING"
+            className={`
+              shrink-0
+              ${status === "PENDING"
                 ? activeClass
-                : inactiveClass
-            }
+                : inactiveClass}
+            `}
           >
             🟡 Pending ({pendingCount})
           </Link>
 
+
+          {/* ================================================
+              CONTACTED
+              ================================================ */}
+
           <Link
             href="/admin/dashboard/inquiries?status=CONTACTED"
-            className={
-              status === "CONTACTED"
+            className={`
+              shrink-0
+              ${status === "CONTACTED"
                 ? activeClass
-                : inactiveClass
-            }
+                : inactiveClass}
+            `}
           >
             🔵 Contacted ({contactedCount})
           </Link>
 
+
+          {/* ================================================
+              COMPLETED
+              ================================================ */}
+
           <Link
             href="/admin/dashboard/inquiries?status=COMPLETED"
-            className={
-              status === "COMPLETED"
+            className={`
+              shrink-0
+              ${status === "COMPLETED"
                 ? activeClass
-                : inactiveClass
-            }
+                : inactiveClass}
+            `}
           >
             🟢 Completed ({completedCount})
           </Link>
 
+
+          {/* ================================================
+              CANCELLED
+              ================================================ */}
+
           <Link
             href="/admin/dashboard/inquiries?status=CANCELLED"
-            className={
-              status === "CANCELLED"
+            className={`
+              shrink-0
+              ${status === "CANCELLED"
                 ? activeClass
-                : inactiveClass
-            }
+                : inactiveClass}
+            `}
           >
             🔴 Cancelled ({cancelledCount})
           </Link>
+
         </div>
+
       </div>
 
-      <InquiryTable inquiries={inquiries} />
-    </div>
+
+      {/* ================================================== */}
+      {/* INQUIRIES */}
+      {/* ================================================== */}
+
+      <InquiryTable
+        inquiries={
+          inquiries
+        }
+      />
+
+    </main>
+
   );
+
 }

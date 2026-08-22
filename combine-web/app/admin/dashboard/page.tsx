@@ -941,8 +941,11 @@ export default async function DashboardPage({
       <div
         className="
           grid
-          gap-5
+          grid-cols-2
+          gap-3
+          sm:gap-4
           md:grid-cols-2
+          md:gap-5
           xl:grid-cols-4
           2xl:grid-cols-6
         "

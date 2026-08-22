@@ -36,36 +36,51 @@ export default function ProductSorting({
 }: ProductSortingProps) {
   const router = useRouter();
 
-  const [search, setSearch] =
-    useState("");
+  // =========================================================
+  // FILTER STATE
+  // =========================================================
 
-  const [brand, setBrand] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [category, setCategory] =
-    useState("");
+  const [brand, setBrand] = useState("");
 
-  const [sortedProducts, setSortedProducts] =
-    useState<ProductWithImages[]>([
-      ...products,
-    ]);
+  const [category, setCategory] = useState("");
 
-  const [originalProducts, setOriginalProducts] =
-    useState<ProductWithImages[]>([
-      ...products,
-    ]);
+  // =========================================================
+  // PRODUCT ORDER STATE
+  // =========================================================
 
-  const [hasChanges, setHasChanges] =
-    useState(false);
+  const [
+    sortedProducts,
+    setSortedProducts,
+  ] = useState<ProductWithImages[]>([
+    ...products,
+  ]);
 
-  const [saving, setSaving] =
-    useState(false);
+  const [
+    originalProducts,
+    setOriginalProducts,
+  ] = useState<ProductWithImages[]>([
+    ...products,
+  ]);
 
-  /*
-   * =========================================================
-   * SYNC PRODUCTS
-   * =========================================================
-   */
+  // =========================================================
+  // SAVE STATE
+  // =========================================================
+
+  const [
+    hasChanges,
+    setHasChanges,
+  ] = useState(false);
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
+
+  // =========================================================
+  // SYNC PRODUCTS
+  // =========================================================
 
   useEffect(() => {
     setSortedProducts([
@@ -79,11 +94,9 @@ export default function ProductSorting({
     setHasChanges(false);
   }, [products]);
 
-  /*
-   * =========================================================
-   * BEFORE UNLOAD
-   * =========================================================
-   */
+  // =========================================================
+  // BEFORE UNLOAD
+  // =========================================================
 
   useEffect(() => {
     const handleBeforeUnload = (
@@ -110,88 +123,148 @@ export default function ProductSorting({
     };
   }, [hasChanges]);
 
-  /*
-   * =========================================================
-   * FILTER
-   * =========================================================
-   */
+  // =========================================================
+  // FILTER PRODUCTS
+  // =========================================================
 
   const filteredProducts =
-    sortedProducts.filter((product) => {
-      const matchSearch =
-        product.name
-          .toLowerCase()
-          .includes(
-            search.toLowerCase()
-          );
+    sortedProducts.filter(
+      (product) => {
+        const normalizedSearch =
+          search
+            .trim()
+            .toLowerCase();
 
-      const matchBrand =
-        !brand ||
-        product.brand === brand;
+        const matchSearch =
+          product.name
+            .toLowerCase()
+            .includes(
+              normalizedSearch
+            );
 
-      const matchCategory =
-        !category ||
-        product.category === category;
+        const matchBrand =
+          !brand ||
+          product.brand === brand;
 
-      return (
-        matchSearch &&
-        matchBrand &&
-        matchCategory
-      );
-    });
+        const matchCategory =
+          !category ||
+          product.category === category;
 
-  /*
-   * =========================================================
-   * RENDER
-   * =========================================================
-   */
+        return (
+          matchSearch &&
+          matchBrand &&
+          matchCategory
+        );
+      }
+    );
+
+  // =========================================================
+  // RENDER
+  // =========================================================
 
   return (
-    <main className="space-y-8">
+    <main
+      className="
+        min-w-0
+        space-y-6
+
+        sm:space-y-8
+      "
+    >
 
       {/* ================================================= */}
       {/* HEADER */}
       {/* ================================================= */}
 
-      <div className="flex items-center justify-between">
+      <div
+        className="
+          flex
+          min-w-0
+          flex-col
+          gap-4
 
-        <div>
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+        "
+      >
 
-          <h1 className="text-3xl font-semibold">
+        {/* ================================================= */}
+        {/* TITLE / COUNT */}
+        {/* ================================================= */}
+
+        <div className="min-w-0">
+
+          <h1
+            className="
+              text-2xl
+              font-semibold
+              tracking-tight
+              text-neutral-900
+
+              sm:text-3xl
+            "
+          >
             Product Sorting
           </h1>
 
-          <p className="mt-2 text-neutral-500">
+          <p
+            className="
+              mt-1.5
+              text-sm
+              text-neutral-500
 
+              sm:mt-2
+            "
+          >
             Showing{" "}
 
-            <span className="font-semibold text-neutral-900">
+            <span
+              className="
+                font-semibold
+                text-neutral-900
+              "
+            >
               {filteredProducts.length}
             </span>{" "}
 
             of{" "}
 
-            <span className="font-semibold text-neutral-900">
+            <span
+              className="
+                font-semibold
+                text-neutral-900
+              "
+            >
               {products.length}
             </span>{" "}
 
             products
-
           </p>
 
         </div>
 
+        {/* ================================================= */}
+        {/* DRAG STATUS */}
+        {/* ================================================= */}
+
         <div
           className="
+            self-start
             rounded-full
             border
             border-green-200
             bg-green-50
-            px-4
-            py-2
-            text-sm
+            px-3
+            py-1.5
+            text-xs
             font-medium
             text-green-700
+
+            sm:self-auto
+            sm:px-4
+            sm:py-2
+            sm:text-sm
           "
         >
           ✓ Drag &amp; Drop Enabled
@@ -218,14 +291,27 @@ export default function ProductSorting({
       {/* SORT LIST */}
       {/* ================================================= */}
 
-      <SortList
-        products={filteredProducts}
-        allProducts={sortedProducts}
-        onChange={(products) => {
-          setSortedProducts(products);
-          setHasChanges(true);
-        }}
-      />
+      <div
+        className={
+          hasChanges
+            ? "pb-24 sm:pb-0"
+            : ""
+        }
+      >
+
+        <SortList
+          products={filteredProducts}
+          allProducts={sortedProducts}
+          onChange={(reorderedProducts) => {
+            setSortedProducts(
+              reorderedProducts
+            );
+
+            setHasChanges(true);
+          }}
+        />
+
+      </div>
 
       {/* ================================================= */}
       {/* SAVE BAR */}
@@ -235,12 +321,6 @@ export default function ProductSorting({
         <SaveBar
           saving={saving}
 
-          /*
-           * -------------------------------------------------
-           * CANCEL
-           * -------------------------------------------------
-           */
-
           onCancel={() => {
             setSortedProducts([
               ...originalProducts,
@@ -249,24 +329,20 @@ export default function ProductSorting({
             setHasChanges(false);
           }}
 
-          /*
-           * -------------------------------------------------
-           * SAVE
-           * -------------------------------------------------
-           */
-
           onSave={async () => {
+            if (saving) {
+              return;
+            }
+
             setSaving(true);
 
             try {
               /*
-               * Send ONLY product IDs.
+               * Send ONLY the complete global
+               * product ID order.
                *
-               * The server action is responsible for
-               * calculating the final global displayOrder.
-               *
-               * This prevents the sorting logic from becoming
-               * dependent on pagination / filtered indexes.
+               * The server action is responsible
+               * for assigning displayOrder.
                */
 
               const orderedIds =
@@ -279,15 +355,11 @@ export default function ProductSorting({
                 orderedIds
               );
 
-              /*
-               * Save successful.
-               */
-
-              setHasChanges(false);
-
               setOriginalProducts([
                 ...sortedProducts,
               ]);
+
+              setHasChanges(false);
 
               toast.success(
                 "Product order updated."

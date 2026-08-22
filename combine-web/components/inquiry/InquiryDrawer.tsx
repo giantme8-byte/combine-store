@@ -5,6 +5,8 @@ import {
   useState,
 } from "react";
 
+import { X } from "lucide-react";
+
 import Image from "next/image";
 
 import {
@@ -222,7 +224,7 @@ export default function InquiryDrawer() {
       <div
         onClick={closeDrawer}
         className={`
-          fixed inset-0 z-40
+          fixed inset-0 z-[60]
           bg-black/30
           backdrop-blur-sm
           transition-opacity
@@ -243,7 +245,7 @@ export default function InquiryDrawer() {
           fixed
           right-0
           top-0
-          z-50
+          z-[70]
           flex
           h-screen
           w-full
@@ -300,17 +302,30 @@ export default function InquiryDrawer() {
           <button
             type="button"
             onClick={closeDrawer}
+            aria-label="Close inquiry list"
+            title="Close"
             className="
+              relative
+              z-[80]
               flex
-              h-10
-              w-10
+              h-11
+              w-11
+              shrink-0
               items-center
               justify-center
               rounded-full
+              text-neutral-500
+              transition-all
+              duration-300
               hover:bg-neutral-100
+              hover:text-black
+              active:scale-95
             "
           >
-            ✕
+            <X
+              size={21}
+              strokeWidth={1.6}
+            />
           </button>
         </div>
 

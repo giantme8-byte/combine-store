@@ -341,14 +341,14 @@ export default function ProductGallery({
       "color"
     );
 
-setSelectedColor({
-  id: color.id,
-  name: color.name,
-  imageUrl:
-    color.imageUrl ?? null,
-  images:
-    color.images ?? [],
-});
+    setSelectedColor({
+      id: color.id,
+      name: color.name,
+      imageUrl:
+        color.imageUrl ?? null,
+      images:
+        color.images ?? [],
+    });
 
     const selectedColorImages =
       Array.from(
@@ -677,6 +677,7 @@ setSelectedColor({
   return (
     <>
       <div className="flex flex-col gap-6 lg:flex-row">
+
         {/* ==================================================== */}
         {/* Thumbnails */}
         {/* ==================================================== */}
@@ -743,14 +744,12 @@ setSelectedColor({
                     h-14
                     w-14
                     bg-white
-                    object-contain
-                    p-2
+                    object-cover
                     transition-transform
                     duration-300
                     hover:scale-105
                     lg:h-24
                     lg:w-24
-                    lg:p-3
                   "
                 />
               </button>
@@ -797,6 +796,7 @@ setSelectedColor({
               lg:shadow-[0_20px_60px_rgba(0,0,0,0.05)]
             "
           >
+
             {/* Previous */}
 
             {hasMultipleImages && (
@@ -847,20 +847,20 @@ setSelectedColor({
               </button>
             )}
 
-{/* Image */}
+            {/* Image */}
 
-<div>
-  <ZoomImage
-    src={
-      selectedImage
-    }
-    alt={name}
-    priority={
-      selectedImage ===
-      initialImage
-    }
-  />
-</div>
+            <div>
+              <ZoomImage
+                src={
+                  selectedImage
+                }
+                alt={name}
+                priority={
+                  selectedImage ===
+                  initialImage
+                }
+              />
+            </div>
 
             {/* Next */}
 

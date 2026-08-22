@@ -239,13 +239,17 @@ export default function OrderFilters({
         border-neutral-200
         bg-neutral-50
         p-4
+
+        sm:p-5
       "
     >
 
       <div
         className="
           grid
+          grid-cols-1
           gap-3
+
           lg:grid-cols-[minmax(0,1fr)_220px_220px_auto_auto]
         "
       >
@@ -254,7 +258,12 @@ export default function OrderFilters({
             SEARCH
             ==================================================== */}
 
-        <div className="relative">
+        <div
+          className="
+            relative
+            min-w-0
+          "
+        >
 
           <Search
             className="
@@ -280,7 +289,9 @@ export default function OrderFilters({
             onKeyDown={
               handleKeyDown
             }
-            placeholder="Search order, customer, phone or tracking..."
+            placeholder="
+              Search order, customer, phone or tracking...
+            "
             className="
               h-11
               w-full
@@ -315,6 +326,7 @@ export default function OrderFilters({
           }
           className="
             h-11
+            w-full
             rounded-xl
             border
             border-neutral-200
@@ -368,6 +380,7 @@ export default function OrderFilters({
           }
           className="
             h-11
+            w-full
             rounded-xl
             border
             border-neutral-200
@@ -407,64 +420,87 @@ export default function OrderFilters({
 
 
         {/* ====================================================
-            APPLY
+            ACTIONS
             ==================================================== */}
 
-        <button
-          type="button"
-          onClick={
-            applyFilters
-          }
+        <div
           className="
-            h-11
-            rounded-xl
-            bg-black
-            px-5
-            text-sm
-            font-medium
-            text-white
-            transition
-            hover:bg-neutral-800
-          "
-        >
-          Apply
-        </button>
+            grid
+            grid-cols-2
+            gap-3
 
-
-        {/* ====================================================
-            RESET
-            ==================================================== */}
-
-        <button
-          type="button"
-          onClick={
-            resetFilters
-          }
-          className="
-            inline-flex
-            h-11
-            items-center
-            justify-center
-            gap-2
-            rounded-xl
-            border
-            border-neutral-200
-            bg-white
-            px-4
-            text-sm
-            text-neutral-600
-            transition
-            hover:bg-neutral-100
+            lg:contents
           "
         >
 
-          <RotateCcw
-            className="h-4 w-4"
-          />
+          {/* ==================================================
+              APPLY
+              ================================================== */}
 
-          Reset
+          <button
+            type="button"
+            onClick={
+              applyFilters
+            }
+            className="
+              h-11
+              w-full
+              rounded-xl
+              bg-black
+              px-4
+              text-sm
+              font-medium
+              text-white
+              transition
+              hover:bg-neutral-800
 
-        </button>
+              lg:px-5
+            "
+          >
+            Apply
+          </button>
+
+
+          {/* ==================================================
+              RESET
+              ================================================== */}
+
+          <button
+            type="button"
+            onClick={
+              resetFilters
+            }
+            className="
+              inline-flex
+              h-11
+              w-full
+              items-center
+              justify-center
+              gap-2
+              rounded-xl
+              border
+              border-neutral-200
+              bg-white
+              px-4
+              text-sm
+              text-neutral-600
+              transition
+              hover:bg-neutral-100
+            "
+          >
+
+            <RotateCcw
+              className="
+                h-4
+                w-4
+              "
+            />
+
+            Reset
+
+          </button>
+
+        </div>
 
       </div>
 

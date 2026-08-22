@@ -10,58 +10,105 @@ export default function SaveBar({
   saving,
   onSave,
   onCancel,
-}: SaveBarProps){
+}: SaveBarProps) {
   return (
     <div
       className="
         fixed
-        bottom-6
-        left-1/2
+        bottom-3
+        left-3
+        right-3
         z-50
         flex
-        -translate-x-1/2
         items-center
-        gap-3
+        gap-2
         rounded-2xl
         border
         border-neutral-200
-        bg-white
-        px-6
-        py-4
-        shadow-xl
+        bg-white/95
+        p-2
+        shadow-[0_12px_40px_rgba(0,0,0,0.12)]
+        backdrop-blur-md
+
+        sm:bottom-6
+        sm:left-1/2
+        sm:right-auto
+        sm:-translate-x-1/2
+        sm:gap-3
+        sm:rounded-2xl
+        sm:px-6
+        sm:py-4
       "
     >
+      {/* ================================================== */}
+      {/* CANCEL */}
+      {/* ================================================== */}
+
       <button
+        type="button"
         onClick={onCancel}
+        disabled={saving}
         className="
+          flex
+          h-11
+          min-w-0
+          flex-1
+          items-center
+          justify-center
           rounded-xl
           border
           border-neutral-300
-          px-5
-          py-2
+          px-4
+          text-sm
+          font-medium
+          text-neutral-700
           transition
           hover:bg-neutral-100
+          disabled:cursor-not-allowed
+          disabled:opacity-50
+
+          sm:h-auto
+          sm:flex-none
+          sm:px-5
+          sm:py-2
         "
       >
         Cancel
       </button>
 
-<button
-  onClick={onSave}
-  disabled={saving}
+      {/* ================================================== */}
+      {/* SAVE */}
+      {/* ================================================== */}
+
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={saving}
         className="
+          flex
+          h-11
+          min-w-0
+          flex-1
+          items-center
+          justify-center
           rounded-xl
           bg-black
-          px-5
-          py-2
+          px-4
+          text-sm
+          font-medium
           text-white
           transition
           hover:bg-neutral-800
+          disabled:cursor-not-allowed
+          disabled:opacity-50
+
+          sm:h-auto
+          sm:flex-none
+          sm:px-5
+          sm:py-2
         "
       >
-        {saving
-  ? "Saving..."
-  : "Save Changes"}
+        {saving ? "Saving..." : "Save Changes"}
       </button>
     </div>
   );

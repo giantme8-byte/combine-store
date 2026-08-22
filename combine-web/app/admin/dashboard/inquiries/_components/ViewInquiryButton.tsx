@@ -1,54 +1,99 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import {
+  useState,
+  useTransition,
+} from "react";
+
+import {
+  useRouter,
+} from "next/navigation";
+
 import {
   Inquiry,
   InquiryStatus,
   Product,
 } from "@prisma/client";
 
-import { updateInquiryStatus } from "../_actions/inquiry.actions";
+import {
+  updateInquiryStatus,
+} from "../_actions/inquiry.actions";
+
+
+// ============================================================
+// TYPES
+// ============================================================
 
 type InquiryWithItems = Inquiry & {
-items: {
-  product: Product;
+  items: {
+    product: Product;
 
-  quantity: number;
+    quantity: number;
 
-  color: string | null;
-  variant: string | null;
-  dimensions: string | null;
-  packaging: string | null;
+    color: string | null;
 
-  notes: string | null;
-}[];
+    variant: string | null;
+
+    dimensions: string | null;
+
+    packaging: string | null;
+
+    notes: string | null;
+  }[];
 };
+
 
 type ViewInquiryButtonProps = {
   inquiry: InquiryWithItems;
 };
 
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function ViewInquiryButton({
   inquiry,
 }: ViewInquiryButtonProps) {
-  const [open, setOpen] = useState(false);
 
-  const [status, setStatus] =
-    useState<InquiryStatus>(inquiry.status);
+  const [
+    open,
+    setOpen,
+  ] = useState(false);
 
-  const [isPending, startTransition] =
-    useTransition();
 
-  const router = useRouter();
-
-  const phone = inquiry.whatsapp.replace(
-    /\D/g,
-    ""
+  const [
+    status,
+    setStatus,
+  ] = useState<InquiryStatus>(
+    inquiry.status
   );
 
-  const whatsappMessage = encodeURIComponent(
-`Hi ${inquiry.name},
+
+  const [
+    isPending,
+    startTransition,
+  ] = useTransition();
+
+
+  const router =
+    useRouter();
+
+
+  // ==========================================================
+  // WHATSAPP
+  // ==========================================================
+
+  const phone =
+    inquiry.whatsapp.replace(
+      /\D/g,
+      ""
+    );
+
+
+  const whatsappMessage =
+    encodeURIComponent(
+      `Hi ${inquiry.name},
 
 Thank you for your inquiry with COMBINE.
 
@@ -58,300 +103,973 @@ If you have any additional questions, feel free to let us know.
 
 Best regards,
 COMBINE`
-  );
+    );
+
+
+  // ==========================================================
+  // CLOSE
+  // ==========================================================
 
   function handleClose() {
-    if (isPending) return;
 
-    setStatus(inquiry.status);
-    setOpen(false);
+    if (
+      isPending
+    ) {
+      return;
+    }
+
+
+    setStatus(
+      inquiry.status
+    );
+
+
+    setOpen(
+      false
+    );
+
   }
+
+
+  // ==========================================================
+  // SAVE STATUS
+  // ==========================================================
 
   function handleSaveStatus() {
-    startTransition(async () => {
-      try {
-        await updateInquiryStatus(
-          inquiry.id,
-          status
-        );
 
-        setOpen(false);
+    startTransition(
+      async () => {
 
-        router.refresh();
-      } catch (error) {
-        console.error(
-          "Failed to update inquiry status:",
+        try {
+
+          await updateInquiryStatus(
+            inquiry.id,
+            status
+          );
+
+
+          setOpen(
+            false
+          );
+
+
+          router.refresh();
+
+        } catch (
           error
-        );
+        ) {
+
+          console.error(
+            "Failed to update inquiry status:",
+            error
+          );
+
+        }
+
       }
-    });
+    );
+
   }
 
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
   return (
+
     <>
+
+      {/* ======================================================
+          VIEW BUTTON
+          ====================================================== */}
+
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="rounded-lg border px-3 py-1 text-sm transition hover:bg-neutral-100"
+        onClick={() =>
+          setOpen(true)
+        }
+        className="
+          inline-flex
+          items-center
+          justify-center
+          rounded-lg
+          border
+          border-neutral-200
+          px-3
+          py-2
+          text-sm
+          font-medium
+          text-neutral-700
+          transition
+          hover:bg-neutral-100
+        "
       >
         View
       </button>
 
+
+      {/* ======================================================
+          MODAL
+          ====================================================== */}
+
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
+
+        <div
+          className="
+            fixed
+            inset-0
+            z-50
+            flex
+            items-center
+            justify-center
+            bg-black/40
+            p-3
+            sm:p-6
+          "
+          onMouseDown={(
+            event
+          ) => {
+
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+
+              handleClose();
+
+            }
+
+          }}
+        >
+
           <div
-  className="
-    w-full
-    max-w-3xl
-    max-h-[90vh]
-    overflow-y-auto
-    rounded-3xl
-    bg-white
-    p-8
-    shadow-xl
-  "
->
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-light">
-                Inquiry Details
-              </h2>
+            className="
+              flex
+              max-h-[94vh]
+              w-full
+              max-w-3xl
+              flex-col
+              overflow-hidden
+              rounded-2xl
+              bg-white
+              shadow-2xl
+              sm:max-h-[90vh]
+              sm:rounded-3xl
+            "
+          >
+
+            {/* ==================================================
+                HEADER
+                ================================================== */}
+
+            <div
+              className="
+                flex
+                shrink-0
+                items-center
+                justify-between
+                gap-4
+                border-b
+                border-neutral-100
+                px-4
+                py-4
+                sm:px-8
+                sm:py-5
+              "
+            >
+
+              <div
+                className="
+                  min-w-0
+                "
+              >
+
+                <h2
+                  className="
+                    text-lg
+                    font-medium
+                    text-neutral-900
+                    sm:text-2xl
+                    sm:font-light
+                  "
+                >
+                  Inquiry Details
+                </h2>
+
+                <p
+                  className="
+                    mt-1
+                    truncate
+                    text-xs
+                    text-neutral-400
+                    sm:text-sm
+                  "
+                >
+                  #{inquiry.id}
+                </p>
+
+              </div>
+
 
               <button
                 type="button"
-                onClick={handleClose}
-                disabled={isPending}
-                className="rounded-lg border px-3 py-1 text-sm"
+                onClick={
+                  handleClose
+                }
+                disabled={
+                  isPending
+                }
+                className="
+                  shrink-0
+                  rounded-lg
+                  border
+                  border-neutral-200
+                  px-3
+                  py-2
+                  text-xs
+                  font-medium
+                  text-neutral-600
+                  transition
+                  hover:bg-neutral-100
+                  disabled:cursor-not-allowed
+                  disabled:opacity-50
+                  sm:px-4
+                  sm:text-sm
+                "
               >
                 Close
               </button>
-            </div>
-
-            <div className="mt-8 space-y-6">
-
-              {/* Customer */}
-              <div>
-                <h3 className="mb-2 font-medium">
-                  Customer
-                </h3>
-
-<div className="mt-4 grid gap-3 text-sm text-neutral-600">
-
-  <div className="flex justify-between gap-4">
-    <span className="font-medium text-neutral-500">
-      Name
-    </span>
-
-    <span className="text-right">
-      {inquiry.name}
-    </span>
-  </div>
-
-  <div className="flex justify-between gap-4">
-    <span className="font-medium text-neutral-500">
-      WhatsApp
-    </span>
-
-    <span className="text-right">
-      {inquiry.whatsapp}
-    </span>
-  </div>
-
-  <div className="flex justify-between gap-4">
-    <span className="font-medium text-neutral-500">
-      Email
-    </span>
-
-    <span className="text-right">
-      {inquiry.email ?? "-"}
-    </span>
-  </div>
-
-  <div className="flex justify-between gap-4">
-    <span className="font-medium text-neutral-500">
-      Country
-    </span>
-
-    <span className="text-right">
-      {inquiry.country ?? "-"}
-    </span>
-  </div>
-
-  <div className="pt-4">
-    <a
-      href={`https://wa.me/${phone}?text=${whatsappMessage}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
-    >
-      💬 Open WhatsApp
-    </a>
-  </div>
-
-</div>
-              </div>
-
-              {/* Products */}
-              <div>
-<h3 className="mb-4 text-lg font-medium">
-  Products
-</h3>
-
-<div className="space-y-4">
-  {inquiry.items.map((item) => (
-    <div
-      key={item.product.id}
-      className="rounded-2xl border border-neutral-200 bg-white p-5"
-    >
-      <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
-        {item.product.brand}
-      </p>
-
-      <h4 className="mt-2 text-lg font-medium text-neutral-900">
-        {item.product.name}
-      </h4>
-
-      <div className="mt-5 grid gap-3 text-sm text-neutral-600">
-
-        <div className="flex justify-between gap-4">
-          <span className="font-medium text-neutral-500">
-            Reference
-          </span>
-
-          <span className="text-right">
-            {item.product.sku ?? "-"}
-          </span>
-        </div>
-
-        <div className="flex justify-between gap-4">
-          <span className="font-medium text-neutral-500">
-            Colour
-          </span>
-
-          <span className="text-right">
-            {item.color ?? "-"}
-          </span>
-        </div>
-
-        <div className="flex justify-between gap-4">
-          <span className="font-medium text-neutral-500">
-            Size
-          </span>
-
-          <span className="text-right">
-            {item.variant ?? "-"}
-          </span>
-        </div>
-
-        <div className="flex justify-between gap-4">
-          <span className="font-medium text-neutral-500">
-            Dimensions
-          </span>
-
-          <span className="text-right">
-            {item.dimensions ?? "-"}
-          </span>
-        </div>
-
-        <div className="flex justify-between gap-4">
-          <span className="font-medium text-neutral-500">
-            Packaging
-          </span>
-
-          <span className="text-right">
-            {item.packaging ?? "-"}
-          </span>
-        </div>
-
-        <div className="flex justify-between gap-4 border-t border-neutral-200 pt-3">
-          <span className="font-semibold text-neutral-700">
-            Quantity
-          </span>
-
-          <span className="font-semibold">
-            {item.quantity}
-          </span>
-        </div>
-
-      </div>
-
-      {item.notes && (
-        <div className="mt-5 rounded-xl bg-neutral-50 p-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
-            Customer Notes
-          </p>
-
-          <p className="mt-2 text-sm text-neutral-700">
-            {item.notes}
-          </p>
-        </div>
-      )}
-    </div>
-  ))}
-</div>
-              </div>
-
-              {/* Customer Message */}
-              <div>
-                <h3 className="mb-2 font-medium">
-                  Customer Message
-                </h3>
-
-<div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-  <p className="whitespace-pre-wrap text-sm text-neutral-700">
-    {inquiry.message || "-"}
-  </p>
-</div>
-              </div>
-
-              {/* Status */}
-              <div>
-                <h3 className="mb-2 font-medium">
-                  Status
-                </h3>
-
-                <select
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(
-                      e.target.value as InquiryStatus
-                    )
-                  }
-                  disabled={isPending}
-                  className="w-full rounded-xl border px-4 py-3"
-                >
-                  <option value="PENDING">
-                    Pending
-                  </option>
-
-                  <option value="CONTACTED">
-                    Contacted
-                  </option>
-
-                  <option value="COMPLETED">
-                    Completed
-                  </option>
-
-                  <option value="CANCELLED">
-                    Cancelled
-                  </option>
-                </select>
-
-                <button
-                  type="button"
-                  onClick={handleSaveStatus}
-                  disabled={isPending}
-                  className="mt-4 rounded-xl bg-black px-5 py-3 text-white transition hover:bg-neutral-800 disabled:opacity-50"
-                >
-                  {isPending
-                    ? "Saving..."
-                    : "Save Status"}
-                </button>
-              </div>
 
             </div>
+
+
+            {/* ==================================================
+                CONTENT
+                ================================================== */}
+
+            <div
+              className="
+                min-h-0
+                flex-1
+                overflow-y-auto
+                px-4
+                py-5
+                sm:px-8
+                sm:py-7
+              "
+            >
+
+              <div
+                className="
+                  space-y-6
+                  sm:space-y-8
+                "
+              >
+
+                {/* ==================================================
+                    CUSTOMER
+                    ================================================== */}
+
+                <div>
+
+                  <h3
+                    className="
+                      text-base
+                      font-medium
+                      text-neutral-900
+                      sm:text-lg
+                    "
+                  >
+                    Customer
+                  </h3>
+
+
+                  <div
+                    className="
+                      mt-3
+                      space-y-3
+                      text-sm
+                      text-neutral-600
+                    "
+                  >
+
+                    {/* NAME */}
+
+                    <div
+                      className="
+                        flex
+                        items-start
+                        justify-between
+                        gap-4
+                      "
+                    >
+
+                      <span
+                        className="
+                          shrink-0
+                          font-medium
+                          text-neutral-500
+                        "
+                      >
+                        Name
+                      </span>
+
+                      <span
+                        className="
+                          max-w-[65%]
+                          text-right
+                          text-neutral-900
+                        "
+                      >
+                        {inquiry.name}
+                      </span>
+
+                    </div>
+
+
+                    {/* WHATSAPP */}
+
+                    <div
+                      className="
+                        flex
+                        items-start
+                        justify-between
+                        gap-4
+                      "
+                    >
+
+                      <span
+                        className="
+                          shrink-0
+                          font-medium
+                          text-neutral-500
+                        "
+                      >
+                        WhatsApp
+                      </span>
+
+                      <span
+                        className="
+                          max-w-[65%]
+                          break-all
+                          text-right
+                          text-neutral-900
+                        "
+                      >
+                        {inquiry.whatsapp}
+                      </span>
+
+                    </div>
+
+
+                    {/* EMAIL */}
+
+                    <div
+                      className="
+                        flex
+                        items-start
+                        justify-between
+                        gap-4
+                      "
+                    >
+
+                      <span
+                        className="
+                          shrink-0
+                          font-medium
+                          text-neutral-500
+                        "
+                      >
+                        Email
+                      </span>
+
+                      <span
+                        className="
+                          max-w-[65%]
+                          break-all
+                          text-right
+                        "
+                      >
+                        {inquiry.email ??
+                          "-"}
+                      </span>
+
+                    </div>
+
+
+                    {/* COUNTRY */}
+
+                    <div
+                      className="
+                        flex
+                        items-start
+                        justify-between
+                        gap-4
+                      "
+                    >
+
+                      <span
+                        className="
+                          shrink-0
+                          font-medium
+                          text-neutral-500
+                        "
+                      >
+                        Country
+                      </span>
+
+                      <span
+                        className="
+                          max-w-[65%]
+                          text-right
+                        "
+                      >
+                        {inquiry.country ??
+                          "-"}
+                      </span>
+
+                    </div>
+
+
+                    {/* WHATSAPP BUTTON */}
+
+                    <div
+                      className="
+                        pt-2
+                      "
+                    >
+
+                      <a
+                        href={`https://wa.me/${phone}?text=${whatsappMessage}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="
+                          inline-flex
+                          w-full
+                          items-center
+                          justify-center
+                          rounded-xl
+                          bg-green-600
+                          px-4
+                          py-3
+                          text-sm
+                          font-medium
+                          text-white
+                          transition
+                          hover:bg-green-700
+                          sm:w-auto
+                        "
+                      >
+                        💬 Open WhatsApp
+                      </a>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+
+                {/* ==================================================
+                    PRODUCTS
+                    ================================================== */}
+
+                <div>
+
+                  <h3
+                    className="
+                      text-base
+                      font-medium
+                      text-neutral-900
+                      sm:text-lg
+                    "
+                  >
+                    Products
+                  </h3>
+
+
+                  <div
+                    className="
+                      mt-4
+                      space-y-4
+                    "
+                  >
+
+                    {inquiry.items.map(
+                      (item) => (
+
+                        <div
+                          key={
+                            item.product.id
+                          }
+                          className="
+                            rounded-2xl
+                            border
+                            border-neutral-200
+                            bg-white
+                            p-4
+                            sm:p-5
+                          "
+                        >
+
+                          <p
+                            className="
+                              text-[10px]
+                              uppercase
+                              tracking-[0.2em]
+                              text-neutral-400
+                              sm:text-xs
+                            "
+                          >
+                            {item.product.brand}
+                          </p>
+
+
+                          <h4
+                            className="
+                              mt-2
+                              text-base
+                              font-medium
+                              text-neutral-900
+                              sm:text-lg
+                            "
+                          >
+                            {item.product.name}
+                          </h4>
+
+
+                          <div
+                            className="
+                              mt-4
+                              space-y-3
+                              text-sm
+                              text-neutral-600
+                            "
+                          >
+
+                            {/* REFERENCE */}
+
+                            <div
+                              className="
+                                flex
+                                items-start
+                                justify-between
+                                gap-4
+                              "
+                            >
+
+                              <span
+                                className="
+                                  shrink-0
+                                  font-medium
+                                  text-neutral-500
+                                "
+                              >
+                                Reference
+                              </span>
+
+                              <span
+                                className="
+                                  max-w-[60%]
+                                  break-all
+                                  text-right
+                                "
+                              >
+                                {item.product.sku ??
+                                  "-"}
+                              </span>
+
+                            </div>
+
+
+                            {/* COLOUR */}
+
+                            <div
+                              className="
+                                flex
+                                items-start
+                                justify-between
+                                gap-4
+                              "
+                            >
+
+                              <span
+                                className="
+                                  shrink-0
+                                  font-medium
+                                  text-neutral-500
+                                "
+                              >
+                                Colour
+                              </span>
+
+                              <span
+                                className="
+                                  max-w-[60%]
+                                  text-right
+                                "
+                              >
+                                {item.color ??
+                                  "-"}
+                              </span>
+
+                            </div>
+
+
+                            {/* SIZE */}
+
+                            <div
+                              className="
+                                flex
+                                items-start
+                                justify-between
+                                gap-4
+                              "
+                            >
+
+                              <span
+                                className="
+                                  shrink-0
+                                  font-medium
+                                  text-neutral-500
+                                "
+                              >
+                                Size
+                              </span>
+
+                              <span
+                                className="
+                                  max-w-[60%]
+                                  text-right
+                                "
+                              >
+                                {item.variant ??
+                                  "-"}
+                              </span>
+
+                            </div>
+
+
+                            {/* DIMENSIONS */}
+
+                            <div
+                              className="
+                                flex
+                                items-start
+                                justify-between
+                                gap-4
+                              "
+                            >
+
+                              <span
+                                className="
+                                  shrink-0
+                                  font-medium
+                                  text-neutral-500
+                                "
+                              >
+                                Dimensions
+                              </span>
+
+                              <span
+                                className="
+                                  max-w-[60%]
+                                  text-right
+                                "
+                              >
+                                {item.dimensions ??
+                                  "-"}
+                              </span>
+
+                            </div>
+
+
+                            {/* PACKAGING */}
+
+                            <div
+                              className="
+                                flex
+                                items-start
+                                justify-between
+                                gap-4
+                              "
+                            >
+
+                              <span
+                                className="
+                                  shrink-0
+                                  font-medium
+                                  text-neutral-500
+                                "
+                              >
+                                Packaging
+                              </span>
+
+                              <span
+                                className="
+                                  max-w-[60%]
+                                  text-right
+                                "
+                              >
+                                {item.packaging ??
+                                  "-"}
+                              </span>
+
+                            </div>
+
+
+                            {/* QUANTITY */}
+
+                            <div
+                              className="
+                                flex
+                                items-start
+                                justify-between
+                                gap-4
+                                border-t
+                                border-neutral-200
+                                pt-3
+                              "
+                            >
+
+                              <span
+                                className="
+                                  font-semibold
+                                  text-neutral-700
+                                "
+                              >
+                                Quantity
+                              </span>
+
+                              <span
+                                className="
+                                  font-semibold
+                                  text-neutral-900
+                                "
+                              >
+                                {item.quantity}
+                              </span>
+
+                            </div>
+
+                          </div>
+
+
+                          {/* NOTES */}
+
+                          {item.notes && (
+
+                            <div
+                              className="
+                                mt-4
+                                rounded-xl
+                                bg-neutral-50
+                                p-4
+                              "
+                            >
+
+                              <p
+                                className="
+                                  text-[10px]
+                                  uppercase
+                                  tracking-[0.2em]
+                                  text-neutral-400
+                                  sm:text-xs
+                                "
+                              >
+                                Customer Notes
+                              </p>
+
+
+                              <p
+                                className="
+                                  mt-2
+                                  whitespace-pre-wrap
+                                  break-words
+                                  text-sm
+                                  text-neutral-700
+                                "
+                              >
+                                {item.notes}
+                              </p>
+
+                            </div>
+
+                          )}
+
+                        </div>
+
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+
+
+                {/* ==================================================
+                    CUSTOMER MESSAGE
+                    ================================================== */}
+
+                <div>
+
+                  <h3
+                    className="
+                      text-base
+                      font-medium
+                      text-neutral-900
+                      sm:text-lg
+                    "
+                  >
+                    Customer Message
+                  </h3>
+
+
+                  <div
+                    className="
+                      mt-3
+                      rounded-xl
+                      border
+                      border-neutral-200
+                      bg-neutral-50
+                      p-4
+                    "
+                  >
+
+                    <p
+                      className="
+                        whitespace-pre-wrap
+                        break-words
+                        text-sm
+                        leading-6
+                        text-neutral-700
+                      "
+                    >
+                      {inquiry.message ||
+                        "-"}
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                {/* ==================================================
+                    STATUS
+                    ================================================== */}
+
+                <div>
+
+                  <h3
+                    className="
+                      text-base
+                      font-medium
+                      text-neutral-900
+                      sm:text-lg
+                    "
+                  >
+                    Status
+                  </h3>
+
+
+                  <select
+                    value={
+                      status
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setStatus(
+                        event.target.value as InquiryStatus
+                      )
+                    }
+                    disabled={
+                      isPending
+                    }
+                    className="
+                      mt-3
+                      h-11
+                      w-full
+                      rounded-xl
+                      border
+                      border-neutral-200
+                      bg-white
+                      px-4
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-neutral-400
+                      focus:ring-2
+                      focus:ring-black/5
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
+                  >
+
+                    <option value="PENDING">
+                      Pending
+                    </option>
+
+                    <option value="CONTACTED">
+                      Contacted
+                    </option>
+
+                    <option value="COMPLETED">
+                      Completed
+                    </option>
+
+                    <option value="CANCELLED">
+                      Cancelled
+                    </option>
+
+                  </select>
+
+
+                  <button
+                    type="button"
+                    onClick={
+                      handleSaveStatus
+                    }
+                    disabled={
+                      isPending
+                    }
+                    className="
+                      mt-3
+                      w-full
+                      rounded-xl
+                      bg-black
+                      px-5
+                      py-3
+                      text-sm
+                      font-medium
+                      text-white
+                      transition
+                      hover:bg-neutral-800
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                      sm:w-auto
+                    "
+                  >
+                    {isPending
+                      ? "Saving..."
+                      : "Save Status"}
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
           </div>
+
         </div>
+
       )}
+
     </>
+
   );
+
 }

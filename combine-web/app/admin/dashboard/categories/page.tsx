@@ -7,15 +7,28 @@ import {
   deleteSubCategory,
 } from "./_actions/category.actions";
 
+
+// ============================================================
+// PAGE
+// ============================================================
+
 export default async function CategoriesPage() {
+
+  // ==========================================================
+  // LOAD CATEGORIES
+  // ==========================================================
+
   const categories =
     await prisma.category.findMany({
+
       orderBy: {
         createdAt: "desc",
       },
 
       include: {
+
         subCategories: {
+
           orderBy: [
             {
               sortOrder: "asc",
@@ -24,33 +37,92 @@ export default async function CategoriesPage() {
               name: "asc",
             },
           ],
+
         },
+
       },
+
     });
 
+
+  // ==========================================================
+  // RETURN
+  // ==========================================================
+
   return (
-    <main className="mx-auto max-w-6xl p-10">
 
-      {/* ================================================= */}
-      {/* Header */}
-      {/* ================================================= */}
+    <main
+      className="
+        mx-auto
+        w-full
+        max-w-6xl
+        p-4
+        sm:p-6
+        lg:p-10
+      "
+    >
 
-      <div className="mb-8 flex items-center justify-between">
+      {/* ================================================== */}
+      {/* HEADER */}
+      {/* ================================================== */}
 
-        <div>
-          <h1 className="text-4xl font-light">
+      <div
+        className="
+          mb-6
+          flex
+          flex-col
+          gap-4
+
+          sm:mb-8
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+        "
+      >
+
+        <div
+          className="
+            min-w-0
+          "
+        >
+
+          <h1
+            className="
+              text-3xl
+              font-light
+              tracking-tight
+              text-neutral-900
+
+              sm:text-4xl
+            "
+          >
             Categories
           </h1>
 
-          <p className="mt-2 text-sm text-neutral-500">
+
+          <p
+            className="
+              mt-1.5
+              text-sm
+              text-neutral-500
+
+              sm:mt-2
+            "
+          >
             Manage categories and their sub-categories.
           </p>
+
         </div>
+
 
         <Link
           href="/admin/dashboard/categories/new"
           className="
-            rounded-lg
+            inline-flex
+            w-full
+            items-center
+            justify-center
+            rounded-xl
             bg-black
             px-5
             py-3
@@ -58,7 +130,9 @@ export default async function CategoriesPage() {
             font-medium
             text-white
             transition
-            hover:bg-gray-800
+            hover:bg-neutral-800
+
+            sm:w-auto
           "
         >
           + Add Category
@@ -66,232 +140,412 @@ export default async function CategoriesPage() {
 
       </div>
 
-      {/* ================================================= */}
-      {/* Categories */}
-      {/* ================================================= */}
 
-      <div className="space-y-6">
+      {/* ================================================== */}
+      {/* CATEGORIES */}
+      {/* ================================================== */}
 
-        {categories.map((category) => (
+      <div
+        className="
+          space-y-4
 
-          <div
-            key={category.id}
-            className="
-              overflow-hidden
-              rounded-2xl
-              border
-              border-neutral-200
-              bg-white
-            "
-          >
+          sm:space-y-6
+        "
+      >
 
-            {/* ================================================= */}
-            {/* Category Header */}
-            {/* ================================================= */}
+        {categories.map(
+          (category) => (
 
             <div
+              key={
+                category.id
+              }
               className="
-                flex
-                items-center
-                justify-between
-                border-b
+                overflow-hidden
+                rounded-2xl
+                border
                 border-neutral-200
-                bg-neutral-50
-                px-6
-                py-5
+                bg-white
+                shadow-sm
               "
             >
 
-              <div className="min-w-0">
+              {/* ============================================
+                  CATEGORY HEADER
+                  ============================================ */}
 
-                <div className="flex items-center gap-3">
+              <div
+                className="
+                  border-b
+                  border-neutral-200
+                  bg-neutral-50
+                  p-4
 
-                  <h2 className="text-xl font-semibold">
-                    {category.name}
-                  </h2>
+                  sm:px-6
+                  sm:py-5
+                "
+              >
 
-                  <span
-                    className={`
-                      rounded-full
-                      px-3
-                      py-1
-                      text-xs
-                      font-medium
-                      ${
-                        category.active
-                          ? "bg-green-100 text-green-700"
-                          : "bg-neutral-200 text-neutral-500"
-                      }
-                    `}
-                  >
-                    {category.active
-                      ? "Active"
-                      : "Inactive"}
-                  </span>
-
-                </div>
-
-                <p className="mt-1 text-sm text-neutral-500">
-                  /{category.slug}
-                </p>
-
-              </div>
-
-              {/* Category Actions */}
-
-              <div className="flex items-center gap-2">
-
-                <Link
-                  href={`/admin/dashboard/categories/${category.id}`}
+                <div
                   className="
-                    rounded-lg
-                    border
-                    border-neutral-200
-                    bg-white
-                    px-4
-                    py-2
-                    text-sm
-                    transition
-                    hover:bg-neutral-100
+                    flex
+                    flex-col
+                    gap-4
+
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
                   "
                 >
-                  Edit
-                </Link>
 
-                <form
-                  action={deleteCategory.bind(
-                    null,
-                    category.id
-                  )}
-                >
-                  <button
-                    type="submit"
+                  {/* CATEGORY INFO */}
+
+                  <div
                     className="
-                      rounded-lg
-                      bg-red-600
-                      px-4
-                      py-2
-                      text-sm
-                      font-medium
-                      text-white
-                      transition
-                      hover:bg-red-700
+                      min-w-0
                     "
                   >
-                    Delete
-                  </button>
-                </form>
 
-              </div>
+                    <div
+                      className="
+                        flex
+                        min-w-0
+                        items-start
+                        gap-2
 
-            </div>
+                        sm:items-center
+                        sm:gap-3
+                      "
+                    >
 
-            {/* ================================================= */}
-            {/* Sub-Categories */}
-            {/* ================================================= */}
+                      <h2
+                        className="
+                          min-w-0
+                          truncate
+                          text-lg
+                          font-semibold
+                          text-neutral-900
 
-            <div className="p-6">
+                          sm:text-xl
+                        "
+                      >
+                        {category.name}
+                      </h2>
 
-              <div className="mb-4 flex items-center justify-between">
 
-                <div>
+                      <span
+                        className={`
+                          shrink-0
+                          rounded-full
+                          px-2.5
+                          py-1
+                          text-[10px]
+                          font-medium
 
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                    Sub-Categories
-                  </h3>
+                          sm:px-3
+                          sm:text-xs
 
-                  <p className="mt-1 text-sm text-neutral-400">
-                    {category.subCategories.length}{" "}
-                    {category.subCategories.length === 1
-                      ? "sub-category"
-                      : "sub-categories"}
-                  </p>
+                          ${
+                            category.active
+                              ? "bg-green-100 text-green-700"
+                              : "bg-neutral-200 text-neutral-500"
+                          }
+                        `}
+                      >
+                        {category.active
+                          ? "Active"
+                          : "Inactive"}
+                      </span>
+
+                    </div>
+
+
+                    <p
+                      className="
+                        mt-1
+                        truncate
+                        text-xs
+                        text-neutral-500
+
+                        sm:text-sm
+                      "
+                    >
+                      /{category.slug}
+                    </p>
+
+                  </div>
+
+
+                  {/* CATEGORY ACTIONS */}
+
+                  <div
+                    className="
+                      flex
+                      w-full
+                      gap-2
+
+                      sm:w-auto
+                      sm:shrink-0
+                    "
+                  >
+
+                    <Link
+                      href={`/admin/dashboard/categories/${category.id}`}
+                      className="
+                        inline-flex
+                        min-h-10
+                        flex-1
+                        items-center
+                        justify-center
+                        rounded-xl
+                        border
+                        border-neutral-200
+                        bg-white
+                        px-4
+                        text-sm
+                        transition
+                        hover:bg-neutral-100
+
+                        sm:flex-none
+                      "
+                    >
+                      Edit
+                    </Link>
+
+
+                    <form
+                      action={deleteCategory.bind(
+                        null,
+                        category.id
+                      )}
+                      className="
+                        flex-1
+
+                        sm:flex-none
+                      "
+                    >
+
+                      <button
+                        type="submit"
+                        className="
+                          inline-flex
+                          min-h-10
+                          w-full
+                          items-center
+                          justify-center
+                          rounded-xl
+                          bg-red-600
+                          px-4
+                          text-sm
+                          font-medium
+                          text-white
+                          transition
+                          hover:bg-red-700
+
+                          sm:w-auto
+                        "
+                      >
+                        Delete
+                      </button>
+
+                    </form>
+
+                  </div>
 
                 </div>
 
-                <Link
-                  href={`/admin/dashboard/categories/subcategories/new?categoryId=${category.id}`}
-                  className="
-                    rounded-lg
-                    border
-                    border-neutral-200
-                    px-4
-                    py-2
-                    text-sm
-                    font-medium
-                    transition
-                    hover:bg-neutral-100
-                  "
-                >
-                  + Add Sub-Category
-                </Link>
-
               </div>
 
-              {category.subCategories.length > 0 ? (
 
-                <div className="overflow-hidden rounded-xl border border-neutral-200">
+              {/* ============================================
+                  SUB-CATEGORIES
+                  ============================================ */}
 
-                  <table className="w-full">
+              <div
+                className="
+                  p-4
 
-                    <thead className="bg-neutral-50">
+                  sm:p-6
+                "
+              >
 
-                      <tr>
+                {/* SUB HEADER */}
 
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.12em] text-neutral-400">
-                          Name
-                        </th>
+                <div
+                  className="
+                    mb-4
+                    flex
+                    flex-col
+                    gap-3
 
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.12em] text-neutral-400">
-                          Slug
-                        </th>
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                  "
+                >
 
-                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.12em] text-neutral-400">
-                          Status
-                        </th>
+                  <div
+                    className="
+                      min-w-0
+                    "
+                  >
 
-                        <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-[0.12em] text-neutral-400">
-                          Actions
-                        </th>
+                    <h3
+                      className="
+                        text-xs
+                        font-semibold
+                        uppercase
+                        tracking-[0.16em]
+                        text-neutral-500
+                      "
+                    >
+                      Sub-Categories
+                    </h3>
 
-                      </tr>
 
-                    </thead>
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        text-neutral-400
 
-                    <tbody>
+                        sm:text-sm
+                      "
+                    >
+                      {category.subCategories.length}{" "}
+                      {
+                        category.subCategories.length === 1
+                          ? "sub-category"
+                          : "sub-categories"
+                      }
+                    </p>
+
+                  </div>
+
+
+                  <Link
+                    href={`/admin/dashboard/categories/subcategories/new?categoryId=${category.id}`}
+                    className="
+                      inline-flex
+                      w-full
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-neutral-200
+                      bg-white
+                      px-4
+                      py-2.5
+                      text-sm
+                      font-medium
+                      transition
+                      hover:bg-neutral-100
+
+                      sm:w-auto
+                    "
+                  >
+                    + Add Sub-Category
+                  </Link>
+
+                </div>
+
+
+                {/* ==========================================
+                    HAS SUB-CATEGORIES
+                    ========================================== */}
+
+                {category.subCategories.length > 0 ? (
+
+                  <>
+
+                    {/* ======================================
+                        MOBILE SUB-CATEGORY LIST
+                        ====================================== */}
+
+                    <div
+                      className="
+                        space-y-3
+
+                        sm:hidden
+                      "
+                    >
 
                       {category.subCategories.map(
                         (subCategory) => (
 
-                          <tr
-                            key={subCategory.id}
+                          <div
+                            key={
+                              subCategory.id
+                            }
                             className="
-                              border-t
+                              rounded-xl
+                              border
                               border-neutral-200
+                              bg-white
+                              p-3
                             "
                           >
 
-                            <td className="px-4 py-4">
+                            {/* INFO */}
 
-                              <p className="font-medium text-neutral-900">
-                                {subCategory.name}
-                              </p>
+                            <div
+                              className="
+                                flex
+                                min-w-0
+                                items-start
+                                justify-between
+                                gap-3
+                              "
+                            >
 
-                            </td>
+                              <div
+                                className="
+                                  min-w-0
+                                  flex-1
+                                "
+                              >
 
-                            <td className="px-4 py-4 text-sm text-neutral-500">
-                              {subCategory.slug}
-                            </td>
+                                <p
+                                  className="
+                                    truncate
+                                    text-sm
+                                    font-medium
+                                    text-neutral-900
+                                  "
+                                >
+                                  {
+                                    subCategory.name
+                                  }
+                                </p>
 
-                            <td className="px-4 py-4">
+
+                                <p
+                                  className="
+                                    mt-1
+                                    truncate
+                                    text-xs
+                                    text-neutral-500
+                                  "
+                                >
+                                  {
+                                    subCategory.slug
+                                  }
+                                </p>
+
+                              </div>
+
+
+                              {/* STATUS */}
 
                               <span
                                 className={`
+                                  shrink-0
                                   rounded-full
-                                  px-3
+                                  px-2.5
                                   py-1
-                                  text-xs
+                                  text-[10px]
                                   font-medium
+
                                   ${
                                     subCategory.active
                                       ? "bg-green-100 text-green-700"
@@ -299,121 +553,426 @@ export default async function CategoriesPage() {
                                   }
                                 `}
                               >
-                                {subCategory.active
-                                  ? "Active"
-                                  : "Inactive"}
+                                {
+                                  subCategory.active
+                                    ? "Active"
+                                    : "Inactive"
+                                }
                               </span>
 
-                            </td>
+                            </div>
 
-                            <td className="px-4 py-4">
 
-                              <div className="flex justify-end gap-2">
+                            {/* ACTIONS */}
 
-                                <Link
-                                  href={`/admin/dashboard/categories/subcategories/${subCategory.id}`}
+                            <div
+                              className="
+                                mt-3
+                                flex
+                                gap-2
+                              "
+                            >
+
+                              <Link
+                                href={`/admin/dashboard/categories/subcategories/${subCategory.id}`}
+                                className="
+                                  inline-flex
+                                  min-h-10
+                                  flex-1
+                                  items-center
+                                  justify-center
+                                  rounded-xl
+                                  border
+                                  border-neutral-200
+                                  px-3
+                                  text-sm
+                                  transition
+                                  hover:bg-neutral-100
+                                "
+                              >
+                                Edit
+                              </Link>
+
+
+                              <form
+                                action={deleteSubCategory.bind(
+                                  null,
+                                  subCategory.id
+                                )}
+                                className="
+                                  flex-1
+                                "
+                              >
+
+                                <button
+                                  type="submit"
                                   className="
-                                    rounded-lg
-                                    border
-                                    border-neutral-200
+                                    inline-flex
+                                    min-h-10
+                                    w-full
+                                    items-center
+                                    justify-center
+                                    rounded-xl
+                                    bg-red-600
                                     px-3
-                                    py-2
                                     text-sm
+                                    font-medium
+                                    text-white
                                     transition
-                                    hover:bg-neutral-100
+                                    hover:bg-red-700
                                   "
                                 >
-                                  Edit
-                                </Link>
+                                  Delete
+                                </button>
 
-                                <form
-                                  action={deleteSubCategory.bind(
-                                    null,
-                                    subCategory.id
-                                  )}
-                                >
+                              </form>
 
-                                  <button
-                                    type="submit"
-                                    className="
-                                      rounded-lg
-                                      bg-red-600
-                                      px-3
-                                      py-2
-                                      text-sm
-                                      font-medium
-                                      text-white
-                                      transition
-                                      hover:bg-red-700
-                                    "
-                                  >
-                                    Delete
-                                  </button>
+                            </div>
 
-                                </form>
-
-                              </div>
-
-                            </td>
-
-                          </tr>
+                          </div>
 
                         )
                       )}
 
-                    </tbody>
+                    </div>
 
-                  </table>
 
-                </div>
+                    {/* ======================================
+                        DESKTOP SUB-CATEGORY TABLE
+                        ====================================== */}
 
-              ) : (
+                    <div
+                      className="
+                        hidden
+                        overflow-hidden
+                        rounded-xl
+                        border
+                        border-neutral-200
 
-                <div
-                  className="
-                    rounded-xl
-                    border
-                    border-dashed
-                    border-neutral-300
-                    bg-neutral-50
-                    px-6
-                    py-10
-                    text-center
-                  "
-                >
+                        sm:block
+                      "
+                    >
 
-                  <p className="text-sm text-neutral-500">
-                    No sub-categories yet.
-                  </p>
+                      <div
+                        className="
+                          overflow-x-auto
+                        "
+                      >
 
-                  <Link
-                    href={`/admin/dashboard/categories/subcategories/new?categoryId=${category.id}`}
+                        <table
+                          className="
+                            w-full
+                            min-w-[700px]
+                          "
+                        >
+
+                          <thead
+                            className="
+                              bg-neutral-50
+                            "
+                          >
+
+                            <tr>
+
+                              <th
+                                className="
+                                  px-4
+                                  py-3
+                                  text-left
+                                  text-xs
+                                  font-medium
+                                  uppercase
+                                  tracking-[0.12em]
+                                  text-neutral-400
+                                "
+                              >
+                                Name
+                              </th>
+
+
+                              <th
+                                className="
+                                  px-4
+                                  py-3
+                                  text-left
+                                  text-xs
+                                  font-medium
+                                  uppercase
+                                  tracking-[0.12em]
+                                  text-neutral-400
+                                "
+                              >
+                                Slug
+                              </th>
+
+
+                              <th
+                                className="
+                                  px-4
+                                  py-3
+                                  text-left
+                                  text-xs
+                                  font-medium
+                                  uppercase
+                                  tracking-[0.12em]
+                                  text-neutral-400
+                                "
+                              >
+                                Status
+                              </th>
+
+
+                              <th
+                                className="
+                                  px-4
+                                  py-3
+                                  text-right
+                                  text-xs
+                                  font-medium
+                                  uppercase
+                                  tracking-[0.12em]
+                                  text-neutral-400
+                                "
+                              >
+                                Actions
+                              </th>
+
+                            </tr>
+
+                          </thead>
+
+
+                          <tbody>
+
+                            {category.subCategories.map(
+                              (subCategory) => (
+
+                                <tr
+                                  key={
+                                    subCategory.id
+                                  }
+                                  className="
+                                    border-t
+                                    border-neutral-200
+                                    transition
+                                    hover:bg-neutral-50
+                                  "
+                                >
+
+                                  <td
+                                    className="
+                                      px-4
+                                      py-4
+                                    "
+                                  >
+
+                                    <p
+                                      className="
+                                        text-sm
+                                        font-medium
+                                        text-neutral-900
+                                      "
+                                    >
+                                      {
+                                        subCategory.name
+                                      }
+                                    </p>
+
+                                  </td>
+
+
+                                  <td
+                                    className="
+                                      px-4
+                                      py-4
+                                      text-sm
+                                      text-neutral-500
+                                    "
+                                  >
+                                    {
+                                      subCategory.slug
+                                    }
+                                  </td>
+
+
+                                  <td
+                                    className="
+                                      px-4
+                                      py-4
+                                    "
+                                  >
+
+                                    <span
+                                      className={`
+                                        inline-flex
+                                        rounded-full
+                                        px-3
+                                        py-1
+                                        text-xs
+                                        font-medium
+
+                                        ${
+                                          subCategory.active
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-neutral-100 text-neutral-500"
+                                        }
+                                      `}
+                                    >
+                                      {
+                                        subCategory.active
+                                          ? "Active"
+                                          : "Inactive"
+                                      }
+                                    </span>
+
+                                  </td>
+
+
+                                  <td
+                                    className="
+                                      px-4
+                                      py-4
+                                      text-right
+                                    "
+                                  >
+
+                                    <div
+                                      className="
+                                        flex
+                                        justify-end
+                                        gap-2
+                                      "
+                                    >
+
+                                      <Link
+                                        href={`/admin/dashboard/categories/subcategories/${subCategory.id}`}
+                                        className="
+                                          inline-flex
+                                          items-center
+                                          rounded-lg
+                                          border
+                                          border-neutral-200
+                                          px-3
+                                          py-2
+                                          text-sm
+                                          transition
+                                          hover:bg-neutral-100
+                                        "
+                                      >
+                                        Edit
+                                      </Link>
+
+
+                                      <form
+                                        action={deleteSubCategory.bind(
+                                          null,
+                                          subCategory.id
+                                        )}
+                                      >
+
+                                        <button
+                                          type="submit"
+                                          className="
+                                            inline-flex
+                                            items-center
+                                            rounded-lg
+                                            bg-red-600
+                                            px-3
+                                            py-2
+                                            text-sm
+                                            font-medium
+                                            text-white
+                                            transition
+                                            hover:bg-red-700
+                                          "
+                                        >
+                                          Delete
+                                        </button>
+
+                                      </form>
+
+                                    </div>
+
+                                  </td>
+
+                                </tr>
+
+                              )
+                            )}
+
+                          </tbody>
+
+                        </table>
+
+                      </div>
+
+                    </div>
+
+                  </>
+
+                ) : (
+
+                  /* ========================================
+                     EMPTY SUB-CATEGORY
+                     ======================================== */
+
+                  <div
                     className="
-                      mt-3
-                      inline-block
-                      text-sm
-                      font-medium
-                      text-black
-                      underline
-                      underline-offset-4
+                      rounded-xl
+                      border
+                      border-dashed
+                      border-neutral-300
+                      bg-neutral-50
+                      px-4
+                      py-8
+                      text-center
+
+                      sm:px-6
+                      sm:py-10
                     "
                   >
-                    Add your first sub-category
-                  </Link>
 
-                </div>
+                    <p
+                      className="
+                        text-sm
+                        text-neutral-500
+                      "
+                    >
+                      No sub-categories yet.
+                    </p>
 
-              )}
+
+                    <Link
+                      href={`/admin/dashboard/categories/subcategories/new?categoryId=${category.id}`}
+                      className="
+                        mt-3
+                        inline-flex
+                        items-center
+                        text-sm
+                        font-medium
+                        text-black
+                        underline
+                        underline-offset-4
+                      "
+                    >
+                      Add your first sub-category
+                    </Link>
+
+                  </div>
+
+                )}
+
+              </div>
 
             </div>
 
-          </div>
+          )
+        )}
 
-        ))}
 
-        {/* ================================================= */}
-        {/* Empty State */}
-        {/* ================================================= */}
+        {/* ==================================================
+            EMPTY CATEGORIES
+            ================================================== */}
 
         {categories.length === 0 && (
 
@@ -423,25 +982,44 @@ export default async function CategoriesPage() {
               border
               border-dashed
               border-neutral-300
-              p-16
+              bg-white
+              px-6
+              py-12
               text-center
+
+              sm:p-16
             "
           >
 
-            <h2 className="text-lg font-medium">
+            <h2
+              className="
+                text-lg
+                font-medium
+                text-neutral-900
+              "
+            >
               No categories found.
             </h2>
 
-            <p className="mt-2 text-sm text-neutral-500">
+
+            <p
+              className="
+                mt-2
+                text-sm
+                text-neutral-500
+              "
+            >
               Create your first category to get started.
             </p>
+
 
             <Link
               href="/admin/dashboard/categories/new"
               className="
                 mt-6
-                inline-block
-                rounded-lg
+                inline-flex
+                items-center
+                rounded-xl
                 bg-black
                 px-5
                 py-3
@@ -462,5 +1040,6 @@ export default async function CategoriesPage() {
       </div>
 
     </main>
+
   );
 }

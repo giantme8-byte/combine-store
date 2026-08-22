@@ -366,7 +366,8 @@ export default function VoucherEditForm({
         handleSubmit
       }
       className="
-        space-y-8
+        space-y-6
+        sm:space-y-8
       "
     >
 
@@ -382,10 +383,14 @@ export default function VoucherEditForm({
             border
             border-red-200
             bg-red-50
-            px-4
+            px-3
             py-3
-            text-sm
+            text-xs
+            leading-5
             text-red-700
+            sm:px-4
+            sm:text-sm
+            sm:leading-normal
           "
         >
           {error}
@@ -406,10 +411,15 @@ export default function VoucherEditForm({
             border
             border-amber-200
             bg-amber-50
-            px-4
-            py-4
-            text-sm
+            px-3
+            py-3
+            text-xs
+            leading-5
             text-amber-800
+            sm:px-4
+            sm:py-4
+            sm:text-sm
+            sm:leading-normal
           "
         >
 
@@ -438,12 +448,13 @@ export default function VoucherEditForm({
           border
           border-gray-200
           bg-white
-          p-6
+          p-4
           shadow-sm
+          sm:p-6
         "
       >
 
-        <div className="mb-6">
+        <div className="mb-5 sm:mb-6">
 
           <h2
             className="
@@ -472,7 +483,8 @@ export default function VoucherEditForm({
           className="
             grid
             grid-cols-1
-            gap-6
+            gap-4
+            sm:gap-6
             md:grid-cols-2
           "
         >
@@ -520,9 +532,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 uppercase
                 outline-none
                 focus:border-gray-900
@@ -569,9 +582,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -645,10 +659,11 @@ export default function VoucherEditForm({
                   border
                   border-gray-300
                   bg-white
-                  px-4
+                  px-3
                   py-3
-                  pr-12
+                  pr-11
                   text-sm
+                  sm:px-4
                   outline-none
                   focus:border-gray-900
                   focus:ring-1
@@ -661,8 +676,9 @@ export default function VoucherEditForm({
                 className="
                   pointer-events-none
                   absolute
-                  right-4
+                  right-3
                   top-1/2
+                  sm:right-4
                   -translate-y-1/2
                   text-sm
                   text-gray-400
@@ -717,9 +733,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -773,9 +790,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 disabled:cursor-not-allowed
                 disabled:bg-gray-50
@@ -828,9 +846,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -881,12 +900,13 @@ export default function VoucherEditForm({
           border
           border-gray-200
           bg-white
-          p-6
+          p-4
           shadow-sm
+          sm:p-6
         "
       >
 
-        <div className="mb-6">
+        <div className="mb-5 sm:mb-6">
 
           <h2
             className="
@@ -905,7 +925,8 @@ export default function VoucherEditForm({
           className="
             grid
             grid-cols-1
-            gap-6
+            gap-4
+            sm:gap-6
             md:grid-cols-2
           "
         >
@@ -947,9 +968,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -996,9 +1018,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -1048,9 +1071,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -1100,9 +1124,10 @@ export default function VoucherEditForm({
                 border
                 border-gray-300
                 bg-white
-                px-4
+                px-3
                 py-3
                 text-sm
+                sm:px-4
                 outline-none
                 focus:border-gray-900
                 focus:ring-1
@@ -1119,11 +1144,13 @@ export default function VoucherEditForm({
 
         <div
           className="
-            mt-8
+            mt-6
             space-y-4
             border-t
             border-gray-100
-            pt-6
+            pt-5
+            sm:mt-8
+            sm:pt-6
           "
         >
 
@@ -1277,11 +1304,14 @@ export default function VoucherEditForm({
             border
             border-gray-300
             bg-white
-            px-6
+            w-full
+            px-5
             py-3
             text-sm
             font-medium
             text-gray-700
+            sm:w-auto
+            sm:px-6
             transition
             hover:bg-gray-50
           "
@@ -1300,10 +1330,13 @@ export default function VoucherEditForm({
             items-center
             justify-center
             rounded-xl
+            w-full
             bg-black
-            px-7
+            px-6
             py-3
             text-sm
+            sm:w-auto
+            sm:px-7
             font-medium
             text-white
             transition

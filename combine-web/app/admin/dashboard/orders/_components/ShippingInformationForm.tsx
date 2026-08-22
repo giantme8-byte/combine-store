@@ -213,7 +213,8 @@ export default function ShippingInformationForm({
             border
             border-neutral-200
             bg-neutral-50
-            p-5
+            p-4
+            sm:p-5
           "
         >
 
@@ -253,7 +254,10 @@ export default function ShippingInformationForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6"
+      className="
+        space-y-5
+        sm:space-y-6
+      "
     >
 
 
@@ -270,15 +274,17 @@ export default function ShippingInformationForm({
             border
             border-neutral-200
             bg-neutral-50
-            p-5
+            p-4
+            sm:p-5
           "
         >
 
           <div
             className="
               flex
-              items-center
+              items-start
               gap-3
+              sm:items-center
             "
           >
 
@@ -318,6 +324,7 @@ export default function ShippingInformationForm({
               <p
                 className="
                   mt-1
+                  break-all
                   text-xs
                   text-neutral-500
                 "
@@ -365,10 +372,11 @@ export default function ShippingInformationForm({
             border
             border-neutral-300
             bg-neutral-50
-            px-4
+            px-3
             py-3
             text-sm
             text-neutral-900
+            sm:px-4
           "
         >
 
@@ -444,10 +452,11 @@ export default function ShippingInformationForm({
             border
             border-neutral-300
             bg-white
-            px-4
+            px-3
             py-3
             text-sm
             outline-none
+            sm:px-4
             transition
             placeholder:text-neutral-400
             focus:border-black
@@ -509,10 +518,11 @@ export default function ShippingInformationForm({
             border
             border-neutral-300
             bg-white
-            px-4
+            px-3
             py-3
             text-sm
             outline-none
+            sm:px-4
             transition
             placeholder:text-neutral-400
             focus:border-black
@@ -536,11 +546,14 @@ export default function ShippingInformationForm({
             border
             border-red-200
             bg-red-50
-            px-4
+            px-3
             py-3
-            text-sm
-            leading-6
+            text-xs
+            leading-5
             text-red-700
+            sm:px-4
+            sm:text-sm
+            sm:leading-6
           "
         >
 
@@ -566,10 +579,12 @@ export default function ShippingInformationForm({
             border
             border-emerald-200
             bg-emerald-50
-            px-4
+            px-3
             py-3
-            text-sm
+            text-xs
             text-emerald-700
+            sm:px-4
+            sm:text-sm
           "
         >
 
@@ -600,13 +615,16 @@ export default function ShippingInformationForm({
           }
           className="
             inline-flex
+            w-full
             items-center
             justify-center
             gap-2
             rounded-xl
             bg-black
-            px-5
+            px-4
             py-3
+            sm:w-auto
+            sm:px-5
             text-sm
             font-medium
             text-white

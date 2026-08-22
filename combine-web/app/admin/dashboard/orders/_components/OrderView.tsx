@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   LayoutGrid,
@@ -38,53 +38,33 @@ type Order = {
   trackingUrl: string | null;
 
   items: {
-
     id: number;
-
     productName: string;
-
     quantity: number;
-
     unitPrice: number;
-
     totalPrice: number;
-
     unitCost: number | null;
-
     totalCost: number | null;
-
     profit: number | null;
-
   }[];
 
   payment: {
-
     id: number;
-
     paymentMethodName: string;
-
     paymentMethodType:
       | "BANK_TRANSFER"
       | "QR";
-
     amount: number;
-
     status:
       | "PENDING"
       | "SUBMITTED"
       | "VERIFIED"
       | "REJECTED";
-
     proofUrl: string | null;
-
     proofPublicId: string | null;
-
     verifiedAt: Date | null;
-
     verifiedBy: number | null;
-
     adminNote: string | null;
-
   } | null;
 };
 
@@ -115,6 +95,10 @@ export default function OrderView({
   paymentStatus,
 }: OrderViewProps) {
 
+  // ==========================================================
+  // VIEW STATE
+  // ==========================================================
+
   const [
     view,
     setView,
@@ -123,18 +107,91 @@ export default function OrderView({
   >("table");
 
 
-  return (
+  const [
+    mounted,
+    setMounted,
+  ] = useState(false);
 
+
+  // ==========================================================
+  // HYDRATION
+  // ==========================================================
+
+  useEffect(() => {
+
+    setMounted(true);
+
+
+    const savedView =
+      localStorage.getItem(
+        "order-view"
+      );
+
+
+    if (
+      savedView === "table" ||
+      savedView === "grid"
+    ) {
+
+      setView(
+        savedView
+      );
+
+    }
+
+  }, []);
+
+
+  // ==========================================================
+  // SAVE VIEW PREFERENCE
+  // ==========================================================
+
+  useEffect(() => {
+
+    if (!mounted) {
+      return;
+    }
+
+
+    localStorage.setItem(
+      "order-view",
+      view
+    );
+
+  }, [
+    view,
+    mounted,
+  ]);
+
+
+  // ==========================================================
+  // DESKTOP VIEW
+  //
+  // Mobile is always Grid.
+  // Desktop remembers selected view.
+  // ==========================================================
+
+  const desktopView =
+    mounted
+      ? view
+      : "table";
+
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
+  return (
     <div
       className="
+        min-w-0
         space-y-5
       "
     >
 
-
-      {/* ====================================================== */}
+      {/* ==================================================== */}
       {/* FILTERS */}
-      {/* ====================================================== */}
+      {/* ==================================================== */}
 
       <OrderFilters
         search={
@@ -151,9 +208,9 @@ export default function OrderView({
       />
 
 
-      {/* ====================================================== */}
+      {/* ==================================================== */}
       {/* VIEW SWITCHER */}
-      {/* ====================================================== */}
+      {/* ==================================================== */}
 
       <div
         className="
@@ -165,6 +222,7 @@ export default function OrderView({
         <div
           className="
             flex
+            shrink-0
             rounded-xl
             border
             border-neutral-200
@@ -173,29 +231,32 @@ export default function OrderView({
           "
         >
 
-
-          {/* ================================================== */}
-          {/* TABLE VIEW */}
-          {/* ================================================== */}
+          {/* ================================================= */}
+          {/* TABLE */}
+          {/* Desktop only */}
+          {/* ================================================= */}
 
           <button
             type="button"
             onClick={() =>
-              setView(
-                "table"
-              )
+              setView("table")
             }
             className={`
-              flex
+              hidden
               items-center
               gap-2
               rounded-lg
-              px-4
+              px-3
               py-2
               text-sm
               transition
+
+              sm:flex
+              sm:px-4
+
               ${
-                view === "table"
+                desktopView ===
+                "table"
                   ? "bg-black text-white"
                   : "text-neutral-600 hover:bg-neutral-100"
               }
@@ -203,7 +264,7 @@ export default function OrderView({
           >
 
             <Table
-              size={18}
+              size={17}
             />
 
             Table
@@ -211,28 +272,31 @@ export default function OrderView({
           </button>
 
 
-          {/* ================================================== */}
-          {/* GRID VIEW */}
-          {/* ================================================== */}
+          {/* ================================================= */}
+          {/* GRID */}
+          {/* Mobile + Desktop */}
+          {/* ================================================= */}
 
           <button
             type="button"
             onClick={() =>
-              setView(
-                "grid"
-              )
+              setView("grid")
             }
             className={`
               flex
               items-center
               gap-2
               rounded-lg
-              px-4
+              px-3
               py-2
               text-sm
               transition
+
+              sm:px-4
+
               ${
-                view === "grid"
+                desktopView ===
+                "grid"
                   ? "bg-black text-white"
                   : "text-neutral-600 hover:bg-neutral-100"
               }
@@ -240,10 +304,17 @@ export default function OrderView({
           >
 
             <LayoutGrid
-              size={18}
+              size={17}
             />
 
-            Grid
+            <span
+              className="
+                hidden
+                sm:inline
+              "
+            >
+              Grid
+            </span>
 
           </button>
 
@@ -252,19 +323,18 @@ export default function OrderView({
       </div>
 
 
-      {/* ====================================================== */}
-      {/* CONTENT */}
-      {/* ====================================================== */}
+      {/* ==================================================== */}
+      {/* MOBILE */}
+      {/* Always Grid */}
+      {/* ==================================================== */}
 
-      {view === "table" ? (
-
-        <OrderTable
-          orders={
-            orders
-          }
-        />
-
-      ) : (
+      <div
+        className="
+          block
+          min-w-0
+          sm:hidden
+        "
+      >
 
         <OrderGrid
           orders={
@@ -272,10 +342,43 @@ export default function OrderView({
           }
         />
 
-      )}
+      </div>
+
+
+      {/* ==================================================== */}
+      {/* DESKTOP */}
+      {/* Table / Grid */}
+      {/* ==================================================== */}
+
+      <div
+        className="
+          hidden
+          min-w-0
+          sm:block
+        "
+      >
+
+        {desktopView ===
+        "table" ? (
+
+          <OrderTable
+            orders={
+              orders
+            }
+          />
+
+        ) : (
+
+          <OrderGrid
+            orders={
+              orders
+            }
+          />
+
+        )}
+
+      </div>
 
     </div>
-
   );
-
 }

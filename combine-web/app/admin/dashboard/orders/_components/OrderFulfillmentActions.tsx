@@ -137,15 +137,17 @@ export default function OrderFulfillmentActions({
           border
           border-emerald-200
           bg-emerald-50
-          p-5
+          p-4
+          sm:p-5
         "
       >
 
         <div
           className="
             flex
-            items-center
+            items-start
             gap-3
+            sm:items-center
           "
         >
 
@@ -216,15 +218,17 @@ export default function OrderFulfillmentActions({
           border
           border-red-200
           bg-red-50
-          p-5
+          p-4
+          sm:p-5
         "
       >
 
         <div
           className="
             flex
-            items-center
+            items-start
             gap-3
+            sm:items-center
           "
         >
 
@@ -296,8 +300,9 @@ export default function OrderFulfillmentActions({
             border
             border-red-200
             bg-red-50
-            px-4
+            px-3
             py-3
+            sm:px-4
             text-sm
             leading-6
             text-red-700
@@ -341,13 +346,16 @@ export default function OrderFulfillmentActions({
             className="
               mt-4
               inline-flex
+              w-full
               items-center
               justify-center
               gap-2
               rounded-xl
               bg-black
-              px-5
+              px-4
               py-3
+              sm:w-auto
+              sm:px-5
               text-sm
               font-medium
               text-white
@@ -411,7 +419,8 @@ export default function OrderFulfillmentActions({
               border
               border-blue-200
               bg-blue-50
-              p-4
+              p-3
+              sm:p-4
             "
           >
 
@@ -479,13 +488,16 @@ export default function OrderFulfillmentActions({
             className="
               mt-4
               inline-flex
+              w-full
               items-center
               justify-center
               gap-2
               rounded-xl
               bg-black
-              px-5
+              px-4
               py-3
+              sm:w-auto
+              sm:px-5
               text-sm
               font-medium
               text-white
@@ -536,7 +548,8 @@ export default function OrderFulfillmentActions({
           className="
             border-t
             border-neutral-200
-            pt-5
+            pt-4
+            sm:pt-5
           "
         >
 
@@ -553,6 +566,7 @@ export default function OrderFulfillmentActions({
             }
             className="
               inline-flex
+              w-full
               items-center
               justify-center
               gap-2
@@ -560,8 +574,10 @@ export default function OrderFulfillmentActions({
               border
               border-red-200
               bg-white
-              px-5
+              px-4
               py-3
+              sm:w-auto
+              sm:px-5
               text-sm
               font-medium
               text-red-600

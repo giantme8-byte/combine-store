@@ -238,15 +238,17 @@ export default function PaymentReviewActions({
           border
           border-emerald-200
           bg-emerald-50
-          p-5
+          p-4
+          sm:p-5
         "
       >
 
         <div
           className="
             flex
-            items-center
+            items-start
             gap-3
+            sm:items-center
           "
         >
 
@@ -318,7 +320,8 @@ export default function PaymentReviewActions({
           border
           border-red-200
           bg-red-50
-          p-5
+          p-4
+          sm:p-5
         "
       >
 
@@ -383,7 +386,8 @@ export default function PaymentReviewActions({
                   border
                   border-red-200
                   bg-white
-                  p-4
+                  p-3
+                  sm:p-4
                 "
               >
 
@@ -442,7 +446,8 @@ export default function PaymentReviewActions({
           border
           border-neutral-200
           bg-neutral-50
-          p-5
+          p-4
+          sm:p-5
         "
       >
 
@@ -523,7 +528,8 @@ export default function PaymentReviewActions({
           border
           border-neutral-200
           bg-neutral-50
-          p-5
+          p-4
+          sm:p-5
         "
       >
 
@@ -650,10 +656,13 @@ export default function PaymentReviewActions({
             border
             border-red-200
             bg-red-50
-            px-4
+            px-3
             py-3
-            text-sm
-            leading-6
+            text-xs
+            leading-5
+            sm:px-4
+            sm:text-sm
+            sm:leading-6
             text-red-700
           "
         >
@@ -690,14 +699,16 @@ export default function PaymentReviewActions({
           }
           className="
             inline-flex
+            min-h-11
             flex-1
             items-center
             justify-center
             gap-2
             rounded-xl
             bg-black
-            px-5
+            px-4
             py-3
+            sm:px-5
             text-sm
             font-medium
             text-white
@@ -746,6 +757,7 @@ export default function PaymentReviewActions({
           }
           className="
             inline-flex
+            min-h-11
             flex-1
             items-center
             justify-center
@@ -754,8 +766,9 @@ export default function PaymentReviewActions({
             border
             border-red-200
             bg-white
-            px-5
+            px-4
             py-3
+            sm:px-5
             text-sm
             font-medium
             text-red-600

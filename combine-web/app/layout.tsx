@@ -24,7 +24,8 @@ const geistMono = Geist_Mono({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await prisma.setting.findFirst();
+  const settings =
+    await prisma.setting.findFirst();
 
   const title =
     settings?.siteTitle ||
@@ -35,7 +36,8 @@ export async function generateMetadata(): Promise<Metadata> {
     "Discover premium luxury handbags, designer watches, fine jewellery and timeless accessories at COMBINE.";
 
   return {
-    metadataBase: new URL("https://combine.com"),
+    metadataBase:
+      new URL("https://combine.com"),
 
     title: {
       default: title,
@@ -69,16 +71,31 @@ export async function generateMetadata(): Promise<Metadata> {
 
     category: "Luxury Fashion",
 
+    /*
+     * =========================================================
+     * SEARCH ENGINE INDEXING
+     * =========================================================
+     *
+     * The website is intended to be discoverable by Google
+     * and other search engines.
+     */
+
     robots: {
-      index: false,
-      follow: false,
+      index: true,
+      follow: true,
 
       googleBot: {
-        index: false,
-        follow: false,
-        noimageindex: true,
+        index: true,
+        follow: true,
+        noimageindex: false,
       },
     },
+
+    /*
+     * =========================================================
+     * ICONS
+     * =========================================================
+     */
 
     icons: {
       icon: "/favicon.ico",
@@ -86,17 +103,35 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: "/apple-touch-icon.png",
     },
 
+    /*
+     * =========================================================
+     * APPLE WEB APP
+     * =========================================================
+     */
+
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
       title: "COMBINE",
     },
 
+    /*
+     * =========================================================
+     * FORMAT DETECTION
+     * =========================================================
+     */
+
     formatDetection: {
       telephone: false,
       email: false,
       address: false,
     },
+
+    /*
+     * =========================================================
+     * OPEN GRAPH
+     * =========================================================
+     */
 
     openGraph: {
       type: "website",
@@ -118,6 +153,12 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
     },
 
+    /*
+     * =========================================================
+     * TWITTER / X
+     * =========================================================
+     */
+
     twitter: {
       card: "summary_large_image",
 
@@ -125,7 +166,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
       description,
 
-      images: ["/og-image.jpg"],
+      images: [
+        "/og-image.jpg",
+      ],
     },
   };
 }
@@ -140,27 +183,27 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-<body>
-  <InquiryProvider>
-    <QuickViewProvider>
-      {children}
+      <body>
+        <InquiryProvider>
+          <QuickViewProvider>
+            {children}
 
-      <InquiryDrawer />
+            <InquiryDrawer />
 
-      <QuickViewModal />
+            <QuickViewModal />
 
-      <FloatingWhatsApp />
+            <FloatingWhatsApp />
 
-      <Toaster
-        position="top-right"
-        richColors
-        closeButton
-        duration={3000}
-        expand
-      />
-    </QuickViewProvider>
-  </InquiryProvider>
-</body>
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+              duration={3000}
+              expand
+            />
+          </QuickViewProvider>
+        </InquiryProvider>
+      </body>
     </html>
   );
 }

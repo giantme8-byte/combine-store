@@ -5,12 +5,85 @@ import { prisma } from "@/lib/prisma";
 import ProductForm from "../../_components/ProductForm";
 import { updateProduct } from "../../_actions/product.actions";
 
+
+// ============================================================
+// TYPES
+// ============================================================
+
+type EditProductPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+
+  searchParams: Promise<{
+    returnTo?: string;
+  }>;
+};
+
+
+// ============================================================
+// PAGE
+// ============================================================
+
 export default async function EditProductPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+  searchParams,
+}: EditProductPageProps) {
+
+  // ==========================================================
+  // PARAMS
+  // ==========================================================
+
+  const {
+    id: idParam,
+  } = await params;
+
+  const {
+    returnTo: returnToParam,
+  } = await searchParams;
+
+
+  const id =
+    Number(idParam);
+
+
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+    notFound();
+  }
+
+
+  // ==========================================================
+  // RETURN URL
+  // ==========================================================
+
+  /*
+   * Keep the return URL inside the admin products area.
+   *
+   * This prevents an external URL from being passed into
+   * ProductForm and used for navigation after saving.
+   */
+
+  let returnTo =
+    "/admin/dashboard/products";
+
+
+  if (
+    returnToParam &&
+    returnToParam.startsWith(
+      "/admin/dashboard/products"
+    )
+  ) {
+    returnTo =
+      returnToParam;
+  }
+
+
+  // ==========================================================
+  // LOAD DATA
+  // ==========================================================
 
   const [
     product,
@@ -21,12 +94,16 @@ export default async function EditProductPage({
     settings,
     colors,
   ] = await Promise.all([
+
     /*
+     * ========================================================
      * Product
+     * ========================================================
      */
+
     prisma.product.findUnique({
       where: {
-        id: Number(id),
+        id,
       },
 
       include: {
@@ -66,9 +143,13 @@ export default async function EditProductPage({
       },
     }),
 
+
     /*
+     * ========================================================
      * Active Brands
+     * ========================================================
      */
+
     prisma.brand.findMany({
       where: {
         active: true,
@@ -79,9 +160,13 @@ export default async function EditProductPage({
       },
     }),
 
+
     /*
+     * ========================================================
      * Active Categories
+     * ========================================================
      */
+
     prisma.category.findMany({
       where: {
         active: true,
@@ -92,15 +177,13 @@ export default async function EditProductPage({
       },
     }),
 
+
     /*
+     * ========================================================
      * Active Sub Categories
-     *
-     * Loaded from database.
-     *
-     * CategorySelect will automatically
-     * filter these according to the
-     * selected Category.
+     * ========================================================
      */
+
     prisma.subCategory.findMany({
       where: {
         active: true,
@@ -117,9 +200,13 @@ export default async function EditProductPage({
       ],
     }),
 
+
     /*
+     * ========================================================
      * Packaging Profiles
+     * ========================================================
      */
+
     prisma.packagingProfile.findMany({
       orderBy: [
         {
@@ -132,14 +219,22 @@ export default async function EditProductPage({
       ],
     }),
 
-    /*
-     * Website Settings
-     */
-    prisma.setting.findFirst(),
 
     /*
-     * Active Global Colors
+     * ========================================================
+     * Website Settings
+     * ========================================================
      */
+
+    prisma.setting.findFirst(),
+
+
+    /*
+     * ========================================================
+     * Active Global Colors
+     * ========================================================
+     */
+
     prisma.color.findMany({
       where: {
         active: true,
@@ -157,26 +252,67 @@ export default async function EditProductPage({
     }),
   ]);
 
+
+  // ==========================================================
+  // PRODUCT NOT FOUND
+  // ==========================================================
+
   if (!product) {
     notFound();
   }
 
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
   return (
     <ProductForm
-      action={updateProduct.bind(
-        null,
-        product.id
-      )}
-      product={product}
-      submitText="Update Product"
-      categories={categories}
-      subCategories={subCategories}
-      brands={brands}
-      packagingProfiles={packagingProfiles}
-      exchangeRate={
-        settings?.exchangeRate ?? 0.59
+      action={
+        updateProduct.bind(
+          null,
+          product.id
+        )
       }
-      globalColors={colors}
+
+      product={product}
+
+      submitText="Update Product"
+
+      categories={
+        categories
+      }
+
+      subCategories={
+        subCategories
+      }
+
+      brands={
+        brands
+      }
+
+      packagingProfiles={
+        packagingProfiles
+      }
+
+      exchangeRate={
+        settings?.exchangeRate ??
+        0.59
+      }
+
+      globalColors={
+        colors
+      }
+
+      /*
+       * --------------------------------------------------------
+       * Return to the Products list with its current state.
+       * --------------------------------------------------------
+       */
+
+      returnTo={
+        returnTo
+      }
     />
   );
 }

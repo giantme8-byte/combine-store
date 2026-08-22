@@ -543,11 +543,27 @@ export default function ColorUpload({
     onChange(nextColors);
     e.target.value = "";
 
-    newImages.forEach((image) => {
-      if (image.file) {
-        void uploadNewColorImage(id, image.id, image.file);
+    void uploadColorImagesSequentially(
+      id,
+      newImages
+    );
+  }
+
+  async function uploadColorImagesSequentially(
+    colorId: string,
+    images: ColorImage[]
+  ) {
+    for (const image of images) {
+      if (!image.file) {
+        continue;
       }
-    });
+
+      await uploadNewColorImage(
+        colorId,
+        image.id,
+        image.file
+      );
+    }
   }
 
   async function uploadNewColorImage(

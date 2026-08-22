@@ -19,7 +19,6 @@ export default function SortableProductCard({
   product,
   index,
 }: SortableProductCardProps) {
-
   const {
     attributes,
     listeners,
@@ -41,128 +40,358 @@ export default function SortableProductCard({
       style={style}
       className="
         flex
-        items-center
-        gap-6
+        min-w-0
+        flex-col
+        gap-4
         border-b
         border-neutral-100
         bg-white
-        p-5
+        p-4
         transition-all
         hover:bg-neutral-50
+
+        sm:flex-row
+        sm:items-center
+        sm:gap-6
+        sm:p-5
       "
     >
+      {/* ====================================================== */}
+      {/* TOP / MAIN ROW */}
+      {/* ====================================================== */}
 
-      {/* Position */}
-      <div className="w-14 text-center">
-        <p className="text-xs uppercase tracking-wider text-neutral-400">
-          #
-        </p>
-
-        <p className="text-lg font-bold">
-          {index + 1}
-        </p>
-      </div>
-
-      {/* Drag */}
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
+      <div
         className="
-          cursor-grab
-          rounded-lg
-          p-2
-          text-2xl
-          text-neutral-400
-          transition
-          hover:bg-neutral-100
-          active:cursor-grabbing
+          flex
+          min-w-0
+          items-center
+          gap-3
+
+          sm:contents
         "
       >
-        ☰
-      </button>
+        {/* ==================================================== */}
+        {/* POSITION */}
+        {/* ==================================================== */}
 
-      {/* Image */}
-      <div className="relative h-20 w-20 overflow-hidden rounded-xl border border-neutral-200">
+        <div
+          className="
+            flex
+            w-10
+            shrink-0
+            flex-col
+            items-center
+            justify-center
+            sm:w-14
+          "
+        >
+          <p
+            className="
+              text-[9px]
+              uppercase
+              tracking-wider
+              text-neutral-400
 
-        <Image
-          src={
-            product.images[0]?.url ??
-            "/placeholder.png"
-          }
-          alt={product.name}
-          fill
-          className="object-cover"
-        />
+              sm:text-xs
+            "
+          >
+            #
+          </p>
 
-      </div>
+          <p
+            className="
+              text-base
+              font-bold
+              text-neutral-900
 
-      {/* Info */}
-      <div className="min-w-0 flex-1">
-
-        <h3 className="truncate text-base font-semibold">
-          {product.name}
-        </h3>
-
-        <div className="mt-1 flex items-center gap-3 text-sm text-neutral-500">
-
-          <span>{product.brand}</span>
-
-          <span>•</span>
-
-          <span>{product.category}</span>
-
+              sm:text-lg
+            "
+          >
+            {index + 1}
+          </p>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        {/* ==================================================== */}
+        {/* DRAG HANDLE */}
+        {/* ==================================================== */}
 
-          {product.newArrival && (
-            <span className="rounded-full bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white">
-              NEW
-            </span>
-          )}
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={`Drag ${product.name}`}
+          className="
+            flex
+            h-11
+            w-11
+            shrink-0
+            cursor-grab
+            touch-none
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-neutral-200
+            bg-neutral-50
+            text-xl
+            text-neutral-400
+            transition
+            hover:bg-neutral-100
+            hover:text-neutral-700
+            active:cursor-grabbing
+            active:bg-neutral-200
 
-          {product.featured && (
-            <span className="rounded-full bg-black px-2 py-1 text-[10px] font-semibold text-white">
-              FEATURED
-            </span>
-          )}
+            sm:h-auto
+            sm:w-auto
+            sm:border-0
+            sm:bg-transparent
+            sm:p-2
+            sm:text-2xl
+          "
+        >
+          ☰
+        </button>
 
-          {product.bestSeller && (
-            <span className="rounded-full bg-amber-500 px-2 py-1 text-[10px] font-semibold text-white">
-              BEST
-            </span>
-          )}
+        {/* ==================================================== */}
+        {/* IMAGE */}
+        {/* ==================================================== */}
 
-          {product.limited && (
-            <span className="rounded-full bg-red-600 px-2 py-1 text-[10px] font-semibold text-white">
-              LIMITED
-            </span>
-          )}
+        <div
+          className="
+            relative
+            h-20
+            w-20
+            shrink-0
+            overflow-hidden
+            rounded-xl
+            border
+            border-neutral-200
 
-          {product.onSale && (
-            <span className="rounded-full bg-green-600 px-2 py-1 text-[10px] font-semibold text-white">
-              SALE
-            </span>
-          )}
-
+            sm:h-20
+            sm:w-20
+          "
+        >
+          <Image
+            src={
+              product.images[0]?.url ??
+              "/placeholder.png"
+            }
+            alt={product.name}
+            fill
+            sizes="
+              (max-width: 639px) 80px,
+              80px
+            "
+            className="object-cover"
+          />
         </div>
 
+        {/* ==================================================== */}
+        {/* INFO */}
+        {/* ==================================================== */}
+
+        <div
+          className="
+            min-w-0
+            flex-1
+          "
+        >
+          <h3
+            className="
+              line-clamp-2
+              text-sm
+              font-semibold
+              leading-5
+              text-neutral-900
+
+              sm:truncate
+              sm:text-base
+            "
+          >
+            {product.name}
+          </h3>
+
+          <div
+            className="
+              mt-1
+              flex
+              min-w-0
+              items-center
+              gap-2
+              text-[11px]
+              text-neutral-500
+
+              sm:gap-3
+              sm:text-sm
+            "
+          >
+            <span className="truncate">
+              {product.brand}
+            </span>
+
+            <span className="shrink-0">
+              •
+            </span>
+
+            <span className="truncate">
+              {product.category}
+            </span>
+          </div>
+
+          {/* ================================================== */}
+          {/* BADGES */}
+          {/* ================================================== */}
+
+          <div
+            className="
+              mt-2
+              flex
+              min-w-0
+              flex-wrap
+              gap-1.5
+
+              sm:mt-3
+              sm:gap-2
+            "
+          >
+            {product.newArrival && (
+              <span
+                className="
+                  rounded-full
+                  bg-blue-600
+                  px-2
+                  py-1
+                  text-[9px]
+                  font-semibold
+                  text-white
+
+                  sm:text-[10px]
+                "
+              >
+                NEW
+              </span>
+            )}
+
+            {product.featured && (
+              <span
+                className="
+                  rounded-full
+                  bg-black
+                  px-2
+                  py-1
+                  text-[9px]
+                  font-semibold
+                  text-white
+
+                  sm:text-[10px]
+                "
+              >
+                FEATURED
+              </span>
+            )}
+
+            {product.bestSeller && (
+              <span
+                className="
+                  rounded-full
+                  bg-amber-500
+                  px-2
+                  py-1
+                  text-[9px]
+                  font-semibold
+                  text-white
+
+                  sm:text-[10px]
+                "
+              >
+                BEST
+              </span>
+            )}
+
+            {product.limited && (
+              <span
+                className="
+                  rounded-full
+                  bg-red-600
+                  px-2
+                  py-1
+                  text-[9px]
+                  font-semibold
+                  text-white
+
+                  sm:text-[10px]
+                "
+              >
+                LIMITED
+              </span>
+            )}
+
+            {product.onSale && (
+              <span
+                className="
+                  rounded-full
+                  bg-green-600
+                  px-2
+                  py-1
+                  text-[9px]
+                  font-semibold
+                  text-white
+
+                  sm:text-[10px]
+                "
+              >
+                SALE
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Price */}
-      <div className="text-right">
+      {/* ====================================================== */}
+      {/* PRICE */}
+      {/* ====================================================== */}
 
-        <p className="text-xs uppercase tracking-wider text-neutral-400">
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          border-t
+          border-neutral-100
+          pt-3
+
+          sm:block
+          sm:border-t-0
+          sm:pt-0
+          sm:text-right
+        "
+      >
+        <p
+          className="
+            text-[9px]
+            uppercase
+            tracking-wider
+            text-neutral-400
+
+            sm:text-xs
+          "
+        >
           Price
         </p>
 
-        <p className="mt-1 text-lg font-bold">
+        <p
+          className="
+            text-base
+            font-bold
+            text-neutral-900
+
+            sm:mt-1
+            sm:text-lg
+          "
+        >
           RM {product.price.toFixed(2)}
         </p>
-
       </div>
-
     </div>
   );
 }

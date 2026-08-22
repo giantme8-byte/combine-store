@@ -39,16 +39,10 @@ export default function ProductCard({
     ? `/shop/${slug}`
     : "/shop";
 
-  /*
-   * =========================================================
-   * NEW badge
-   * =========================================================
-   *
-   * A product is considered "NEW" only when:
-   *
-   * 1. newArrival is enabled
-   * 2. The product was created within the last 30 days
-   */
+
+  // ============================================================
+  // NEW BADGE
+  // ============================================================
 
   const isNewArrival =
     useMemo(() => {
@@ -56,7 +50,8 @@ export default function ProductCard({
         return false;
       }
 
-      const now = new Date();
+      const now =
+        new Date();
 
       const created =
         new Date(createdAt);
@@ -75,11 +70,10 @@ export default function ProductCard({
       newArrival,
     ]);
 
-  /*
-   * =========================================================
-   * Inquiry
-   * =========================================================
-   */
+
+  // ============================================================
+  // INQUIRY
+  // ============================================================
 
   function handleInquiry(
     event: React.MouseEvent
@@ -91,11 +85,10 @@ export default function ProductCard({
     openDrawer();
   }
 
-  /*
-   * =========================================================
-   * Quick View
-   * =========================================================
-   */
+
+  // ============================================================
+  // QUICK VIEW
+  // ============================================================
 
   function handleQuickView(
     event: React.MouseEvent
@@ -120,11 +113,10 @@ export default function ProductCard({
     });
   }
 
-  /*
-   * =========================================================
-   * Cloudinary optimized URLs
-   * =========================================================
-   */
+
+  // ============================================================
+  // CLOUDINARY OPTIMIZED IMAGES
+  // ============================================================
 
   const optimizedImage =
     optimizeCloudinaryImage(
@@ -139,6 +131,7 @@ export default function ProductCard({
           800
         )
       : undefined;
+
 
   return (
     <article
@@ -155,6 +148,7 @@ export default function ProductCard({
         shadow-sm
         transition-all
         duration-700
+
         sm:rounded-[32px]
         sm:hover:-translate-y-3
         sm:hover:scale-[1.02]
@@ -162,9 +156,10 @@ export default function ProductCard({
         sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
       "
     >
-      {/* ================================================= */}
-      {/* Product */}
-      {/* ================================================= */}
+
+      {/* ====================================================== */}
+      {/* PRODUCT */}
+      {/* ====================================================== */}
 
       <Link
         href={productHref}
@@ -175,26 +170,27 @@ export default function ProductCard({
           flex-col
         "
       >
-        {/* ================================================= */}
-        {/* Image */}
-        {/* ================================================= */}
+
+        {/* ==================================================== */}
+        {/* IMAGE */}
+        {/* ==================================================== */}
 
         <div
           className="
             relative
             aspect-[4/5]
+            w-full
             overflow-hidden
             rounded-[15px]
-            bg-gradient-to-b
-            from-[#ffffff]
-            via-[#fbfbfb]
-            to-[#f4f4f4]
+            bg-white
+
             sm:rounded-[24px]
           "
         >
-          {/* ================================================= */}
-          {/* Wishlist */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* WISHLIST */}
+          {/* ================================================== */}
 
           <div
             className="
@@ -211,6 +207,7 @@ export default function ProductCard({
               translate-y-0
               transition-all
               duration-300
+
               sm:right-4
               sm:top-4
               sm:p-1.5
@@ -226,9 +223,10 @@ export default function ProductCard({
             />
           </div>
 
-          {/* ================================================= */}
-          {/* Labels */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* LABELS */}
+          {/* ================================================== */}
 
           <div
             className="
@@ -239,11 +237,13 @@ export default function ProductCard({
               flex
               flex-col
               gap-1.5
+
               sm:left-4
               sm:top-4
               sm:gap-2
             "
           >
+
             {/* NEW */}
 
             {isNewArrival && (
@@ -260,6 +260,7 @@ export default function ProductCard({
                   text-white
                   transition-all
                   duration-300
+
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
@@ -271,6 +272,7 @@ export default function ProductCard({
                 NEW
               </span>
             )}
+
 
             {/* FEATURED */}
 
@@ -288,6 +290,7 @@ export default function ProductCard({
                   text-white
                   transition-all
                   duration-300
+
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
@@ -299,6 +302,7 @@ export default function ProductCard({
                 FEATURED
               </span>
             )}
+
 
             {/* BEST SELLER */}
 
@@ -316,6 +320,7 @@ export default function ProductCard({
                   text-white
                   transition-all
                   duration-300
+
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
@@ -327,6 +332,7 @@ export default function ProductCard({
                 BEST SELLER
               </span>
             )}
+
 
             {/* LIMITED */}
 
@@ -345,6 +351,7 @@ export default function ProductCard({
                   tracking-[0.14em]
                   transition-all
                   duration-300
+
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
@@ -356,6 +363,7 @@ export default function ProductCard({
                 LIMITED
               </span>
             )}
+
 
             {/* SALE */}
 
@@ -373,6 +381,7 @@ export default function ProductCard({
                   text-white
                   transition-all
                   duration-300
+
                   sm:px-2.5
                   sm:py-1
                   sm:text-[9px]
@@ -384,20 +393,24 @@ export default function ProductCard({
                 SALE
               </span>
             )}
+
           </div>
 
-          {/* ================================================= */}
-          {/* Product Images */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* PRODUCT IMAGES */}
+          {/* ================================================== */}
 
           <div
             className="
-              relative
-              h-full
-              w-full
+              absolute
+              inset-0
             "
           >
-            {/* Main Image */}
+
+            {/* ================================================= */}
+            {/* MAIN IMAGE */}
+            {/* ================================================= */}
 
             <Image
               src={optimizedImage}
@@ -413,22 +426,25 @@ export default function ProductCard({
               className={`
                 pointer-events-none
                 object-contain
-                p-1
-                sm:p-4
-                lg:p-4
+                object-center
+                p-0
                 will-change-transform
                 transition-all
                 duration-700
                 ease-[cubic-bezier(0.22,1,0.36,1)]
+
                 ${
                   secondImage
-                    ? "opacity-100 sm:group-hover:opacity-0 sm:group-hover:scale-105"
-                    : "sm:group-hover:scale-105"
+                    ? "opacity-100 sm:group-hover:opacity-0 sm:group-hover:scale-[1.03]"
+                    : "sm:group-hover:scale-[1.03]"
                 }
               `}
             />
 
-            {/* Hover Image */}
+
+            {/* ================================================= */}
+            {/* HOVER IMAGE */}
+            {/* ================================================= */}
 
             {optimizedSecondImage && (
               <Image
@@ -445,31 +461,30 @@ export default function ProductCard({
                 "
                 loading="lazy"
                 className="
+                  pointer-events-none
                   absolute
                   inset-0
-                  pointer-events-none
                   object-contain
-                  p-1
-                  sm:p-4
-                  lg:p-4
+                  object-center
+                  p-0
                   will-change-transform
                   opacity-0
-                  scale-110
-                  blur-sm
                   transition-all
                   duration-700
                   ease-[cubic-bezier(0.22,1,0.36,1)]
-                  sm:group-hover:scale-100
+
+                  sm:group-hover:scale-[1.03]
                   sm:group-hover:opacity-100
-                  sm:group-hover:blur-0
                 "
               />
             )}
+
           </div>
 
-          {/* ================================================= */}
-          {/* Luxury Shine */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* LUXURY SHINE */}
+          {/* ================================================== */}
 
           <div
             className="
@@ -481,14 +496,16 @@ export default function ProductCard({
               opacity-0
               transition-all
               duration-1000
+
               sm:group-hover:translate-x-[120%]
               sm:group-hover:opacity-100
             "
           />
 
-          {/* ================================================= */}
-          {/* Dark Overlay */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* DARK OVERLAY */}
+          {/* ================================================== */}
 
           <div
             className="
@@ -503,14 +520,16 @@ export default function ProductCard({
               opacity-0
               transition-opacity
               duration-500
+
               sm:group-hover:opacity-100
               sm:rounded-[24px]
             "
           />
 
-          {/* ================================================= */}
-          {/* Quick View */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* QUICK VIEW */}
+          {/* ================================================== */}
 
           <div
             className="
@@ -526,6 +545,7 @@ export default function ProductCard({
               transition-all
               duration-700
               ease-[cubic-bezier(0.22,1,0.36,1)]
+
               sm:block
               sm:group-hover:scale-100
               sm:group-hover:opacity-100
@@ -551,6 +571,7 @@ export default function ProductCard({
                 backdrop-blur-xl
                 transition-all
                 duration-300
+
                 hover:-translate-y-0.5
                 hover:scale-105
                 hover:border-[#C8A96A]
@@ -562,11 +583,13 @@ export default function ProductCard({
               Quick View
             </button>
           </div>
+
         </div>
 
-        {/* ================================================= */}
-        {/* Content */}
-        {/* ================================================= */}
+
+        {/* ==================================================== */}
+        {/* CONTENT */}
+        {/* ==================================================== */}
 
         <div
           className="
@@ -576,15 +599,20 @@ export default function ProductCard({
             px-3
             pb-3.5
             pt-3.5
+
             sm:px-6
             sm:pb-5
             sm:pt-7
+
             lg:px-6
             lg:pb-5
             lg:pt-7
           "
         >
-          {/* Brand */}
+
+          {/* ================================================== */}
+          {/* BRAND */}
+          {/* ================================================== */}
 
           <p
             className="
@@ -593,8 +621,10 @@ export default function ProductCard({
               uppercase
               tracking-[0.26em]
               text-neutral-400
+
               sm:text-[11px]
               sm:tracking-[0.4em]
+
               lg:text-[10px]
               lg:tracking-[0.34em]
             "
@@ -602,29 +632,33 @@ export default function ProductCard({
             {brand}
           </p>
 
-          {/* ================================================= */}
-          {/* Product Title */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* PRODUCT TITLE */}
+          {/* ================================================== */}
 
           <h3
             className="
               mt-1.5
-              line-clamp-2
+              line-clamp-3
+              h-[4.2rem]
               overflow-hidden
               text-[13px]
               font-light
               leading-[1.4]
               tracking-[-0.02em]
               text-neutral-900
+
               sm:mt-3
-              sm:min-h-[3.5rem]
-              sm:max-h-[3.5rem]
+              sm:h-[3.5rem]
+              sm:line-clamp-2
               sm:text-xl
               sm:leading-7
               sm:tracking-[-0.02em]
+
               lg:mt-3
-              lg:min-h-[3.5rem]
-              lg:max-h-[3.5rem]
+              lg:h-[3.5rem]
+              lg:line-clamp-2
               lg:text-xl
               lg:leading-7
               lg:tracking-[-0.02em]
@@ -633,19 +667,22 @@ export default function ProductCard({
             {name}
           </h3>
 
-          {/* ================================================= */}
-          {/* Model */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* MODEL */}
+          {/* ================================================== */}
 
           <div
             className="
               mt-2.5
-              min-h-[2.75rem]
-              flex-1
+              h-[3rem]
+              shrink-0
+
               sm:mt-5
-              sm:min-h-[56px]
+              sm:h-[56px]
+
               lg:mt-5
-              lg:min-h-[56px]
+              lg:h-[56px]
             "
           >
             <p
@@ -654,8 +691,10 @@ export default function ProductCard({
                 uppercase
                 tracking-[0.2em]
                 text-neutral-400
+
                 sm:text-[11px]
                 sm:tracking-[0.3em]
+
                 lg:text-[11px]
                 lg:tracking-[0.3em]
               "
@@ -666,22 +705,31 @@ export default function ProductCard({
             <p
               className="
                 mt-1
-                line-clamp-1
+                line-clamp-2
+                overflow-hidden
                 text-[8px]
+                leading-4
                 text-neutral-600
+
                 sm:text-sm
+                sm:leading-5
+
                 lg:text-sm
+                lg:leading-5
               "
             >
               {model ?? "—"}
             </p>
           </div>
+
         </div>
+
       </Link>
 
-      {/* ================================================= */}
-      {/* Actions */}
-      {/* ================================================= */}
+
+      {/* ====================================================== */}
+      {/* ACTIONS */}
+      {/* ====================================================== */}
 
       <div
         className="
@@ -689,24 +737,29 @@ export default function ProductCard({
           border-neutral-100
           px-3
           py-3
+
           sm:px-7
           sm:py-6
+
           lg:px-7
           lg:py-6
         "
       >
+
         <div
           className="
             flex
             items-center
             justify-between
             gap-2
+
             sm:gap-3
           "
         >
-          {/* ================================================= */}
-          {/* Discover */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* DISCOVER */}
+          {/* ================================================== */}
 
           <Link
             href={productHref}
@@ -725,9 +778,11 @@ export default function ProductCard({
               transition-all
               duration-300
               hover:text-[#C8A96A]
+
               sm:gap-2
               sm:text-[11px]
               sm:tracking-[0.24em]
+
               lg:text-[11px]
               lg:tracking-[0.24em]
             "
@@ -741,6 +796,7 @@ export default function ProductCard({
                 hidden
                 transition-transform
                 duration-300
+
                 sm:inline
                 sm:group-hover:translate-x-1.5
               "
@@ -749,9 +805,10 @@ export default function ProductCard({
             </span>
           </Link>
 
-          {/* ================================================= */}
-          {/* Request Price */}
-          {/* ================================================= */}
+
+          {/* ================================================== */}
+          {/* REQUEST PRICE */}
+          {/* ================================================== */}
 
           <button
             type="button"
@@ -770,6 +827,7 @@ export default function ProductCard({
               bg-white
               transition-all
               duration-300
+
               hover:-translate-y-0.5
               hover:border-[#C8A96A]
               hover:bg-[#C8A96A]
@@ -821,8 +879,11 @@ export default function ProductCard({
           >
             Request Price
           </button>
+
         </div>
+
       </div>
+
     </article>
   );
 }

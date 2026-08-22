@@ -16,6 +16,7 @@ import EmptyState from "../_components/EmptyState";
 import ProductFilters from "../_components/ProductFilters";
 import Pagination from "../_components/Pagination";
 
+
 type ProductsPageProps = {
   searchParams: Promise<{
     page?: string;
@@ -27,19 +28,23 @@ type ProductsPageProps = {
   }>;
 };
 
+
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
+
   // =========================================================
-  // Authorization
+  // AUTHORIZATION
   // =========================================================
 
-  const user = await requireRole([
-    UserRole.STAFF,
-    UserRole.MANAGER,
-    UserRole.ADMIN,
-    UserRole.OWNER,
-  ]);
+  const user =
+    await requireRole([
+      UserRole.STAFF,
+      UserRole.MANAGER,
+      UserRole.ADMIN,
+      UserRole.OWNER,
+    ]);
+
 
   const deleteRoles: UserRole[] = [
     UserRole.MANAGER,
@@ -47,55 +52,69 @@ export default async function ProductsPage({
     UserRole.OWNER,
   ];
 
-  const canDelete = deleteRoles.includes(
-    user.role
-  );
+
+  const canDelete =
+    deleteRoles.includes(
+      user.role
+    );
+
 
   // =========================================================
-  // Search Params
+  // SEARCH PARAMS
   // =========================================================
 
-  const params = await searchParams;
+  const params =
+    await searchParams;
+
 
   const search =
     params.search ?? "";
 
+
   const brand =
     params.brand ?? "";
+
 
   const category =
     params.category ?? "";
 
+
   const availability =
     params.availability ?? "";
 
+
   /*
-   * IMPORTANT
-   *
-   * Manual Order is now the default sorting mode.
-   *
-   * This allows the admin to drag products into the desired
-   * position and keep that position after refreshing.
+   * Manual Order is the default sorting mode.
    */
+
   const sort =
     params.sort ?? "manual";
 
+
   // =========================================================
-  // Pagination
+  // PAGINATION
   // =========================================================
 
-  const page = Math.max(
-    1,
-    Number(params.page ?? "1") || 1
-  );
+  const page =
+    Math.max(
+      1,
+      Number(
+        params.page ?? "1"
+      ) || 1
+    );
 
-  const pageSize = 20;
+
+  const pageSize =
+    20;
+
 
   const skip =
-    (page - 1) * pageSize;
+    (page - 1) *
+    pageSize;
+
 
   // =========================================================
-  // Filters
+  // FILTERS
   // =========================================================
 
   const where =
@@ -106,15 +125,19 @@ export default async function ProductsPage({
       availability,
     });
 
+
   // =========================================================
-  // Sorting
+  // SORTING
   // =========================================================
 
   const orderBy =
-    buildProductOrderBy(sort);
+    buildProductOrderBy(
+      sort
+    );
+
 
   // =========================================================
-  // Database
+  // DATABASE
   // =========================================================
 
   const [
@@ -123,147 +146,166 @@ export default async function ProductsPage({
     settings,
     brands,
     categories,
-  ] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy,
-      skip,
-      take: pageSize,
+  ] =
+    await Promise.all([
 
-      include: {
-        // -----------------------------------------------------
-        // Product Images
-        // -----------------------------------------------------
+      prisma.product.findMany({
+        where,
 
-        images: {
-          orderBy: {
-            sortOrder: "asc",
+        orderBy,
+
+        skip,
+
+        take: pageSize,
+
+        include: {
+
+          // -------------------------------------------------
+          // PRODUCT IMAGES
+          // -------------------------------------------------
+
+          images: {
+            orderBy: {
+              sortOrder: "asc",
+            },
           },
-        },
 
-        // -----------------------------------------------------
-        // Product Variants
-        //
-        // Each Variant contains:
-        //
-        // - Color
-        // - Size
-        // - Cost Price CNY
-        // - Exchange Rate
-        // - Selling Price
-        //
-        // ProductRow uses these values to display
-        // Variant-level pricing.
-        // -----------------------------------------------------
 
-        variants: {
-          include: {
-            color: true,
+          // -------------------------------------------------
+          // PRODUCT VARIANTS
+          // -------------------------------------------------
+
+          variants: {
+            include: {
+              color: true,
+            },
           },
+
         },
-      },
-    }),
+      }),
 
-    prisma.product.count({
-      where,
-    }),
 
-    prisma.setting.findFirst(),
+      prisma.product.count({
+        where,
+      }),
 
-    prisma.brand.findMany({
-      orderBy: {
-        name: "asc",
-      },
-    }),
 
-    prisma.category.findMany({
-      orderBy: {
-        name: "asc",
-      },
-    }),
-  ]);
+      prisma.setting.findFirst(),
+
+
+      prisma.brand.findMany({
+        orderBy: {
+          name: "asc",
+        },
+      }),
+
+
+      prisma.category.findMany({
+        orderBy: {
+          name: "asc",
+        },
+      }),
+
+    ]);
+
 
   // =========================================================
-  // Exchange Rate
+  // EXCHANGE RATE
   // =========================================================
 
   const exchangeRate =
-    settings?.exchangeRate ?? 0.59;
+    settings?.exchangeRate ??
+    0.59;
+
 
   // =========================================================
-  // Pagination
+  // PAGINATION
   // =========================================================
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      totalProducts / pageSize
-    )
-  );
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        totalProducts /
+        pageSize
+      )
+    );
+
 
   // =========================================================
-  // Preserve Current Filters
+  // PRESERVE CURRENT FILTERS
   // =========================================================
 
   const currentSearchParams =
     new URLSearchParams();
 
+
   if (search) {
+
     currentSearchParams.set(
       "search",
       search
     );
+
   }
 
+
   if (brand) {
+
     currentSearchParams.set(
       "brand",
       brand
     );
+
   }
 
+
   if (category) {
+
     currentSearchParams.set(
       "category",
       category
     );
+
   }
 
+
   if (availability) {
+
     currentSearchParams.set(
       "availability",
       availability
     );
+
   }
 
-  /*
-   * Always preserve the current sort.
-   *
-   * This is important because otherwise pagination could
-   * accidentally fall back to Manual Order.
-   */
+
   if (sort) {
+
     currentSearchParams.set(
       "sort",
       sort
     );
+
   }
 
+
   // =========================================================
-  // Render
+  // RENDER
   // =========================================================
 
   return (
     <main className="space-y-8">
 
       {/* ================================================= */}
-      {/* Header */}
+      {/* HEADER */}
       {/* ================================================= */}
 
       <PageHeader
         title="Products"
         description="Manage your luxury product collection."
       >
+
         <div className="flex gap-2">
 
           <Link
@@ -274,6 +316,7 @@ export default async function ProductsPage({
             </Button>
           </Link>
 
+
           <Link
             href="/api/admin/products/export"
           >
@@ -281,6 +324,7 @@ export default async function ProductsPage({
               📤 Export Excel
             </Button>
           </Link>
+
 
           <Link
             href="/admin/dashboard/products/new"
@@ -291,19 +335,26 @@ export default async function ProductsPage({
           </Link>
 
         </div>
+
       </PageHeader>
 
+
       {/* ================================================= */}
-      {/* Filters */}
+      {/* FILTERS */}
       {/* ================================================= */}
 
       <ProductFilters
-        brands={brands}
-        categories={categories}
+        brands={
+          brands
+        }
+        categories={
+          categories
+        }
       />
 
+
       {/* ================================================= */}
-      {/* Products */}
+      {/* PRODUCTS */}
       {/* ================================================= */}
 
       <Card className="overflow-hidden p-0">
@@ -318,29 +369,99 @@ export default async function ProductsPage({
         ) : (
 
           <ProductView
-            products={products}
-            exchangeRate={exchangeRate}
-            brands={brands}
-            categories={categories}
-            canDelete={canDelete}
-            page={page}
-            pageSize={pageSize}
-            sort={sort}
+            products={
+              products
+            }
+
+            exchangeRate={
+              exchangeRate
+            }
+
+            brands={
+              brands
+            }
+
+            categories={
+              categories
+            }
+
+            canDelete={
+              canDelete
+            }
+
+            page={
+              page
+            }
+
+            pageSize={
+              pageSize
+            }
+
+            sort={
+              sort
+            }
+
+            /*
+             * =================================================
+             * CURRENT PAGE STATE
+             * =================================================
+             *
+             * These values are passed through:
+             *
+             * ProductView
+             *      ↓
+             * ProductTable / ProductGrid
+             *      ↓
+             * ProductRow
+             *      ↓
+             * ProductActions
+             *      ↓
+             * Edit Product
+             *
+             * This allows Edit Product to return to the
+             * exact same Products list state.
+             */
+
+            search={
+              search
+            }
+
+            brand={
+              brand
+            }
+
+            category={
+              category
+            }
+
+            availability={
+              availability
+            }
           />
 
         )}
 
       </Card>
 
+
       {/* ================================================= */}
-      {/* Pagination */}
+      {/* PAGINATION */}
       {/* ================================================= */}
 
       <Pagination
-        page={page}
-        totalPages={totalPages}
+        page={
+          page
+        }
+
+        totalPages={
+          totalPages
+        }
+
         pathname="/admin/dashboard/products"
-        searchParams={currentSearchParams}
+
+        searchParams={
+          currentSearchParams
+        }
       />
 
     </main>

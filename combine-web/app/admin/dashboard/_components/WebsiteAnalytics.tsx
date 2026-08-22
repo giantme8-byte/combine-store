@@ -56,9 +56,11 @@ function getDateKey(
 
   return [
     malaysiaDate.getUTCFullYear(),
+
     String(
       malaysiaDate.getUTCMonth() + 1
     ).padStart(2, "0"),
+
     String(
       malaysiaDate.getUTCDate()
     ).padStart(2, "0"),
@@ -95,18 +97,6 @@ type TopProductData = {
  * ============================================================
  * BUILD TOP PRODUCTS
  * ============================================================
- *
- * Counts PRODUCT_VIEW events by product.
- *
- * The events passed into this function are already limited
- * to the required date range.
- *
- * Therefore this function can be used for:
- *
- * Today
- * 7 Days
- * 30 Days
- * ============================================================
  */
 
 function buildTopProducts(
@@ -114,6 +104,7 @@ function buildTopProducts(
     event: string;
     productId: number | null;
   }[],
+
   productMap: Map<
     number,
     {
@@ -192,9 +183,9 @@ export default async function WebsiteAnalytics() {
    * DATE RANGE
    * =========================================================
    *
-   * We load the latest 30 calendar days.
+   * Latest 30 calendar days.
    *
-   * This dataset is then used for:
+   * Used for:
    *
    * Today
    * Last 7 Days
@@ -286,7 +277,7 @@ export default async function WebsiteAnalytics() {
 
   /*
    * =========================================================
-   * SERIALIZE PRODUCT MAP
+   * PRODUCT MAP
    * =========================================================
    */
 
@@ -297,10 +288,8 @@ export default async function WebsiteAnalytics() {
           product.id,
           {
             id: product.id,
-            name:
-              product.name,
-            brand:
-              product.brand,
+            name: product.name,
+            brand: product.brand,
           },
         ]
       )
@@ -353,6 +342,14 @@ export default async function WebsiteAnalytics() {
           event.createdAt <
             dayEnd
       );
+
+    /*
+     * Daily Unique Visitors
+     *
+     * This remains daily unique.
+     * 7/30-day unique visitors are calculated
+     * separately below.
+     */
 
     const visitors =
       new Set(
@@ -423,10 +420,7 @@ export default async function WebsiteAnalytics() {
    * 7 DAY RANGE
    * =========================================================
    *
-   * Includes:
-   *
-   * Today
-   * + previous 6 calendar days
+   * Today + previous 6 calendar days.
    *
    * Total = 7 calendar days.
    * =========================================================
@@ -453,6 +447,29 @@ export default async function WebsiteAnalytics() {
 
   /*
    * =========================================================
+   * 7 DAY UNIQUE VISITORS
+   * =========================================================
+   *
+   * IMPORTANT:
+   *
+   * Count each visitor only once across
+   * the entire 7-day period.
+   *
+   * A visitor who comes back multiple days
+   * is still one unique visitor.
+   * =========================================================
+   */
+
+  const sevenDaysVisitors =
+    new Set(
+      sevenDaysEvents.map(
+        (event) =>
+          event.visitorId
+      )
+    );
+
+  /*
+   * =========================================================
    * 30 DAY RANGE
    * =========================================================
    */
@@ -464,6 +481,24 @@ export default async function WebsiteAnalytics() {
           thirtyDaysAgo &&
         event.createdAt <
           today.end
+    );
+
+  /*
+   * =========================================================
+   * 30 DAY UNIQUE VISITORS
+   * =========================================================
+   *
+   * Count each visitor only once across
+   * the entire 30-day period.
+   * =========================================================
+   */
+
+  const thirtyDaysVisitors =
+    new Set(
+      thirtyDaysEvents.map(
+        (event) =>
+          event.visitorId
+      )
     );
 
   /*
@@ -550,6 +585,14 @@ export default async function WebsiteAnalytics() {
               event.event ===
               "WHATSAPP_CLICK"
           ).length,
+      }}
+
+      periodVisitors={{
+        sevenDays:
+          sevenDaysVisitors.size,
+
+        thirtyDays:
+          thirtyDaysVisitors.size,
       }}
     />
   );

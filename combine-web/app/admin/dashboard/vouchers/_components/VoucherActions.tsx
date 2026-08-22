@@ -218,9 +218,13 @@ export default function VoucherActions({
     <div
       className="
         flex
+        w-full
         flex-col
-        items-end
+        items-stretch
         gap-2
+
+        sm:w-auto
+        sm:items-end
       "
     >
 
@@ -231,8 +235,11 @@ export default function VoucherActions({
       <div
         className="
           flex
+          w-full
           items-center
           gap-2
+
+          sm:w-auto
         "
       >
 
@@ -255,30 +262,42 @@ export default function VoucherActions({
           }
           className="
             inline-flex
+            min-w-0
+            flex-1
             items-center
-            gap-2
+            justify-center
+            gap-1.5
             rounded-lg
             border
             border-neutral-200
-            px-3
+            px-2.5
             py-2
-            text-xs
+            text-[11px]
             font-medium
             text-neutral-700
             transition-colors
             hover:bg-neutral-100
             disabled:cursor-not-allowed
             disabled:opacity-50
+
+            sm:flex-none
+            sm:gap-2
+            sm:px-3
+            sm:py-2
+            sm:text-xs
           "
         >
 
           <Power
-            size={15}
+            size={14}
+            className="shrink-0 sm:h-[15px] sm:w-[15px]"
           />
 
-          {isActive
-            ? "Deactivate"
-            : "Activate"}
+          <span className="truncate">
+            {isActive
+              ? "Deactivate"
+              : "Activate"}
+          </span>
 
         </button>
 
@@ -303,28 +322,40 @@ export default function VoucherActions({
           }
           className="
             inline-flex
+            min-w-0
+            flex-1
             items-center
-            gap-2
+            justify-center
+            gap-1.5
             rounded-lg
             border
             border-red-200
-            px-3
+            px-2.5
             py-2
-            text-xs
+            text-[11px]
             font-medium
             text-red-600
             transition-colors
             hover:bg-red-50
             disabled:cursor-not-allowed
             disabled:opacity-40
+
+            sm:flex-none
+            sm:gap-2
+            sm:px-3
+            sm:py-2
+            sm:text-xs
           "
         >
 
           <Trash2
-            size={15}
+            size={14}
+            className="shrink-0 sm:h-[15px] sm:w-[15px]"
           />
 
-          Delete
+          <span className="truncate">
+            Delete
+          </span>
 
         </button>
 
@@ -339,10 +370,18 @@ export default function VoucherActions({
 
         <div
           className="
-            max-w-[260px]
-            text-right
-            text-xs
+            w-full
+            max-w-full
+            break-words
+            text-left
+            text-[11px]
+            leading-4
             text-red-600
+
+            sm:max-w-[260px]
+            sm:text-right
+            sm:text-xs
+            sm:leading-normal
           "
         >
           {error}

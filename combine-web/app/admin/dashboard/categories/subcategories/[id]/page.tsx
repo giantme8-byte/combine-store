@@ -8,37 +8,70 @@ import {
   updateSubCategory,
 } from "../../_actions/category.actions";
 
+
+// ============================================================
+// TYPES
+// ============================================================
+
 type EditSubCategoryPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
 
+
+// ============================================================
+// PAGE
+// ============================================================
+
 export default async function EditSubCategoryPage({
   params,
 }: EditSubCategoryPageProps) {
-  const { id } = await params;
+
+  // ==========================================================
+  // PARAMS
+  // ==========================================================
+
+  const {
+    id,
+  } = await params;
+
 
   const subCategoryId =
     Number(id);
 
+
   if (
-    !Number.isInteger(subCategoryId)
+    !Number.isInteger(
+      subCategoryId
+    )
   ) {
+
     notFound();
+
   }
+
+
+  // ==========================================================
+  // LOAD DATA
+  // ==========================================================
 
   const [
     subCategory,
     categories,
   ] = await Promise.all([
+
     prisma.subCategory.findUnique({
+
       where: {
-        id: subCategoryId,
+        id:
+          subCategoryId,
       },
+
     }),
 
     prisma.category.findMany({
+
       where: {
         active: true,
       },
@@ -51,25 +84,60 @@ export default async function EditSubCategoryPage({
         id: true,
         name: true,
       },
+
     }),
+
   ]);
 
-  if (!subCategory) {
+
+  // ==========================================================
+  // NOT FOUND
+  // ==========================================================
+
+  if (
+    !subCategory
+  ) {
+
     notFound();
+
   }
 
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
   return (
-    <main className="mx-auto max-w-3xl p-10">
 
-      {/* ================================================= */}
-      {/* Header */}
-      {/* ================================================= */}
+    <main
+      className="
+        mx-auto
+        w-full
+        max-w-3xl
+        p-4
 
-      <div className="mb-10">
+        sm:p-6
+        lg:p-10
+      "
+    >
+
+      {/* ================================================== */}
+      {/* HEADER */}
+      {/* ================================================== */}
+
+      <div
+        className="
+          mb-6
+
+          sm:mb-10
+        "
+      >
 
         <Link
           href="/admin/dashboard/categories"
           className="
+            inline-flex
+            items-center
             text-sm
             text-neutral-500
             transition
@@ -79,20 +147,41 @@ export default async function EditSubCategoryPage({
           ← Back to Categories
         </Link>
 
-        <h1 className="mt-6 text-4xl font-light">
+
+        <h1
+          className="
+            mt-4
+            text-3xl
+            font-light
+            tracking-tight
+            text-neutral-900
+
+            sm:mt-6
+            sm:text-4xl
+          "
+        >
           Edit Sub-Category
         </h1>
 
-        <p className="mt-2 text-neutral-500">
+
+        <p
+          className="
+            mt-2
+            text-sm
+            leading-6
+            text-neutral-500
+          "
+        >
           Update the sub-category information
           and parent category.
         </p>
 
       </div>
 
-      {/* ================================================= */}
-      {/* Form */}
-      {/* ================================================= */}
+
+      {/* ================================================== */}
+      {/* FORM */}
+      {/* ================================================== */}
 
       <form
         action={updateSubCategory.bind(
@@ -100,25 +189,31 @@ export default async function EditSubCategoryPage({
           subCategory.id
         )}
         className="
-          space-y-6
+          space-y-5
           rounded-2xl
           border
           border-neutral-200
           bg-white
-          p-8
+          p-4
+
+          sm:space-y-6
+          sm:p-8
         "
       >
 
-        {/* ================================================= */}
-        {/* Name */}
-        {/* ================================================= */}
+        {/* ================================================== */}
+        {/* NAME */}
+        {/* ================================================== */}
 
-        <div>
+        <div
+          className="
+            space-y-2
+          "
+        >
 
           <label
             htmlFor="name"
             className="
-              mb-2
               block
               text-sm
               font-medium
@@ -127,6 +222,7 @@ export default async function EditSubCategoryPage({
           >
             Sub-Category Name
           </label>
+
 
           <input
             id="name"
@@ -137,30 +233,42 @@ export default async function EditSubCategoryPage({
               subCategory.name
             }
             className="
+              h-11
               w-full
+              min-w-0
               rounded-xl
               border
               border-neutral-200
-              px-4
-              py-3
+              bg-white
+              px-3
+              text-sm
+              text-neutral-900
               outline-none
               transition
               focus:border-black
+              focus:ring-2
+              focus:ring-black/5
+
+              sm:px-4
             "
           />
 
         </div>
 
-        {/* ================================================= */}
-        {/* Slug */}
-        {/* ================================================= */}
 
-        <div>
+        {/* ================================================== */}
+        {/* SLUG */}
+        {/* ================================================== */}
+
+        <div
+          className="
+            space-y-2
+          "
+        >
 
           <label
             htmlFor="slug"
             className="
-              mb-2
               block
               text-sm
               font-medium
@@ -169,6 +277,7 @@ export default async function EditSubCategoryPage({
           >
             Slug
           </label>
+
 
           <input
             id="slug"
@@ -179,34 +288,53 @@ export default async function EditSubCategoryPage({
               subCategory.slug
             }
             className="
+              h-11
               w-full
+              min-w-0
               rounded-xl
               border
               border-neutral-200
-              px-4
-              py-3
+              bg-white
+              px-3
+              text-sm
+              text-neutral-900
               outline-none
               transition
               focus:border-black
+              focus:ring-2
+              focus:ring-black/5
+
+              sm:px-4
             "
           />
 
-          <p className="mt-2 text-xs text-neutral-500">
+
+          <p
+            className="
+              text-xs
+              leading-5
+              text-neutral-500
+            "
+          >
             Use lowercase letters and hyphens.
           </p>
 
         </div>
 
-        {/* ================================================= */}
-        {/* Parent Category */}
-        {/* ================================================= */}
 
-        <div>
+        {/* ================================================== */}
+        {/* PARENT CATEGORY */}
+        {/* ================================================== */}
+
+        <div
+          className="
+            space-y-2
+          "
+        >
 
           <label
             htmlFor="categoryId"
             className="
-              mb-2
               block
               text-sm
               font-medium
@@ -216,35 +344,53 @@ export default async function EditSubCategoryPage({
             Category
           </label>
 
+
           <select
             id="categoryId"
             name="categoryId"
             required
-            defaultValue={String(
-              subCategory.categoryId
-            )}
+            defaultValue={
+              String(
+                subCategory.categoryId
+              )
+            }
             className="
+              h-11
               w-full
+              min-w-0
               rounded-xl
               border
               border-neutral-200
               bg-white
-              px-4
-              py-3
+              px-3
+              text-sm
+              text-neutral-900
               outline-none
               transition
               focus:border-black
+              focus:ring-2
+              focus:ring-black/5
+
+              sm:px-4
             "
           >
 
             {categories.map(
               (category) => (
+
                 <option
-                  key={category.id}
-                  value={category.id}
+                  key={
+                    category.id
+                  }
+                  value={
+                    category.id
+                  }
                 >
-                  {category.name}
+                  {
+                    category.name
+                  }
                 </option>
+
               )
             )}
 
@@ -252,16 +398,20 @@ export default async function EditSubCategoryPage({
 
         </div>
 
-        {/* ================================================= */}
-        {/* Sort Order */}
-        {/* ================================================= */}
 
-        <div>
+        {/* ================================================== */}
+        {/* SORT ORDER */}
+        {/* ================================================== */}
+
+        <div
+          className="
+            space-y-2
+          "
+        >
 
           <label
             htmlFor="sortOrder"
             className="
-              mb-2
               block
               text-sm
               font-medium
@@ -270,6 +420,7 @@ export default async function EditSubCategoryPage({
           >
             Sort Order
           </label>
+
 
           <input
             id="sortOrder"
@@ -282,108 +433,157 @@ export default async function EditSubCategoryPage({
               subCategory.sortOrder
             }
             className="
+              h-11
               w-full
+              min-w-0
               rounded-xl
               border
               border-neutral-200
-              px-4
-              py-3
+              bg-white
+              px-3
+              text-sm
+              text-neutral-900
               outline-none
               transition
               focus:border-black
+              focus:ring-2
+              focus:ring-black/5
+
+              sm:px-4
             "
           />
 
-          <p className="mt-2 text-xs text-neutral-500">
+
+          <p
+            className="
+              text-xs
+              leading-5
+              text-neutral-500
+            "
+          >
             Lower numbers appear first.
           </p>
 
         </div>
 
-        {/* ================================================= */}
-        {/* Active */}
-        {/* ================================================= */}
+
+        {/* ================================================== */}
+        {/* ACTIVE */}
+        {/* ================================================== */}
 
         <div
           className="
-            flex
-            items-center
-            gap-3
             rounded-xl
             border
             border-neutral-200
-            p-4
+            bg-neutral-50
+            p-3
+
+            sm:p-4
           "
         >
 
-          <input
-            id="active"
-            name="active"
-            type="checkbox"
-            defaultChecked={
-              subCategory.active
-            }
-            className="
-              h-4
-              w-4
-              rounded
-              accent-black
-            "
-          />
-
           <label
             htmlFor="active"
-            className="text-sm"
+            className="
+              flex
+              cursor-pointer
+              items-center
+              gap-3
+              text-sm
+              font-medium
+              text-neutral-700
+            "
           >
-            Active
+
+            <input
+              id="active"
+              name="active"
+              type="checkbox"
+              defaultChecked={
+                subCategory.active
+              }
+              className="
+                h-4
+                w-4
+                shrink-0
+                rounded
+                accent-black
+              "
+            />
+
+
+            <span>
+              Active
+            </span>
+
           </label>
 
         </div>
 
-        {/* ================================================= */}
-        {/* Actions */}
-        {/* ================================================= */}
+
+        {/* ================================================== */}
+        {/* ACTIONS */}
+        {/* ================================================== */}
 
         <div
           className="
             flex
             items-center
-            justify-end
-            gap-3
+            gap-2
             border-t
             border-neutral-200
-            pt-6
+            pt-5
+
+            sm:justify-end
+            sm:gap-3
+            sm:pt-6
           "
         >
 
           <Link
             href="/admin/dashboard/categories"
             className="
+              inline-flex
+              min-h-11
+              flex-1
+              items-center
+              justify-center
               rounded-xl
               border
               border-neutral-200
-              px-5
-              py-3
+              px-4
               text-sm
               transition
               hover:bg-neutral-100
+
+              sm:flex-none
+              sm:px-5
             "
           >
             Cancel
           </Link>
 
+
           <button
             type="submit"
             className="
+              inline-flex
+              min-h-11
+              flex-1
+              items-center
+              justify-center
               rounded-xl
               bg-black
-              px-5
-              py-3
+              px-4
               text-sm
               font-medium
               text-white
               transition
               hover:bg-neutral-800
+
+              sm:flex-none
+              sm:px-5
             "
           >
             Save Changes
@@ -394,5 +594,7 @@ export default async function EditSubCategoryPage({
       </form>
 
     </main>
+
   );
+
 }

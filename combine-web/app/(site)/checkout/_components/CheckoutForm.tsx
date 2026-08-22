@@ -72,7 +72,13 @@ function formatAmount(
 // CHECKOUT FORM
 // ============================================================
 
-export default function CheckoutForm() {
+type CheckoutFormProps = {
+  isLoggedIn: boolean;
+};
+
+export default function CheckoutForm({
+  isLoggedIn,
+}: CheckoutFormProps) {
 
   const router =
     useRouter();
@@ -197,6 +203,15 @@ export default function CheckoutForm() {
     setError,
   ] = useState("");
 
+  // ==========================================================
+  // GUEST CHECKOUT
+  // ==========================================================
+
+  const [
+    guestCheckout,
+    setGuestCheckout,
+  ] = useState(false);
+
 
   // ==========================================================
   // EMPTY CART
@@ -205,6 +220,178 @@ export default function CheckoutForm() {
   const isEmpty =
     items.length === 0;
 
+
+  // ==========================================================
+  // AUTHENTICATION GATE
+  // ==========================================================
+
+  if (!isLoggedIn && !guestCheckout && !isEmpty) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <section
+          className="
+            rounded-[36px]
+            border
+            border-neutral-200
+            bg-white
+            p-8
+            text-center
+            shadow-[0_20px_60px_rgba(0,0,0,.04)]
+            md:p-12
+          "
+        >
+          <div
+            className="
+              mx-auto
+              flex
+              h-16
+              w-16
+              items-center
+              justify-center
+              rounded-full
+              bg-neutral-100
+              text-neutral-700
+            "
+          >
+            <ShoppingBag className="h-7 w-7" />
+          </div>
+
+          <p className="mt-8 text-xs uppercase tracking-[0.35em] text-neutral-400">
+            CHECKOUT
+          </p>
+
+          <h2
+            className="
+              mt-4
+              text-3xl
+              font-extralight
+              tracking-[-0.03em]
+              text-neutral-900
+              md:text-4xl
+            "
+          >
+            Choose How to Continue
+          </h2>
+
+          <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-neutral-500">
+            Sign in to your COMBINE account for a faster checkout,
+            create an account, or continue as a guest.
+          </p>
+
+          <div className="mx-auto mt-10 max-w-md space-y-3">
+            <Link
+              href="/login"
+              className="
+                inline-flex
+                w-full
+                items-center
+                justify-center
+                rounded-full
+                bg-black
+                px-8
+                py-4
+                text-[11px]
+                font-medium
+                uppercase
+                tracking-[0.3em]
+                text-white
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-[#C8A96A]
+              "
+            >
+              Login
+            </Link>
+
+            <Link
+              href="/register"
+              className="
+                inline-flex
+                w-full
+                items-center
+                justify-center
+                rounded-full
+                border
+                border-neutral-300
+                bg-white
+                px-8
+                py-4
+                text-[11px]
+                font-medium
+                uppercase
+                tracking-[0.3em]
+                text-neutral-800
+                transition-all
+                duration-300
+                hover:border-[#C8A96A]
+                hover:bg-neutral-50
+              "
+            >
+              Create an Account
+            </Link>
+
+            <div className="flex items-center gap-4 py-3">
+              <div className="h-px flex-1 bg-neutral-200" />
+              <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400">
+                OR
+              </span>
+              <div className="h-px flex-1 bg-neutral-200" />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setGuestCheckout(true)}
+              className="
+                inline-flex
+                w-full
+                items-center
+                justify-center
+                rounded-full
+                border
+                border-neutral-200
+                bg-neutral-50
+                px-8
+                py-4
+                text-[11px]
+                font-medium
+                uppercase
+                tracking-[0.3em]
+                text-neutral-600
+                transition-all
+                duration-300
+                hover:border-neutral-300
+                hover:bg-white
+                hover:text-black
+              "
+            >
+              Continue as Guest
+            </button>
+          </div>
+
+          <Link
+            href="/cart"
+            className="
+              mt-8
+              inline-flex
+              items-center
+              gap-2
+              text-[11px]
+              font-medium
+              uppercase
+              tracking-[0.3em]
+              text-neutral-500
+              transition
+              hover:text-black
+            "
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Cart
+          </Link>
+        </section>
+      </div>
+    );
+  }
 
   // ==========================================================
   // CHECKOUT CALCULATION
@@ -837,7 +1024,9 @@ export default function CheckoutForm() {
     <div
       className="
         grid
-        gap-10
+        gap-6
+        sm:gap-8
+        lg:gap-10
         lg:grid-cols-[minmax(0,1fr)_380px]
       "
     >
@@ -847,7 +1036,7 @@ export default function CheckoutForm() {
           ====================================================== */}
 
       <div
-        className="space-y-10"
+        className="space-y-6 sm:space-y-10"
       >
 
         {/* ====================================================
@@ -856,12 +1045,15 @@ export default function CheckoutForm() {
 
         <section
           className="
-            rounded-[36px]
+            rounded-[24px]
             border
             border-neutral-200
             bg-white
-            p-8
+            p-5
             shadow-[0_20px_60px_rgba(0,0,0,.04)]
+            sm:rounded-[30px]
+            sm:p-7
+            md:rounded-[36px]
             md:p-10
           "
         >
@@ -1203,12 +1395,15 @@ export default function CheckoutForm() {
 
         <section
           className="
-            rounded-[36px]
+            rounded-[24px]
             border
             border-neutral-200
             bg-white
-            p-8
+            p-5
             shadow-[0_20px_60px_rgba(0,0,0,.04)]
+            sm:rounded-[30px]
+            sm:p-7
+            md:rounded-[36px]
             md:p-10
           "
         >
@@ -1264,14 +1459,17 @@ export default function CheckoutForm() {
                   key={item.cartItemId}
                   className="
                     flex
-                    gap-5
-                    rounded-[28px]
+                    gap-3
+                    rounded-[20px]
                     border
                     border-neutral-200
                     bg-gradient-to-b
                     from-white
                     to-neutral-50
-                    p-5
+                    p-3
+                    sm:gap-5
+                    sm:rounded-[28px]
+                    sm:p-5
                   "
                 >
 
@@ -1279,15 +1477,19 @@ export default function CheckoutForm() {
 
                   <div
                     className="
-                      h-28
-                      w-28
+                      h-20
+                      w-20
                       shrink-0
                       overflow-hidden
-                      rounded-[22px]
+                      rounded-[16px]
                       border
                       border-neutral-200
                       bg-white
-                      p-3
+                      p-2
+                      sm:h-28
+                      sm:w-28
+                      sm:rounded-[22px]
+                      sm:p-3
                     "
                   >
 
@@ -1346,9 +1548,12 @@ export default function CheckoutForm() {
 
                     <h3
                       className="
-                        mt-2
-                        text-lg
+                        mt-1.5
+                        text-sm
                         font-medium
+                        leading-5
+                        sm:mt-2
+                        sm:text-lg
                         text-neutral-900
                       "
                     >
@@ -1373,8 +1578,9 @@ export default function CheckoutForm() {
 
                     <div
                       className="
-                        mt-3
+                        mt-2
                         space-y-1
+                        sm:mt-3
                         text-xs
                         leading-5
                         text-neutral-500
@@ -1411,8 +1617,9 @@ export default function CheckoutForm() {
 
                     <div
                       className="
-                        mt-4
+                        mt-3
                         flex
+                        sm:mt-4
                         items-center
                         justify-between
                         gap-4
@@ -1483,12 +1690,16 @@ export default function CheckoutForm() {
 
         <section
           className="
-            rounded-[36px]
+            rounded-[24px]
             border
             border-neutral-200
             bg-white
-            p-8
+            p-5
             shadow-[0_20px_60px_rgba(0,0,0,.06)]
+            sm:rounded-[30px]
+            sm:p-7
+            md:rounded-[36px]
+            md:p-8
           "
         >
 
@@ -1919,8 +2130,9 @@ export default function CheckoutForm() {
 
           <div
             className="
-              mt-10
+              mt-8
               border-t
+              sm:mt-10
               border-neutral-200
               pt-8
             "
@@ -2322,10 +2534,13 @@ export default function CheckoutForm() {
                     <div
                       className="
                         mx-auto
-                        max-w-[240px]
+                        w-full
+                        max-w-[200px]
                         rounded-xl
                         bg-white
-                        p-3
+                        p-2
+                        sm:max-w-[240px]
+                        sm:p-3
                       "
                     >
 
@@ -2424,9 +2639,12 @@ export default function CheckoutForm() {
               gap-3
               rounded-full
               bg-black
-              px-8
-              py-5
-              text-[11px]
+              px-5
+              py-4
+              text-[10px]
+              sm:px-8
+              sm:py-5
+              sm:text-[11px]
               font-medium
               uppercase
               tracking-[0.3em]

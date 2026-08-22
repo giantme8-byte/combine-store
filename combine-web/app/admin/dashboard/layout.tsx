@@ -12,7 +12,6 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
 
-
   const user = await requireRole([
     UserRole.STAFF,
     UserRole.MANAGER,
@@ -21,46 +20,49 @@ export default async function DashboardLayout({
   ]);
 
 
-
   return (
     <div className="min-h-screen bg-neutral-100">
 
-
       <div className="flex min-h-screen">
-
 
         <Sidebar
           userRole={user.role}
         />
 
-
-
-        <main className="flex-1 overflow-x-hidden">
-
+        <main
+          className="
+            min-w-0
+            flex-1
+            overflow-x-hidden
+          "
+        >
 
           <AdminHeader
             user={user}
           />
 
-
-
           <div
             className="
               mx-auto
+              w-full
               max-w-[1600px]
-              px-8
-              py-8
+              min-w-0
+              px-4
+              py-5
+
+              sm:px-6
+              sm:py-6
+
+              lg:px-8
+              lg:py-8
             "
           >
             {children}
           </div>
 
-
         </main>
 
-
       </div>
-
 
     </div>
   );

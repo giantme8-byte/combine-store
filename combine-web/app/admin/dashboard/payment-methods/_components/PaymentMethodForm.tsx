@@ -13,9 +13,15 @@ import {
   X,
 } from "lucide-react";
 
+
+// ============================================================
+// TYPES
+// ============================================================
+
 type PaymentMethodType =
   | "BANK_TRANSFER"
   | "QR";
+
 
 type PaymentMethodData = {
   id?: number;
@@ -25,17 +31,22 @@ type PaymentMethodData = {
   type: PaymentMethodType;
 
   bankName: string | null;
+
   accountName: string | null;
+
   accountNumber: string | null;
 
   qrImageUrl: string | null;
+
   qrPublicId: string | null;
 
   instructions: string | null;
 
   active: boolean;
+
   sortOrder: number;
 };
+
 
 type Props = {
   paymentMethod?: PaymentMethodData;
@@ -45,65 +56,108 @@ type Props = {
   ) => void | Promise<void>;
 };
 
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function PaymentMethodForm({
   paymentMethod,
   action,
 }: Props) {
+
   const fileInputRef =
     useRef<HTMLInputElement>(null);
 
-  const [type, setType] =
-    useState<PaymentMethodType>(
-      paymentMethod?.type ??
-        "BANK_TRANSFER"
-    );
 
-  const [qrImageUrl, setQrImageUrl] =
-    useState(
-      paymentMethod?.qrImageUrl ?? ""
-    );
+  const [
+    type,
+    setType,
+  ] = useState<PaymentMethodType>(
+    paymentMethod?.type ??
+      "BANK_TRANSFER"
+  );
 
-  const [qrPublicId, setQrPublicId] =
-    useState(
-      paymentMethod?.qrPublicId ?? ""
-    );
 
-  const [uploading, setUploading] =
-    useState(false);
+  const [
+    qrImageUrl,
+    setQrImageUrl,
+  ] = useState(
+    paymentMethod?.qrImageUrl ?? ""
+  );
 
-  const [uploadError, setUploadError] =
-    useState("");
 
-  const [dragging, setDragging] =
-    useState(false);
+  const [
+    qrPublicId,
+    setQrPublicId,
+  ] = useState(
+    paymentMethod?.qrPublicId ?? ""
+  );
+
+
+  const [
+    uploading,
+    setUploading,
+  ] = useState(false);
+
+
+  const [
+    uploadError,
+    setUploadError,
+  ] = useState("");
+
+
+  const [
+    dragging,
+    setDragging,
+  ] = useState(false);
+
+
+  // ==========================================================
+  // QR UPLOAD
+  // ==========================================================
 
   async function uploadQrImage(
     file: File
   ) {
-    if (!file.type.startsWith("image/")) {
+
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+
       setUploadError(
         "Please select an image file."
       );
 
       return;
+
     }
 
+
     setUploadError("");
+
     setUploading(true);
 
+
     try {
+
       const formData =
         new FormData();
+
 
       formData.append(
         "file",
         file
       );
 
+
       formData.append(
         "folder",
         "payment-methods"
       );
+
 
       const response =
         await fetch(
@@ -114,91 +168,150 @@ export default function PaymentMethodForm({
           }
         );
 
+
       const result =
         await response.json();
 
+
       if (!response.ok) {
+
         throw new Error(
           result?.error ||
             "Upload failed."
         );
+
       }
 
+
       if (!result.url) {
+
         throw new Error(
           "Upload completed but no image URL was returned."
         );
+
       }
+
 
       setQrImageUrl(
         result.url
       );
 
+
       setQrPublicId(
         result.publicId ?? ""
       );
+
+
     } catch (error) {
+
       console.error(
         "QR upload error:",
         error
       );
+
 
       setUploadError(
         error instanceof Error
           ? error.message
           : "Upload failed."
       );
+
+
     } finally {
+
       setUploading(false);
+
     }
+
   }
+
+
+  // ==========================================================
+  // FILE CHANGE
+  // ==========================================================
 
   function handleFileChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
+
     const file =
       event.target.files?.[0];
+
 
     if (!file) {
       return;
     }
 
+
     void uploadQrImage(file);
 
+
     event.target.value = "";
+
   }
+
+
+  // ==========================================================
+  // DROP
+  // ==========================================================
 
   function handleDrop(
     event: React.DragEvent<HTMLDivElement>
   ) {
+
     event.preventDefault();
+
 
     setDragging(false);
 
+
     const file =
       event.dataTransfer.files?.[0];
+
 
     if (!file) {
       return;
     }
 
+
     void uploadQrImage(file);
+
   }
+
+
+  // ==========================================================
+  // REMOVE QR
+  // ==========================================================
 
   function removeQrImage() {
+
     setQrImageUrl("");
+
     setQrPublicId("");
+
     setUploadError("");
+
   }
 
+
+  // ==========================================================
+  // RETURN
+  // ==========================================================
+
   return (
+
     <form
       action={action}
-      className="space-y-8"
+      className="
+        space-y-5
+
+        sm:space-y-8
+      "
     >
-      {/* =========================================================
-          HIDDEN VALUES
-          ========================================================= */}
+
+      {/* ================================================== */}
+      {/* HIDDEN VALUES */}
+      {/* ================================================== */}
 
       <input
         type="hidden"
@@ -206,38 +319,97 @@ export default function PaymentMethodForm({
         value={qrImageUrl}
       />
 
+
       <input
         type="hidden"
         name="qrPublicId"
         value={qrPublicId}
       />
 
-      {/* =========================================================
-          BASIC INFORMATION
-          ========================================================= */}
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-neutral-900">
+      {/* ================================================== */}
+      {/* BASIC INFORMATION */}
+      {/* ================================================== */}
+
+      <section
+        className="
+          rounded-2xl
+          border
+          border-neutral-200
+          bg-white
+          p-4
+          shadow-sm
+
+          sm:p-8
+        "
+      >
+
+        <div
+          className="
+            mb-5
+
+            sm:mb-6
+          "
+        >
+
+          <h2
+            className="
+              text-lg
+              font-semibold
+              text-neutral-900
+
+              sm:text-xl
+            "
+          >
             Payment Method
           </h2>
 
-          <p className="mt-1 text-sm leading-6 text-neutral-500">
+
+          <p
+            className="
+              mt-1
+              text-sm
+              leading-6
+              text-neutral-500
+            "
+          >
             Configure the payment method customers
             will see during checkout.
           </p>
+
         </div>
 
-        <div className="space-y-6">
-          {/* Name */}
 
-          <div className="space-y-2">
+        <div
+          className="
+            space-y-5
+
+            sm:space-y-6
+          "
+        >
+
+          {/* ================================================
+              NAME
+              ================================================ */}
+
+          <div
+            className="
+              space-y-2
+            "
+          >
+
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-neutral-900"
+              className="
+                block
+                text-sm
+                font-medium
+                text-neutral-900
+              "
             >
               Name
             </label>
+
 
             <input
               id="name"
@@ -264,17 +436,32 @@ export default function PaymentMethodForm({
                 focus:ring-neutral-100
               "
             />
+
           </div>
 
-          {/* Type */}
 
-          <div className="space-y-2">
+          {/* ================================================
+              TYPE
+              ================================================ */}
+
+          <div
+            className="
+              space-y-2
+            "
+          >
+
             <label
               htmlFor="type"
-              className="block text-sm font-medium text-neutral-900"
+              className="
+                block
+                text-sm
+                font-medium
+                text-neutral-900
+              "
             >
               Payment Type
             </label>
+
 
             <select
               id="type"
@@ -302,46 +489,111 @@ export default function PaymentMethodForm({
                 focus:ring-neutral-100
               "
             >
+
               <option value="BANK_TRANSFER">
                 Bank Transfer
               </option>
 
+
               <option value="QR">
                 QR Payment
               </option>
+
             </select>
+
           </div>
+
         </div>
+
       </section>
 
-      {/* =========================================================
-          BANK TRANSFER
-          ========================================================= */}
+
+      {/* ================================================== */}
+      {/* BANK TRANSFER */}
+      {/* ================================================== */}
 
       {type ===
         "BANK_TRANSFER" && (
-        <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-neutral-900">
+
+        <section
+          className="
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            p-4
+            shadow-sm
+
+            sm:p-8
+          "
+        >
+
+          <div
+            className="
+              mb-5
+
+              sm:mb-6
+            "
+          >
+
+            <h2
+              className="
+                text-lg
+                font-semibold
+                text-neutral-900
+
+                sm:text-xl
+              "
+            >
               Bank Details
             </h2>
 
-            <p className="mt-1 text-sm leading-6 text-neutral-500">
+
+            <p
+              className="
+                mt-1
+                text-sm
+                leading-6
+                text-neutral-500
+              "
+            >
               These details will be displayed to
               customers when they choose bank transfer.
             </p>
+
           </div>
 
-          <div className="space-y-6">
-            {/* Bank Name */}
 
-            <div className="space-y-2">
+          <div
+            className="
+              space-y-5
+
+              sm:space-y-6
+            "
+          >
+
+            {/* ============================================
+                BANK NAME
+                ============================================ */}
+
+            <div
+              className="
+                space-y-2
+              "
+            >
+
               <label
                 htmlFor="bankName"
-                className="block text-sm font-medium text-neutral-900"
+                className="
+                  block
+                  text-sm
+                  font-medium
+                  text-neutral-900
+                "
               >
                 Bank Name
               </label>
+
 
               <input
                 id="bankName"
@@ -356,6 +608,7 @@ export default function PaymentMethodForm({
                   rounded-xl
                   border
                   border-neutral-200
+                  bg-white
                   px-4
                   py-3
                   text-sm
@@ -366,17 +619,32 @@ export default function PaymentMethodForm({
                   focus:ring-neutral-100
                 "
               />
+
             </div>
 
-            {/* Account Name */}
 
-            <div className="space-y-2">
+            {/* ============================================
+                ACCOUNT NAME
+                ============================================ */}
+
+            <div
+              className="
+                space-y-2
+              "
+            >
+
               <label
                 htmlFor="accountName"
-                className="block text-sm font-medium text-neutral-900"
+                className="
+                  block
+                  text-sm
+                  font-medium
+                  text-neutral-900
+                "
               >
                 Account Name
               </label>
+
 
               <input
                 id="accountName"
@@ -391,6 +659,7 @@ export default function PaymentMethodForm({
                   rounded-xl
                   border
                   border-neutral-200
+                  bg-white
                   px-4
                   py-3
                   text-sm
@@ -401,17 +670,32 @@ export default function PaymentMethodForm({
                   focus:ring-neutral-100
                 "
               />
+
             </div>
 
-            {/* Account Number */}
 
-            <div className="space-y-2">
+            {/* ============================================
+                ACCOUNT NUMBER
+                ============================================ */}
+
+            <div
+              className="
+                space-y-2
+              "
+            >
+
               <label
                 htmlFor="accountNumber"
-                className="block text-sm font-medium text-neutral-900"
+                className="
+                  block
+                  text-sm
+                  font-medium
+                  text-neutral-900
+                "
               >
                 Account Number
               </label>
+
 
               <input
                 id="accountNumber"
@@ -427,6 +711,7 @@ export default function PaymentMethodForm({
                   rounded-xl
                   border
                   border-neutral-200
+                  bg-white
                   px-4
                   py-3
                   font-mono
@@ -438,49 +723,111 @@ export default function PaymentMethodForm({
                   focus:ring-neutral-100
                 "
               />
+
             </div>
+
           </div>
+
         </section>
+
       )}
 
-      {/* =========================================================
-          QR PAYMENT
-          ========================================================= */}
+
+      {/* ================================================== */}
+      {/* QR PAYMENT */}
+      {/* ================================================== */}
 
       {type === "QR" && (
-        <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-neutral-900">
+
+        <section
+          className="
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            p-4
+            shadow-sm
+
+            sm:p-8
+          "
+        >
+
+          <div
+            className="
+              mb-5
+
+              sm:mb-6
+            "
+          >
+
+            <h2
+              className="
+                text-lg
+                font-semibold
+                text-neutral-900
+
+                sm:text-xl
+              "
+            >
               QR Payment
             </h2>
 
-            <p className="mt-1 text-sm leading-6 text-neutral-500">
+
+            <p
+              className="
+                mt-1
+                text-sm
+                leading-6
+                text-neutral-500
+              "
+            >
               Upload the QR code customers should use
               to make payment.
             </p>
+
           </div>
 
-          <div className="space-y-5">
-            {/* Upload Area */}
+
+          <div
+            className="
+              space-y-4
+
+              sm:space-y-5
+            "
+          >
+
+            {/* ============================================
+                UPLOAD AREA
+                ============================================ */}
 
             {!qrImageUrl ? (
+
               <div
                 onDragOver={(event) => {
+
                   event.preventDefault();
+
                   setDragging(true);
+
                 }}
                 onDragLeave={() => {
+
                   setDragging(false);
+
                 }}
                 onDrop={handleDrop}
                 onClick={() => {
+
                   if (!uploading) {
+
                     fileInputRef.current?.click();
+
                   }
+
                 }}
                 className={`
                   flex
-                  min-h-72
+                  min-h-56
                   cursor-pointer
                   flex-col
                   items-center
@@ -488,9 +835,14 @@ export default function PaymentMethodForm({
                   rounded-2xl
                   border-2
                   border-dashed
-                  px-6
+                  px-4
+                  py-8
                   text-center
                   transition
+
+                  sm:min-h-72
+                  sm:px-6
+
                   ${
                     dragging
                       ? "border-black bg-neutral-50"
@@ -498,6 +850,7 @@ export default function PaymentMethodForm({
                   }
                 `}
               >
+
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -508,61 +861,204 @@ export default function PaymentMethodForm({
                   }
                 />
 
-                {uploading ? (
-                  <>
-                    <Loader2 className="h-8 w-8 animate-spin text-neutral-500" />
 
-                    <p className="mt-4 text-sm font-medium text-neutral-800">
+                {uploading ? (
+
+                  <>
+
+                    <Loader2
+                      className="
+                        h-7
+                        w-7
+                        animate-spin
+                        text-neutral-500
+
+                        sm:h-8
+                        sm:w-8
+                      "
+                    />
+
+
+                    <p
+                      className="
+                        mt-4
+                        text-sm
+                        font-medium
+                        text-neutral-800
+                      "
+                    >
                       Uploading...
                     </p>
 
-                    <p className="mt-1 text-xs text-neutral-400">
+
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        text-neutral-400
+                      "
+                    >
                       Uploading QR code to Cloudinary
                     </p>
+
                   </>
+
                 ) : (
+
                   <>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
-                      <Upload className="h-5 w-5 text-neutral-500" />
+
+                    <div
+                      className="
+                        flex
+                        h-11
+                        w-11
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-white
+                        shadow-sm
+
+                        sm:h-12
+                        sm:w-12
+                      "
+                    >
+
+                      <Upload
+                        className="
+                          h-5
+                          w-5
+                          text-neutral-500
+                        "
+                      />
+
                     </div>
 
-                    <p className="mt-4 text-sm font-medium text-neutral-800">
+
+                    <p
+                      className="
+                        mt-4
+                        text-sm
+                        font-medium
+                        text-neutral-800
+                      "
+                    >
                       Upload QR Code
                     </p>
 
-                    <p className="mt-1 text-xs text-neutral-400">
+
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        text-neutral-400
+                      "
+                    >
                       Click to select or drag and drop
                     </p>
 
-                    <p className="mt-1 text-xs text-neutral-400">
+
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        text-neutral-400
+                      "
+                    >
                       PNG, JPG or WEBP
                     </p>
+
                   </>
+
                 )}
+
               </div>
+
             ) : (
-              <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-                <div className="flex flex-col items-center">
-                  <div className="relative overflow-hidden rounded-xl border border-neutral-200 bg-white p-3">
+
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-neutral-200
+                  bg-neutral-50
+                  p-3
+
+                  sm:p-5
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    flex-col
+                    items-center
+                  "
+                >
+
+                  <div
+                    className="
+                      relative
+                      max-w-full
+                      overflow-hidden
+                      rounded-xl
+                      border
+                      border-neutral-200
+                      bg-white
+                      p-2
+
+                      sm:p-3
+                    "
+                  >
+
                     <Image
                       src={qrImageUrl}
                       alt="Payment QR Code"
                       width={280}
                       height={280}
-                      className="h-auto max-h-72 w-auto max-w-full object-contain"
+                      className="
+                        h-auto
+                        max-h-64
+                        w-auto
+                        max-w-full
+                        object-contain
+
+                        sm:max-h-72
+                      "
                     />
+
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+
+                  <div
+                    className="
+                      mt-4
+                      flex
+                      w-full
+                      flex-col
+                      gap-2
+
+                      sm:w-auto
+                      sm:flex-row
+                      sm:items-center
+                      sm:justify-center
+                      sm:gap-3
+                    "
+                  >
+
                     <button
                       type="button"
                       onClick={() => {
+
                         fileInputRef.current?.click();
+
                       }}
                       disabled={uploading}
                       className="
                         inline-flex
+                        min-h-10
+                        w-full
                         items-center
+                        justify-center
                         gap-2
                         rounded-lg
                         border
@@ -577,16 +1073,36 @@ export default function PaymentMethodForm({
                         hover:bg-neutral-50
                         disabled:cursor-not-allowed
                         disabled:opacity-50
+
+                        sm:w-auto
                       "
                     >
+
                       {uploading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+
+                        <Loader2
+                          className="
+                            h-4
+                            w-4
+                            animate-spin
+                          "
+                        />
+
                       ) : (
-                        <Upload className="h-4 w-4" />
+
+                        <Upload
+                          className="
+                            h-4
+                            w-4
+                          "
+                        />
+
                       )}
 
                       Replace
+
                     </button>
+
 
                     <button
                       type="button"
@@ -596,7 +1112,10 @@ export default function PaymentMethodForm({
                       disabled={uploading}
                       className="
                         inline-flex
+                        min-h-10
+                        w-full
                         items-center
+                        justify-center
                         gap-2
                         rounded-lg
                         border
@@ -611,13 +1130,24 @@ export default function PaymentMethodForm({
                         hover:bg-red-50
                         disabled:cursor-not-allowed
                         disabled:opacity-50
+
+                        sm:w-auto
                       "
                     >
-                      <X className="h-4 w-4" />
+
+                      <X
+                        className="
+                          h-4
+                          w-4
+                        "
+                      />
 
                       Remove
+
                     </button>
+
                   </div>
+
 
                   <input
                     ref={fileInputRef}
@@ -628,34 +1158,86 @@ export default function PaymentMethodForm({
                       handleFileChange
                     }
                   />
+
                 </div>
+
               </div>
+
             )}
+
 
             {uploadError && (
-              <p className="text-sm text-red-600">
+
+              <p
+                className="
+                  text-sm
+                  text-red-600
+                "
+              >
                 {uploadError}
               </p>
+
             )}
+
           </div>
+
         </section>
+
       )}
 
-      {/* =========================================================
-          INSTRUCTIONS
-          ========================================================= */}
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-neutral-900">
+      {/* ================================================== */}
+      {/* INSTRUCTIONS */}
+      {/* ================================================== */}
+
+      <section
+        className="
+          rounded-2xl
+          border
+          border-neutral-200
+          bg-white
+          p-4
+          shadow-sm
+
+          sm:p-8
+        "
+      >
+
+        <div
+          className="
+            mb-5
+
+            sm:mb-6
+          "
+        >
+
+          <h2
+            className="
+              text-lg
+              font-semibold
+              text-neutral-900
+
+              sm:text-xl
+            "
+          >
             Customer Instructions
           </h2>
 
-          <p className="mt-1 text-sm leading-6 text-neutral-500">
+
+          <p
+            className="
+              mt-1
+              text-sm
+              leading-6
+              text-neutral-500
+            "
+          >
             Optional instructions displayed together with
             this payment method.
           </p>
+
         </div>
+
 
         <textarea
           name="instructions"
@@ -681,28 +1263,84 @@ export default function PaymentMethodForm({
             focus:ring-neutral-100
           "
         />
+
       </section>
 
-      {/* =========================================================
-          DISPLAY SETTINGS
-          ========================================================= */}
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-neutral-900">
+      {/* ================================================== */}
+      {/* DISPLAY SETTINGS */}
+      {/* ================================================== */}
+
+      <section
+        className="
+          rounded-2xl
+          border
+          border-neutral-200
+          bg-white
+          p-4
+          shadow-sm
+
+          sm:p-8
+        "
+      >
+
+        <div
+          className="
+            mb-5
+
+            sm:mb-6
+          "
+        >
+
+          <h2
+            className="
+              text-lg
+              font-semibold
+              text-neutral-900
+
+              sm:text-xl
+            "
+          >
             Display Settings
           </h2>
 
-          <p className="mt-1 text-sm leading-6 text-neutral-500">
+
+          <p
+            className="
+              mt-1
+              text-sm
+              leading-6
+              text-neutral-500
+            "
+          >
             Control whether this payment method is available
             to customers and its display order.
           </p>
+
         </div>
 
-        <div className="space-y-6">
-          {/* Active */}
 
-          <label className="flex cursor-pointer items-start gap-3">
+        <div
+          className="
+            space-y-5
+
+            sm:space-y-6
+          "
+        >
+
+          {/* ================================================
+              ACTIVE
+              ================================================ */}
+
+          <label
+            className="
+              flex
+              cursor-pointer
+              items-start
+              gap-3
+            "
+          >
+
             <input
               type="checkbox"
               name="active"
@@ -710,30 +1348,74 @@ export default function PaymentMethodForm({
                 paymentMethod?.active ??
                 true
               }
-              className="mt-1 h-4 w-4 rounded border-neutral-300"
+              className="
+                mt-1
+                h-4
+                w-4
+                shrink-0
+                rounded
+                border-neutral-300
+              "
             />
 
+
             <span>
-              <span className="block text-sm font-medium text-neutral-900">
+
+              <span
+                className="
+                  block
+                  text-sm
+                  font-medium
+                  text-neutral-900
+                "
+              >
                 Active
               </span>
 
-              <span className="mt-1 block text-xs leading-5 text-neutral-500">
+
+              <span
+                className="
+                  mt-1
+                  block
+                  text-xs
+                  leading-5
+                  text-neutral-500
+                "
+              >
                 Customers can use this payment method when
                 it is active.
               </span>
+
             </span>
+
           </label>
 
-          {/* Sort Order */}
 
-          <div className="max-w-xs space-y-2">
+          {/* ================================================
+              SORT ORDER
+              ================================================ */}
+
+          <div
+            className="
+              w-full
+              space-y-2
+
+              sm:max-w-xs
+            "
+          >
+
             <label
               htmlFor="sortOrder"
-              className="block text-sm font-medium text-neutral-900"
+              className="
+                block
+                text-sm
+                font-medium
+                text-neutral-900
+              "
             >
               Sort Order
             </label>
+
 
             <input
               id="sortOrder"
@@ -761,25 +1443,37 @@ export default function PaymentMethodForm({
               "
             />
 
-            <p className="text-xs text-neutral-400">
+
+            <p
+              className="
+                text-xs
+                text-neutral-400
+              "
+            >
               Lower numbers appear first.
             </p>
+
           </div>
+
         </div>
+
       </section>
 
-      {/* =========================================================
-          SUBMIT
-          ========================================================= */}
+
+      {/* ================================================== */}
+      {/* SUBMIT */}
+      {/* ================================================== */}
 
       <button
         type="submit"
         disabled={uploading}
         className="
+          min-h-12
           w-full
           rounded-xl
           bg-black
-          py-4
+          px-4
+          py-3
           text-sm
           font-semibold
           text-white
@@ -789,12 +1483,17 @@ export default function PaymentMethodForm({
           disabled:bg-neutral-400
         "
       >
+
         {uploading
           ? "Uploading QR Code..."
           : paymentMethod
             ? "Save Payment Method"
             : "Create Payment Method"}
+
       </button>
+
     </form>
+
   );
+
 }

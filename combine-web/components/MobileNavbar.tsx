@@ -9,9 +9,19 @@ import {
   Heart,
   MessageCircle,
   ShoppingBag,
+  User,
+  LogIn,
+  UserPlus,
+  LogOut,
 } from "lucide-react";
 
-import { useState } from "react";
+import {
+  useState,
+} from "react";
+
+import {
+  useRouter,
+} from "next/navigation";
 
 import {
   useInquiry,
@@ -25,6 +35,18 @@ import {
   useCart,
 } from "@/app/(site)/_components/CartProvider";
 
+type User = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+type Props = {
+  user: User | null;
+  wishlistCount: number;
+  inquiryCount: number;
+  whatsappLink: string;
+};
 
 const navigation = [
   {
@@ -45,60 +67,90 @@ const navigation = [
   },
 ];
 
-
-export default function MobileNavbar() {
+export default function MobileNavbar({
+  user,
+  wishlistCount,
+  inquiryCount,
+  whatsappLink,
+}: Props) {
+  const router =
+    useRouter();
 
   const [
     open,
     setOpen,
   ] = useState(false);
 
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
   const {
     totalItems,
     openDrawer,
   } = useInquiry();
 
-
   const {
     close,
   } = useQuickView();
 
-
   const {
     itemCount,
   } = useCart();
-
 
   // ==========================================================
   // INQUIRY
   // ==========================================================
 
   function handleInquiry() {
-
     close();
-
     openDrawer();
-
     setOpen(false);
-
   }
-
 
   // ==========================================================
   // CLOSE MENU
   // ==========================================================
 
   function handleCloseMenu() {
-
     setOpen(false);
-
   }
 
+  // ==========================================================
+  // LOGOUT
+  // ==========================================================
+
+  async function handleLogout() {
+    if (loading) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await fetch(
+        "/api/auth/logout",
+        {
+          method: "POST",
+        }
+      );
+
+      setOpen(false);
+
+      router.refresh();
+    } catch (error) {
+      console.error(
+        "Failed to logout:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <>
-
       {/* ======================================================
           HEADER
           ====================================================== */}
@@ -112,7 +164,6 @@ export default function MobileNavbar() {
           flex
           h-[72px]
           items-center
-          justify-between
           border-b
           border-neutral-200/60
           bg-white/80
@@ -121,7 +172,6 @@ export default function MobileNavbar() {
           md:hidden
         "
       >
-
         {/* ==================================================
             MENU
             ================================================== */}
@@ -133,6 +183,8 @@ export default function MobileNavbar() {
           }
           aria-label="Open menu"
           className="
+            relative
+            z-20
             flex
             h-11
             w-11
@@ -143,23 +195,26 @@ export default function MobileNavbar() {
             hover:bg-neutral-100
           "
         >
-
           <Menu
             size={24}
             strokeWidth={1.6}
           />
-
         </button>
 
-
         {/* ==================================================
-            LOGO
+            CENTER LOGO
             ================================================== */}
 
         <Link
           href="/"
           aria-label="COMBINE Home"
           className="
+            absolute
+            left-1/2
+            top-1/2
+            -translate-x-1/2
+            -translate-y-1/2
+            whitespace-nowrap
             text-[24px]
             font-extralight
             tracking-[0.28em]
@@ -168,19 +223,18 @@ export default function MobileNavbar() {
           COMBINE
         </Link>
 
-
         {/* ==================================================
             RIGHT ACTIONS
             ================================================== */}
 
         <div
           className="
+            ml-auto
             flex
             items-center
             gap-1
           "
         >
-
           {/* ================================================
               CART
               ================================================ */}
@@ -208,15 +262,12 @@ export default function MobileNavbar() {
               hover:bg-neutral-100
             "
           >
-
             <ShoppingBag
               size={21}
               strokeWidth={1.6}
             />
 
-
             {itemCount > 0 && (
-
               <span
                 className="
                   absolute
@@ -240,11 +291,8 @@ export default function MobileNavbar() {
                   ? "99+"
                   : itemCount}
               </span>
-
             )}
-
           </Link>
-
 
           {/* ================================================
               INQUIRY
@@ -276,15 +324,12 @@ export default function MobileNavbar() {
               hover:bg-neutral-100
             "
           >
-
             <ClipboardList
               size={21}
               strokeWidth={1.6}
             />
 
-
             {totalItems > 0 && (
-
               <span
                 className="
                   absolute
@@ -308,15 +353,10 @@ export default function MobileNavbar() {
                   ? "99+"
                   : totalItems}
               </span>
-
             )}
-
           </button>
-
         </div>
-
       </header>
-
 
       {/* ======================================================
           OVERLAY
@@ -342,7 +382,6 @@ export default function MobileNavbar() {
           }
         `}
       />
-
 
       {/* ======================================================
           DRAWER
@@ -372,7 +411,6 @@ export default function MobileNavbar() {
           }
         `}
       >
-
         {/* ==================================================
             TOP
             ================================================== */}
@@ -384,7 +422,6 @@ export default function MobileNavbar() {
             justify-between
           "
         >
-
           <p
             className="
               text-[11px]
@@ -395,7 +432,6 @@ export default function MobileNavbar() {
           >
             COMBINE
           </p>
-
 
           <button
             type="button"
@@ -413,16 +449,12 @@ export default function MobileNavbar() {
               hover:bg-neutral-100
             "
           >
-
             <X
               size={22}
               strokeWidth={1.6}
             />
-
           </button>
-
         </div>
-
 
         {/* ==================================================
             NAVIGATION
@@ -434,10 +466,8 @@ export default function MobileNavbar() {
             space-y-7
           "
         >
-
           {navigation.map(
             (item) => (
-
               <Link
                 key={
                   item.href
@@ -461,12 +491,9 @@ export default function MobileNavbar() {
               >
                 {item.label}
               </Link>
-
             )
           )}
-
         </nav>
-
 
         {/* ==================================================
             BOTTOM
@@ -480,12 +507,163 @@ export default function MobileNavbar() {
             pt-8
           "
         >
-
           <div
             className="
               space-y-6
             "
           >
+            {/* ==============================================
+                ACCOUNT
+                ============================================== */}
+
+            {!user ? (
+              <>
+                {/* ==========================================
+                    LOGIN
+                    ========================================== */}
+
+                <Link
+                  href="/login"
+                  onClick={
+                    handleCloseMenu
+                  }
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                    text-sm
+                    font-medium
+                    uppercase
+                    tracking-[0.18em]
+                    text-neutral-900
+                    transition
+                    hover:text-[#B08D57]
+                  "
+                >
+                  <LogIn
+                    size={18}
+                    strokeWidth={1.8}
+                  />
+
+                  Login
+                </Link>
+
+                {/* ==========================================
+                    REGISTER
+                    ========================================== */}
+
+                <Link
+                  href="/register"
+                  onClick={
+                    handleCloseMenu
+                  }
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                    text-sm
+                    font-medium
+                    uppercase
+                    tracking-[0.18em]
+                    text-neutral-900
+                    transition
+                    hover:text-[#B08D57]
+                  "
+                >
+                  <UserPlus
+                    size={18}
+                    strokeWidth={1.8}
+                  />
+
+                  Register
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* ==========================================
+                    MY PROFILE
+                    ========================================== */}
+
+                <Link
+                  href="/profile"
+                  onClick={
+                    handleCloseMenu
+                  }
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                    text-sm
+                    font-medium
+                    uppercase
+                    tracking-[0.18em]
+                    text-neutral-900
+                    transition
+                    hover:text-[#B08D57]
+                  "
+                >
+                  <User
+                    size={18}
+                    strokeWidth={1.8}
+                  />
+
+                  My Profile
+                </Link>
+
+                {/* ==========================================
+                    LOGOUT
+                    ========================================== */}
+
+                <button
+                  type="button"
+                  onClick={
+                    handleLogout
+                  }
+                  disabled={
+                    loading
+                  }
+                  className={`
+                    flex
+                    w-full
+                    items-center
+                    gap-3
+                    text-left
+                    text-sm
+                    font-medium
+                    uppercase
+                    tracking-[0.18em]
+                    text-red-500
+                    transition
+                    hover:text-red-600
+                    ${
+                      loading
+                        ? "cursor-not-allowed opacity-60"
+                        : ""
+                    }
+                  `}
+                >
+                  <LogOut
+                    size={18}
+                    strokeWidth={1.8}
+                  />
+
+                  {loading
+                    ? "Logging out..."
+                    : "Logout"}
+                </button>
+              </>
+            )}
+
+            {/* ==============================================
+                DIVIDER
+                ============================================== */}
+
+            <div
+              className="
+                border-t
+                border-neutral-200
+              "
+            />
 
             {/* ==============================================
                 CART
@@ -506,7 +684,6 @@ export default function MobileNavbar() {
                 hover:text-[#B08D57]
               "
             >
-
               <ShoppingBag
                 size={18}
               />
@@ -514,19 +691,17 @@ export default function MobileNavbar() {
               Cart
 
               {itemCount > 0 && (
-
                 <span
                   className="
                     text-neutral-500
                   "
                 >
-                  ({itemCount})
+                  (
+                  {itemCount}
+                  )
                 </span>
-
               )}
-
             </Link>
-
 
             {/* ==============================================
                 WISHLIST
@@ -547,15 +722,24 @@ export default function MobileNavbar() {
                 hover:text-[#B08D57]
               "
             >
-
               <Heart
                 size={18}
               />
 
               Wishlist
 
+              {wishlistCount > 0 && (
+                <span
+                  className="
+                    text-neutral-500
+                  "
+                >
+                  (
+                  {wishlistCount}
+                  )
+                </span>
+              )}
             </Link>
-
 
             {/* ==============================================
                 INQUIRY
@@ -576,7 +760,6 @@ export default function MobileNavbar() {
                 hover:text-[#B08D57]
               "
             >
-
               <ClipboardList
                 size={18}
               />
@@ -584,26 +767,26 @@ export default function MobileNavbar() {
               Inquiry
 
               {totalItems > 0 && (
-
                 <span
                   className="
                     text-neutral-500
                   "
                 >
-                  ({totalItems})
+                  (
+                  {totalItems}
+                  )
                 </span>
-
               )}
-
             </button>
-
 
             {/* ==============================================
                 WHATSAPP
                 ============================================== */}
 
             <a
-              href="https://wa.me/60168848453"
+              href={
+                whatsappLink
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="
@@ -625,21 +808,15 @@ export default function MobileNavbar() {
                 hover:bg-[#B08D57]
               "
             >
-
               <MessageCircle
                 size={18}
               />
 
               WhatsApp Us
-
             </a>
-
           </div>
-
         </div>
-
       </aside>
-
     </>
   );
 }

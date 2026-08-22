@@ -65,7 +65,8 @@ export default async function NewVoucherPage() {
 
     <main
       className="
-        space-y-8
+        space-y-6
+        sm:space-y-8
       "
     >
 
@@ -82,7 +83,9 @@ export default async function NewVoucherPage() {
           href="/admin/dashboard/vouchers"
           className="
             inline-flex
+            w-full
             items-center
+            justify-center
             rounded-xl
             border
             border-gray-300
@@ -94,6 +97,8 @@ export default async function NewVoucherPage() {
             text-gray-700
             transition
             hover:bg-gray-50
+
+            sm:w-auto
           "
         >
           Back to Vouchers

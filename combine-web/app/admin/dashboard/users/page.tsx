@@ -7,10 +7,18 @@ import CreateUserButton from "./_components/CreateUserButton";
 import UserTable from "./_components/UserTable";
 
 export default async function UsersPage() {
-  await requireRole([
+  // ============================================================
+  // CURRENT USER
+  // ============================================================
+
+  const currentUser = await requireRole([
     UserRole.OWNER,
     UserRole.ADMIN,
   ]);
+
+  // ============================================================
+  // LOAD USERS
+  // ============================================================
 
   const users = await prisma.user.findMany({
     orderBy: {
@@ -18,15 +26,45 @@ export default async function UsersPage() {
     },
   });
 
+  // ============================================================
+  // RENDER
+  // ============================================================
+
   return (
     <main className="space-y-8">
-      <div className="flex items-start justify-between">
+
+      {/* ====================================================== */}
+      {/* HEADER */}
+      {/* ====================================================== */}
+
+      <div
+        className="
+          flex
+          items-start
+          justify-between
+          gap-4
+        "
+      >
+
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-gray-500">
+          <p
+            className="
+              text-sm
+              uppercase
+              tracking-[0.3em]
+              text-gray-500
+            "
+          >
             COMBINE
           </p>
 
-          <h1 className="mt-2 text-4xl font-light">
+          <h1
+            className="
+              mt-2
+              text-4xl
+              font-light
+            "
+          >
             Users
           </h1>
 
@@ -35,10 +73,26 @@ export default async function UsersPage() {
           </p>
         </div>
 
-        <CreateUserButton />
+        <CreateUserButton
+          currentUserRole={
+            currentUser.role
+          }
+        />
+
       </div>
 
-      <UserTable users={users} />
+
+      {/* ====================================================== */}
+      {/* USER TABLE */}
+      {/* ====================================================== */}
+
+      <UserTable
+        users={users}
+        currentUserRole={
+          currentUser.role
+        }
+      />
+
     </main>
   );
 }

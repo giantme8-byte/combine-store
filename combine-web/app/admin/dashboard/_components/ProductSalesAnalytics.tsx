@@ -457,8 +457,10 @@ export default function ProductSalesAnalytics({
         className="
           mt-8
           grid
-          gap-4
+          grid-cols-2
+          gap-3
           sm:grid-cols-2
+          sm:gap-4
           xl:grid-cols-4
         "
       >
@@ -701,10 +703,16 @@ export default function ProductSalesAnalytics({
       {/* TABLE */}
       {/* ==================================================== */}
 
+      {/* ==================================================== */}
+      {/* DESKTOP TABLE */}
+      {/* ==================================================== */}
+
       <div
         className="
           mt-4
+          hidden
           overflow-x-auto
+          md:block
         "
       >
 
@@ -1052,6 +1060,239 @@ export default function ProductSalesAnalytics({
 
       </div>
 
+
+      {/* ==================================================== */}
+      {/* MOBILE PRODUCT CARDS */}
+      {/* ==================================================== */}
+
+      <div
+        className="
+          mt-4
+          space-y-3
+          md:hidden
+        "
+      >
+        {visibleProducts.map(
+          (product, index) => (
+            <div
+              key={product.productId}
+              className="
+                rounded-2xl
+                border
+                border-neutral-200
+                bg-white
+                p-4
+                shadow-sm
+              "
+            >
+              {/* Product Header */}
+
+              <div
+                className="
+                  flex
+                  items-start
+                  gap-3
+                "
+              >
+                <div
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-neutral-100
+                    text-[11px]
+                    font-medium
+                    text-neutral-500
+                  "
+                >
+                  {index + 1}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="
+                      break-words
+                      text-sm
+                      font-medium
+                      leading-5
+                      text-neutral-900
+                    "
+                  >
+                    {product.productName}
+                  </p>
+
+                  <p
+                    className="
+                      mt-1
+                      truncate
+                      text-[11px]
+                      text-neutral-400
+                    "
+                  >
+                    {product.brand}
+                  </p>
+                </div>
+
+                <span
+                  className="
+                    shrink-0
+                    rounded-full
+                    bg-neutral-100
+                    px-2.5
+                    py-1
+                    text-[10px]
+                    font-medium
+                    text-neutral-700
+                  "
+                >
+                  {product.margin.toFixed(1)}%
+                </span>
+              </div>
+
+              {/* Metrics */}
+
+              <div
+                className="
+                  mt-4
+                  grid
+                  grid-cols-2
+                  gap-2
+                "
+              >
+                <div
+                  className="
+                    rounded-xl
+                    bg-neutral-50
+                    p-3
+                  "
+                >
+                  <p
+                    className="
+                      text-[9px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-neutral-400
+                    "
+                  >
+                    Units
+                  </p>
+
+                  <p
+                    className="
+                      mt-1
+                      text-sm
+                      font-medium
+                      text-neutral-900
+                    "
+                  >
+                    {product.unitsSold.toLocaleString()}
+                  </p>
+                </div>
+
+                <div
+                  className="
+                    rounded-xl
+                    bg-neutral-50
+                    p-3
+                  "
+                >
+                  <p
+                    className="
+                      text-[9px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-neutral-400
+                    "
+                  >
+                    Sales
+                  </p>
+
+                  <p
+                    className="
+                      mt-1
+                      break-all
+                      text-sm
+                      font-medium
+                      text-neutral-900
+                    "
+                  >
+                    {formatMoney(product.totalSales)}
+                  </p>
+                </div>
+
+                <div
+                  className="
+                    rounded-xl
+                    bg-neutral-50
+                    p-3
+                  "
+                >
+                  <p
+                    className="
+                      text-[9px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-neutral-400
+                    "
+                  >
+                    Cost
+                  </p>
+
+                  <p
+                    className="
+                      mt-1
+                      break-all
+                      text-sm
+                      text-neutral-600
+                    "
+                  >
+                    {formatMoney(product.totalCost)}
+                  </p>
+                </div>
+
+                <div
+                  className="
+                    rounded-xl
+                    bg-neutral-50
+                    p-3
+                  "
+                >
+                  <p
+                    className="
+                      text-[9px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-neutral-400
+                    "
+                  >
+                    Profit
+                  </p>
+
+                  <p
+                    className={`
+                      mt-1
+                      break-all
+                      text-sm
+                      font-medium
+                      ${
+                        product.profit >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }
+                    `}
+                  >
+                    {formatMoney(product.profit)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        )}
+      </div>
 
       {/* ==================================================== */}
       {/* TOTAL MARGIN */}

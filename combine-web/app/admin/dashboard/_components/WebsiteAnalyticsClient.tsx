@@ -6,15 +6,18 @@ import {
 } from "react";
 
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 /*
  * ============================================================
- * ANALYTICS RANGE
+ * TYPES
  * ============================================================
  */
 
@@ -22,12 +25,6 @@ type AnalyticsRange =
   | "today"
   | "7days"
   | "30days";
-
-/*
- * ============================================================
- * DAILY DATA
- * ============================================================
- */
 
 type DailyData = {
   date: string;
@@ -38,12 +35,6 @@ type DailyData = {
   whatsappClicks: number;
 };
 
-/*
- * ============================================================
- * TOP PRODUCT
- * ============================================================
- */
-
 type TopProduct = {
   id: number;
   name: string;
@@ -51,11 +42,17 @@ type TopProduct = {
   views: number;
 };
 
-/*
- * ============================================================
- * PROPS
- * ============================================================
- */
+type TodayStats = {
+  visitors: number;
+  pageViews: number;
+  productViews: number;
+  whatsappClicks: number;
+};
+
+type PeriodVisitors = {
+  sevenDays: number;
+  thirtyDays: number;
+};
 
 type WebsiteAnalyticsClientProps = {
   dailyData: DailyData[];
@@ -66,46 +63,10 @@ type WebsiteAnalyticsClientProps = {
 
   topProducts30Days: TopProduct[];
 
-  todayStats: {
-    visitors: number;
-    pageViews: number;
-    productViews: number;
-    whatsappClicks: number;
-  };
+  todayStats: TodayStats;
+
+  periodVisitors: PeriodVisitors;
 };
-
-/*
- * ============================================================
- * FORMAT NUMBER
- * ============================================================
- */
-
-function formatNumber(
-  value: number
-) {
-  return value.toLocaleString();
-}
-
-/*
- * ============================================================
- * GET RANGE DAYS
- * ============================================================
- */
-
-function getRangeDays(
-  range: AnalyticsRange
-) {
-  switch (range) {
-    case "today":
-      return 1;
-
-    case "7days":
-      return 7;
-
-    case "30days":
-      return 30;
-  }
-}
 
 /*
  * ============================================================
@@ -119,19 +80,12 @@ export default function WebsiteAnalyticsClient({
   topProducts7Days,
   topProducts30Days,
   todayStats,
+  periodVisitors,
 }: WebsiteAnalyticsClientProps) {
-  /*
-   * ==========================================================
-   * RANGE
-   * ==========================================================
-   */
-
-  const [
-    range,
-    setRange,
-  ] = useState<AnalyticsRange>(
-    "today"
-  );
+  const [range, setRange] =
+    useState<AnalyticsRange>(
+      "today"
+    );
 
   /*
    * ==========================================================
@@ -141,37 +95,53 @@ export default function WebsiteAnalyticsClient({
 
   const selectedDays =
     useMemo(() => {
-      const days =
-        getRangeDays(
-          range
-        );
+      if (range === "today") {
+        return 1;
+      }
+
+      if (range === "7days") {
+        return 7;
+      }
+
+      return 30;
+    }, [range]);
+
+  /*
+   * ==========================================================
+   * CHART DATA
+   * ==========================================================
+   */
+
+  const chartData =
+    useMemo(() => {
+      if (range === "today") {
+        return dailyData.slice(-1);
+      }
 
       return dailyData.slice(
-        -days
+        -selectedDays
       );
     }, [
       dailyData,
       range,
+      selectedDays,
     ]);
 
   /*
    * ==========================================================
-   * SUMMARY
+   * PERIOD STATS
    * ==========================================================
    */
 
-  const summary =
+  const stats =
     useMemo(() => {
       /*
-       * ------------------------------------------------------
        * TODAY
-       * ------------------------------------------------------
+       *
+       * Uses today's real unique visitors.
        */
 
-      if (
-        range ===
-        "today"
-      ) {
+      if (range === "today") {
         return {
           visitors:
             todayStats.visitors,
@@ -188,76 +158,77 @@ export default function WebsiteAnalyticsClient({
       }
 
       /*
-       * ------------------------------------------------------
-       * 7 / 30 DAYS
-       * ------------------------------------------------------
+       * 7 DAYS / 30 DAYS
+       *
+       * Visitors are NOT summed from dailyData.
+       *
+       * They come from the server-side
+       * period-wide unique visitor calculation.
        */
+
+      const pageViews =
+        chartData.reduce(
+          (sum, day) =>
+            sum + day.pageViews,
+          0
+        );
+
+      const productViews =
+        chartData.reduce(
+          (sum, day) =>
+            sum + day.productViews,
+          0
+        );
+
+      const whatsappClicks =
+        chartData.reduce(
+          (sum, day) =>
+            sum + day.whatsappClicks,
+          0
+        );
 
       return {
         visitors:
-          selectedDays.reduce(
-            (
-              total,
-              day
-            ) =>
-              total +
-              day.visitors,
-            0
-          ),
+          range === "7days"
+            ? periodVisitors.sevenDays
+            : periodVisitors.thirtyDays,
 
-        pageViews:
-          selectedDays.reduce(
-            (
-              total,
-              day
-            ) =>
-              total +
-              day.pageViews,
-            0
-          ),
+        pageViews,
 
-        productViews:
-          selectedDays.reduce(
-            (
-              total,
-              day
-            ) =>
-              total +
-              day.productViews,
-            0
-          ),
+        productViews,
 
-        whatsappClicks:
-          selectedDays.reduce(
-            (
-              total,
-              day
-            ) =>
-              total +
-              day.whatsappClicks,
-            0
-          ),
+        whatsappClicks,
       };
     }, [
       range,
-      selectedDays,
+      chartData,
       todayStats,
+      periodVisitors,
     ]);
 
   /*
    * ==========================================================
-   * MAX VISITORS
+   * TOP PRODUCTS
    * ==========================================================
    */
 
-  const maxVisitors =
-    Math.max(
-      1,
-      ...selectedDays.map(
-        (day) =>
-          day.visitors
-      )
-    );
+  const topProducts =
+    useMemo(() => {
+      if (range === "today") {
+        return topProductsToday;
+      }
+
+      if (range === "7days") {
+        return topProducts7Days;
+      }
+
+      return topProducts30Days;
+    }, [
+      range,
+      topProductsToday,
+      topProducts7Days,
+      topProducts30Days,
+    ]);
 
   /*
    * ==========================================================
@@ -266,39 +237,11 @@ export default function WebsiteAnalyticsClient({
    */
 
   const rangeLabel =
-    range ===
-    "today"
-      ? "Today"
-      : range ===
-        "7days"
-        ? "Last 7 Days"
-        : "Last 30 Days";
-
-  /*
-   * ==========================================================
-   * TOP PRODUCTS
-   * ==========================================================
-   *
-   * The selected range controls which Top Products dataset
-   * is displayed.
-   *
-   * Today:
-   * topProductsToday
-   *
-   * 7 Days:
-   * topProducts7Days
-   *
-   * 30 Days:
-   * topProducts30Days
-   * ==========================================================
-   */
-
-  const topProducts =
     range === "today"
-      ? topProductsToday
+      ? "Today"
       : range === "7days"
-        ? topProducts7Days
-        : topProducts30Days;
+      ? "Last 7 Days"
+      : "Last 30 Days";
 
   /*
    * ==========================================================
@@ -307,58 +250,62 @@ export default function WebsiteAnalyticsClient({
    */
 
   return (
-    <section
-      className="
-        space-y-6
-      "
-    >
-      {/* ==================================================== */}
+    <div className="space-y-6">
+
+      {/* ================================================== */}
       {/* HEADER */}
-      {/* ==================================================== */}
+      {/* ================================================== */}
 
       <div
         className="
           flex
           flex-col
           gap-4
+
           sm:flex-row
-          sm:items-end
+          sm:items-center
           sm:justify-between
         "
       >
+
         <div>
           <p
             className="
-              text-xs
-              font-semibold
+              text-[10px]
+              font-medium
               uppercase
-              tracking-[0.2em]
+              tracking-[0.3em]
               text-neutral-400
+
+              sm:text-xs
             "
           >
-            Website Analytics
+            Website Performance
           </p>
 
           <h2
             className="
-              mt-2
-              text-2xl
-              font-semibold
+              mt-1.5
+              text-xl
+              font-light
               text-neutral-900
+
+              sm:text-2xl
             "
           >
-            Website Performance
+            Website Analytics
           </h2>
 
           <p
             className="
               mt-1
-              text-sm
+              text-xs
               text-neutral-500
+
+              sm:text-sm
             "
           >
-            Anonymous visitor activity
-            across your website.
+            {rangeLabel}
           </p>
         </div>
 
@@ -369,695 +316,648 @@ export default function WebsiteAnalyticsClient({
         <div
           className="
             flex
-            w-fit
+            w-full
             rounded-xl
-            border
-            border-neutral-200
-            bg-white
+            bg-neutral-100
             p-1
+
+            sm:w-auto
           "
         >
-          {/* ================================================ */}
-          {/* TODAY */}
-          {/* ================================================ */}
 
           <button
             type="button"
             onClick={() =>
-              setRange(
-                "today"
-              )
+              setRange("today")
             }
             className={`
+              flex-1
               rounded-lg
-              px-4
+              px-3
               py-2
-              text-sm
+              text-xs
               font-medium
               transition
+
+              sm:flex-none
+              sm:px-4
+
               ${
-                range ===
-                "today"
-                  ? "bg-black text-white"
-                  : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                range === "today"
+                  ? "bg-white text-black shadow-sm"
+                  : "text-neutral-500 hover:text-black"
               }
             `}
           >
             Today
           </button>
 
-          {/* ================================================ */}
-          {/* 7 DAYS */}
-          {/* ================================================ */}
-
           <button
             type="button"
             onClick={() =>
-              setRange(
-                "7days"
-              )
+              setRange("7days")
             }
             className={`
+              flex-1
               rounded-lg
-              px-4
+              px-3
               py-2
-              text-sm
+              text-xs
               font-medium
               transition
+
+              sm:flex-none
+              sm:px-4
+
               ${
-                range ===
-                "7days"
-                  ? "bg-black text-white"
-                  : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                range === "7days"
+                  ? "bg-white text-black shadow-sm"
+                  : "text-neutral-500 hover:text-black"
               }
             `}
           >
             7 Days
           </button>
 
-          {/* ================================================ */}
-          {/* 30 DAYS */}
-          {/* ================================================ */}
-
           <button
             type="button"
             onClick={() =>
-              setRange(
-                "30days"
-              )
+              setRange("30days")
             }
             className={`
+              flex-1
               rounded-lg
-              px-4
+              px-3
               py-2
-              text-sm
+              text-xs
               font-medium
               transition
+
+              sm:flex-none
+              sm:px-4
+
               ${
-                range ===
-                "30days"
-                  ? "bg-black text-white"
-                  : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                range === "30days"
+                  ? "bg-white text-black shadow-sm"
+                  : "text-neutral-500 hover:text-black"
               }
             `}
           >
             30 Days
           </button>
+
         </div>
+
       </div>
 
-      {/* ==================================================== */}
+      {/* ================================================== */}
       {/* STATISTICS */}
-      {/* ==================================================== */}
+      {/* ================================================== */}
 
       <div
         className="
           grid
-          gap-5
-          md:grid-cols-2
-          xl:grid-cols-4
+          grid-cols-2
+          gap-3
+
+          lg:grid-cols-4
+          lg:gap-4
         "
       >
-        {/* ================================================== */}
-        {/* UNIQUE VISITORS */}
-        {/* ================================================== */}
 
-        <Card>
-          <CardContent
+        {/* Visitors */}
+
+        <div
+          className="
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            p-4
+            shadow-sm
+
+            sm:rounded-3xl
+            sm:p-6
+          "
+        >
+          <p
             className="
-              p-6
+              text-[10px]
+              uppercase
+              tracking-[0.2em]
+              text-neutral-400
             "
           >
-            <div
-              className="
-                flex
-                items-start
-                justify-between
-              "
-            >
-              <div>
-                <p
-                  className="
-                    text-sm
-                    text-neutral-500
-                  "
-                >
-                  Unique Visitors
-                </p>
+            Visitors
+          </p>
 
-                <p
-                  className="
-                    mt-2
-                    text-3xl
-                    font-semibold
-                    text-neutral-900
-                  "
-                >
-                  {formatNumber(
-                    summary.visitors
-                  )}
-                </p>
-
-                <p
-                  className="
-                    mt-2
-                    text-xs
-                    text-neutral-400
-                  "
-                >
-                  {rangeLabel}
-                </p>
-              </div>
-
-              <span
-                className="
-                  text-2xl
-                "
-              >
-                👤
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ================================================== */}
-        {/* PAGE VIEWS */}
-        {/* ================================================== */}
-
-        <Card>
-          <CardContent
+          <p
             className="
-              p-6
+              mt-3
+              text-3xl
+              font-extralight
+              tracking-tight
+              text-neutral-900
+
+              sm:text-4xl
             "
           >
-            <div
-              className="
-                flex
-                items-start
-                justify-between
-              "
-            >
-              <div>
-                <p
-                  className="
-                    text-sm
-                    text-neutral-500
-                  "
-                >
-                  Page Views
-                </p>
+            {stats.visitors}
+          </p>
 
-                <p
-                  className="
-                    mt-2
-                    text-3xl
-                    font-semibold
-                    text-neutral-900
-                  "
-                >
-                  {formatNumber(
-                    summary.pageViews
-                  )}
-                </p>
-
-                <p
-                  className="
-                    mt-2
-                    text-xs
-                    text-neutral-400
-                  "
-                >
-                  {rangeLabel}
-                </p>
-              </div>
-
-              <span
-                className="
-                  text-2xl
-                "
-              >
-                👀
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ================================================== */}
-        {/* PRODUCT VIEWS */}
-        {/* ================================================== */}
-
-        <Card>
-          <CardContent
+          <p
             className="
-              p-6
+              mt-1
+              text-[10px]
+              text-neutral-400
+
+              sm:text-xs
             "
           >
-            <div
-              className="
-                flex
-                items-start
-                justify-between
-              "
-            >
-              <div>
-                <p
-                  className="
-                    text-sm
-                    text-neutral-500
-                  "
-                >
-                  Product Views
-                </p>
+            Unique visitors
+          </p>
+        </div>
 
-                <p
-                  className="
-                    mt-2
-                    text-3xl
-                    font-semibold
-                    text-neutral-900
-                  "
-                >
-                  {formatNumber(
-                    summary.productViews
-                  )}
-                </p>
+        {/* Page Views */}
 
-                <p
-                  className="
-                    mt-2
-                    text-xs
-                    text-neutral-400
-                  "
-                >
-                  {rangeLabel}
-                </p>
-              </div>
+        <div
+          className="
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            p-4
+            shadow-sm
 
-              <span
-                className="
-                  text-2xl
-                "
-              >
-                🛍️
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* ================================================== */}
-        {/* WHATSAPP CLICKS */}
-        {/* ================================================== */}
-
-        <Card>
-          <CardContent
+            sm:rounded-3xl
+            sm:p-6
+          "
+        >
+          <p
             className="
-              p-6
+              text-[10px]
+              uppercase
+              tracking-[0.2em]
+              text-neutral-400
             "
           >
-            <div
-              className="
-                flex
-                items-start
-                justify-between
-              "
-            >
-              <div>
-                <p
-                  className="
-                    text-sm
-                    text-neutral-500
-                  "
-                >
-                  WhatsApp Clicks
-                </p>
+            Page Views
+          </p>
 
-                <p
-                  className="
-                    mt-2
-                    text-3xl
-                    font-semibold
-                    text-neutral-900
-                  "
-                >
-                  {formatNumber(
-                    summary.whatsappClicks
-                  )}
-                </p>
+          <p
+            className="
+              mt-3
+              text-3xl
+              font-extralight
+              tracking-tight
+              text-neutral-900
 
-                <p
-                  className="
-                    mt-2
-                    text-xs
-                    text-neutral-400
-                  "
-                >
-                  {rangeLabel}
-                </p>
-              </div>
+              sm:text-4xl
+            "
+          >
+            {stats.pageViews}
+          </p>
 
-              <span
-                className="
-                  text-2xl
-                "
-              >
-                💬
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+          <p
+            className="
+              mt-1
+              text-[10px]
+              text-neutral-400
+
+              sm:text-xs
+            "
+          >
+            Total page views
+          </p>
+        </div>
+
+        {/* Product Views */}
+
+        <div
+          className="
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            p-4
+            shadow-sm
+
+            sm:rounded-3xl
+            sm:p-6
+          "
+        >
+          <p
+            className="
+              text-[10px]
+              uppercase
+              tracking-[0.2em]
+              text-neutral-400
+            "
+          >
+            Product Views
+          </p>
+
+          <p
+            className="
+              mt-3
+              text-3xl
+              font-extralight
+              tracking-tight
+              text-neutral-900
+
+              sm:text-4xl
+            "
+          >
+            {stats.productViews}
+          </p>
+
+          <p
+            className="
+              mt-1
+              text-[10px]
+              text-neutral-400
+
+              sm:text-xs
+            "
+          >
+            Product page views
+          </p>
+        </div>
+
+        {/* WhatsApp */}
+
+        <div
+          className="
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            p-4
+            shadow-sm
+
+            sm:rounded-3xl
+            sm:p-6
+          "
+        >
+          <p
+            className="
+              text-[10px]
+              uppercase
+              tracking-[0.2em]
+              text-neutral-400
+            "
+          >
+            WhatsApp
+          </p>
+
+          <p
+            className="
+              mt-3
+              text-3xl
+              font-extralight
+              tracking-tight
+              text-neutral-900
+
+              sm:text-4xl
+            "
+          >
+            {stats.whatsappClicks}
+          </p>
+
+          <p
+            className="
+              mt-1
+              text-[10px]
+              text-neutral-400
+
+              sm:text-xs
+            "
+          >
+            WhatsApp clicks
+          </p>
+        </div>
+
       </div>
 
-      {/* ==================================================== */}
+      {/* ================================================== */}
       {/* CHART + TOP PRODUCTS */}
-      {/* ==================================================== */}
+      {/* ================================================== */}
 
       <div
         className="
           grid
           gap-6
-          lg:grid-cols-3
+
+          xl:grid-cols-[1.5fr_1fr]
         "
       >
-        {/* ================================================== */}
-        {/* VISITORS CHART */}
-        {/* ================================================== */}
 
-        <Card
+        {/* ================================================= */}
+        {/* VISITORS CHART */}
+        {/* ================================================= */}
+
+        <div
           className="
-            lg:col-span-2
+            min-w-0
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            p-4
+            shadow-sm
+
+            sm:rounded-3xl
+            sm:p-6
           "
         >
-          <CardHeader>
-            <CardTitle>
-              Visitors — {rangeLabel}
-            </CardTitle>
-          </CardHeader>
 
-          <CardContent>
-            {selectedDays.length ===
-            0 ? (
-              <div
-                className="
-                  flex
-                  h-64
-                  items-center
-                  justify-center
-                "
+          <div className="mb-6">
+
+            <p
+              className="
+                text-[10px]
+                font-medium
+                uppercase
+                tracking-[0.3em]
+                text-neutral-400
+
+                sm:text-xs
+              "
+            >
+              Traffic
+            </p>
+
+            <h3
+              className="
+                mt-1.5
+                text-xl
+                font-light
+                text-neutral-900
+
+                sm:text-2xl
+              "
+            >
+              Visitors
+            </h3>
+
+          </div>
+
+          <div
+            className="
+              h-[280px]
+              w-full
+
+              sm:h-[340px]
+            "
+          >
+
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <BarChart
+                data={chartData}
+                margin={{
+                  top: 10,
+                  right: 10,
+                  left: -20,
+                  bottom: 0,
+                }}
               >
-                <p
-                  className="
-                    text-sm
-                    text-neutral-500
-                  "
-                >
-                  No visitor data yet.
-                </p>
-              </div>
-            ) : (
-              <div
-                className="
-                  flex
-                  h-64
-                  items-end
-                  justify-center
-                  gap-2
-                  border-b
-                  border-neutral-200
-                  pb-0
-                  sm:gap-3
-                "
-              >
-                {selectedDays.map(
-                  (
-                    day,
-                    index
-                  ) => {
-                    const height =
-                      Math.max(
-                        4,
-                        Math.round(
-                          (
-                            day.visitors /
-                            maxVisitors
-                          ) *
-                          100
-                        )
-                      );
 
-                    /*
-                     * =================================================
-                     * IMPORTANT:
-                     *
-                     * Today contains only one day.
-                     *
-                     * Previously that one bar used
-                     * flex-1 + w-full, causing it to
-                     * occupy almost the entire chart.
-                     *
-                     * We give the single-day bar a
-                     * fixed width instead.
-                     * =================================================
-                     */
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#E5E7EB"
+                />
 
-                    const isSingleDay =
-                      selectedDays.length ===
-                      1;
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 11,
+                    fill: "#9CA3AF",
+                  }}
+                />
 
-                    return (
-                      <div
-                        key={`${day.date}-${index}`}
-                        className={`
-                          flex
-                          h-full
-                          flex-col
-                          items-center
-                          justify-end
-                          gap-2
-                          ${
-                            isSingleDay
-                              ? "w-24"
-                              : "min-w-0 flex-1"
-                          }
-                        `}
-                      >
-                        {/* ================================== */}
-                        {/* VALUE */}
-                        {/* ================================== */}
+                <YAxis
+                  allowDecimals={false}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 11,
+                    fill: "#9CA3AF",
+                  }}
+                />
 
-                        <span
-                          className="
-                            text-[10px]
-                            font-medium
-                            text-neutral-600
-                            sm:text-xs
-                          "
-                        >
-                          {day.visitors}
-                        </span>
+                <Tooltip />
 
-                        {/* ================================== */}
-                        {/* BAR AREA */}
-                        {/* ================================== */}
+                <Bar
+                  dataKey="visitors"
+                  name="Visitors"
+                  fill="#111827"
+                  radius={[
+                    6,
+                    6,
+                    0,
+                    0,
+                  ]}
+                />
 
-                        <div
-                          className="
-                            flex
-                            w-full
-                            flex-1
-                            items-end
-                            justify-center
-                          "
-                        >
-                          <div
-                            className={`
-                              rounded-t-xl
-                              bg-neutral-900
-                              transition-all
-                              duration-500
-                              ${
-                                isSingleDay
-                                  ? "w-16"
-                                  : "w-full"
-                              }
-                            `}
-                            style={{
-                              height:
-                                `${height}%`,
-                            }}
-                          />
-                        </div>
+              </BarChart>
+            </ResponsiveContainer>
 
-                        {/* ================================== */}
-                        {/* DAY LABEL */}
-                        {/* ================================== */}
+          </div>
 
-                        <span
-                          className="
-                            pb-3
-                            text-[10px]
-                            text-neutral-400
-                            sm:text-xs
-                          "
-                        >
-                          {day.label}
-                        </span>
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        </div>
 
-        {/* ================================================== */}
+        {/* ================================================= */}
         {/* TOP PRODUCTS */}
-        {/* ================================================== */}
+        {/* ================================================= */}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>
+        <div
+          className="
+            min-w-0
+            rounded-2xl
+            border
+            border-neutral-200
+            bg-white
+            p-4
+            shadow-sm
+
+            sm:rounded-3xl
+            sm:p-6
+          "
+        >
+
+          <div className="mb-6">
+
+            <p
+              className="
+                text-[10px]
+                font-medium
+                uppercase
+                tracking-[0.3em]
+                text-neutral-400
+
+                sm:text-xs
+              "
+            >
+              Products
+            </p>
+
+            <h3
+              className="
+                mt-1.5
+                text-xl
+                font-light
+                text-neutral-900
+
+                sm:text-2xl
+              "
+            >
               Top Products
-            </CardTitle>
-          </CardHeader>
+            </h3>
 
-          <CardContent>
-            {topProducts.length ===
-            0 ? (
-              <div
-                className="
-                  py-10
-                  text-center
-                "
-              >
-                <p
-                  className="
-                    text-sm
-                    text-neutral-500
-                  "
-                >
-                  No product views yet.
-                </p>
-              </div>
-            ) : (
-              <div
-                className="
-                  space-y-5
-                "
-              >
-                {topProducts.map(
-                  (
-                    product,
-                    index
-                  ) => (
+          </div>
+
+          {topProducts.length ===
+          0 ? (
+
+            <div
+              className="
+                rounded-2xl
+                border
+                border-dashed
+                border-neutral-300
+                py-10
+                text-center
+                text-sm
+                text-neutral-500
+              "
+            >
+              No product views yet.
+            </div>
+
+          ) : (
+
+            <div className="space-y-3">
+
+              {topProducts.map(
+                (
+                  product,
+                  index
+                ) => (
+
+                  <div
+                    key={product.id}
+                    className="
+                      flex
+                      min-w-0
+                      items-center
+                      gap-3
+                      rounded-2xl
+                      border
+                      border-neutral-200
+                      p-3
+
+                      sm:p-4
+                    "
+                  >
+
                     <div
-                      key={
-                        product.id
-                      }
                       className="
                         flex
-                        items-start
-                        gap-4
+                        h-8
+                        w-8
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-neutral-100
+                        text-xs
+                        font-medium
+                        text-neutral-500
                       "
                     >
-                      {/* ================================== */}
-                      {/* RANK */}
-                      {/* ================================== */}
-
-                      <div
-                        className="
-                          flex
-                          h-8
-                          w-8
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-full
-                          bg-neutral-100
-                          text-xs
-                          font-semibold
-                          text-neutral-600
-                        "
-                      >
-                        {index + 1}
-                      </div>
-
-                      {/* ================================== */}
-                      {/* PRODUCT */}
-                      {/* ================================== */}
-
-                      <div
-                        className="
-                          min-w-0
-                          flex-1
-                        "
-                      >
-                        <p
-                          className="
-                            truncate
-                            text-sm
-                            font-semibold
-                            text-neutral-900
-                          "
-                        >
-                          {
-                            product.name
-                          }
-                        </p>
-
-                        <p
-                          className="
-                            mt-1
-                            truncate
-                            text-xs
-                            text-neutral-400
-                          "
-                        >
-                          {
-                            product.brand
-                          }
-                        </p>
-                      </div>
-
-                      {/* ================================== */}
-                      {/* VIEWS */}
-                      {/* ================================== */}
-
-                      <div
-                        className="
-                          shrink-0
-                          text-right
-                        "
-                      >
-                        <p
-                          className="
-                            text-sm
-                            font-semibold
-                            text-neutral-900
-                          "
-                        >
-                          {formatNumber(
-                            product.views
-                          )}
-                        </p>
-
-                        <p
-                          className="
-                            text-[11px]
-                            text-neutral-400
-                          "
-                        >
-                          views
-                        </p>
-                      </div>
+                      {index + 1}
                     </div>
-                  )
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
+                    <div
+                      className="
+                        min-w-0
+                        flex-1
+                      "
+                    >
+
+                      <p
+                        className="
+                          truncate
+                          text-sm
+                          font-medium
+                          text-neutral-900
+                        "
+                      >
+                        {product.name}
+                      </p>
+
+                      <p
+                        className="
+                          mt-0.5
+                          truncate
+                          text-[11px]
+                          text-neutral-500
+
+                          sm:text-xs
+                        "
+                      >
+                        {product.brand}
+                      </p>
+
+                    </div>
+
+                    <div
+                      className="
+                        shrink-0
+                        text-right
+                      "
+                    >
+
+                      <p
+                        className="
+                          text-sm
+                          font-medium
+                          text-neutral-900
+                        "
+                      >
+                        {product.views}
+                      </p>
+
+                      <p
+                        className="
+                          text-[10px]
+                          text-neutral-400
+                        "
+                      >
+                        views
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                )
+              )}
+
+            </div>
+
+          )}
+
+        </div>
+
       </div>
-    </section>
+
+    </div>
   );
 }

@@ -4,6 +4,9 @@ import { UserRole } from "@prisma/client";
 
 type UserFormProps = {
   mode: "create" | "edit";
+
+  currentUserRole?: UserRole;
+
   defaultValues?: {
     name: string;
     email: string;
@@ -13,14 +16,40 @@ type UserFormProps = {
 
 export default function UserForm({
   mode,
+  currentUserRole,
   defaultValues,
 }: UserFormProps) {
+
+  // ==========================================================
+  // OWNER PERMISSION
+  // ==========================================================
+
+  const canAssignOwner =
+    currentUserRole ===
+    UserRole.OWNER;
+
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
   return (
     <>
+
+      {/* ==================================================== */}
+      {/* NAME */}
+      {/* ==================================================== */}
+
       <div>
+
         <label
           htmlFor="name"
-          className="mb-2 block text-sm font-medium"
+          className="
+            mb-2
+            block
+            text-sm
+            font-medium
+          "
         >
           Name
         </label>
@@ -32,15 +61,41 @@ export default function UserForm({
           placeholder="Name"
           required
           autoComplete="name"
-          defaultValue={defaultValues?.name}
-          className="w-full rounded-xl border px-4 py-3"
+          defaultValue={
+            defaultValues?.name
+          }
+          className="
+            w-full
+            rounded-xl
+            border
+            border-neutral-200
+            px-4
+            py-3
+            outline-none
+            transition
+            focus:border-black
+            focus:ring-1
+            focus:ring-black
+          "
         />
+
       </div>
 
+
+      {/* ==================================================== */}
+      {/* EMAIL */}
+      {/* ==================================================== */}
+
       <div>
+
         <label
           htmlFor="email"
-          className="mb-2 block text-sm font-medium"
+          className="
+            mb-2
+            block
+            text-sm
+            font-medium
+          "
         >
           Email
         </label>
@@ -52,16 +107,43 @@ export default function UserForm({
           placeholder="Email"
           required
           autoComplete="email"
-          defaultValue={defaultValues?.email}
-          className="w-full rounded-xl border px-4 py-3"
+          defaultValue={
+            defaultValues?.email
+          }
+          className="
+            w-full
+            rounded-xl
+            border
+            border-neutral-200
+            px-4
+            py-3
+            outline-none
+            transition
+            focus:border-black
+            focus:ring-1
+            focus:ring-black
+          "
         />
+
       </div>
 
+
+      {/* ==================================================== */}
+      {/* PASSWORD */}
+      {/* ==================================================== */}
+
       {mode === "create" && (
+
         <div>
+
           <label
             htmlFor="password"
-            className="mb-2 block text-sm font-medium"
+            className="
+              mb-2
+              block
+              text-sm
+              font-medium
+            "
           >
             Password
           </label>
@@ -73,44 +155,116 @@ export default function UserForm({
             placeholder="Password"
             required
             autoComplete="new-password"
-            className="w-full rounded-xl border px-4 py-3"
+            className="
+              w-full
+              rounded-xl
+              border
+              border-neutral-200
+              px-4
+              py-3
+              outline-none
+              transition
+              focus:border-black
+              focus:ring-1
+              focus:ring-black
+            "
           />
+
         </div>
+
       )}
 
+
+      {/* ==================================================== */}
+      {/* ROLE */}
+      {/* ==================================================== */}
+
       <div>
+
         <label
           htmlFor="role"
-          className="mb-2 block text-sm font-medium"
+          className="
+            mb-2
+            block
+            text-sm
+            font-medium
+          "
         >
           Role
         </label>
+
 
         <select
           id="role"
           name="role"
           defaultValue={
-            defaultValues?.role ?? UserRole.STAFF
+            defaultValues?.role ??
+            UserRole.STAFF
           }
-          className="w-full rounded-xl border px-4 py-3"
+          className="
+            w-full
+            rounded-xl
+            border
+            border-neutral-200
+            px-4
+            py-3
+            outline-none
+            transition
+            focus:border-black
+            focus:ring-1
+            focus:ring-black
+          "
         >
-          <option value={UserRole.STAFF}>
+
+          {/* ================================================ */}
+          {/* STAFF */}
+          {/* ================================================ */}
+
+          <option
+            value={UserRole.STAFF}
+          >
             Staff
           </option>
 
-          <option value={UserRole.MANAGER}>
+
+          {/* ================================================ */}
+          {/* MANAGER */}
+          {/* ================================================ */}
+
+          <option
+            value={UserRole.MANAGER}
+          >
             Manager
           </option>
 
-          <option value={UserRole.ADMIN}>
+
+          {/* ================================================ */}
+          {/* ADMIN */}
+          {/* ================================================ */}
+
+          <option
+            value={UserRole.ADMIN}
+          >
             Admin
           </option>
 
-          <option value={UserRole.OWNER}>
-            Owner
-          </option>
+
+          {/* ================================================ */}
+          {/* OWNER */}
+          {/* ================================================ */}
+
+          {canAssignOwner && (
+            <option
+              value={UserRole.OWNER}
+            >
+              Owner
+            </option>
+          )}
+
         </select>
+
       </div>
+
     </>
   );
 }

@@ -15,20 +15,17 @@ import {
   useCart,
 } from "@/app/(site)/_components/CartProvider";
 
-
 type User = {
   id: number;
   name: string;
   email: string;
 };
 
-
 type Settings = {
   companyLogo: string | null;
   companyName: string | null;
   whatsappNumber: string | null;
 };
-
 
 type Props = {
   user: User | null;
@@ -37,7 +34,6 @@ type Props = {
   settings: Settings | null;
   whatsappLink: string;
 };
-
 
 const navigation = [
   {
@@ -58,7 +54,6 @@ const navigation = [
   },
 ];
 
-
 export default function NavbarClient({
   user,
   wishlistCount,
@@ -66,16 +61,13 @@ export default function NavbarClient({
   settings,
   whatsappLink,
 }: Props) {
-
   const pathname =
     usePathname();
-
 
   const [
     scrolled,
     setScrolled,
   ] = useState(false);
-
 
   // ==========================================================
   // CART
@@ -85,53 +77,51 @@ export default function NavbarClient({
     itemCount,
   } = useCart();
 
-
   // ==========================================================
   // SCROLL
   // ==========================================================
 
   useEffect(() => {
-
     function handleScroll() {
-
       setScrolled(
         window.scrollY > 30
       );
-
     }
 
-
     handleScroll();
-
 
     window.addEventListener(
       "scroll",
       handleScroll
     );
 
-
     return () =>
       window.removeEventListener(
         "scroll",
         handleScroll
       );
-
   }, []);
-
 
   return (
     <>
-
       {/* ======================================================
           MOBILE
           ====================================================== */}
 
       <div className="md:hidden">
-
-        <MobileNavbar />
-
+        <MobileNavbar
+          user={user}
+          wishlistCount={
+            wishlistCount
+          }
+          inquiryCount={
+            inquiryCount
+          }
+          whatsappLink={
+            whatsappLink
+          }
+        />
       </div>
-
 
       {/* ======================================================
           DESKTOP
@@ -154,7 +144,6 @@ export default function NavbarClient({
           }
         `}
       >
-
         <div
           className="
             mx-auto
@@ -167,7 +156,6 @@ export default function NavbarClient({
             lg:px-14
           "
         >
-
           {/* ==================================================
               LOGO
               ================================================== */}
@@ -188,7 +176,6 @@ export default function NavbarClient({
             COMBINE
           </Link>
 
-
           {/* ==================================================
               NAVIGATION
               ================================================== */}
@@ -203,17 +190,14 @@ export default function NavbarClient({
               md:flex
             "
           >
-
             {navigation.map(
               (item) => {
-
                 const active =
                   item.href === "/"
                     ? pathname === "/"
                     : pathname.startsWith(
                         item.href
                       );
-
 
                 return (
                   <Link
@@ -239,9 +223,7 @@ export default function NavbarClient({
                       }
                     `}
                   >
-
                     {item.label}
-
 
                     <span
                       className={`
@@ -259,15 +241,11 @@ export default function NavbarClient({
                         }
                       `}
                     />
-
                   </Link>
                 );
-
               }
             )}
-
           </nav>
-
 
           {/* ==================================================
               RIGHT
@@ -282,7 +260,6 @@ export default function NavbarClient({
               md:flex
             "
           >
-
             {/* ==================================================
                 CART
                 ================================================== */}
@@ -313,7 +290,6 @@ export default function NavbarClient({
                 hover:bg-neutral-100
               "
             >
-
               <ShoppingBag
                 className="
                   h-[19px]
@@ -325,13 +301,7 @@ export default function NavbarClient({
                 "
               />
 
-
-              {/* =================================================
-                  CART BADGE
-                  ================================================= */}
-
               {itemCount > 0 && (
-
                 <span
                   className="
                     absolute
@@ -351,17 +321,12 @@ export default function NavbarClient({
                     text-white
                   "
                 >
-
                   {itemCount > 99
                     ? "99+"
                     : itemCount}
-
                 </span>
-
               )}
-
             </Link>
-
 
             {/* ==================================================
                 USER MENU
@@ -377,7 +342,6 @@ export default function NavbarClient({
               }
               dark
             />
-
 
             {/* ==================================================
                 REQUEST PRICE
@@ -411,13 +375,9 @@ export default function NavbarClient({
             >
               Request Price
             </a>
-
           </div>
-
         </div>
-
       </header>
-
     </>
   );
 }
