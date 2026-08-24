@@ -28,7 +28,12 @@ type Product = {
   model: string | null;
   sku: string | null;
 
-  price: number;
+  price: number | null;
+
+  variants: {
+    price: number | null;
+  }[];
+
   displayOrder: number;
 
   image: string;

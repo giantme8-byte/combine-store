@@ -3,46 +3,89 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 
+
 export default async function FeaturedCollection() {
-  const products = await prisma.product.findMany({
-    where: {
-      featured: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 4,
 
-    select: {
-      id: true,
-      slug: true,
-      brand: true,
-      name: true,
-      model: true,
-      createdAt: true,
+  const products =
+    await prisma.product.findMany({
 
-      featured: true,
-      newArrival: true,
-      bestSeller: true,
-      limited: true,
-      onSale: true,
+      where: {
+        featured: true,
+      },
 
-      images: {
-        take: 2,
-        select: {
-          url: true,
-        },
-        orderBy: {
-          sortOrder: "asc",
+      orderBy: {
+        createdAt: "desc",
+      },
+
+      take: 4,
+
+      select: {
+        id: true,
+
+        slug: true,
+
+        brand: true,
+
+        name: true,
+
+        model: true,
+
+        price: true,
+
+        createdAt: true,
+
+        featured: true,
+
+        newArrival: true,
+
+        bestSeller: true,
+
+        limited: true,
+
+        onSale: true,
+
+        images: {
+          take: 2,
+
+          select: {
+            url: true,
+          },
+
+          orderBy: {
+            sortOrder: "asc",
+          },
         },
       },
-    },
-  });
+    });
+
 
   return (
-    <section className="mx-auto max-w-[1440px] px-4 py-20 sm:px-8 sm:py-32 lg:px-12">
-      {/* Header */}
-      <div className="mx-auto mb-16 max-w-4xl text-center sm:mb-24">
+    <section
+      className="
+        mx-auto
+        max-w-[1440px]
+        px-4
+        py-20
+        sm:px-8
+        sm:py-32
+        lg:px-12
+      "
+    >
+
+      {/* =====================================================
+          Header
+          ===================================================== */}
+
+      <div
+        className="
+          mx-auto
+          mb-16
+          max-w-4xl
+          text-center
+          sm:mb-24
+        "
+      >
+
         <p
           className="
             text-[10px]
@@ -54,6 +97,7 @@ export default async function FeaturedCollection() {
         >
           FEATURED COLLECTION
         </p>
+
 
         <h2
           className="
@@ -70,6 +114,7 @@ export default async function FeaturedCollection() {
           Editor&apos;s Selection
         </h2>
 
+
         <div
           className="
             mx-auto
@@ -83,6 +128,7 @@ export default async function FeaturedCollection() {
             sm:mt-8
           "
         />
+
 
         <p
           className="
@@ -103,6 +149,7 @@ export default async function FeaturedCollection() {
           luxury pieces, selected for their timeless aesthetics,
           superior craftsmanship and iconic appeal.
         </p>
+
 
         <Link
           href="/shop"
@@ -135,9 +182,16 @@ export default async function FeaturedCollection() {
         >
           Explore Collection
         </Link>
+
       </div>
 
+
+      {/* =====================================================
+          Empty State / Products
+          ===================================================== */}
+
       {products.length === 0 ? (
+
         <div
           className="
             mx-auto
@@ -160,6 +214,7 @@ export default async function FeaturedCollection() {
             sm:py-20
           "
         >
+
           <h3
             className="
               text-2xl
@@ -171,6 +226,7 @@ export default async function FeaturedCollection() {
           >
             Featured Collection Coming Soon
           </h3>
+
 
           <p
             className="
@@ -187,8 +243,11 @@ export default async function FeaturedCollection() {
             We are preparing our featured collection. Please check
             back soon to discover our editor&apos;s finest selections.
           </p>
+
         </div>
+
       ) : (
+
         <div
           className="
             grid
@@ -198,31 +257,81 @@ export default async function FeaturedCollection() {
             lg:grid-cols-4
           "
         >
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              slug={product.slug ?? ""}
-              brand={product.brand}
-              name={product.name}
-              model={product.model}
-              image={
-                product.images[0]?.url ??
-                "/placeholder.png"
-              }
-              secondImage={
-                product.images[1]?.url
-              }
-              createdAt={product.createdAt}
-              featured={product.featured}
-              newArrival={product.newArrival}
-              bestSeller={product.bestSeller}
-              limited={product.limited}
-              onSale={product.onSale}
-            />
-          ))}
+
+          {products.map(
+            (product) => (
+
+              <ProductCard
+                key={
+                  product.id
+                }
+
+                id={
+                  product.id
+                }
+
+                slug={
+                  product.slug ??
+                  ""
+                }
+
+                brand={
+                  product.brand
+                }
+
+                name={
+                  product.name
+                }
+
+                model={
+                  product.model
+                }
+
+                price={
+                  product.price
+                }
+
+                image={
+                  product.images[0]?.url ??
+                  "/placeholder.png"
+                }
+
+                secondImage={
+                  product.images[1]?.url
+                }
+
+                createdAt={
+                  product.createdAt
+                }
+
+                featured={
+                  product.featured
+                }
+
+                newArrival={
+                  product.newArrival
+                }
+
+                bestSeller={
+                  product.bestSeller
+                }
+
+                limited={
+                  product.limited
+                }
+
+                onSale={
+                  product.onSale
+                }
+              />
+
+            )
+          )}
+
         </div>
+
       )}
+
     </section>
   );
 }

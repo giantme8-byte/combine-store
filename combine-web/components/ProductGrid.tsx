@@ -8,7 +8,11 @@ type Product = {
   name: string;
   model: string | null;
 
-  price: number;
+  price: number | null;
+
+  variants: {
+    price: number | null;
+  }[];
 
   image: string;
   secondImage?: string;
@@ -41,20 +45,24 @@ export default function ProductGrid({
   searchKeyword,
   onClearFilters,
 }: Props) {
+
   function handleWhatsApp() {
-    const message = searchKeyword
-      ? `Hi COMBINE,
+
+    const message =
+      searchKeyword
+        ? `Hi COMBINE,
 
 I'm looking for:
 
 ${searchKeyword}
 
 Can you help me source it?`
-      : `Hi COMBINE,
+        : `Hi COMBINE,
 
 I'm looking for a product that I couldn't find on your website.
 
 Can you help me source it?`;
+
 
     window.open(
       `https://wa.me/60168848453?text=${encodeURIComponent(
@@ -62,7 +70,9 @@ Can you help me source it?`;
       )}`,
       "_blank"
     );
+
   }
+
 
   /*
    * =========================================================
@@ -70,9 +80,18 @@ Can you help me source it?`;
    * =========================================================
    */
 
-  if (products.length === 0) {
+  if (
+    products.length === 0
+  ) {
+
     return (
-      <div className="space-y-16 sm:space-y-20">
+      <div
+        className="
+          space-y-16
+          sm:space-y-20
+        "
+      >
+
         {/* ================================================= */}
         {/* Empty State */}
         {/* ================================================= */}
@@ -99,6 +118,7 @@ Can you help me source it?`;
             sm:py-20
           "
         >
+
           {/* Search Icon */}
 
           <div
@@ -121,6 +141,7 @@ Can you help me source it?`;
             🔍
           </div>
 
+
           {/* Title */}
 
           <h2
@@ -135,6 +156,7 @@ Can you help me source it?`;
           >
             We Couldn&apos;t Find It
           </h2>
+
 
           {/* Description */}
 
@@ -155,6 +177,7 @@ Can you help me source it?`;
             can help source it for you.
           </p>
 
+
           {/* Actions */}
 
           <div
@@ -170,6 +193,7 @@ Can you help me source it?`;
               sm:gap-4
             "
           >
+
             <button
               type="button"
               onClick={
@@ -198,7 +222,9 @@ Can you help me source it?`;
               Ask on WhatsApp
             </button>
 
+
             {onClearFilters && (
+
               <button
                 type="button"
                 onClick={
@@ -227,17 +253,22 @@ Can you help me source it?`;
               >
                 Clear Filters
               </button>
+
             )}
+
           </div>
+
         </div>
+
 
         {/* ================================================= */}
         {/* Featured Products */}
         {/* ================================================= */}
 
-        {featuredProducts.length >
-          0 && (
+        {featuredProducts.length > 0 && (
+
           <section>
+
             {/* Header */}
 
             <div
@@ -247,6 +278,7 @@ Can you help me source it?`;
                 sm:mb-14
               "
             >
+
               <p
                 className="
                   text-[9px]
@@ -260,6 +292,7 @@ Can you help me source it?`;
                 FEATURED COLLECTION
               </p>
 
+
               <h3
                 className="
                   mt-4
@@ -272,7 +305,9 @@ Can you help me source it?`;
               >
                 You May Also Like
               </h3>
+
             </div>
+
 
             {/* Featured Grid */}
 
@@ -289,56 +324,89 @@ Can you help me source it?`;
                 2xl:grid-cols-4
               "
             >
+
               {featuredProducts.map(
                 (product) => (
+
                   <ProductCard
-                    key={product.id}
-                    id={product.id}
+                    key={
+                      product.id
+                    }
+
+                    id={
+                      product.id
+                    }
+
                     slug={
                       product.slug
                     }
+
                     brand={
                       product.brand
                     }
+
                     name={
                       product.name
                     }
+
                     model={
                       product.model
                     }
+
+                    price={
+                      product.price
+                    }
+
+                    variants={
+                      product.variants
+                    }
+
                     image={
                       product.image
                     }
+
                     secondImage={
                       product.secondImage
                     }
+
                     createdAt={
                       product.createdAt
                     }
+
                     featured={
                       product.featured
                     }
+
                     newArrival={
                       product.newArrival
                     }
+
                     bestSeller={
                       product.bestSeller
                     }
+
                     limited={
                       product.limited
                     }
+
                     onSale={
                       product.onSale
                     }
                   />
+
                 )
               )}
+
             </div>
+
           </section>
+
         )}
+
       </div>
     );
   }
+
 
   /*
    * =========================================================
@@ -360,40 +428,79 @@ Can you help me source it?`;
         2xl:grid-cols-4
       "
     >
+
       {products.map(
         (product) => (
+
           <ProductCard
-            key={product.id}
-            id={product.id}
-            slug={product.slug}
-            brand={product.brand}
-            name={product.name}
-            model={product.model}
-            image={product.image}
+            key={
+              product.id
+            }
+
+            id={
+              product.id
+            }
+
+            slug={
+              product.slug
+            }
+
+            brand={
+              product.brand
+            }
+
+            name={
+              product.name
+            }
+
+            model={
+              product.model
+            }
+
+            price={
+              product.price
+            }
+
+            variants={
+              product.variants
+            }
+
+            image={
+              product.image
+            }
+
             secondImage={
               product.secondImage
             }
+
             createdAt={
               product.createdAt
             }
+
             featured={
               product.featured
             }
+
             newArrival={
               product.newArrival
             }
+
             bestSeller={
               product.bestSeller
             }
+
             limited={
               product.limited
             }
+
             onSale={
               product.onSale
             }
           />
+
         )
       )}
+
     </div>
   );
 }

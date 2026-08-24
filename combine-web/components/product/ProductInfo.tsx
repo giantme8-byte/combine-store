@@ -44,16 +44,16 @@ export default function ProductInfo({
           line-clamp-2
           max-w-full
           overflow-hidden
-          text-[32px]
+          text-[34px]
           font-extralight
-          leading-[1.05]
+          leading-[1.04]
           tracking-[-0.04em]
           text-neutral-950
           sm:mt-5
-          sm:text-[42px]
+          sm:text-[46px]
           sm:leading-[1.02]
-          md:text-[52px]
-          xl:text-[60px]
+          md:text-[56px]
+          xl:text-[64px]
         "
       >
         {product.name}

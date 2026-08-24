@@ -1,25 +1,73 @@
+"use client";
+
+import {
+  useProduct,
+} from "./ProductContext";
+
+
+// ============================================================
+// PRODUCT VARIANT
+// ============================================================
+
 type ProductVariant = {
   id: number;
+
+  colorId: number | null;
+
   size: string;
+
+  model: string | null;
+
   dimensions: string | null;
 };
 
+
+// ============================================================
+// PRODUCT META PROPS
+// ============================================================
+
 type ProductMetaProps = {
   sku: string | null;
+
+  /*
+   * Product-level Model No.
+   *
+   * This is the fallback model.
+   *
+   * Priority:
+   *
+   * Variant Model
+   * ↓
+   * Color Model
+   * ↓
+   * Product Model
+   */
   model: string | null;
+
   category: string;
+
   subCategory: string | null;
+
   mainColor: string | null;
+
   dimensions: string | null;
+
   variants?: ProductVariant[];
 };
+
+
+// ============================================================
+// META ITEM
+// ============================================================
 
 function MetaItem({
   label,
   value,
+  emphasis = false,
 }: {
   label: string;
   value: string;
+  emphasis?: boolean;
 }) {
   return (
     <div
@@ -33,6 +81,7 @@ function MetaItem({
         sm:first:pt-0
       "
     >
+
       <p
         className="
           text-[10px]
@@ -46,24 +95,43 @@ function MetaItem({
         {label}
       </p>
 
+
       <p
-        className="
+        className={`
           mt-1.5
           break-words
-          text-sm
-          font-medium
           leading-6
           text-neutral-900
           sm:mt-2
-          sm:text-base
           sm:leading-7
-        "
+
+          ${
+            emphasis
+              ? `
+                text-lg
+                font-semibold
+                tracking-[0.01em]
+                sm:text-xl
+              `
+              : `
+                text-sm
+                font-medium
+                sm:text-base
+              `
+          }
+        `}
       >
         {value}
       </p>
+
     </div>
   );
 }
+
+
+// ============================================================
+// PRODUCT META
+// ============================================================
 
 export default function ProductMeta({
   sku,
@@ -74,10 +142,67 @@ export default function ProductMeta({
   dimensions,
   variants = [],
 }: ProductMetaProps) {
-  const variantsWithDimensions = variants.filter(
-    (variant) =>
-      variant.dimensions?.trim()
-  );
+
+  // ==========================================================
+  // PRODUCT CONTEXT
+  // ==========================================================
+
+  const {
+    selectedColor,
+    selectedVariant,
+  } = useProduct();
+
+
+  // ==========================================================
+  // CURRENT MODEL
+  // ==========================================================
+  //
+  // Priority:
+  //
+  // 1. Selected Variant Model
+  // 2. Selected Color Model
+  // 3. Product Model
+  //
+  // Example:
+  //
+  // Product Model:
+  // M10000
+  //
+  // Black:
+  // M12345
+  //
+  // White:
+  // M67890
+  //
+  // Black / Small:
+  // M11111
+  //
+  // Black / Large:
+  // M11112
+  //
+  // ==========================================================
+
+  const currentModel =
+    selectedVariant?.model?.trim() ||
+    selectedColor?.model?.trim() ||
+    model?.trim() ||
+    null;
+
+
+  // ==========================================================
+  // VARIANTS WITH DIMENSIONS
+  // ==========================================================
+
+  const variantsWithDimensions =
+    variants.filter(
+      (variant) =>
+        variant.dimensions?.trim()
+    );
+
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
     <div
@@ -86,16 +211,35 @@ export default function ProductMeta({
         sm:mt-12
       "
     >
+
       {/* ================================================= */}
       {/* Reference */}
       {/* ================================================= */}
 
       {sku && (
+
         <MetaItem
           label="Reference"
           value={sku}
         />
+
       )}
+
+
+      {/* ================================================= */}
+      {/* Model No. */}
+      {/* ================================================= */}
+
+      {currentModel && (
+
+        <MetaItem
+          label="Model No."
+          value={currentModel}
+          emphasis
+        />
+
+      )}
+
 
       {/* ================================================= */}
       {/* Collection */}
@@ -106,33 +250,41 @@ export default function ProductMeta({
         value={category}
       />
 
+
       {/* ================================================= */}
       {/* Product Type */}
       {/* ================================================= */}
 
       {subCategory && (
+
         <MetaItem
           label="Product Type"
           value={subCategory}
         />
+
       )}
+
 
       {/* ================================================= */}
       {/* Primary Colour */}
       {/* ================================================= */}
 
       {mainColor && (
+
         <MetaItem
           label="Primary Colour"
           value={mainColor}
         />
+
       )}
+
 
       {/* ================================================= */}
       {/* Size & Dimensions */}
       {/* ================================================= */}
 
       {variantsWithDimensions.length > 0 ? (
+
         <div
           className="
             border-t
@@ -141,6 +293,7 @@ export default function ProductMeta({
             sm:py-5
           "
         >
+
           <p
             className="
               text-[10px]
@@ -154,6 +307,7 @@ export default function ProductMeta({
             Size & Dimensions
           </p>
 
+
           <div
             className="
               mt-4
@@ -162,8 +316,10 @@ export default function ProductMeta({
               sm:space-y-6
             "
           >
+
             {variantsWithDimensions.map(
               (variant) => (
+
                 <div
                   key={variant.id}
                   className="
@@ -176,6 +332,7 @@ export default function ProductMeta({
                     sm:last:pb-0
                   "
                 >
+
                   {/* Size */}
 
                   <p
@@ -188,6 +345,7 @@ export default function ProductMeta({
                   >
                     {variant.size}
                   </p>
+
 
                   {/* Dimensions */}
 
@@ -203,6 +361,7 @@ export default function ProductMeta({
                   >
                     {variant.dimensions}
                   </p>
+
 
                   {/* Measurement Disclaimer */}
 
@@ -221,13 +380,20 @@ export default function ProductMeta({
                     slightly by 1–3 cm due
                     to manual measurement.
                   </p>
+
                 </div>
+
               )
             )}
+
           </div>
+
         </div>
+
       ) : (
+
         dimensions && (
+
           <div
             className="
               border-t
@@ -236,6 +402,7 @@ export default function ProductMeta({
               sm:py-5
             "
           >
+
             {/* Dimensions */}
 
             <p
@@ -250,6 +417,7 @@ export default function ProductMeta({
             >
               Dimensions
             </p>
+
 
             <p
               className="
@@ -266,6 +434,7 @@ export default function ProductMeta({
             >
               {dimensions}
             </p>
+
 
             {/* Measurement Disclaimer */}
 
@@ -284,9 +453,13 @@ export default function ProductMeta({
               slightly by 1–3 cm due
               to manual measurement.
             </p>
+
           </div>
+
         )
+
       )}
+
     </div>
   );
 }

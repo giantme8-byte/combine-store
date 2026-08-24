@@ -5,20 +5,32 @@ import { useEffect, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import { getRecentlyViewed } from "@/lib/recentlyViewed";
 
+
 type Product = {
   id: number;
+
   sku: string | null;
+
   brand: string;
+
   name: string;
+
   slug: string | null;
+
   model: string | null;
+
+  price: number;
 
   createdAt: Date;
 
   featured: boolean;
+
   newArrival: boolean;
+
   bestSeller: boolean;
+
   limited: boolean;
+
   onSale: boolean;
 
   images: {
@@ -26,18 +38,27 @@ type Product = {
   }[];
 };
 
+
 export default function RecentlyViewed() {
-  const [products, setProducts] =
-    useState<Product[]>([]);
+
+  const [
+    products,
+    setProducts,
+  ] = useState<Product[]>([]);
+
 
   useEffect(() => {
+
     async function loadProducts() {
+
       const slugs =
         getRecentlyViewed();
+
 
       if (slugs.length === 0) {
         return;
       }
+
 
       const response =
         await fetch(
@@ -46,22 +67,30 @@ export default function RecentlyViewed() {
           )}`
         );
 
+
       if (!response.ok) {
         return;
       }
 
+
       const data =
         await response.json();
 
+
       setProducts(data);
+
     }
 
+
     loadProducts();
+
   }, []);
+
 
   if (products.length === 0) {
     return null;
   }
+
 
   return (
     <section
@@ -76,6 +105,7 @@ export default function RecentlyViewed() {
         lg:pt-28
       "
     >
+
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -87,6 +117,7 @@ export default function RecentlyViewed() {
           sm:mb-12
         "
       >
+
         <p
           className="
             text-[9px]
@@ -99,6 +130,7 @@ export default function RecentlyViewed() {
         >
           RECENTLY VIEWED
         </p>
+
 
         <h2
           className="
@@ -115,6 +147,7 @@ export default function RecentlyViewed() {
           Recently Viewed
         </h2>
 
+
         <div
           className="
             mx-auto
@@ -129,7 +162,9 @@ export default function RecentlyViewed() {
             sm:w-20
           "
         />
+
       </div>
+
 
       {/* ================================================= */}
       {/* Products */}
@@ -148,8 +183,10 @@ export default function RecentlyViewed() {
           lg:gap-y-12
         "
       >
+
         {products.map(
           (product) => (
+
             <ProductCard
               key={
                 product.id
@@ -174,6 +211,10 @@ export default function RecentlyViewed() {
 
               model={
                 product.model
+              }
+
+              price={
+                product.price
               }
 
               image={
@@ -213,9 +254,12 @@ export default function RecentlyViewed() {
 
               buttonSize="small"
             />
+
           )
         )}
+
       </div>
+
     </section>
   );
 }

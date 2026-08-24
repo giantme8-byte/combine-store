@@ -7,10 +7,10 @@ import {
 import {
   Check,
   ShoppingBag,
+  Zap,
 } from "lucide-react";
 
 import WishlistButton from "@/components/WishlistButton";
-import AddToInquiryButton from "@/components/AddToInquiryButton";
 
 import {
   useCart,
@@ -20,9 +20,17 @@ import {
   useProduct,
 } from "./ProductContext";
 
+import { useRouter } from "next/navigation";
+
+
+// ============================================================
+// TYPES
+// ============================================================
 
 type ProductActionsProps = {
   productId: number;
+
+  slug: string;
 
   brand: string;
 
@@ -30,6 +38,15 @@ type ProductActionsProps = {
 
   sku: string | null;
 
+  /*
+   * Product-level Model No.
+   *
+   * Used as the final fallback when:
+   *
+   * Variant Model is empty
+   * AND
+   * Color Model is empty.
+   */
   model: string | null;
 
   mainColor: string | null;
@@ -42,8 +59,13 @@ type ProductActionsProps = {
 };
 
 
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function ProductActions({
   productId,
+  slug,
   brand,
   name,
   sku,
@@ -54,6 +76,10 @@ export default function ProductActions({
   image,
 }: ProductActionsProps) {
 
+  // ==========================================================
+  // PRODUCT CONTEXT
+  // ==========================================================
+
   const {
     selectedColor,
     selectedVariant,
@@ -61,10 +87,26 @@ export default function ProductActions({
   } = useProduct();
 
 
+  // ==========================================================
+  // CART
+  // ==========================================================
+
   const {
     addToCart,
   } = useCart();
 
+
+  // ==========================================================
+  // ROUTER
+  // ==========================================================
+
+  const router =
+    useRouter();
+
+
+  // ==========================================================
+  // STATES
+  // ==========================================================
 
   const [
     loading,
@@ -100,6 +142,45 @@ export default function ProductActions({
 
 
   // ==========================================================
+  // CURRENT MODEL
+  // ==========================================================
+  //
+  // Priority:
+  //
+  // 1. Selected Variant Model
+  // 2. Selected Color Model
+  // 3. Product Model
+  //
+  // Example:
+  //
+  // Product Model = M10000
+  //
+  // Black Color Model = M12345
+  // White Color Model = M67890
+  //
+  // Black:
+  // → M12345
+  //
+  // White:
+  // → M67890
+  //
+  //
+  // If Variant Model exists:
+  //
+  // Black / Small = M11111
+  //
+  // → M11111
+  //
+  // ==========================================================
+
+  const currentModel =
+    selectedVariant?.model?.trim() ||
+    selectedColor?.model?.trim() ||
+    model?.trim() ||
+    null;
+
+
+  // ==========================================================
   // CURRENT PRICE
   // ==========================================================
   //
@@ -125,10 +206,19 @@ export default function ProductActions({
   // Large:
   // → RM 1,699
   //
+  // ==========================================================
 
   const currentPrice =
     selectedVariant?.price ??
     price;
+
+
+  // ==========================================================
+  // PRICE AVAILABILITY
+  // ==========================================================
+
+  const hasPrice =
+    currentPrice > 0;
 
 
   // ==========================================================
@@ -143,9 +233,7 @@ export default function ProductActions({
   // 4. Selected Colour Cover
   // 5. Product Main Image
   //
-  // This ensures the cart uses the most specific
-  // uploaded image available for the selected option.
-  //
+  // ==========================================================
 
   const variantGalleryImage =
     selectedVariant?.images?.[0]?.url ??
@@ -181,9 +269,24 @@ export default function ProductActions({
 
   function handleAddToCart() {
 
+    if (!hasPrice) {
+      return;
+    }
+
+
     addToCart(
       {
         productId,
+
+        /*
+         * Product slug.
+         *
+         * This is stored in Cart so the customer
+         * can click the product name in Cart and
+         * return to the correct Product Detail page.
+         */
+
+        slug,
 
         name,
 
@@ -194,12 +297,8 @@ export default function ProductActions({
          *
          * This identifies the selected
          * Color × Size combination in Cart.
-         *
-         * Example:
-         *
-         * Black / Large
-         * -> selectedVariant.id
          */
+
         variantId:
           selectedVariant?.id ??
           null,
@@ -219,7 +318,15 @@ export default function ProductActions({
 
         sku,
 
-        model,
+        /*
+         * IMPORTANT:
+         *
+         * Save the Model that belongs to
+         * the exact selected configuration.
+         */
+
+        model:
+          currentModel,
 
         color:
           colour,
@@ -239,13 +346,78 @@ export default function ProductActions({
 
     window.setTimeout(
       () => {
-
         setAddedToCart(false);
-
       },
       1800
     );
+  }
 
+
+  // ==========================================================
+  // BUY NOW
+  // ==========================================================
+
+  function handleBuyNow() {
+
+    if (!hasPrice) {
+      return;
+    }
+
+
+    addToCart(
+      {
+        productId,
+
+        /*
+         * Product slug.
+         *
+         * Keep the same slug in Cart so
+         * Buy Now items also link back to
+         * the correct Product Detail page.
+         */
+
+        slug,
+
+        name,
+
+        brand,
+
+        variantId:
+          selectedVariant?.id ??
+          null,
+
+        price:
+          currentPrice,
+
+        image:
+          cartImage,
+
+        sku,
+
+        /*
+         * Use the exact Model for the
+         * selected Color × Size.
+         */
+
+        model:
+          currentModel,
+
+        color:
+          colour,
+
+        variant,
+
+        dimensions:
+          itemDimensions,
+      },
+
+      quantity
+    );
+
+
+    router.push(
+      "/checkout"
+    );
   }
 
 
@@ -275,7 +447,7 @@ Reference
 ${sku ?? "-"}
 
 Model
-${model ?? "-"}
+${currentModel ?? "-"}
 
 ━━━━━━━━━━━━━━
 
@@ -341,6 +513,10 @@ Thank you 😊`;
   }
 
 
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
   return (
     <div
       className="
@@ -388,6 +564,7 @@ Thank you 😊`;
             sm:mb-6
           "
         >
+
           <p
             className="
               text-[10px]
@@ -401,216 +578,296 @@ Thank you 😊`;
             Price
           </p>
 
-          <p
-            className="
-              mt-2
-              text-2xl
-              font-light
-              tracking-[-0.02em]
-              text-neutral-900
-              sm:text-3xl
-            "
-          >
-            RM{" "}
-            {currentPrice.toLocaleString(
-              "en-MY",
-              {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
+
+          {hasPrice ? (
+
+            <p
+              className="
+                mt-2
+                text-2xl
+                font-light
+                tracking-[-0.02em]
+                text-neutral-900
+                sm:text-3xl
+              "
+            >
+              RM{" "}
+              {currentPrice.toLocaleString(
+                "en-MY",
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }
+              )}
+            </p>
+
+          ) : (
+
+            <p
+              className="
+                mt-2
+                text-xl
+                font-light
+                tracking-[-0.02em]
+                text-neutral-900
+                sm:text-2xl
+              "
+            >
+              Price Upon Request
+            </p>
+
+          )}
+
+        </div>
+
+
+        {/* ====================================================
+            ACTIONS
+            ==================================================== */}
+
+        {hasPrice ? (
+
+          <>
+
+            {/* ============================================== */}
+            {/* ADD TO CART */}
+            {/* ============================================== */}
+
+            <button
+              type="button"
+              onClick={
+                handleAddToCart
               }
-            )}
-          </p>
-        </div>
+              className="
+                group
+                relative
+                flex
+                h-14
+                w-full
+                items-center
+                justify-center
+                gap-3
+                overflow-hidden
+                rounded-full
+                bg-black
+                px-6
+                text-[11px]
+                font-semibold
+                uppercase
+                tracking-[0.22em]
+                text-white
+                shadow-xl
+                transition-all
+                duration-500
+                hover:-translate-y-1
+                hover:shadow-2xl
+                active:translate-y-0
+                sm:h-auto
+                sm:px-8
+                sm:py-5
+                sm:text-sm
+                sm:tracking-[0.28em]
+              "
+            >
+
+              <span
+                className="
+                  absolute
+                  inset-0
+                  bg-gradient-to-r
+                  from-[#A88755]
+                  via-[#D5B47F]
+                  to-[#A88755]
+                  opacity-0
+                  transition-opacity
+                  duration-500
+                  group-hover:opacity-100
+                "
+              />
 
 
-        {/* ====================================================
-            ADD TO CART
-            ==================================================== */}
+              <span
+                className="
+                  relative
+                  z-10
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
 
-        <button
-          type="button"
-          onClick={
-            handleAddToCart
-          }
-          className="
-            group
-            relative
-            flex
-            h-14
-            w-full
-            items-center
-            justify-center
-            gap-3
-            overflow-hidden
-            rounded-full
-            bg-black
-            px-6
-            text-[11px]
-            font-semibold
-            uppercase
-            tracking-[0.22em]
-            text-white
-            shadow-xl
-            transition-all
-            duration-500
-            hover:-translate-y-1
-            hover:shadow-2xl
-            active:translate-y-0
-            sm:h-auto
-            sm:px-8
-            sm:py-5
-            sm:text-sm
-            sm:tracking-[0.28em]
-          "
-        >
+                {addedToCart ? (
 
-          <span
-            className="
-              absolute
-              inset-0
-              bg-gradient-to-r
-              from-[#A88755]
-              via-[#D5B47F]
-              to-[#A88755]
-              opacity-0
-              transition-opacity
-              duration-500
-              group-hover:opacity-100
-            "
-          />
+                  <>
+
+                    <Check
+                      className="h-4 w-4"
+                    />
+
+                    Added to Cart
+
+                  </>
+
+                ) : (
+
+                  <>
+
+                    <ShoppingBag
+                      className="h-4 w-4"
+                    />
+
+                    Add to Cart
+
+                  </>
+
+                )}
+
+              </span>
+
+            </button>
 
 
-          <span
-            className="
-              relative
-              z-10
-              flex
-              items-center
-              gap-3
-            "
-          >
+            {/* ============================================== */}
+            {/* BUY NOW */}
+            {/* ============================================== */}
 
-            {addedToCart ? (
+            <button
+              type="button"
+              onClick={
+                handleBuyNow
+              }
+              className="
+                mt-3
+                flex
+                h-14
+                w-full
+                items-center
+                justify-center
+                gap-3
+                rounded-full
+                border
+                border-neutral-900
+                bg-white
+                px-6
+                text-[11px]
+                font-semibold
+                uppercase
+                tracking-[0.22em]
+                text-neutral-900
+                transition-all
+                duration-300
+                hover:bg-neutral-900
+                hover:text-white
+                sm:h-auto
+                sm:px-8
+                sm:py-5
+                sm:text-sm
+                sm:tracking-[0.28em]
+              "
+            >
 
-              <>
-                <Check
-                  className="h-4 w-4"
-                />
+              <Zap
+                className="h-4 w-4"
+              />
 
-                Added to Cart
-              </>
+              Buy Now
 
-            ) : (
-
-              <>
-                <ShoppingBag
-                  className="h-4 w-4"
-                />
-
-                Add to Cart
-              </>
-
-            )}
-
-          </span>
-
-        </button>
-
-
-        {/* ====================================================
-            REQUEST PRICE
-            ==================================================== */}
-
-        <button
-          type="button"
-          onClick={
-            handleWhatsApp
-          }
-          disabled={
-            loading
-          }
-          className="
-            mt-3
-            flex
-            h-14
-            w-full
-            items-center
-            justify-center
-            rounded-full
-            border
-            border-neutral-300
-            bg-white
-            px-6
-            text-[11px]
-            font-semibold
-            uppercase
-            tracking-[0.22em]
-            text-neutral-900
-            transition-all
-            duration-300
-            hover:bg-neutral-100
-            disabled:cursor-not-allowed
-            disabled:opacity-50
-            sm:h-auto
-            sm:px-8
-            sm:py-5
-            sm:text-sm
-            sm:tracking-[0.28em]
-          "
-        >
-          {loading
-            ? "Opening..."
-            : "Request Price"}
-        </button>
+            </button>
 
 
-        {/* ====================================================
-            SECONDARY ACTIONS
-            ==================================================== */}
+            {/* ============================================== */}
+            {/* SAVE */}
+            {/* ============================================== */}
 
-        <div
-          className="
-            mt-3
-            grid
-            grid-cols-2
-            gap-2.5
-            sm:mt-6
-            sm:gap-4
-          "
-        >
+            <div
+              className="
+                mt-3
+                w-full
+              "
+            >
 
-          <AddToInquiryButton
-            productId={
-              productId
-            }
+              <WishlistButton
+                productId={
+                  productId
+                }
+              />
 
-            color={
-              selectedColor?.name
-            }
+            </div>
 
-            variant={
-              selectedVariant?.size
-            }
+          </>
 
-            dimensions={
-              selectedVariant?.dimensions ??
-              dimensions ??
-              undefined
-            }
+        ) : (
 
-            quantity={
-              quantity
-            }
-          />
+          <>
+
+            {/* ============================================== */}
+            {/* REQUEST PRICE */}
+            {/* ============================================== */}
+
+            <button
+              type="button"
+              onClick={
+                handleWhatsApp
+              }
+              disabled={
+                loading
+              }
+              className="
+                flex
+                h-14
+                w-full
+                items-center
+                justify-center
+                rounded-full
+                bg-black
+                px-6
+                text-[11px]
+                font-semibold
+                uppercase
+                tracking-[0.22em]
+                text-white
+                transition-all
+                duration-300
+                hover:bg-neutral-800
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+                sm:h-auto
+                sm:px-8
+                sm:py-5
+                sm:text-sm
+                sm:tracking-[0.28em]
+              "
+            >
+
+              {loading
+                ? "Opening..."
+                : "Request Price"}
+
+            </button>
 
 
-          <WishlistButton
-            productId={
-              productId
-            }
-          />
+            {/* ============================================== */}
+            {/* SAVE */}
+            {/* ============================================== */}
 
-        </div>
+            <div
+              className="
+                mt-3
+                w-full
+              "
+            >
+
+              <WishlistButton
+                productId={
+                  productId
+                }
+              />
+
+            </div>
+
+          </>
+
+        )}
 
       </div>
 

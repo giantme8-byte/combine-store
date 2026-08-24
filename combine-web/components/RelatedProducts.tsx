@@ -1,17 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 
+
 type Props = {
   currentId: number;
   category: string;
 };
 
+
 export default async function RelatedProducts({
   currentId,
   category,
 }: Props) {
+
   const products =
     await prisma.product.findMany({
+
       where: {
         category,
 
@@ -22,11 +26,16 @@ export default async function RelatedProducts({
 
       select: {
         id: true,
+
         slug: true,
 
         brand: true,
+
         name: true,
+
         model: true,
+
+        price: true,
 
         createdAt: true,
 
@@ -41,9 +50,13 @@ export default async function RelatedProducts({
         },
 
         featured: true,
+
         newArrival: true,
+
         bestSeller: true,
+
         limited: true,
+
         onSale: true,
       },
 
@@ -54,9 +67,11 @@ export default async function RelatedProducts({
       take: 4,
     });
 
+
   if (products.length === 0) {
     return null;
   }
+
 
   return (
     <section
@@ -66,6 +81,7 @@ export default async function RelatedProducts({
         lg:mt-40
       "
     >
+
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -77,6 +93,7 @@ export default async function RelatedProducts({
           sm:mb-12
         "
       >
+
         <p
           className="
             text-[9px]
@@ -89,6 +106,7 @@ export default async function RelatedProducts({
         >
           DISCOVER MORE
         </p>
+
 
         <h2
           className="
@@ -105,6 +123,7 @@ export default async function RelatedProducts({
           You May Also Like
         </h2>
 
+
         <div
           className="
             mx-auto
@@ -119,7 +138,9 @@ export default async function RelatedProducts({
             sm:w-20
           "
         />
+
       </div>
+
 
       {/* ================================================= */}
       {/* Products */}
@@ -138,8 +159,10 @@ export default async function RelatedProducts({
           lg:gap-y-12
         "
       >
+
         {products.map(
           (product) => (
+
             <ProductCard
               key={
                 product.id
@@ -164,6 +187,10 @@ export default async function RelatedProducts({
 
               model={
                 product.model
+              }
+
+              price={
+                product.price
               }
 
               image={
@@ -203,9 +230,12 @@ export default async function RelatedProducts({
 
               buttonSize="small"
             />
+
           )
         )}
+
       </div>
+
     </section>
   );
 }

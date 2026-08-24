@@ -28,6 +28,7 @@ type ProductGalleryColor = {
   id: number;
   name: string;
   imageUrl: string | null;
+  model: string | null;
   images: ColorGalleryImage[];
 };
 
@@ -346,6 +347,8 @@ export default function ProductGallery({
       name: color.name,
       imageUrl:
         color.imageUrl ?? null,
+      model:
+        color.model ?? null,
       images:
         color.images ?? [],
     });

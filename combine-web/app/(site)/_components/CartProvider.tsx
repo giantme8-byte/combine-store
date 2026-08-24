@@ -19,6 +19,18 @@ export type CartItem = {
   productId: number;
 
   /*
+   * Product slug.
+   *
+   * Used by the Cart page to navigate back
+   * to the correct Product Detail page.
+   *
+   * Example:
+   *
+   * /shop/louis-vuitton-boulogne-pm
+   */
+  slug: string;
+
+  /*
    * Exact ProductVariant ID.
    *
    * This identifies the exact:
@@ -26,11 +38,6 @@ export type CartItem = {
    * Color × Size
    *
    * combination selected by the customer.
-   *
-   * Example:
-   *
-   * Black / Large
-   * variantId = 123
    */
   variantId: number | null;
 
@@ -41,11 +48,9 @@ export type CartItem = {
   /*
    * Selling price of the exact selected Variant.
    *
-   * This must come from:
+   * selectedVariant.price takes priority.
    *
-   * selectedVariant.price
-   *
-   * and NOT Product.price when a Variant price exists.
+   * Product.price is only the fallback.
    */
   price: number;
 
@@ -58,15 +63,7 @@ export type CartItem = {
   color: string | null;
 
   /*
-   * Variant display value.
-   *
-   * Currently this stores the selected Size.
-   *
-   * Example:
-   *
-   * Small
-   * Medium
-   * Large
+   * Selected Size.
    */
   variant: string | null;
 
@@ -146,16 +143,6 @@ function createCartItemId(
    *
    * This guarantees that each ProductVariant
    * is treated as an independent Cart item.
-   *
-   * Example:
-   *
-   * Product 10 / Variant 101
-   * Product 10 / Variant 102
-   *
-   * are always separate items.
-   *
-   * Legacy products without a Variant ID
-   * continue using the previous fallback.
    */
 
   if (
@@ -175,8 +162,8 @@ function createCartItemId(
   /*
    * Legacy fallback.
    *
-   * Keep this so existing Cart data and
-   * products without Variants continue working.
+   * Products without Variants continue
+   * using Product + Color + Size.
    */
 
   return [
@@ -232,27 +219,49 @@ export default function CartProvider({
         ) {
 
           /*
-           * Backward compatibility.
+           * ----------------------------------------------------
+           * Backward Compatibility
+           * ----------------------------------------------------
            *
-           * Existing Cart items created before
-           * variantId was introduced will have
-           * no variantId.
+           * Existing Cart items may have been
+           * created before slug was added.
            *
-           * Add null so the new CartItem type
-           * remains consistent.
+           * We cannot safely invent a slug.
+           *
+           * Therefore:
+           *
+           * - valid slug → keep it
+           * - missing slug → empty string
+           *
+           * New Cart items will always receive
+           * the correct Product slug.
            */
 
           const normalizedItems =
-            parsed.map(
-              (item) => ({
-                ...item,
-                variantId:
-                  typeof item?.variantId ===
-                  "number"
-                    ? item.variantId
-                    : null,
-              })
-            );
+            parsed
+              .filter(
+                (item) =>
+                  item &&
+                  typeof item ===
+                    "object"
+              )
+              .map(
+                (item) => ({
+                  ...item,
+
+                  slug:
+                    typeof item.slug ===
+                    "string"
+                      ? item.slug
+                      : "",
+
+                  variantId:
+                    typeof item.variantId ===
+                    "number"
+                      ? item.variantId
+                      : null,
+                })
+              );
 
           setItems(
             normalizedItems
@@ -342,6 +351,9 @@ export default function CartProvider({
            * Same exact Variant:
            *
            * increase quantity.
+           *
+           * Keep the latest Product information
+           * such as slug, price, image and dimensions.
            */
 
           return currentItems.map(
@@ -350,6 +362,8 @@ export default function CartProvider({
               cartItemId
                 ? {
                     ...item,
+                    ...product,
+                    cartItemId,
                     quantity:
                       item.quantity +
                       quantity,

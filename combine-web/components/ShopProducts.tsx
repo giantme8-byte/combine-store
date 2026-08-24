@@ -442,6 +442,12 @@ const productSelect = {
 
   price: true,
 
+  variants: {
+    select: {
+      price: true,
+    },
+  },
+
   displayOrder: true,
 
   category: true,
@@ -969,6 +975,13 @@ export default async function ShopProducts({
 
     price:
       product.price,
+
+    variants:
+      product.variants.map(
+        (variant) => ({
+          price: variant.price,
+        })
+      ),
 
     displayOrder:
       product.displayOrder,

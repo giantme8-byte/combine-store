@@ -313,6 +313,8 @@ export default async function ProductPage({
 
             imageUrl: true,
 
+            model: true,
+
             images: {
               select: {
                 id: true,
@@ -726,43 +728,47 @@ export default async function ProductPage({
                 Product Actions
                 ================================================= */}
 
-            <ProductActions
-              productId={
-                product.id
-              }
+<ProductActions
+  productId={
+    product.id
+  }
 
-              brand={
-                product.brand
-              }
+slug={
+  product.slug ?? ""
+}
 
-              name={
-                product.name
-              }
+  brand={
+    product.brand
+  }
 
-              sku={
-                product.sku
-              }
+  name={
+    product.name
+  }
 
-              model={
-                product.model
-              }
+  sku={
+    product.sku
+  }
 
-              mainColor={
-                product.mainColor
-              }
+  model={
+    product.model
+  }
 
-              dimensions={
-                product.dimensions
-              }
+  mainColor={
+    product.mainColor
+  }
 
-              price={
-                product.price
-              }
+  dimensions={
+    product.dimensions
+  }
 
-              image={
-                cover
-              }
-            />
+  price={
+    product.price
+  }
+
+  image={
+    cover
+  }
+/>
 
             {/* Product Meta */}
 

@@ -49,19 +49,6 @@ export default function CartPage() {
   // ==========================================================
   // PRICE VALIDATION
   // ==========================================================
-  //
-  // Any item with:
-  //
-  // price <= 0
-  //
-  // means the selling price has not been confirmed.
-  //
-  // The item can still remain in the Cart.
-  //
-  // However, the customer cannot proceed to Checkout
-  // until every item has a valid selling price.
-  //
-  // ==========================================================
 
   const hasUnpricedItems =
     items.some(
@@ -298,11 +285,15 @@ export default function CartPage() {
                   "
                 >
 
-                  {/* IMAGE */}
+                  {/* ==================================================
+                      IMAGE
+                      ================================================== */}
 
                   <Link
                     href={
-                      `/shop/${item.productId}`
+                      item.slug
+                        ? `/shop/${item.slug}`
+                        : "/shop"
                     }
                     className="
                       block
@@ -334,7 +325,9 @@ export default function CartPage() {
                   </Link>
 
 
-                  {/* INFORMATION */}
+                  {/* ==================================================
+                      INFORMATION
+                      ================================================== */}
 
                   <div
                     className="
@@ -372,9 +365,15 @@ export default function CartPage() {
                         </p>
 
 
+                        {/* ==================================================
+                            PRODUCT NAME
+                            ================================================== */}
+
                         <Link
                           href={
-                            `/shop/${item.productId}`
+                            item.slug
+                              ? `/shop/${item.slug}`
+                              : "/shop"
                           }
                           className="
                             mt-1
@@ -392,7 +391,9 @@ export default function CartPage() {
                       </div>
 
 
-                      {/* REMOVE */}
+                      {/* ==================================================
+                          REMOVE
+                          ================================================== */}
 
                       <button
                         type="button"
@@ -424,7 +425,9 @@ export default function CartPage() {
                     </div>
 
 
-                    {/* PRODUCT DETAILS */}
+                    {/* ==================================================
+                        PRODUCT DETAILS
+                        ================================================== */}
 
                     <div
                       className="
@@ -540,7 +543,9 @@ export default function CartPage() {
                     </div>
 
 
-                    {/* PRICE */}
+                    {/* ==================================================
+                        PRICE
+                        ================================================== */}
 
                     <p
                       className={`
@@ -562,7 +567,9 @@ export default function CartPage() {
                     </p>
 
 
-                    {/* PRICE WARNING */}
+                    {/* ==================================================
+                        PRICE WARNING
+                        ================================================== */}
 
                     {item.price <= 0 && (
 
@@ -581,7 +588,9 @@ export default function CartPage() {
                     )}
 
 
-                    {/* QUANTITY + TOTAL */}
+                    {/* ==================================================
+                        QUANTITY + TOTAL
+                        ================================================== */}
 
                     <div
                       className="
@@ -594,7 +603,9 @@ export default function CartPage() {
                       "
                     >
 
-                      {/* QUANTITY */}
+                      {/* ==================================================
+                          QUANTITY
+                          ================================================== */}
 
                       <div>
 
@@ -705,7 +716,9 @@ export default function CartPage() {
                       </div>
 
 
-                      {/* ITEM TOTAL */}
+                      {/* ==================================================
+                          ITEM TOTAL
+                          ================================================== */}
 
                       <div
                         className="
@@ -981,27 +994,27 @@ export default function CartPage() {
 
             ) : (
 
-<Link
-  href="/checkout"
-  className="
-    mt-6
-    flex
-    w-full
-    items-center
-    justify-center
-    rounded-xl
-    bg-black
-    px-5
-    py-3.5
-    text-sm
-    font-medium
-    text-white
-    transition
-    hover:bg-neutral-800
-  "
->
-  Proceed to Checkout
-</Link>
+              <Link
+                href="/checkout"
+                className="
+                  mt-6
+                  flex
+                  w-full
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-black
+                  px-5
+                  py-3.5
+                  text-sm
+                  font-medium
+                  text-white
+                  transition
+                  hover:bg-neutral-800
+                "
+              >
+                Proceed to Checkout
+              </Link>
 
             )}
 

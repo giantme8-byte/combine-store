@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 
+
 export default async function LimitedCollection() {
   const allLimitedProducts =
     await prisma.product.findMany({
@@ -16,6 +17,7 @@ export default async function LimitedCollection() {
         brand: true,
         name: true,
         model: true,
+        price: true,
         createdAt: true,
 
         featured: true,
@@ -38,6 +40,7 @@ export default async function LimitedCollection() {
       },
     });
 
+
   /*
    * =========================================================
    * RANDOMIZE LIMITED PRODUCTS
@@ -56,9 +59,15 @@ export default async function LimitedCollection() {
    * =========================================================
    */
 
-  const products = [...allLimitedProducts]
-    .sort(() => Math.random() - 0.5)
+  const products = [
+    ...allLimitedProducts,
+  ]
+    .sort(
+      () =>
+        Math.random() - 0.5
+    )
     .slice(0, 4);
+
 
   return (
     <section
@@ -72,6 +81,7 @@ export default async function LimitedCollection() {
         lg:px-12
       "
     >
+
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -85,6 +95,7 @@ export default async function LimitedCollection() {
           sm:mb-24
         "
       >
+
         <p
           className="
             text-[10px]
@@ -96,6 +107,7 @@ export default async function LimitedCollection() {
         >
           LIMITED COLLECTION
         </p>
+
 
         <h2
           className="
@@ -112,6 +124,7 @@ export default async function LimitedCollection() {
           Exclusively Selected
         </h2>
 
+
         <div
           className="
             mx-auto
@@ -125,6 +138,7 @@ export default async function LimitedCollection() {
             sm:mt-8
           "
         />
+
 
         <p
           className="
@@ -145,6 +159,7 @@ export default async function LimitedCollection() {
           their distinctive character, exceptional craftsmanship and
           timeless appeal.
         </p>
+
 
         <Link
           href="/shop"
@@ -177,9 +192,12 @@ export default async function LimitedCollection() {
         >
           Explore Collection
         </Link>
+
       </div>
 
+
       {products.length === 0 ? (
+
         /* ================================================= */
         /* Empty State */
         /* ================================================= */
@@ -206,6 +224,7 @@ export default async function LimitedCollection() {
             sm:py-20
           "
         >
+
           <h3
             className="
               text-2xl
@@ -217,6 +236,7 @@ export default async function LimitedCollection() {
           >
             Limited Collection Coming Soon
           </h3>
+
 
           <p
             className="
@@ -233,8 +253,11 @@ export default async function LimitedCollection() {
             We are preparing our limited collection. Please check
             back soon to discover our most exclusive selections.
           </p>
+
         </div>
+
       ) : (
+
         /* ================================================= */
         /* Products */
         /* ================================================= */
@@ -248,31 +271,81 @@ export default async function LimitedCollection() {
             lg:grid-cols-4
           "
         >
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              slug={product.slug ?? ""}
-              brand={product.brand}
-              name={product.name}
-              model={product.model}
-              image={
-                product.images[0]?.url ??
-                "/placeholder.png"
-              }
-              secondImage={
-                product.images[1]?.url
-              }
-              createdAt={product.createdAt}
-              featured={product.featured}
-              newArrival={product.newArrival}
-              bestSeller={product.bestSeller}
-              limited={product.limited}
-              onSale={product.onSale}
-            />
-          ))}
+
+          {products.map(
+            (product) => (
+
+              <ProductCard
+                key={
+                  product.id
+                }
+
+                id={
+                  product.id
+                }
+
+                slug={
+                  product.slug ??
+                  ""
+                }
+
+                brand={
+                  product.brand
+                }
+
+                name={
+                  product.name
+                }
+
+                model={
+                  product.model
+                }
+
+                price={
+                  product.price
+                }
+
+                image={
+                  product.images[0]?.url ??
+                  "/placeholder.png"
+                }
+
+                secondImage={
+                  product.images[1]?.url
+                }
+
+                createdAt={
+                  product.createdAt
+                }
+
+                featured={
+                  product.featured
+                }
+
+                newArrival={
+                  product.newArrival
+                }
+
+                bestSeller={
+                  product.bestSeller
+                }
+
+                limited={
+                  product.limited
+                }
+
+                onSale={
+                  product.onSale
+                }
+              />
+
+            )
+          )}
+
         </div>
+
       )}
+
     </section>
   );
 }

@@ -43,6 +43,9 @@ type VariantManagerProps = {
    * A Variant-specific exchange rate takes priority.
    */
   defaultExchangeRate?: number | null;
+
+  /** Product-level selling price used when all Variants share one Size. */
+  productPrice?: number | null;
 };
 
 
@@ -153,7 +156,9 @@ function SortableVariantImage({
       CSS.Transform.toString(
         transform
       ),
-    transition,
+    transition: isDragging
+      ? undefined
+      : transition,
   };
 
 
@@ -169,21 +174,17 @@ function SortableVariantImage({
         border
         bg-white
         shadow-sm
-        transition-all
-        duration-200
         ${
           isDragging
             ? `
               z-50
-              scale-[1.02]
               border-black
-              shadow-2xl
-              ring-2
+              shadow-xl
+              ring-1
               ring-black/10
             `
             : `
               border-neutral-200
-              hover:-translate-y-0.5
               hover:shadow-md
             `
         }
@@ -225,10 +226,6 @@ function SortableVariantImage({
             pointer-events-none
             select-none
             object-contain
-            transition-transform
-            duration-300
-            ease-out
-            group-hover:scale-[1.02]
           "
         />
 
@@ -1246,6 +1243,7 @@ export default function VariantManager({
   colors,
   onChange,
   defaultExchangeRate = null,
+  productPrice = null,
 }: VariantManagerProps) {
 
   const availableColors =
@@ -1676,8 +1674,25 @@ export default function VariantManager({
               );
 
             /**
-             * Profit Summary
+             * Pricing Mode
              *
+             * One Size:
+             *   Use Product Pricing as the selling price.
+             *
+             * Multiple Sizes:
+             *   Use each Variant's own selling price.
+             */
+            const uniqueSizes =
+              new Set(
+                activeVariants.map(
+                  (item) => item.size.trim()
+                )
+              );
+
+            const hasMultipleSizes =
+              uniqueSizes.size > 1;
+
+            /**
              * Variant-specific exchange rate takes priority.
              * If it is empty, fall back to the global/default rate.
              */
@@ -1693,10 +1708,15 @@ export default function VariantManager({
                   effectiveExchangeRate
                 : null;
 
+            const effectiveSellingPrice =
+              hasMultipleSizes
+                ? variant.price
+                : productPrice;
+
             const estimatedProfit =
               estimatedCost != null &&
-              variant.price != null
-                ? variant.price -
+              effectiveSellingPrice != null
+                ? effectiveSellingPrice -
                   estimatedCost
                 : null;
 
@@ -2138,74 +2158,95 @@ export default function VariantManager({
                         Selling Price
                       </label>
 
-                      <div className="relative">
+                      {hasMultipleSizes ? (
+                        <>
+                          <div className="relative">
 
-                        <span
-                          className="
-                            pointer-events-none
-                            absolute
-                            left-4
-                            top-1/2
-                            -translate-y-1/2
-                            text-sm
-                            text-neutral-400
-                          "
-                        >
-                          RM
-                        </span>
+                            <span
+                              className="
+                                pointer-events-none
+                                absolute
+                                left-4
+                                top-1/2
+                                -translate-y-1/2
+                                text-sm
+                                text-neutral-400
+                              "
+                            >
+                              RM
+                            </span>
 
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={
-                            variant.price ??
-                            ""
-                          }
-                          onChange={(
-                            e
-                          ) => {
-
-                            const value =
-                              e.target.value;
-
-
-                            updateVariant(
-                              actualIndex,
-                              "price",
-                              value ===
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={
+                                variant.price ??
                                 ""
-                                ? null
-                                : Number(
-                                    value
-                                  )
-                            );
+                              }
+                              onChange={(
+                                e
+                              ) => {
 
-                          }}
-                          placeholder="1299"
-                          className="
-                            w-full
-                            rounded-xl
-                            border
-                            border-neutral-300
-                            bg-white
-                            py-3
-                            pl-11
-                            pr-4
-                            transition-all
-                            duration-200
-                            focus:border-black
-                            focus:outline-none
-                            focus:ring-2
-                            focus:ring-black/5
-                          "
-                        />
+                                const value =
+                                  e.target.value;
 
-                      </div>
+                                updateVariant(
+                                  actualIndex,
+                                  "price",
+                                  value ===
+                                    ""
+                                    ? null
+                                    : Number(
+                                        value
+                                      )
+                                );
 
-                      <p className="mt-1.5 text-xs text-neutral-400">
-                        Customer-facing selling price.
-                      </p>
+                              }}
+                              placeholder="1299"
+                              className="
+                                w-full
+                                rounded-xl
+                                border
+                                border-neutral-300
+                                bg-white
+                                py-3
+                                pl-11
+                                pr-4
+                                transition-all
+                                duration-200
+                                focus:border-black
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-black/5
+                              "
+                            />
+
+                          </div>
+
+                          <p className="mt-1.5 text-xs text-neutral-400">
+                            Variant-specific customer-facing selling price.
+                          </p>
+                        </>
+                      ) : (
+                        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+
+                          <p className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+                            Product Pricing
+                          </p>
+
+                          <p className="mt-1 text-lg font-semibold text-neutral-900">
+                            {productPrice != null
+                              ? `RM ${productPrice.toFixed(2)}`
+                              : "—"}
+                          </p>
+
+                          <p className="mt-1 text-xs text-neutral-500">
+                            This Variant uses the Product-level selling price.
+                          </p>
+
+                        </div>
+                      )}
 
                     </div>
 
@@ -2409,7 +2450,7 @@ export default function VariantManager({
 
                     {(variant.costPriceCny == null ||
                       effectiveExchangeRate == null ||
-                      variant.price == null) && (
+                      effectiveSellingPrice == null) && (
                       <p className="mt-3 text-xs text-neutral-400">
                         Enter Cost Price, Exchange Rate and Selling Price
                         to calculate estimated profit.

@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 
+
 export default async function NewArrivals() {
   const allNewArrivalProducts =
     await prisma.product.findMany({
@@ -18,6 +19,7 @@ export default async function NewArrivals() {
         brand: true,
         name: true,
         model: true,
+        price: true,
         createdAt: true,
 
         featured: true,
@@ -39,6 +41,7 @@ export default async function NewArrivals() {
         },
       },
     });
+
 
   /*
    * =========================================================
@@ -69,6 +72,7 @@ export default async function NewArrivals() {
     )
     .slice(0, 4);
 
+
   return (
     <section
       className="
@@ -82,6 +86,7 @@ export default async function NewArrivals() {
         lg:py-36
       "
     >
+
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -95,6 +100,7 @@ export default async function NewArrivals() {
           sm:mb-24
         "
       >
+
         <p
           className="
             text-[10px]
@@ -106,6 +112,7 @@ export default async function NewArrivals() {
         >
           NEW ARRIVALS
         </p>
+
 
         <h2
           className="
@@ -122,6 +129,7 @@ export default async function NewArrivals() {
           Latest Collection
         </h2>
 
+
         <div
           className="
             mx-auto
@@ -136,6 +144,7 @@ export default async function NewArrivals() {
             sm:w-28
           "
         />
+
 
         <p
           className="
@@ -154,9 +163,12 @@ export default async function NewArrivals() {
           for exceptional craftsmanship, timeless elegance and
           modern sophistication.
         </p>
+
       </div>
 
+
       {products.length === 0 ? (
+
         /* ================================================= */
         /* Empty State */
         /* ================================================= */
@@ -174,6 +186,7 @@ export default async function NewArrivals() {
             sm:py-28
           "
         >
+
           <h3
             className="
               text-3xl
@@ -185,6 +198,7 @@ export default async function NewArrivals() {
           >
             New Arrivals Coming Soon
           </h3>
+
 
           <p
             className="
@@ -204,9 +218,13 @@ export default async function NewArrivals() {
             Our latest collection is currently being curated.
             Stay tuned for exclusive new arrivals.
           </p>
+
         </div>
+
       ) : (
+
         <>
+
           {/* ================================================= */}
           {/* View All */}
           {/* ================================================= */}
@@ -219,6 +237,7 @@ export default async function NewArrivals() {
               sm:mb-16
             "
           >
+
             <Link
               href="/shop?filter=new"
               className="
@@ -246,6 +265,7 @@ export default async function NewArrivals() {
                 sm:tracking-[0.3em]
               "
             >
+
               View All New Arrivals
 
               <ArrowRight
@@ -256,8 +276,11 @@ export default async function NewArrivals() {
                   group-hover:translate-x-1
                 "
               />
+
             </Link>
+
           </div>
+
 
           {/* ================================================= */}
           {/* Products */}
@@ -272,32 +295,83 @@ export default async function NewArrivals() {
               lg:grid-cols-4
             "
           >
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                slug={product.slug ?? ""}
-                brand={product.brand}
-                name={product.name}
-                model={product.model}
-                image={
-                  product.images[0]?.url ??
-                  "/placeholder.png"
-                }
-                secondImage={
-                  product.images[1]?.url
-                }
-                createdAt={product.createdAt}
-                featured={product.featured}
-                newArrival={product.newArrival}
-                bestSeller={product.bestSeller}
-                limited={product.limited}
-                onSale={product.onSale}
-              />
-            ))}
+
+            {products.map(
+              (product) => (
+
+                <ProductCard
+                  key={
+                    product.id
+                  }
+
+                  id={
+                    product.id
+                  }
+
+                  slug={
+                    product.slug ??
+                    ""
+                  }
+
+                  brand={
+                    product.brand
+                  }
+
+                  name={
+                    product.name
+                  }
+
+                  model={
+                    product.model
+                  }
+
+                  price={
+                    product.price
+                  }
+
+                  image={
+                    product.images[0]?.url ??
+                    "/placeholder.png"
+                  }
+
+                  secondImage={
+                    product.images[1]?.url
+                  }
+
+                  createdAt={
+                    product.createdAt
+                  }
+
+                  featured={
+                    product.featured
+                  }
+
+                  newArrival={
+                    product.newArrival
+                  }
+
+                  bestSeller={
+                    product.bestSeller
+                  }
+
+                  limited={
+                    product.limited
+                  }
+
+                  onSale={
+                    product.onSale
+                  }
+                />
+
+              )
+            )}
+
           </div>
+
         </>
+
       )}
+
     </section>
   );
 }

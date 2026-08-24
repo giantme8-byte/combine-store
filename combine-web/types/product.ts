@@ -104,6 +104,12 @@ export type ProductCardProps = {
 
   model: string | null;
 
+  price: number | null;
+
+  variants?: {
+    price: number | null;
+  }[];
+
   image: string;
 
   secondImage?: string;

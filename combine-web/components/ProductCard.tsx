@@ -1,17 +1,28 @@
 "use client";
 
-import { useMemo } from "react";
+import {
+  useMemo,
+} from "react";
 
 import Image from "next/image";
 import Link from "next/link";
 
 import WishlistButton from "@/components/WishlistButton";
-import { useInquiry } from "@/components/providers/InquiryProvider";
-import { useQuickView } from "@/components/providers/QuickViewProvider";
+import {
+  useInquiry,
+} from "@/components/providers/InquiryProvider";
+import {
+  useQuickView,
+} from "@/components/providers/QuickViewProvider";
 
-import type { ProductCardProps } from "@/types";
+import type {
+  ProductCardProps,
+} from "@/types";
 
-import { optimizeCloudinaryImage } from "@/lib/cloudinary-image";
+import {
+  optimizeCloudinaryImage,
+} from "@/lib/cloudinary-image";
+
 
 export default function ProductCard({
   id,
@@ -19,6 +30,8 @@ export default function ProductCard({
   brand,
   name,
   model,
+  price,
+  variants,
   image,
   secondImage,
   createdAt,
@@ -29,15 +42,22 @@ export default function ProductCard({
   onSale,
   buttonSize = "default",
 }: ProductCardProps) {
-  const { addItem, openDrawer } =
-    useInquiry();
 
-  const { open } =
-    useQuickView();
+  const {
+    addItem,
+    openDrawer,
+  } = useInquiry();
 
-  const productHref = slug
-    ? `/shop/${slug}`
-    : "/shop";
+
+  const {
+    open,
+  } = useQuickView();
+
+
+  const productHref =
+    slug
+      ? `/shop/${slug}`
+      : "/shop";
 
 
   // ============================================================
@@ -46,15 +66,21 @@ export default function ProductCard({
 
   const isNewArrival =
     useMemo(() => {
+
       if (!newArrival) {
         return false;
       }
 
+
       const now =
         new Date();
 
+
       const created =
-        new Date(createdAt);
+        new Date(
+          createdAt
+        );
+
 
       return (
         now.getTime() -
@@ -65,6 +91,7 @@ export default function ProductCard({
           60 *
           1000
       );
+
     }, [
       createdAt,
       newArrival,
@@ -78,11 +105,16 @@ export default function ProductCard({
   function handleInquiry(
     event: React.MouseEvent
   ) {
+
     event.preventDefault();
+
     event.stopPropagation();
 
+
     addItem(id);
+
     openDrawer();
+
   }
 
 
@@ -93,24 +125,42 @@ export default function ProductCard({
   function handleQuickView(
     event: React.MouseEvent
   ) {
+
     event.preventDefault();
+
     event.stopPropagation();
+
 
     open({
       id,
+
       slug,
+
       brand,
+
       name,
+
       model,
+
+      price,
+
       image,
+
       secondImage,
+
       createdAt,
+
       featured,
+
       newArrival,
+
       bestSeller,
+
       limited,
+
       onSale,
     });
+
   }
 
 
@@ -124,6 +174,7 @@ export default function ProductCard({
       800
     );
 
+
   const optimizedSecondImage =
     secondImage
       ? optimizeCloudinaryImage(
@@ -131,6 +182,76 @@ export default function ProductCard({
           800
         )
       : undefined;
+
+
+  // ============================================================
+  // DISPLAY PRICE
+  // ============================================================
+
+  const productPrice =
+    typeof price === "number" &&
+    Number.isFinite(price) &&
+    price > 0
+      ? price
+      : null;
+
+  const variantPrices =
+    (variants ?? [])
+      .map((variant) =>
+        typeof variant.price === "number" &&
+        Number.isFinite(variant.price) &&
+        variant.price > 0
+          ? variant.price
+          : null
+      )
+      .filter(
+        (value): value is number =>
+          value !== null
+      );
+
+  const uniqueVariantPrices = [
+    ...new Set(variantPrices),
+  ].sort(
+    (a, b) => a - b
+  );
+
+  const displayPrice =
+    productPrice !== null
+      ? `RM ${productPrice.toLocaleString(
+          "en-MY",
+          {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          }
+        )}`
+      : uniqueVariantPrices.length === 1
+        ? `RM ${uniqueVariantPrices[0].toLocaleString(
+            "en-MY",
+            {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            }
+          )}`
+        : uniqueVariantPrices.length > 1
+          ? `RM ${uniqueVariantPrices[0].toLocaleString(
+              "en-MY",
+              {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+              }
+            )} – RM ${uniqueVariantPrices[
+              uniqueVariantPrices.length - 1
+            ].toLocaleString(
+              "en-MY",
+              {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+              }
+            )}`
+          : null;
+
+  const hasPrice =
+    displayPrice !== null;
 
 
   return (
@@ -217,10 +338,12 @@ export default function ProductCard({
               sm:group-hover:opacity-100
             "
           >
+
             <WishlistButton
               productId={id}
               variant="icon"
             />
+
           </div>
 
 
@@ -551,6 +674,7 @@ export default function ProductCard({
               sm:group-hover:opacity-100
             "
           >
+
             <button
               type="button"
               onClick={
@@ -582,6 +706,7 @@ export default function ProductCard({
             >
               Quick View
             </button>
+
           </div>
 
         </div>
@@ -674,29 +799,23 @@ export default function ProductCard({
 
           <div
             className="
-              mt-2.5
-              h-[3rem]
+              mt-4
               shrink-0
 
               sm:mt-5
-              sm:h-[56px]
-
               lg:mt-5
-              lg:h-[56px]
             "
           >
             <p
               className="
                 text-[7px]
+                font-medium
                 uppercase
-                tracking-[0.2em]
+                tracking-[0.22em]
                 text-neutral-400
 
-                sm:text-[11px]
+                sm:text-[10px]
                 sm:tracking-[0.3em]
-
-                lg:text-[11px]
-                lg:tracking-[0.3em]
               "
             >
               Model
@@ -706,6 +825,7 @@ export default function ProductCard({
               className="
                 mt-1
                 line-clamp-2
+                min-h-[1rem]
                 overflow-hidden
                 text-[8px]
                 leading-4
@@ -713,175 +833,156 @@ export default function ProductCard({
 
                 sm:text-sm
                 sm:leading-5
-
-                lg:text-sm
-                lg:leading-5
               "
             >
               {model ?? "—"}
             </p>
           </div>
 
-        </div>
 
+          {/* ================================================== */}
+          {/* PRICE */}
+          {/* ================================================== */}
+
+          <div
+            className="
+              mt-4
+              border-t
+              border-neutral-100
+              pt-3
+              sm:mt-5
+              sm:pt-4
+            "
+          >
+            {displayPrice ? (
+              <p
+                className="
+                  text-[13px]
+                  font-medium
+                  tracking-[-0.015em]
+                  text-neutral-950
+
+                  sm:text-[16px]
+                  lg:text-[17px]
+                "
+              >
+                {displayPrice}
+              </p>
+            ) : (
+              <p
+                className="
+                  text-[8px]
+                  font-light
+                  uppercase
+                  tracking-[0.18em]
+                  text-neutral-400
+
+                  sm:text-[10px]
+                  sm:tracking-[0.24em]
+                "
+              >
+                Price Upon Request
+              </p>
+            )}
+          </div>
+
+        </div>
       </Link>
 
-
       {/* ====================================================== */}
-      {/* ACTIONS */}
+      {/* SINGLE ACTION */}
       {/* ====================================================== */}
 
       <div
         className="
+          mt-4
           border-t
           border-neutral-100
           px-3
-          py-3
+          pb-3.5
+          pt-3
 
-          sm:px-7
-          sm:py-6
+          sm:mt-5
+          sm:px-6
+          sm:pb-5
+          sm:pt-4
 
-          lg:px-7
-          lg:py-6
+          lg:px-6
         "
       >
-
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-            gap-2
-
-            sm:gap-3
-          "
-        >
-
-          {/* ================================================== */}
-          {/* DISCOVER */}
-          {/* ================================================== */}
-
+        {hasPrice ? (
           <Link
             href={productHref}
             prefetch
             className="
               inline-flex
-              min-w-0
-              flex-1
               items-center
-              gap-1
+              gap-1.5
               text-[7px]
               font-medium
               uppercase
-              tracking-[0.1em]
+              tracking-[0.14em]
               text-neutral-500
-              transition-all
+              transition-colors
               duration-300
               hover:text-[#C8A96A]
 
               sm:gap-2
-              sm:text-[11px]
+              sm:text-[10px]
               sm:tracking-[0.24em]
-
-              lg:text-[11px]
-              lg:tracking-[0.24em]
             "
           >
             <span>
-              Discover
+              View Details
             </span>
 
             <span
               className="
-                hidden
                 transition-transform
                 duration-300
-
-                sm:inline
-                sm:group-hover:translate-x-1.5
+                group-hover:translate-x-1.5
               "
             >
               →
             </span>
           </Link>
-
-
-          {/* ================================================== */}
-          {/* REQUEST PRICE */}
-          {/* ================================================== */}
-
+        ) : (
           <button
             type="button"
-            onClick={
-              handleInquiry
-            }
-            className={`
+            onClick={handleInquiry}
+            className="
               inline-flex
-              shrink-0
               items-center
-              justify-center
-              whitespace-nowrap
-              rounded-full
-              border
-              border-black
-              bg-white
-              transition-all
+              gap-1.5
+              text-[7px]
+              font-medium
+              uppercase
+              tracking-[0.14em]
+              text-neutral-500
+              transition-colors
               duration-300
+              hover:text-[#C8A96A]
 
-              hover:-translate-y-0.5
-              hover:border-[#C8A96A]
-              hover:bg-[#C8A96A]
-              hover:text-white
-              hover:shadow-xl
-
-              ${
-                buttonSize ===
-                "small"
-                  ? `
-                    h-8
-                    min-w-0
-                    px-2.5
-                    text-[7px]
-                    tracking-[0.04em]
-
-                    sm:h-9
-                    sm:min-w-[122px]
-                    sm:px-4
-                    sm:text-[10px]
-                    sm:tracking-[0.14em]
-
-                    lg:h-9
-                    lg:min-w-[122px]
-                    lg:px-4
-                    lg:text-[10px]
-                  `
-                  : `
-                    h-8
-                    min-w-0
-                    px-2.5
-                    text-[7px]
-                    tracking-[0.04em]
-
-                    sm:h-10
-                    sm:min-w-[138px]
-                    sm:px-5
-                    sm:text-[10px]
-                    sm:tracking-[0.16em]
-
-                    lg:h-10
-                    lg:min-w-[138px]
-                    lg:px-5
-                    lg:text-[10px]
-                    lg:tracking-[0.16em]
-                  `
-              }
-            `}
+              sm:gap-2
+              sm:text-[10px]
+              sm:tracking-[0.24em]
+            "
           >
-            Request Price
+            <span>
+              Request Price
+            </span>
+
+            <span
+              className="
+                transition-transform
+                duration-300
+                group-hover:translate-x-1.5
+              "
+            >
+              →
+            </span>
           </button>
-
-        </div>
-
+        )}
       </div>
 
     </article>

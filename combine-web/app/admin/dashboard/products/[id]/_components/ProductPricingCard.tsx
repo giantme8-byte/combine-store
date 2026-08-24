@@ -38,7 +38,6 @@ export default function ProductPricingCard({
   pricing,
   exchangeRate,
 }: ProductPricingCardProps) {
-
   // =========================================================
   // PRODUCT WITHOUT VARIANTS
   // =========================================================
@@ -55,7 +54,6 @@ export default function ProductPricingCard({
           shadow-sm
         "
       >
-
         <p
           className="
             text-xs
@@ -80,7 +78,6 @@ export default function ProductPricingCard({
         </h2>
 
         <div className="space-y-4">
-
           <Row
             label="Cost Price (CNY)"
             value={
@@ -130,12 +127,34 @@ export default function ProductPricingCard({
                 : "text-red-600"
             }
           />
-
         </div>
-
       </div>
     );
   }
+
+  // =========================================================
+  // DETERMINE PRICING MODE
+  // =========================================================
+  //
+  // 1 Size:
+  //   Product Pricing is used.
+  //
+  // Multiple Sizes:
+  //   Variant Pricing is used.
+  //
+  // This follows the Dashboard calculation rules.
+  // =========================================================
+
+  const uniqueSizes =
+    new Set(
+      variants.map(
+        (variant) =>
+          variant.size
+      )
+    );
+
+  const hasMultipleSizes =
+    uniqueSizes.size > 1;
 
   // =========================================================
   // PRODUCT WITH VARIANTS
@@ -152,7 +171,6 @@ export default function ProductPricingCard({
         shadow-sm
       "
     >
-
       {/* =================================================== */}
       {/* Header */}
       {/* =================================================== */}
@@ -177,17 +195,95 @@ export default function ProductPricingCard({
           font-light
         "
       >
-        Variant Pricing
+        {hasMultipleSizes
+          ? "Variant Pricing"
+          : "Pricing"}
       </h2>
 
       {/* =================================================== */}
-      {/* Variants */}
+      {/* Pricing Mode */}
+      {/* =================================================== */}
+
+      <div
+        className="
+          mb-6
+          rounded-xl
+          border
+          border-neutral-200
+          bg-neutral-50
+          px-4
+          py-3
+        "
+      >
+        <p
+          className="
+            text-[10px]
+            font-medium
+            uppercase
+            tracking-[0.22em]
+            text-neutral-400
+          "
+        >
+          Pricing Mode
+        </p>
+
+        <p
+          className="
+            mt-1
+            text-sm
+            font-medium
+            text-neutral-900
+          "
+        >
+          {hasMultipleSizes
+            ? "Variant Pricing"
+            : "Product Pricing"}
+        </p>
+      </div>
+
+      {/* =================================================== */}
+      {/* PRODUCT PRICING */}
+      {/* =================================================== */}
+
+      {!hasMultipleSizes && (
+        <div
+          className="
+            mb-6
+            rounded-2xl
+            border
+            border-[#C8A96A]/30
+            bg-[#C8A96A]/5
+            p-5
+          "
+        >
+          <div className="space-y-4">
+            <Row
+              label="Product Price"
+              value={`RM ${product.price.toFixed(2)}`}
+            />
+
+            <Row
+              label="Number of Variants"
+              value={String(variants.length)}
+            />
+
+            <Row
+              label="Potential Revenue"
+              value={`RM ${(
+                product.price *
+                variants.length
+              ).toFixed(2)}`}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* =================================================== */}
+      {/* VARIANTS */}
       {/* =================================================== */}
 
       <div className="space-y-6">
-
         {variants.map((variant) => {
-
           // -------------------------------------------------
           // Effective Exchange Rate
           // -------------------------------------------------
@@ -198,12 +294,6 @@ export default function ProductPricingCard({
 
           // -------------------------------------------------
           // Cost Price
-          // -------------------------------------------------
-          //
-          // Variant cost takes priority.
-          //
-          // Product cost is only a fallback for legacy data.
-          //
           // -------------------------------------------------
 
           const costPriceCny =
@@ -223,15 +313,21 @@ export default function ProductPricingCard({
           // Selling Price
           // -------------------------------------------------
           //
-          // Variant price takes priority.
+          // 1 Size:
+          //   Product Pricing
           //
-          // Product price is only fallback.
+          // Multiple Sizes:
+          //   Variant Pricing
           //
           // -------------------------------------------------
 
           const sellingPrice =
-            variant.price ??
-            product.price;
+            hasMultipleSizes
+              ? (
+                  variant.price ??
+                  product.price
+                )
+              : product.price;
 
           // -------------------------------------------------
           // Profit
@@ -285,13 +381,11 @@ export default function ProductPricingCard({
                 p-5
               "
             >
-
               {/* ========================================= */}
               {/* Variant */}
               {/* ========================================= */}
 
               <div className="mb-5">
-
                 <p
                   className="
                     text-[10px]
@@ -314,7 +408,6 @@ export default function ProductPricingCard({
                 >
                   {variantName}
                 </h3>
-
               </div>
 
               {/* ========================================= */}
@@ -322,7 +415,6 @@ export default function ProductPricingCard({
               {/* ========================================= */}
 
               <div className="space-y-4">
-
                 <Row
                   label="Cost Price (CNY)"
                   value={`¥ ${costPriceCny.toFixed(2)}`}
@@ -339,7 +431,11 @@ export default function ProductPricingCard({
                 />
 
                 <Row
-                  label="Selling Price"
+                  label={
+                    hasMultipleSizes
+                      ? "Variant Price"
+                      : "Product Price"
+                  }
                   value={`RM ${sellingPrice.toFixed(2)}`}
                 />
 
@@ -366,15 +462,11 @@ export default function ProductPricingCard({
                       : "text-red-600"
                   }
                 />
-
               </div>
-
             </div>
           );
         })}
-
       </div>
-
     </div>
   );
 }
@@ -395,7 +487,6 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between gap-6">
-
       <span className="text-neutral-500">
         {label}
       </span>
@@ -409,7 +500,6 @@ function Row({
       >
         {value}
       </span>
-
     </div>
   );
 }

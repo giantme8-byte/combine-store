@@ -31,20 +31,26 @@ import type {
   Color,
 } from "@prisma/client";
 
-type ProductColorWithImages = ProductColor & {
-  images?: ProductColorImage[];
-};
+
+type ProductColorWithImages =
+  ProductColor & {
+    images?: ProductColorImage[];
+  };
+
 
 type ProductVariantWithImages =
   ProductVariant & {
     images: ProductVariantImage[];
   };
 
-type ProductWithRelations = Product & {
-  images: ProductImage[];
-  colors: ProductColorWithImages[];
-  variants: ProductVariantWithImages[];
-};
+
+type ProductWithRelations =
+  Product & {
+    images: ProductImage[];
+    colors: ProductColorWithImages[];
+    variants: ProductVariantWithImages[];
+  };
+
 
 type ProductFormProps = {
   action: (
@@ -70,6 +76,11 @@ type ProductFormProps = {
   returnTo?: string;
 };
 
+
+// ============================================================
+// DATE
+// ============================================================
+
 function formatCreatedDate(
   date: Date | string
 ) {
@@ -84,6 +95,11 @@ function formatCreatedDate(
   ).format(new Date(date));
 }
 
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function ProductForm({
   action,
   product,
@@ -96,26 +112,42 @@ export default function ProductForm({
   exchangeRate,
   returnTo,
 }: ProductFormProps) {
-  const router = useRouter();
+
+  const router =
+    useRouter();
+
 
   const formRef =
     useRef<HTMLFormElement>(null);
+
 
   const [
     isPending,
     startTransition,
   ] = useTransition();
 
+
+  // =========================================================
+  // STATE
+  // =========================================================
+
   const [
     images,
     setImages,
   ] = useState<ProductImageItem[]>([]);
 
-  const [colors, setColors] =
-    useState<ColorImageItem[]>([]);
 
-  const [variants, setVariants] =
-    useState<ProductVariantItem[]>([]);
+  const [
+    colors,
+    setColors,
+  ] = useState<ColorImageItem[]>([]);
+
+
+  const [
+    variants,
+    setVariants,
+  ] = useState<ProductVariantItem[]>([]);
+
 
   const [
     costPriceCny,
@@ -124,6 +156,7 @@ export default function ProductForm({
     product?.costPriceCny ?? 0
   );
 
+
   const [
     sellingPrice,
     setSellingPrice,
@@ -131,23 +164,33 @@ export default function ProductForm({
     product?.price ?? 0
   );
 
-  const [slug, setSlug] = useState(
+
+  const [
+    slug,
+    setSlug,
+  ] = useState(
     product?.slug ?? ""
   );
+
 
   const slugEdited =
     useRef(false);
 
+
+  // =========================================================
+  // LOAD PRODUCT
+  // =========================================================
+
   useEffect(() => {
+
     if (!product) {
       return;
     }
 
-    /*
-     * =========================================================
-     * PRODUCT IMAGES
-     * =========================================================
-     */
+
+    // =======================================================
+    // PRODUCT IMAGES
+    // =======================================================
 
     setImages(
       product.images.map(
@@ -169,19 +212,22 @@ export default function ProductForm({
 
           deleted:
             false,
+
+          status:
+            "uploaded",
         })
       )
     );
 
-    /*
-     * =========================================================
-     * COLORS
-     * =========================================================
-     */
+
+    // =======================================================
+    // COLORS
+    // =======================================================
 
     setColors(
       product.colors.map(
         (color) => {
+
           const galleryImages =
             color.images?.map(
               (image) => ({
@@ -206,6 +252,7 @@ export default function ProductForm({
               })
             ) ?? [];
 
+
           /*
            * Backward compatibility:
            *
@@ -214,10 +261,10 @@ export default function ProductForm({
            */
 
           if (
-            galleryImages.length ===
-              0 &&
+            galleryImages.length === 0 &&
             color.imageUrl
           ) {
+
             galleryImages.push({
               id:
                 `legacy-${color.id}`,
@@ -238,7 +285,9 @@ export default function ProductForm({
               deleted:
                 false,
             });
+
           }
+
 
           return {
             id:
@@ -273,138 +322,127 @@ export default function ProductForm({
             deleted:
               false,
           };
+
         }
       )
     );
 
-    /*
-     * =========================================================
-     * VARIANT IMAGE UPLOAD
-     * =========================================================
-     *
-     * Variant gallery images are selected locally in VariantManager.
-     * Upload all new files before submitting the variant metadata.
-     * Uploads run in parallel so large galleries do not take
-     * unnecessarily long.
-     */
 
-    /*
-     * =========================================================
-     * VARIANTS
-     * =========================================================
-     *
-     * IMPORTANT:
-     *
-     * A Variant can now contain multiple images.
-     *
-     * Example:
-     *
-     * Black / Small
-     *   ├── Front
-     *   ├── Back
-     *   └── Side
-     *
-     * Black / Medium
-     *   ├── Front
-     *   └── Detail
-     *
-     * We also keep the legacy imageUrl/publicId fields
-     * for backward compatibility.
-     */
+    // =======================================================
+    // VARIANTS
+    // =======================================================
 
-setVariants(
-  product.variants.map(
-    (variant) => ({
-      id:
-        variant.id.toString(),
+    setVariants(
+      product.variants.map(
+        (variant) => ({
+          id:
+            variant.id.toString(),
 
-      colorId:
-        variant.colorId ??
-        null,
+          colorId:
+            variant.colorId ??
+            null,
 
-      size:
-        variant.size,
+          size:
+            variant.size,
 
-      costPriceCny:
-        variant.costPriceCny ??
-        null,
+          costPriceCny:
+            variant.costPriceCny ??
+            null,
 
-      exchangeRate:
-        variant.exchangeRate ??
-        null,
+          exchangeRate:
+            variant.exchangeRate ??
+            null,
 
-      price:
-        variant.price ??
-        null,
+          price:
+            variant.price ??
+            null,
 
-      model:
-        variant.model ??
-        "",
+          model:
+            variant.model ??
+            "",
 
-      dimensions:
-        variant.dimensions ??
-        "",
+          dimensions:
+            variant.dimensions ??
+            "",
 
-      imageUrl:
-        variant.imageUrl ??
-        "",
+          imageUrl:
+            variant.imageUrl ??
+            "",
 
-      publicId:
-        variant.publicId ??
-        "",
+          publicId:
+            variant.publicId ??
+            "",
 
-      images:
-        variant.images.map(
-          (image) => ({
-            id:
-              image.id.toString(),
+          images:
+            variant.images.map(
+              (image) => ({
+                id:
+                  image.id.toString(),
 
-            url:
-              image.url,
+                url:
+                  image.url,
 
-            publicId:
-              image.publicId,
+                publicId:
+                  image.publicId,
 
-            sortOrder:
-              image.sortOrder,
+                sortOrder:
+                  image.sortOrder,
 
-            isNew:
-              false,
+                isNew:
+                  false,
 
-            deleted:
-              false,
-          })
-        ),
+                deleted:
+                  false,
+              })
+            ),
 
-      file:
-        undefined,
+          file:
+            undefined,
 
-      isNew:
-        false,
+          isNew:
+            false,
 
-      deleted:
-        false,
-    })
-  )
-);
+          deleted:
+            false,
+        })
+      )
+    );
+
 
     setCostPriceCny(
-      product.costPriceCny ?? 0
+      product.costPriceCny ??
+      0
     );
+
 
     setSellingPrice(
-      product.price ?? 0
+      product.price ??
+      0
     );
 
+
     setSlug(
-      product.slug ?? ""
+      product.slug ??
+      ""
     );
+
 
     slugEdited.current =
       false;
-  }, [product]);
 
-  function slugify(text: string) {
+  }, [
+    product,
+  ]);
+
+
+  // =========================================================
+  // SLUGIFY
+  // =========================================================
+
+  function slugify(
+    text: string
+  ) {
+
     return text
       .toLowerCase()
       .trim()
@@ -428,34 +466,34 @@ setVariants(
         /^-|-$/g,
         ""
       );
+
   }
+
+
+  // =========================================================
+  // SUBMIT
+  // =========================================================
 
   async function handleSubmit(
     e: React.FormEvent<HTMLFormElement>
   ) {
+
     e.preventDefault();
+
 
     if (!formRef.current) {
       return;
     }
 
+
     if (isPending) {
       return;
     }
 
-    /*
-     * =========================================================
-     * IMAGE UPLOAD CHECK
-     * =========================================================
-     *
-     * Product images, Color gallery images and Variant gallery
-     * images are uploaded immediately by their own components.
-     *
-     * ProductForm must NEVER upload Color / Variant files here.
-     * It only verifies that newly-added images have finished
-     * uploading and then sends their Cloudinary URL/publicId
-     * to the Server Action.
-     */
+
+    // =======================================================
+    // IMAGE UPLOAD CHECK
+    // =======================================================
 
     const uploadingImages =
       images.filter(
@@ -466,6 +504,7 @@ setVariants(
             "uploading"
       );
 
+
     const failedImages =
       images.filter(
         (image) =>
@@ -474,6 +513,7 @@ setVariants(
           image.status ===
             "failed"
       );
+
 
     const incompleteImages =
       images.filter(
@@ -488,6 +528,7 @@ setVariants(
           )
       );
 
+
     const uploadingColorImages =
       colors.some(
         (color) =>
@@ -501,6 +542,7 @@ setVariants(
           )
       );
 
+
     const failedColorImages =
       colors.some(
         (color) =>
@@ -513,6 +555,7 @@ setVariants(
                 "error"
           )
       );
+
 
     const incompleteColorImages =
       colors.some(
@@ -531,6 +574,7 @@ setVariants(
           )
       );
 
+
     const uploadingVariantImages =
       variants.some(
         (variant) =>
@@ -544,6 +588,7 @@ setVariants(
           )
       );
 
+
     const failedVariantImages =
       variants.some(
         (variant) =>
@@ -556,6 +601,7 @@ setVariants(
                 "error"
           )
       );
+
 
     const incompleteVariantImages =
       variants.some(
@@ -574,11 +620,13 @@ setVariants(
           )
       );
 
+
     if (
       uploadingImages.length > 0 ||
       uploadingColorImages ||
       uploadingVariantImages
     ) {
+
       alert(
         "Please wait for all images to finish uploading."
       );
@@ -586,11 +634,13 @@ setVariants(
       return;
     }
 
+
     if (
       failedImages.length > 0 ||
       failedColorImages ||
       failedVariantImages
     ) {
+
       alert(
         "Some images failed to upload. Please remove them or retry the upload before saving."
       );
@@ -598,11 +648,13 @@ setVariants(
       return;
     }
 
+
     if (
       incompleteImages.length > 0 ||
       incompleteColorImages ||
       incompleteVariantImages
     ) {
+
       alert(
         "Some images are not ready yet. Please wait for the upload to finish."
       );
@@ -610,24 +662,24 @@ setVariants(
       return;
     }
 
-    /*
-     * =========================================================
-     * CREATE FORM DATA
-     * =========================================================
-     */
+
+    // =======================================================
+    // FORM DATA
+    // =======================================================
 
     const formData =
       new FormData(
         formRef.current
       );
 
-    /*
-     * =========================================================
-     * PRODUCT IMAGE LIMIT
-     * =========================================================
-     */
 
-    const MAX_IMAGES = 20;
+    // =======================================================
+    // PRODUCT IMAGE LIMIT
+    // =======================================================
+
+    const MAX_IMAGES =
+      20;
+
 
     const visibleImages =
       images.filter(
@@ -635,10 +687,12 @@ setVariants(
           !image.deleted
       );
 
+
     if (
       visibleImages.length >
       MAX_IMAGES
     ) {
+
       alert(
         "Maximum 20 images."
       );
@@ -646,17 +700,17 @@ setVariants(
       return;
     }
 
-    /*
-     * =========================================================
-     * PRODUCT IMAGES
-     * =========================================================
-     */
+
+    // =======================================================
+    // PRODUCT IMAGES
+    // =======================================================
 
     images.forEach(
       (
         image,
         index
       ) => {
+
         formData.append(
           "imageOrder",
           JSON.stringify({
@@ -680,23 +734,21 @@ setVariants(
               false,
           })
         );
+
       }
     );
 
-    /*
-     * =========================================================
-     * COLORS
-     * =========================================================
-     *
-     * ColorUpload has already uploaded the files.
-     * We only serialize the finished Cloudinary assets.
-     */
+
+    // =======================================================
+    // COLORS
+    // =======================================================
 
     colors.forEach(
       (
         color,
         colorIndex
       ) => {
+
         const visibleColorImages =
           (
             color.images ??
@@ -705,6 +757,7 @@ setVariants(
             (image) =>
               !image.deleted
           );
+
 
         const galleryImages =
           visibleColorImages
@@ -738,11 +791,9 @@ setVariants(
               })
             );
 
+
         /*
          * Legacy Color compatibility.
-         *
-         * Existing old records may still only have
-         * color.url / color.publicId.
          */
 
         if (
@@ -751,6 +802,7 @@ setVariants(
           color.url &&
           color.publicId
         ) {
+
           galleryImages.push({
             id:
               `legacy-${color.id}`,
@@ -767,7 +819,9 @@ setVariants(
             deleted:
               false,
           });
+
         }
+
 
         formData.append(
           "colorOrder",
@@ -811,23 +865,38 @@ setVariants(
               galleryImages,
           })
         );
+
       }
     );
 
-    /*
-     * =========================================================
-     * VARIANTS
-     * =========================================================
-     *
-     * VariantManager has already uploaded all new gallery
-     * images. Do not upload files again here.
-     */
+
+    // =======================================================
+    // VARIANTS
+    // =======================================================
+
+    const activeVariantsForSubmit =
+      variants.filter(
+        (variant) =>
+          !variant.deleted
+      );
+
+    const uniqueSizesForSubmit =
+      new Set(
+        activeVariantsForSubmit.map(
+          (variant) =>
+            variant.size
+        )
+      );
+
+    const hasMultipleSizesForSubmit =
+      uniqueSizesForSubmit.size > 1;
 
     variants.forEach(
       (
         variant,
         index
       ) => {
+
         const visibleVariantImages =
           (
             variant.images ??
@@ -836,6 +905,7 @@ setVariants(
             (image) =>
               !image.deleted
           );
+
 
         const galleryImages =
           visibleVariantImages
@@ -873,6 +943,7 @@ setVariants(
               })
             );
 
+
         formData.append(
           "variantOrder",
           JSON.stringify({
@@ -895,8 +966,9 @@ setVariants(
               null,
 
             price:
-              variant.price ??
-              null,
+              hasMultipleSizesForSubmit
+                ? variant.price ?? null
+                : null,
 
             model:
               variant.model,
@@ -929,48 +1001,254 @@ setVariants(
               variant.deleted,
           })
         );
+
       }
     );
 
-    /*
-     * =========================================================
-     * SAVE PRODUCT
-     * =========================================================
-     */
+
+    // =======================================================
+    // SAVE PRODUCT
+    // =======================================================
 
     startTransition(
       async () => {
+
         try {
+
           await action(
             formData
           );
+
 
           router.push(
             returnTo ||
               "/admin/dashboard/products"
           );
 
+
           router.refresh();
+
         } catch (
           error
         ) {
+
           console.error(
             "Failed to save product:",
             error
           );
 
+
           alert(
             "Failed to save product. Please try again."
           );
+
         }
+
       }
     );
+
   }
 
-  /*
-   * Only active packaging profiles
-   * should be selectable.
-   */
+
+  // =========================================================
+  // PRICING CALCULATIONS
+  // =========================================================
+  //
+  // RULES:
+  //
+  // 1. No variants:
+  //      Product Pricing × 1
+  //
+  // 2. Variants + ONE unique size:
+  //      Product Pricing × number of variants
+  //
+  //      Example:
+  //      Black / One Size
+  //      White / One Size
+  //      Brown / One Size
+  //
+  //      Product Price = RM500
+  //      Revenue = RM500 × 3
+  //
+  // 3. Variants + MULTIPLE sizes:
+  //      Each Variant uses its own Variant Pricing.
+  //
+  //      Every Variant = 1 stock unit.
+  //
+  // =========================================================
+
+  const activeVariants =
+    variants.filter(
+      (variant) =>
+        !variant.deleted
+    );
+
+
+  const uniqueSizes =
+    new Set(
+      activeVariants.map(
+        (variant) =>
+          variant.size
+      )
+    );
+
+
+  const hasVariants =
+    activeVariants.length > 0;
+
+
+  const hasMultipleSizes =
+    uniqueSizes.size > 1;
+
+
+  // =========================================================
+  // PRODUCT PRICING MODE
+  // =========================================================
+
+  const productCostMyr =
+    costPriceCny *
+    exchangeRate;
+
+
+  const productProfitPerUnit =
+    sellingPrice -
+    productCostMyr;
+
+
+  // =========================================================
+  // INVENTORY SUMMARY FOR THIS PRODUCT
+  // =========================================================
+
+  let estimatedCostMyr =
+    0;
+
+
+  let potentialRevenue =
+    0;
+
+
+  let estimatedProfit =
+    0;
+
+
+  // =========================================================
+  // NO VARIANTS
+  // =========================================================
+
+  if (!hasVariants) {
+
+    estimatedCostMyr =
+      productCostMyr;
+
+    potentialRevenue =
+      sellingPrice;
+
+    estimatedProfit =
+      productProfitPerUnit;
+
+  }
+
+
+  // =========================================================
+  // VARIANTS + ONE SIZE
+  // =========================================================
+  //
+  // Product Pricing applies to every Color.
+  //
+  // Each Color / One Size combination = 1 stock.
+  //
+  // =========================================================
+
+  else if (!hasMultipleSizes) {
+
+    const variantCount =
+      activeVariants.length;
+
+
+    estimatedCostMyr =
+      productCostMyr *
+      variantCount;
+
+
+    potentialRevenue =
+      sellingPrice *
+      variantCount;
+
+
+    estimatedProfit =
+      productProfitPerUnit *
+      variantCount;
+
+  }
+
+
+  // =========================================================
+  // VARIANTS + MULTIPLE SIZES
+  // =========================================================
+  //
+  // Each Variant has its own pricing.
+  //
+  // Every Variant = 1 stock.
+  //
+  // =========================================================
+
+  else {
+
+    for (
+      const variant of
+      activeVariants
+    ) {
+
+      const variantExchangeRate =
+        variant.exchangeRate ??
+        exchangeRate;
+
+
+      const variantCostCny =
+        variant.costPriceCny ??
+        costPriceCny;
+
+
+      const variantCostMyr =
+        variantCostCny *
+        variantExchangeRate;
+
+
+      const variantSellingPrice =
+        variant.price ??
+        sellingPrice;
+
+
+      estimatedCostMyr +=
+        variantCostMyr;
+
+
+      potentialRevenue +=
+        variantSellingPrice;
+
+
+      estimatedProfit +=
+        variantSellingPrice -
+        variantCostMyr;
+
+    }
+
+  }
+
+
+  const estimatedMargin =
+    potentialRevenue > 0
+      ? (
+          estimatedProfit /
+          potentialRevenue
+        ) *
+        100
+      : 0;
+
+
+  // =========================================================
+  // ACTIVE PACKAGING
+  // =========================================================
 
   const activePackaging =
     packagingProfiles.filter(
@@ -980,6 +1258,11 @@ setVariants(
         packaging.active
     );
 
+
+  // =========================================================
+  // RENDER
+  // =========================================================
+
   return (
     <form
       ref={formRef}
@@ -988,38 +1271,89 @@ setVariants(
         handleSubmit
       }
     >
-      <div className="grid gap-8 xl:grid-cols-[2fr_380px]">
 
-        {/* ===================================================== */}
+      <div
+        className="
+          grid
+          gap-8
+          xl:grid-cols-[2fr_380px]
+        "
+      >
+
+        {/* ================================================= */}
         {/* LEFT */}
-        {/* ===================================================== */}
+        {/* ================================================= */}
 
         <div className="space-y-8">
 
-          {/* =================================================== */}
-          {/* General */}
-          {/* =================================================== */}
+          {/* ================================================= */}
+          {/* GENERAL */}
+          {/* ================================================= */}
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+          <div
+            className="
+              rounded-2xl
+              border
+              border-neutral-200
+              bg-white
+              p-6
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
+            "
+          >
 
             <div className="mb-6">
-              <h2 className="text-xl font-semibold tracking-tight">
+
+              <h2
+                className="
+                  text-xl
+                  font-semibold
+                  tracking-tight
+                "
+              >
                 General Information
               </h2>
 
-              <p className="mt-1 text-sm text-neutral-500">
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  text-neutral-500
+                "
+              >
                 Basic information about this product.
               </p>
+
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+
+            <div
+              className="
+                grid
+                gap-5
+                md:grid-cols-2
+              "
+            >
 
               {/* Brand */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Brand
                 </label>
+
 
                 <select
                   name="brand"
@@ -1027,17 +1361,34 @@ setVariants(
                     product?.brand ||
                     ""
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                   required
                 >
+
                   <option value="">
                     Select Brand
                   </option>
+
 
                   {brands.map(
                     (
                       brand
                     ) => (
+
                       <option
                         key={
                           brand.id
@@ -1050,17 +1401,31 @@ setVariants(
                           brand.name
                         }
                       </option>
+
                     )
                   )}
+
                 </select>
+
               </div>
+
 
               {/* SKU */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   SKU
                 </label>
+
 
                 <input
                   name="sku"
@@ -1069,16 +1434,42 @@ setVariants(
                     product?.sku ??
                     ""
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 />
+
               </div>
+
 
               {/* Product Name */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Product Name
                 </label>
+
 
                 <input
                   name="name"
@@ -1089,28 +1480,58 @@ setVariants(
                   onChange={(
                     e
                   ) => {
+
                     if (
                       !slugEdited.current
                     ) {
+
                       setSlug(
                         slugify(
                           e.target
                             .value
                         )
                       );
+
                     }
+
                   }}
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                   required
                 />
+
               </div>
+
 
               {/* Slug */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Slug
                 </label>
+
 
                 <input
                   name="slug"
@@ -1120,8 +1541,10 @@ setVariants(
                   onChange={(
                     e
                   ) => {
+
                     slugEdited.current =
                       true;
+
 
                     setSlug(
                       slugify(
@@ -1129,22 +1552,55 @@ setVariants(
                           .value
                       )
                     );
+
                   }}
                   placeholder="product-slug"
-                  className="w-full rounded-xl border border-neutral-300 bg-neutral-50 px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-neutral-50
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 />
 
-                <p className="text-xs text-neutral-500">
+
+                <p
+                  className="
+                    text-xs
+                    text-neutral-500
+                  "
+                >
                   Used for product URL.
                 </p>
+
               </div>
+
 
               {/* Model */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Model
                 </label>
+
 
                 <input
                   name="model"
@@ -1153,18 +1609,44 @@ setVariants(
                     product?.model ??
                     ""
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 />
+
               </div>
 
             </div>
 
+
             {/* Short Description */}
 
             <div className="mt-5 space-y-2">
-              <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+              <label
+                className="
+                  mb-1
+                  block
+                  text-sm
+                  font-semibold
+                  text-neutral-700
+                "
+              >
                 Short Description
               </label>
+
 
               <textarea
                 name="shortDescription"
@@ -1173,36 +1655,102 @@ setVariants(
                   product?.shortDescription ??
                   ""
                 }
-                className="h-20 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                className="
+                  h-20
+                  w-full
+                  rounded-xl
+                  border
+                  border-neutral-300
+                  bg-white
+                  px-4
+                  py-3
+                  transition-all
+                  duration-200
+                  focus:border-black
+                  focus:ring-2
+                  focus:ring-black/5
+                  focus:outline-none
+                "
               />
+
             </div>
 
           </div>
 
-          {/* =================================================== */}
-          {/* Pricing */}
-          {/* =================================================== */}
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+          {/* ================================================= */}
+          {/* PRICING */}
+          {/* ================================================= */}
+
+          <div
+            className="
+              rounded-2xl
+              border
+              border-neutral-200
+              bg-white
+              p-6
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
+            "
+          >
 
             <div className="mb-6">
-              <h2 className="text-xl font-semibold tracking-tight">
+
+              <h2
+                className="
+                  text-xl
+                  font-semibold
+                  tracking-tight
+                "
+              >
                 Pricing
               </h2>
 
-              <p className="mt-1 text-sm text-neutral-500">
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  text-neutral-500
+                "
+              >
                 Configure selling price and cost.
               </p>
+
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+
+            <div
+              className="
+                grid
+                gap-5
+                md:grid-cols-2
+              "
+            >
 
               {/* Price Remark */}
 
-              <div className="space-y-2 md:col-span-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+              <div
+                className="
+                  space-y-2
+                  md:col-span-2
+                "
+              >
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Price Remark
                 </label>
+
 
                 <input
                   name="priceRemark"
@@ -1211,16 +1759,42 @@ setVariants(
                     product?.priceRemark ??
                     ""
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 />
+
               </div>
+
 
               {/* Cost Price */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Cost Price (CNY)
                 </label>
+
 
                 <input
                   name="costPriceCny"
@@ -1241,16 +1815,42 @@ setVariants(
                       )
                     )
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 />
+
               </div>
+
 
               {/* Selling Price */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Selling Price (MYR)
                 </label>
+
 
                 <input
                   name="price"
@@ -1271,95 +1871,265 @@ setVariants(
                       )
                     )
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                   required
                 />
+
               </div>
 
             </div>
 
-            {/* Profit Summary */}
 
-            <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
+            {/* ================================================= */}
+            {/* PROFIT SUMMARY */}
+            {/* ================================================= */}
 
-              <h3 className="mb-5 text-lg font-medium">
-                Profit Summary
-              </h3>
+            <div
+              className="
+                mt-6
+                rounded-2xl
+                border
+                border-neutral-200
+                bg-neutral-50
+                p-6
+              "
+            >
 
-              <div className="space-y-4 text-sm">
+              <div className="mb-5">
 
-                <div className="flex justify-between">
+                <h3
+                  className="
+                    text-lg
+                    font-medium
+                  "
+                >
+                  Profit Summary
+                </h3>
+
+
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    text-neutral-500
+                  "
+                >
+                  {hasMultipleSizes
+                    ? "Calculated from each variant's pricing. Every variant is counted as 1 stock unit."
+                    : hasVariants
+                    ? "Product pricing is applied to each color. Every color is counted as 1 stock unit."
+                    : "Product pricing is counted as 1 stock unit."
+                  }
+                </p>
+
+              </div>
+
+
+              <div
+                className="
+                  space-y-4
+                  text-sm
+                "
+              >
+
+                {/* Product Cost */}
+
+                <div
+                  className="
+                    flex
+                    justify-between
+                  "
+                >
+
                   <span>
-                    Cost Price (CNY)
+                    Product Cost Price (CNY)
                   </span>
+
 
                   <span className="font-medium">
                     ¥{" "}
-                    {product?.costPriceCny?.toFixed(
+                    {costPriceCny.toFixed(
                       2
-                    ) ??
-                      "0.00"}
+                    )}
                   </span>
+
                 </div>
 
-                <div className="flex justify-between">
+
+                {/* Exchange Rate */}
+
+                <div
+                  className="
+                    flex
+                    justify-between
+                  "
+                >
+
                   <span>
                     Exchange Rate
                   </span>
+
 
                   <span className="font-medium">
                     {exchangeRate.toFixed(
                       2
                     )}
                   </span>
+
                 </div>
 
-                <div className="flex justify-between">
+
+                {/* Estimated Cost */}
+
+                <div
+                  className="
+                    flex
+                    justify-between
+                  "
+                >
+
                   <span>
                     Estimated Cost (MYR)
                   </span>
 
+
                   <span className="font-medium">
                     RM{" "}
-                    {(
-                      costPriceCny *
-                      exchangeRate
-                    ).toFixed(
+                    {estimatedCostMyr.toFixed(
                       2
                     )}
                   </span>
+
                 </div>
 
-                <div className="flex justify-between">
+
+                {/* Stock Units */}
+
+                <div
+                  className="
+                    flex
+                    justify-between
+                  "
+                >
+
                   <span>
-                    Selling Price
+                    Stock Units
                   </span>
+
+
+                  <span className="font-medium">
+                    {
+                      hasVariants
+                        ? activeVariants.length
+                        : 1
+                    }
+                  </span>
+
+                </div>
+
+
+                {/* Potential Revenue */}
+
+                <div
+                  className="
+                    flex
+                    justify-between
+                  "
+                >
+
+                  <span>
+                    Potential Revenue
+                  </span>
+
 
                   <span className="font-medium">
                     RM{" "}
-                    {sellingPrice.toFixed(
+                    {potentialRevenue.toFixed(
                       2
                     )}
                   </span>
+
                 </div>
+
 
                 <hr />
 
-                <div className="flex justify-between text-base font-semibold">
+
+                {/* Estimated Profit */}
+
+                <div
+                  className="
+                    flex
+                    justify-between
+                    text-base
+                    font-semibold
+                  "
+                >
+
                   <span>
                     Estimated Profit
                   </span>
 
-                  <span className="text-green-600">
+
+                  <span
+                    className={
+                      estimatedProfit >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }
+                  >
                     RM{" "}
-                    {(
-                      sellingPrice -
-                      costPriceCny *
-                        exchangeRate
-                    ).toFixed(
+                    {estimatedProfit.toFixed(
                       2
                     )}
                   </span>
+
+                </div>
+
+
+                {/* Margin */}
+
+                <div
+                  className="
+                    flex
+                    justify-between
+                  "
+                >
+
+                  <span>
+                    Estimated Margin
+                  </span>
+
+
+                  <span
+                    className={
+                      estimatedMargin >= 40
+                        ? "font-semibold text-green-600"
+                        : estimatedMargin >= 20
+                        ? "font-semibold text-yellow-600"
+                        : "font-semibold text-red-600"
+                    }
+                  >
+                    {estimatedMargin.toFixed(
+                      1
+                    )}
+                    %
+                  </span>
+
                 </div>
 
               </div>
@@ -1368,23 +2138,58 @@ setVariants(
 
           </div>
 
-          {/* =================================================== */}
-          {/* Product Details */}
-          {/* =================================================== */}
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+          {/* ================================================= */}
+          {/* PRODUCT DETAILS */}
+          {/* ================================================= */}
+
+          <div
+            className="
+              rounded-2xl
+              border
+              border-neutral-200
+              bg-white
+              p-6
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
+            "
+          >
 
             <div className="mb-6">
-              <h2 className="text-xl font-semibold tracking-tight">
+
+              <h2
+                className="
+                  text-xl
+                  font-semibold
+                  tracking-tight
+                "
+              >
                 Product Details
               </h2>
 
-              <p className="mt-1 text-sm text-neutral-500">
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  text-neutral-500
+                "
+              >
                 Physical specifications and description.
               </p>
+
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+
+            <div
+              className="
+                grid
+                gap-5
+                md:grid-cols-2
+              "
+            >
 
               {/* Category */}
 
@@ -1400,12 +2205,23 @@ setVariants(
                 }
               />
 
+
               {/* Availability */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Availability
                 </label>
+
 
                 <select
                   name="availability"
@@ -1413,8 +2229,23 @@ setVariants(
                     product?.availability ??
                     "PRE_ORDER"
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 >
+
                   <option value="IN_STOCK">
                     In Stock
                   </option>
@@ -1430,30 +2261,53 @@ setVariants(
                   <option value="SOLD_OUT">
                     Sold Out
                   </option>
+
                 </select>
+
               </div>
 
-              {/* ================================================= */}
-              {/* Packaging */}
-              {/* ================================================= */}
 
-              <div className="space-y-2 md:col-span-2">
+              {/* Packaging */}
+
+              <div
+                className="
+                  space-y-2
+                  md:col-span-2
+                "
+              >
 
                 <div>
+
                   <label
                     htmlFor="customPackagingId"
-                    className="mb-1 block text-sm font-semibold text-neutral-700"
+                    className="
+                      mb-1
+                      block
+                      text-sm
+                      font-semibold
+                      text-neutral-700
+                    "
                   >
                     Packaging
                   </label>
 
-                  <p className="mb-3 text-xs leading-5 text-neutral-500">
+
+                  <p
+                    className="
+                      mb-3
+                      text-xs
+                      leading-5
+                      text-neutral-500
+                    "
+                  >
                     By default, this product will use
                     its brand packaging. If no brand
                     packaging is available, the default
                     packaging will be used.
                   </p>
+
                 </div>
+
 
                 <select
                   id="customPackagingId"
@@ -1465,16 +2319,33 @@ setVariants(
                         )
                       : ""
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 >
+
                   <option value="">
                     Automatic — Brand Packaging
                   </option>
+
 
                   {activePackaging.map(
                     (
                       packaging
                     ) => (
+
                       <option
                         key={
                           packaging.id
@@ -1487,11 +2358,19 @@ setVariants(
                           ? `${packaging.name} — Brand`
                           : `${packaging.name} — Default`}
                       </option>
+
                     )
                   )}
+
                 </select>
 
-                <p className="text-xs text-neutral-400">
+
+                <p
+                  className="
+                    text-xs
+                    text-neutral-400
+                  "
+                >
                   Select a packaging profile only when
                   this product needs a custom packaging
                   override.
@@ -1499,12 +2378,23 @@ setVariants(
 
               </div>
 
+
               {/* Dimensions */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Dimensions
                 </label>
+
 
                 <input
                   name="dimensions"
@@ -1513,16 +2403,42 @@ setVariants(
                     product?.dimensions ??
                     ""
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 />
+
               </div>
+
 
               {/* Primary Color */}
 
               <div className="space-y-2">
-                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+                <label
+                  className="
+                    mb-1
+                    block
+                    text-sm
+                    font-semibold
+                    text-neutral-700
+                  "
+                >
                   Primary Color
                 </label>
+
 
                 <input
                   name="mainColor"
@@ -1531,9 +2447,25 @@ setVariants(
                     product?.mainColor ??
                     ""
                   }
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-300
+                    bg-white
+                    px-4
+                    py-3
+                    transition-all
+                    duration-200
+                    focus:border-black
+                    focus:ring-2
+                    focus:ring-black/5
+                    focus:outline-none
+                  "
                 />
+
               </div>
+
 
               {/* Colors */}
 
@@ -1551,12 +2483,23 @@ setVariants(
 
             </div>
 
+
             {/* Description */}
 
             <div className="mt-6 space-y-2">
-              <label className="mb-1 block text-sm font-semibold text-neutral-700">
+
+              <label
+                className="
+                  mb-1
+                  block
+                  text-sm
+                  font-semibold
+                  text-neutral-700
+                "
+              >
                 Description
               </label>
+
 
               <textarea
                 name="description"
@@ -1564,55 +2507,95 @@ setVariants(
                 defaultValue={
                   product?.description
                 }
-                className="h-40 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 transition-all duration-200 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none"
+                className="
+                  h-40
+                  w-full
+                  rounded-xl
+                  border
+                  border-neutral-300
+                  bg-white
+                  px-4
+                  py-3
+                  transition-all
+                  duration-200
+                  focus:border-black
+                  focus:ring-2
+                  focus:ring-black/5
+                  focus:outline-none
+                "
                 required
               />
+
             </div>
 
           </div>
 
-          {/* =================================================== */}
-          {/* Variants */}
-          {/* =================================================== */}
 
-          <VariantManager
-            variants={
-              variants
-            }
-            colors={
-              colors
-            }
-            onChange={
-              setVariants
-            }
-            defaultExchangeRate={
-              exchangeRate
-            }
-          />
+          {/* ================================================= */}
+          {/* VARIANTS */}
+          {/* ================================================= */}
+
+<VariantManager
+  variants={variants}
+  colors={colors}
+  onChange={setVariants}
+  defaultExchangeRate={exchangeRate}
+  productPrice={sellingPrice}
+/>
 
         </div>
 
-        {/* ===================================================== */}
+
+        {/* ================================================= */}
         {/* RIGHT */}
-        {/* ===================================================== */}
+        {/* ================================================= */}
 
         <div className="space-y-8">
 
-          {/* =================================================== */}
-          {/* Media */}
-          {/* =================================================== */}
+          {/* ================================================= */}
+          {/* MEDIA */}
+          {/* ================================================= */}
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+          <div
+            className="
+              rounded-2xl
+              border
+              border-neutral-200
+              bg-white
+              p-6
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
+            "
+          >
 
             <div className="mb-6">
-              <h2 className="text-xl font-semibold tracking-tight">
+
+              <h2
+                className="
+                  text-xl
+                  font-semibold
+                  tracking-tight
+                "
+              >
                 Media
               </h2>
 
-              <p className="mt-1 text-sm text-neutral-500">
+
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  text-neutral-500
+                "
+              >
                 Upload the main image and gallery images.
               </p>
+
             </div>
+
 
             <ImageUpload
               images={
@@ -1625,25 +2608,61 @@ setVariants(
 
           </div>
 
-          {/* =================================================== */}
-          {/* Product Information */}
-          {/* =================================================== */}
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+          {/* ================================================= */}
+          {/* PRODUCT INFORMATION */}
+          {/* ================================================= */}
+
+          <div
+            className="
+              rounded-2xl
+              border
+              border-neutral-200
+              bg-white
+              p-6
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
+            "
+          >
 
             <div className="mb-6">
-              <h2 className="text-xl font-semibold tracking-tight">
+
+              <h2
+                className="
+                  text-xl
+                  font-semibold
+                  tracking-tight
+                "
+              >
                 Product Information
               </h2>
 
-              <p className="mt-1 text-sm text-neutral-500">
+
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  text-neutral-500
+                "
+              >
                 Quick overview of this product.
               </p>
+
             </div>
+
 
             <div className="space-y-4 text-sm">
 
-              <div className="flex justify-between">
+              <div
+                className="
+                  flex
+                  justify-between
+                "
+              >
+
                 <span>
                   Brand
                 </span>
@@ -1652,9 +2671,17 @@ setVariants(
                   {product?.brand ||
                     "-"}
                 </span>
+
               </div>
 
-              <div className="flex justify-between">
+
+              <div
+                className="
+                  flex
+                  justify-between
+                "
+              >
+
                 <span>
                   SKU
                 </span>
@@ -1663,9 +2690,17 @@ setVariants(
                   {product?.sku ||
                     "-"}
                 </span>
+
               </div>
 
-              <div className="flex justify-between">
+
+              <div
+                className="
+                  flex
+                  justify-between
+                "
+              >
+
                 <span>
                   Category
                 </span>
@@ -1674,9 +2709,17 @@ setVariants(
                   {product?.category ||
                     "-"}
                 </span>
+
               </div>
 
-              <div className="flex justify-between">
+
+              <div
+                className="
+                  flex
+                  justify-between
+                "
+              >
+
                 <span>
                   Created
                 </span>
@@ -1688,31 +2731,75 @@ setVariants(
                       )
                     : "-"}
                 </span>
+
               </div>
 
             </div>
 
           </div>
 
-          {/* =================================================== */}
-          {/* Product Tags */}
-          {/* =================================================== */}
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+          {/* ================================================= */}
+          {/* PRODUCT TAGS */}
+          {/* ================================================= */}
+
+          <div
+            className="
+              rounded-2xl
+              border
+              border-neutral-200
+              bg-white
+              p-6
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
+            "
+          >
 
             <div className="mb-6">
-              <h2 className="text-xl font-semibold tracking-tight">
+
+              <h2
+                className="
+                  text-xl
+                  font-semibold
+                  tracking-tight
+                "
+              >
                 Product Tags
               </h2>
 
-              <p className="mt-1 text-sm text-neutral-500">
+
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  text-neutral-500
+                "
+              >
                 Highlight this product in different sections.
               </p>
+
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
 
-              <label className="flex items-center gap-3">
+            <div
+              className="
+                grid
+                gap-3
+                sm:grid-cols-2
+              "
+            >
+
+              <label
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
+
                 <input
                   type="checkbox"
                   name="featured"
@@ -1722,9 +2809,18 @@ setVariants(
                 />
 
                 Featured
+
               </label>
 
-              <label className="flex items-center gap-3">
+
+              <label
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
+
                 <input
                   type="checkbox"
                   name="newArrival"
@@ -1734,9 +2830,18 @@ setVariants(
                 />
 
                 New Arrival
+
               </label>
 
-              <label className="flex items-center gap-3">
+
+              <label
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
+
                 <input
                   type="checkbox"
                   name="bestSeller"
@@ -1746,9 +2851,18 @@ setVariants(
                 />
 
                 Best Seller
+
               </label>
 
-              <label className="flex items-center gap-3">
+
+              <label
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
+
                 <input
                   type="checkbox"
                   name="limited"
@@ -1758,9 +2872,18 @@ setVariants(
                 />
 
                 Limited Edition
+
               </label>
 
-              <label className="flex items-center gap-3">
+
+              <label
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
+
                 <input
                   type="checkbox"
                   name="onSale"
@@ -1770,31 +2893,52 @@ setVariants(
                 />
 
                 Sale
+
               </label>
 
             </div>
 
           </div>
 
-          {/* =================================================== */}
-          {/* Save Button */}
-          {/* =================================================== */}
+
+          {/* ================================================= */}
+          {/* SAVE BUTTON */}
+          {/* ================================================= */}
 
           <button
             type="submit"
             disabled={
               isPending
             }
-            className="w-full rounded-xl bg-black px-6 py-4 text-base font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+            className="
+              w-full
+              rounded-xl
+              bg-black
+              px-6
+              py-4
+              text-base
+              font-semibold
+              text-white
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:bg-neutral-800
+              hover:shadow-lg
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+            "
           >
+
             {isPending
               ? "Saving Product..."
               : submitText}
+
           </button>
 
         </div>
 
       </div>
+
     </form>
   );
 }

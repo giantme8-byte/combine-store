@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 
+
 export default async function BestSellers() {
   const allBestSellerProducts =
     await prisma.product.findMany({
@@ -16,6 +17,7 @@ export default async function BestSellers() {
         brand: true,
         name: true,
         model: true,
+        price: true,
         createdAt: true,
 
         featured: true,
@@ -37,6 +39,7 @@ export default async function BestSellers() {
         },
       },
     });
+
 
   /*
    * =========================================================
@@ -65,6 +68,7 @@ export default async function BestSellers() {
     )
     .slice(0, 4);
 
+
   return (
     <section
       className="
@@ -77,6 +81,7 @@ export default async function BestSellers() {
         lg:px-12
       "
     >
+
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -90,6 +95,7 @@ export default async function BestSellers() {
           sm:mb-24
         "
       >
+
         <p
           className="
             text-[10px]
@@ -102,6 +108,7 @@ export default async function BestSellers() {
         >
           BEST SELLERS
         </p>
+
 
         <h2
           className="
@@ -118,6 +125,7 @@ export default async function BestSellers() {
           Our Signature Pieces
         </h2>
 
+
         <div
           className="
             mx-auto
@@ -132,6 +140,7 @@ export default async function BestSellers() {
             sm:w-20
           "
         />
+
 
         <p
           className="
@@ -150,6 +159,7 @@ export default async function BestSellers() {
           timeless elegance, exceptional craftsmanship and enduring
           popularity among our clients worldwide.
         </p>
+
 
         <Link
           href="/shop"
@@ -182,12 +192,15 @@ export default async function BestSellers() {
         >
           View Collection
         </Link>
+
       </div>
 
+
+      {/* ================================================= */}
+      {/* Empty State / Products */}
+      {/* ================================================= */}
+
       {products.length === 0 ? (
-        /* ================================================= */
-        /* Empty State */
-        /* ================================================= */
 
         <div
           className="
@@ -202,6 +215,7 @@ export default async function BestSellers() {
             sm:py-24
           "
         >
+
           <h3
             className="
               text-2xl
@@ -213,6 +227,7 @@ export default async function BestSellers() {
           >
             Our Signature Collection Is Coming Soon
           </h3>
+
 
           <p
             className="
@@ -230,11 +245,10 @@ export default async function BestSellers() {
             We are curating our most iconic luxury pieces. Please check
             back soon for our signature selection.
           </p>
+
         </div>
+
       ) : (
-        /* ================================================= */
-        /* Products */
-        /* ================================================= */
 
         <div
           className="
@@ -246,31 +260,81 @@ export default async function BestSellers() {
             lg:gap-8
           "
         >
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              slug={product.slug ?? ""}
-              brand={product.brand}
-              name={product.name}
-              model={product.model}
-              image={
-                product.images[0]?.url ??
-                "/placeholder.png"
-              }
-              secondImage={
-                product.images[1]?.url
-              }
-              createdAt={product.createdAt}
-              featured={product.featured}
-              newArrival={product.newArrival}
-              bestSeller={product.bestSeller}
-              limited={product.limited}
-              onSale={product.onSale}
-            />
-          ))}
+
+          {products.map(
+            (product) => (
+
+              <ProductCard
+                key={
+                  product.id
+                }
+
+                id={
+                  product.id
+                }
+
+                slug={
+                  product.slug ??
+                  ""
+                }
+
+                brand={
+                  product.brand
+                }
+
+                name={
+                  product.name
+                }
+
+                model={
+                  product.model
+                }
+
+                price={
+                  product.price
+                }
+
+                image={
+                  product.images[0]?.url ??
+                  "/placeholder.png"
+                }
+
+                secondImage={
+                  product.images[1]?.url
+                }
+
+                createdAt={
+                  product.createdAt
+                }
+
+                featured={
+                  product.featured
+                }
+
+                newArrival={
+                  product.newArrival
+                }
+
+                bestSeller={
+                  product.bestSeller
+                }
+
+                limited={
+                  product.limited
+                }
+
+                onSale={
+                  product.onSale
+                }
+              />
+
+            )
+          )}
+
         </div>
+
       )}
+
     </section>
   );
 }

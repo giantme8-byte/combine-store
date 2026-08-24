@@ -8,29 +8,72 @@ import {
   type ReactNode,
 } from "react";
 
+
+// ============================================================
+// PRODUCT COLOR IMAGE
+// ============================================================
+
 export type ProductColorImage = {
   id: number;
+
   url: string;
+
   publicId: string;
+
   sortOrder: number;
 };
 
+
+// ============================================================
+// PRODUCT COLOR
+// ============================================================
+
 export type ProductColor = {
   id: number;
+
   name: string;
+
+  /*
+   * Color-specific Model No.
+   *
+   * Example:
+   *
+   * Black → M12345
+   * White → M67890
+   *
+   * null = this Color does not have
+   * its own Model No.
+   */
+  model: string | null;
+
   imageUrl: string | null;
 
   images: ProductColorImage[];
 };
 
+
+// ============================================================
+// PRODUCT VARIANT IMAGE
+// ============================================================
+
 export type ProductVariantImage = {
   id: number;
+
   url: string;
+
   publicId: string;
+
   altText: string | null;
+
   caption: string | null;
+
   sortOrder: number;
 };
+
+
+// ============================================================
+// PRODUCT VARIANT
+// ============================================================
 
 export type ProductVariant = {
   id: number;
@@ -72,8 +115,21 @@ export type ProductVariant = {
    */
   price: number | null;
 
+  /**
+   * Variant-specific Model No.
+   *
+   * Example:
+   *
+   * Black / Small → M12345
+   * Black / Large → M12346
+   *
+   * null = use Color Model or
+   * Product Model as fallback.
+   */
   model: string | null;
+
   dimensions: string | null;
+
   imageUrl: string | null;
 
   /**
@@ -85,9 +141,19 @@ export type ProductVariant = {
   images: ProductVariantImage[];
 };
 
+
+// ============================================================
+// PRODUCT GALLERY SELECTION
+// ============================================================
+
 export type ProductGallerySelection =
   | "color"
   | "variant";
+
+
+// ============================================================
+// PRODUCT CONTEXT TYPE
+// ============================================================
 
 type ProductContextType = {
   colors: ProductColor[];
@@ -119,10 +185,20 @@ type ProductContextType = {
   ) => void;
 };
 
+
+// ============================================================
+// CONTEXT
+// ============================================================
+
 const ProductContext =
   createContext<ProductContextType | null>(
     null
   );
+
+
+// ============================================================
+// PROVIDER PROPS
+// ============================================================
 
 type ProviderProps = {
   colors: ProductColor[];
@@ -132,11 +208,17 @@ type ProviderProps = {
   children: ReactNode;
 };
 
+
+// ============================================================
+// PROVIDER
+// ============================================================
+
 export function ProductProvider({
   colors,
   variants,
   children,
 }: ProviderProps) {
+
   const [
     selectedColor,
     setSelectedColor,
@@ -144,6 +226,7 @@ export function ProductProvider({
     useState<ProductColor | null>(
       colors[0] ?? null
     );
+
 
   const [
     selectedVariant,
@@ -153,6 +236,7 @@ export function ProductProvider({
       variants[0] ?? null
     );
 
+
   const [
     selectionSource,
     setSelectionSource,
@@ -161,10 +245,12 @@ export function ProductProvider({
       "color"
     );
 
+
   const [
     quantity,
     setQuantity,
   ] = useState(1);
+
 
   const value =
     useMemo(
@@ -204,6 +290,7 @@ export function ProductProvider({
       ]
     );
 
+
   return (
     <ProductContext.Provider
       value={value}
@@ -213,17 +300,27 @@ export function ProductProvider({
   );
 }
 
+
+// ============================================================
+// HOOK
+// ============================================================
+
 export function useProduct() {
+
   const context =
     useContext(
       ProductContext
     );
 
+
   if (!context) {
+
     throw new Error(
       "useProduct must be used inside ProductProvider."
     );
+
   }
+
 
   return context;
 }
