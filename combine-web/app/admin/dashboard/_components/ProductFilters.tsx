@@ -7,8 +7,14 @@ import {
 
 import {
   useEffect,
+  useRef,
   useState,
 } from "react";
+
+
+// ============================================================
+// TYPES
+// ============================================================
 
 type ProductFiltersProps = {
   brands: {
@@ -22,51 +28,68 @@ type ProductFiltersProps = {
   }[];
 };
 
+
+// ============================================================
+// PRODUCT FILTERS
+// ============================================================
+
 export default function ProductFilters({
   brands,
   categories,
 }: ProductFiltersProps) {
+
   const router =
     useRouter();
+
 
   const searchParams =
     useSearchParams();
 
-  // =========================================================
-  // Search
-  // =========================================================
-
-  const [search, setSearch] =
-    useState(
-      searchParams.get(
-        "search"
-      ) ?? ""
-    );
 
   // =========================================================
-  // Brand
+  // SEARCH
   // =========================================================
 
-  const [brand, setBrand] =
-    useState(
-      searchParams.get(
-        "brand"
-      ) ?? ""
-    );
+  const [
+    search,
+    setSearch,
+  ] = useState(
+    searchParams.get(
+      "search"
+    ) ?? ""
+  );
+
 
   // =========================================================
-  // Category
+  // BRAND
   // =========================================================
 
-  const [category, setCategory] =
-    useState(
-      searchParams.get(
-        "category"
-      ) ?? ""
-    );
+  const [
+    brand,
+    setBrand,
+  ] = useState(
+    searchParams.get(
+      "brand"
+    ) ?? ""
+  );
+
 
   // =========================================================
-  // Availability
+  // CATEGORY
+  // =========================================================
+
+  const [
+    category,
+    setCategory,
+  ] = useState(
+    searchParams.get(
+      "category"
+    ) ?? ""
+  );
+
+
+  // =========================================================
+  // AVAILABILITY
   // =========================================================
 
   const [
@@ -78,34 +101,60 @@ export default function ProductFilters({
     ) ?? ""
   );
 
-  // =========================================================
-  // Sort
-  // =========================================================
-  //
-  // IMPORTANT:
-  //
-  // "manual" = Product.displayOrder
-  //
-  // This is the sorting mode used by Drag & Drop.
-  //
-
-  const [sort, setSort] =
-    useState(
-      searchParams.get(
-        "sort"
-      ) ?? "manual"
-    );
 
   // =========================================================
-  // Sync State With URL
+  // SORT
+  // =========================================================
+
+  /*
+   * "manual" = Product.displayOrder
+   *
+   * This is the sorting mode used by Drag & Drop.
+   */
+
+  const [
+    sort,
+    setSort,
+  ] = useState(
+    searchParams.get(
+      "sort"
+    ) ?? "manual"
+  );
+
+
+  // =========================================================
+  // SEARCH DEBOUNCE MOUNT GUARD
+  // =========================================================
+
+  /*
+   * IMPORTANT:
+   *
+   * Do NOT run the search debounce on the first mount.
+   *
+   * Otherwise, when returning from Edit Product:
+   *
+   * /products?page=2&sort=manual
+   *
+   * the initial search value "" would trigger
+   * updateFilters(), which deletes the page parameter.
+   */
+
+  const searchMounted =
+    useRef(false);
+
+
+  // =========================================================
+  // SYNC STATE WITH URL
   // =========================================================
 
   useEffect(() => {
+
     setSearch(
       searchParams.get(
         "search"
       ) ?? ""
     );
+
 
     setBrand(
       searchParams.get(
@@ -113,11 +162,13 @@ export default function ProductFilters({
       ) ?? ""
     );
 
+
     setCategory(
       searchParams.get(
         "category"
       ) ?? ""
     );
+
 
     setAvailability(
       searchParams.get(
@@ -125,33 +176,60 @@ export default function ProductFilters({
       ) ?? ""
     );
 
+
     setSort(
       searchParams.get(
         "sort"
       ) ?? "manual"
     );
-  }, [searchParams]);
+
+  }, [
+    searchParams,
+  ]);
+
 
   // =========================================================
-  // Search Debounce
+  // SEARCH DEBOUNCE
   // =========================================================
 
   useEffect(() => {
+
+    /*
+     * Skip the first render.
+     */
+
+    if (!searchMounted.current) {
+
+      searchMounted.current =
+        true;
+
+      return;
+
+    }
+
+
     const timeout =
       setTimeout(() => {
+
         updateFilters({
           search,
         });
+
       }, 500);
+
 
     return () =>
       clearTimeout(
         timeout
       );
-  }, [search]);
+
+  }, [
+    search,
+  ]);
+
 
   // =========================================================
-  // Update Filters
+  // UPDATE FILTERS
   // =========================================================
 
   function updateFilters(
@@ -163,141 +241,194 @@ export default function ProductFilters({
       sort?: string;
     }
   ) {
+
     const params =
       new URLSearchParams(
         searchParams.toString()
       );
 
+
     /*
      * Whenever filters change, always return to page 1.
      *
-     * Otherwise:
+     * This is intentional when the user actually changes
+     * a filter or search.
      *
-     * Page 4 + new filter
-     *
-     * could result in an empty page.
+     * It must NOT happen on the initial mount.
      */
-    params.delete("page");
 
-    // ---------------------------------------------------------
-    // Search
-    // ---------------------------------------------------------
+    params.delete(
+      "page"
+    );
+
+
+    // =======================================================
+    // SEARCH
+    // =======================================================
 
     if (
       values.search !==
       undefined
     ) {
-      if (values.search) {
+
+      if (
+        values.search
+      ) {
+
         params.set(
           "search",
           values.search
         );
+
       } else {
+
         params.delete(
           "search"
         );
+
       }
+
     }
 
-    // ---------------------------------------------------------
-    // Brand
-    // ---------------------------------------------------------
+
+    // =======================================================
+    // BRAND
+    // =======================================================
 
     if (
       values.brand !==
       undefined
     ) {
-      if (values.brand) {
+
+      if (
+        values.brand
+      ) {
+
         params.set(
           "brand",
           values.brand
         );
+
       } else {
+
         params.delete(
           "brand"
         );
+
       }
+
     }
 
-    // ---------------------------------------------------------
-    // Category
-    // ---------------------------------------------------------
+
+    // =======================================================
+    // CATEGORY
+    // =======================================================
 
     if (
       values.category !==
       undefined
     ) {
-      if (values.category) {
+
+      if (
+        values.category
+      ) {
+
         params.set(
           "category",
           values.category
         );
+
       } else {
+
         params.delete(
           "category"
         );
+
       }
+
     }
 
-    // ---------------------------------------------------------
-    // Availability
-    // ---------------------------------------------------------
+
+    // =======================================================
+    // AVAILABILITY
+    // =======================================================
 
     if (
       values.availability !==
       undefined
     ) {
+
       if (
         values.availability
       ) {
+
         params.set(
           "availability",
           values.availability
         );
+
       } else {
+
         params.delete(
           "availability"
         );
+
       }
+
     }
 
-    // ---------------------------------------------------------
-    // Sort
-    // ---------------------------------------------------------
+
+    // =======================================================
+    // SORT
+    // =======================================================
 
     if (
       values.sort !==
       undefined
     ) {
-      if (values.sort) {
+
+      if (
+        values.sort
+      ) {
+
         params.set(
           "sort",
           values.sort
         );
+
       } else {
+
         params.delete(
           "sort"
         );
+
       }
+
     }
+
 
     const query =
       params.toString();
+
 
     router.push(
       query
         ? `/admin/dashboard/products?${query}`
         : "/admin/dashboard/products"
     );
+
   }
 
+
   // =========================================================
-  // Apply Filters
+  // APPLY FILTERS
   // =========================================================
 
   function applyFilters() {
+
     const params =
       new URLSearchParams();
+
 
     /*
      * Always start from page 1
@@ -305,32 +436,44 @@ export default function ProductFilters({
      */
 
     if (search) {
+
       params.set(
         "search",
         search
       );
+
     }
 
+
     if (brand) {
+
       params.set(
         "brand",
         brand
       );
+
     }
 
+
     if (category) {
+
       params.set(
         "category",
         category
       );
+
     }
 
+
     if (availability) {
+
       params.set(
         "availability",
         availability
       );
+
     }
+
 
     /*
      * Manual Order is the default.
@@ -340,48 +483,61 @@ export default function ProductFilters({
      */
 
     if (sort) {
+
       params.set(
         "sort",
         sort
       );
+
     }
+
 
     const query =
       params.toString();
+
 
     router.push(
       query
         ? `/admin/dashboard/products?${query}`
         : "/admin/dashboard/products"
     );
+
   }
 
+
   // =========================================================
-  // Reset
+  // RESET
   // =========================================================
 
   function resetFilters() {
+
     setSearch("");
+
     setBrand("");
+
     setCategory("");
+
     setAvailability("");
 
     /*
-     * IMPORTANT:
-     *
      * Reset returns to Manual Order,
      * not Featured Order.
      */
 
-    setSort("manual");
+    setSort(
+      "manual"
+    );
+
 
     router.push(
       "/admin/dashboard/products?sort=manual"
     );
+
   }
 
+
   // =========================================================
-  // Render
+  // RENDER
   // =========================================================
 
   return (
@@ -389,9 +545,9 @@ export default function ProductFilters({
 
       <div className="grid gap-4 md:grid-cols-5">
 
-        {/* ================================================= */}
-        {/* Search */}
-        {/* ================================================= */}
+        {/* =================================================
+            SEARCH
+            ================================================= */}
 
         <input
           type="text"
@@ -403,76 +559,106 @@ export default function ProductFilters({
             )
           }
           onKeyDown={(e) => {
+
             if (
               e.key ===
               "Enter"
             ) {
+
               applyFilters();
+
             }
+
           }}
           className="rounded-lg border border-neutral-300 px-4 py-3 outline-none transition focus:border-black"
         />
 
-        {/* ================================================= */}
-        {/* Brand */}
-        {/* ================================================= */}
+
+        {/* =================================================
+            BRAND
+            ================================================= */}
 
         <select
           value={brand}
           onChange={(e) => {
+
             const value =
               e.target.value;
 
-            setBrand(value);
+
+            setBrand(
+              value
+            );
+
 
             updateFilters({
-              brand: value,
+              brand:
+                value,
             });
+
           }}
           className="rounded-lg border border-neutral-300 px-4 py-3"
         >
+
           <option value="">
             All Brands
           </option>
 
+
           {brands.map(
             (brand) => (
+
               <option
-                key={brand.id}
+                key={
+                  brand.id
+                }
                 value={
                   brand.name
                 }
               >
                 {brand.name}
               </option>
+
             )
           )}
+
         </select>
 
-        {/* ================================================= */}
-        {/* Category */}
-        {/* ================================================= */}
+
+        {/* =================================================
+            CATEGORY
+            ================================================= */}
 
         <select
           value={category}
           onChange={(e) => {
+
             const value =
               e.target.value;
 
-            setCategory(value);
+
+            setCategory(
+              value
+            );
+
 
             updateFilters({
-              category: value,
+              category:
+                value,
             });
+
           }}
           className="rounded-lg border border-neutral-300 px-4 py-3"
         >
+
           <option value="">
             All Categories
           </option>
 
+
           {categories.map(
             (category) => (
+
               <option
                 key={
                   category.id
@@ -483,124 +669,155 @@ export default function ProductFilters({
               >
                 {category.name}
               </option>
+
             )
           )}
+
         </select>
 
-        {/* ================================================= */}
-        {/* Availability */}
-        {/* ================================================= */}
+
+        {/* =================================================
+            AVAILABILITY
+            ================================================= */}
 
         <select
           value={
             availability
           }
           onChange={(e) => {
+
             const value =
               e.target.value;
+
 
             setAvailability(
               value
             );
 
+
             updateFilters({
               availability:
                 value,
             });
+
           }}
           className="rounded-lg border border-neutral-300 px-4 py-3"
         >
+
           <option value="">
             All Availability
           </option>
+
 
           <option value="IN_STOCK">
             In Stock
           </option>
 
+
           <option value="PRE_ORDER">
             Pre Order
           </option>
+
 
           <option value="LIMITED">
             Limited
           </option>
 
+
           <option value="SOLD_OUT">
             Sold Out
           </option>
+
         </select>
 
-        {/* ================================================= */}
-        {/* Sort */}
-        {/* ================================================= */}
+
+        {/* =================================================
+            SORT
+            ================================================= */}
 
         <select
-          value={sort}
+          value={
+            sort
+          }
           onChange={(e) => {
+
             const value =
               e.target.value;
 
-            setSort(value);
+
+            setSort(
+              value
+            );
+
 
             updateFilters({
-              sort: value,
+              sort:
+                value,
             });
+
           }}
           className="rounded-lg border border-neutral-300 px-4 py-3"
         >
 
-          {/* ================================================= */}
-          {/* Manual Order */}
-          {/* ================================================= */}
+          {/* ===============================================
+              Manual Order
+              =============================================== */}
 
           <option value="manual">
             Manual Order
           </option>
 
-          {/* ================================================= */}
-          {/* Date */}
-          {/* ================================================= */}
+
+          {/* ===============================================
+              Date
+              =============================================== */}
 
           <option value="latest">
             Latest First
           </option>
 
+
           <option value="oldest">
             Oldest First
           </option>
 
-          {/* ================================================= */}
-          {/* Name */}
-          {/* ================================================= */}
+
+          {/* ===============================================
+              Name
+              =============================================== */}
 
           <option value="name_az">
             Name A-Z
           </option>
 
+
           <option value="name_za">
             Name Z-A
           </option>
 
-          {/* ================================================= */}
-          {/* Brand */}
-          {/* ================================================= */}
+
+          {/* ===============================================
+              Brand
+              =============================================== */}
 
           <option value="brand_az">
             Brand A-Z
           </option>
 
+
           <option value="brand_za">
             Brand Z-A
           </option>
 
-          {/* ================================================= */}
-          {/* Price */}
-          {/* ================================================= */}
+
+          {/* ===============================================
+              Price
+              =============================================== */}
 
           <option value="price_low">
             Price Low - High
           </option>
+
 
           <option value="price_high">
             Price High - Low
@@ -610,9 +827,10 @@ export default function ProductFilters({
 
       </div>
 
-      {/* ================================================= */}
-      {/* Actions */}
-      {/* ================================================= */}
+
+      {/* =====================================================
+          ACTIONS
+          ===================================================== */}
 
       <div className="mt-5 flex justify-end gap-3">
 
@@ -625,6 +843,7 @@ export default function ProductFilters({
         >
           Reset
         </button>
+
 
         <button
           type="button"

@@ -4,38 +4,66 @@ import { randomBytes } from "crypto";
 
 import { prisma } from "@/lib/prisma";
 
-import { UserRole } from "@prisma/client";
 
+// ============================================================
+// ADMIN ROLES
+// ============================================================
+//
+// These roles are allowed to access the Admin Panel.
+//
+// CUSTOMER is intentionally NOT included here.
+//
+// CUSTOMER users are still allowed to log in.
+// They are simply redirected to /profile instead of /admin.
+//
 
-const ALLOWED_ROLES: UserRole[] = [
+const ADMIN_ROLES = [
   "OWNER",
   "ADMIN",
   "MANAGER",
   "STAFF",
-];
+] as const;
 
 
+// ============================================================
+// POST /api/auth/login
+// ============================================================
 
 export async function POST(
   request: Request
 ) {
   try {
+    // ========================================================
+    // READ REQUEST
+    // ========================================================
 
-    const body = await request.json();
+    const body =
+      await request.json();
 
+    // ========================================================
+    // NORMALIZE EMAIL
+    // ========================================================
 
     const email =
-      body.email
-        ?.trim()
-        .toLowerCase();
-
+      typeof body.email === "string"
+        ? body.email
+            .trim()
+            .toLowerCase()
+        : "";
 
     const password =
-      body.password;
+      typeof body.password === "string"
+        ? body.password
+        : "";
 
+    // ========================================================
+    // VALIDATION
+    // ========================================================
 
-
-    if (!email || !password) {
+    if (
+      !email ||
+      !password
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -48,7 +76,9 @@ export async function POST(
       );
     }
 
-
+    // ========================================================
+    // FIND USER
+    // ========================================================
 
     const user =
       await prisma.user.findUnique({
@@ -56,8 +86,6 @@ export async function POST(
           email,
         },
       });
-
-
 
     if (!user) {
       return NextResponse.json(
@@ -72,15 +100,15 @@ export async function POST(
       );
     }
 
-
+    // ========================================================
+    // CHECK PASSWORD
+    // ========================================================
 
     const passwordMatch =
       await bcrypt.compare(
         password,
         user.password
       );
-
-
 
     if (!passwordMatch) {
       return NextResponse.json(
@@ -95,28 +123,10 @@ export async function POST(
       );
     }
 
+    // ========================================================
+    // REMOVE EXPIRED SESSIONS
+    // ========================================================
 
-
-    if (
-      !ALLOWED_ROLES.includes(
-        user.role
-      )
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "You do not have permission to access the admin panel.",
-        },
-        {
-          status: 403,
-        }
-      );
-    }
-
-
-
-    // Remove expired sessions
     await prisma.session.deleteMany({
       where: {
         expiresAt: {
@@ -125,24 +135,30 @@ export async function POST(
       },
     });
 
-
+    // ========================================================
+    // CREATE SESSION TOKEN
+    // ========================================================
 
     const token =
       randomBytes(32).toString("hex");
 
-
+    // ========================================================
+    // SESSION EXPIRATION
+    // ========================================================
 
     const expiresAt =
       new Date(
         Date.now() +
           1000 *
-          60 *
-          60 *
-          24 *
-          30
+            60 *
+            60 *
+            24 *
+            30
       );
 
-
+    // ========================================================
+    // CREATE SESSION
+    // ========================================================
 
     await prisma.session.create({
       data: {
@@ -152,16 +168,45 @@ export async function POST(
       },
     });
 
+    // ========================================================
+    // DETERMINE DESTINATION
+    // ========================================================
 
+    const isAdmin =
+      ADMIN_ROLES.includes(
+        user.role as
+          (typeof ADMIN_ROLES)[number]
+      );
+
+    const redirectTo =
+      isAdmin
+        ? "/admin"
+        : "/profile";
+
+    // ========================================================
+    // RESPONSE
+    // ========================================================
 
     const response =
       NextResponse.json({
         success: true,
+
         message:
           "Login successful.",
+
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+
+        redirectTo,
       });
 
-
+    // ========================================================
+    // SESSION COOKIE
+    // ========================================================
 
     response.cookies.set(
       "combine_session",
@@ -173,8 +218,7 @@ export async function POST(
           process.env.NODE_ENV ===
           "production",
 
-        sameSite:
-          "lax",
+        sameSite: "lax",
 
         path: "/",
 
@@ -187,24 +231,21 @@ export async function POST(
           24 *
           30,
 
-        priority:
-          "high",
+        priority: "high",
       }
     );
 
-
+    // ========================================================
+    // RETURN
+    // ========================================================
 
     return response;
 
-
-
   } catch (error) {
-
     console.error(
       "Login failed:",
       error
     );
-
 
     return NextResponse.json(
       {

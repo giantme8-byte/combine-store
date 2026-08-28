@@ -7,15 +7,46 @@ import { getCurrentUser } from "@/lib/auth";
 import LogoutButton from "./_components/LogoutButton";
 
 
+// ============================================================
+// PROFILE PAGE
+// ============================================================
+
 export default async function ProfilePage() {
 
   const user =
     await getCurrentUser();
 
 
+  // ==========================================================
+  // NO USER
+  // ==========================================================
+
   if (!user) {
     redirect("/login");
   }
+
+
+  // ==========================================================
+  // FORMAT DATE OF BIRTH
+  // ==========================================================
+  //
+  // Convert the Prisma DateTime value into a normal
+  // JavaScript Date before formatting it.
+  //
+
+  const formattedDateOfBirth =
+    user.dateOfBirth
+      ? new Date(
+          user.dateOfBirth
+        ).toLocaleDateString(
+          "en-GB",
+          {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          }
+        )
+      : null;
 
 
   // ==========================================================
@@ -54,6 +85,10 @@ export default async function ProfilePage() {
   ]);
 
 
+  // ==========================================================
+  // RETURN
+  // ==========================================================
+
   return (
 
     <main
@@ -68,7 +103,6 @@ export default async function ProfilePage() {
         lg:px-12
       "
     >
-
 
       {/* ======================================================
           HEADER
@@ -141,7 +175,6 @@ export default async function ProfilePage() {
         </p>
 
       </div>
-
 
 
       {/* ======================================================
@@ -271,6 +304,35 @@ export default async function ProfilePage() {
 
 
           {/* ==================================================
+              DATE OF BIRTH
+          ================================================== */}
+
+          <p
+            className="
+              mt-5
+              text-[11px]
+              uppercase
+              tracking-[0.35em]
+              text-neutral-400
+            "
+          >
+            Date of Birth
+          </p>
+
+
+          <p
+            className="
+              mt-2
+              text-sm
+              text-neutral-500
+            "
+          >
+            {formattedDateOfBirth ??
+              "Not added yet"}
+          </p>
+
+
+          {/* ==================================================
               DIVIDER
           ================================================== */}
 
@@ -350,7 +412,6 @@ export default async function ProfilePage() {
         </section>
 
 
-
         {/* ====================================================
             RIGHT
         ==================================================== */}
@@ -413,7 +474,6 @@ export default async function ProfilePage() {
                 xl:grid-cols-3
               "
             >
-
 
               {/* =================================================
                   WISHLIST
@@ -489,7 +549,6 @@ export default async function ProfilePage() {
               </Link>
 
 
-
               {/* =================================================
                   INQUIRY
               ================================================= */}
@@ -562,7 +621,6 @@ export default async function ProfilePage() {
                 </div>
 
               </Link>
-
 
 
               {/* =================================================
@@ -643,7 +701,6 @@ export default async function ProfilePage() {
           </section>
 
 
-
           {/* ==================================================
               ACCOUNT SETTINGS
           ================================================== */}
@@ -692,7 +749,6 @@ export default async function ProfilePage() {
                 sm:space-y-5
               "
             >
-
 
               {/* =================================================
                   EDIT PROFILE
@@ -767,7 +823,7 @@ export default async function ProfilePage() {
                         text-neutral-500
                       "
                     >
-                      Update your name, phone number and profile photo.
+                      Update your personal information and profile photo.
                     </p>
 
                   </div>
@@ -788,7 +844,6 @@ export default async function ProfilePage() {
                 </div>
 
               </Link>
-
 
 
               {/* =================================================
@@ -887,7 +942,6 @@ export default async function ProfilePage() {
               </Link>
 
 
-
               {/* =================================================
                   ORDER HISTORY
               ================================================= */}
@@ -984,7 +1038,6 @@ export default async function ProfilePage() {
               </Link>
 
 
-
               {/* =================================================
                   LOGOUT
               ================================================= */}
@@ -1058,7 +1111,5 @@ export default async function ProfilePage() {
       </div>
 
     </main>
-
   );
-
 }

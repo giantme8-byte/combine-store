@@ -1,70 +1,201 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import {
+  FormEvent,
+  useState,
+} from "react";
+
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+
+import {
+  useRouter,
+} from "next/navigation";
 
 export default function RegisterPage() {
-  const router = useRouter();
+  const router =
+    useRouter();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [
+    name,
+    setName,
+  ] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [
+    email,
+    setEmail,
+  ] = useState("");
+
+  const [
+    dateOfBirth,
+    setDateOfBirth,
+  ] = useState("");
+
+  const [
+    password,
+    setPassword,
+  ] = useState("");
+
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState("");
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+
+  // ============================================================
+  // SUBMIT
+  // ============================================================
 
   async function handleSubmit(
     e: FormEvent<HTMLFormElement>
   ) {
     e.preventDefault();
 
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     setError("");
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+
+    // ==========================================================
+    // PASSWORD MATCH
+    // ==========================================================
+
+    if (
+      password !==
+      confirmPassword
+    ) {
+      setError(
+        "Passwords do not match."
+      );
+
       return;
     }
+
+
+    // ==========================================================
+    // DATE OF BIRTH
+    // ==========================================================
+
+    if (!dateOfBirth) {
+      setError(
+        "Please enter your date of birth."
+      );
+
+      return;
+    }
+
 
     try {
       setLoading(true);
 
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
-      });
 
-      const data = await res.json();
+      // ========================================================
+      // REGISTER REQUEST
+      // ========================================================
 
-      if (!data.success) {
-        setError(data.message);
+      const res =
+        await fetch(
+          "/api/auth/register",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                name,
+                email,
+                password,
+                dateOfBirth,
+              }),
+          }
+        );
+
+
+      // ========================================================
+      // RESPONSE
+      // ========================================================
+
+      const data =
+        await res.json();
+
+
+      // ========================================================
+      // FAILED
+      // ========================================================
+
+      if (!res.ok) {
+        setError(
+          data.message ??
+            "Unable to create your account."
+        );
+
         return;
       }
 
-      router.push("/login");
+
+      // ========================================================
+      // SUCCESS
+      // ========================================================
+
+      router.push(
+        "/login"
+      );
+
       router.refresh();
+
+
     } catch (error) {
-      console.error(error);
+
+      console.error(
+        error
+      );
+
       setError(
         "Something went wrong. Please try again."
       );
+
+
     } finally {
+
       setLoading(false);
+
     }
   }
 
+
+  // ============================================================
+  // RENDER
+  // ============================================================
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-[1440px] items-center justify-center px-8 py-24 lg:px-12">
+    <main
+      className="
+        mx-auto
+        flex
+        min-h-screen
+        max-w-[1440px]
+        items-center
+        justify-center
+        px-8
+        py-24
+        lg:px-12
+      "
+    >
 
       <div
         className="
@@ -79,6 +210,10 @@ export default function RegisterPage() {
         "
       >
 
+        {/* ==================================================== */}
+        {/* HEADER */}
+        {/* ==================================================== */}
+
         <div className="text-center">
 
           <p
@@ -92,6 +227,7 @@ export default function RegisterPage() {
             ACCOUNT
           </p>
 
+
           <h1
             className="
               mt-6
@@ -103,6 +239,7 @@ export default function RegisterPage() {
           >
             Create Account
           </h1>
+
 
           <div
             className="
@@ -116,6 +253,7 @@ export default function RegisterPage() {
               to-transparent
             "
           />
+
 
           <p
             className="
@@ -134,10 +272,24 @@ export default function RegisterPage() {
 
         </div>
 
+
+        {/* ==================================================== */}
+        {/* FORM */}
+        {/* ==================================================== */}
+
         <form
-          onSubmit={handleSubmit}
-          className="mt-14 space-y-8"
+          onSubmit={
+            handleSubmit
+          }
+          className="
+            mt-14
+            space-y-8
+          "
         >
+
+          {/* ================================================== */}
+          {/* FULL NAME */}
+          {/* ================================================== */}
 
           <div>
 
@@ -153,14 +305,19 @@ export default function RegisterPage() {
               Full Name
             </label>
 
+
             <input
               id="name"
               type="text"
               required
               autoComplete="name"
               value={name}
-              onChange={(e) =>
-                setName(e.target.value)
+              onChange={(
+                e
+              ) =>
+                setName(
+                  e.target.value
+                )
               }
               placeholder="Enter your full name"
               className="
@@ -171,6 +328,7 @@ export default function RegisterPage() {
                 border-neutral-200
                 px-6
                 py-4
+                text-neutral-900
                 outline-none
                 transition-all
                 duration-300
@@ -181,6 +339,11 @@ export default function RegisterPage() {
             />
 
           </div>
+
+
+          {/* ================================================== */}
+          {/* EMAIL */}
+          {/* ================================================== */}
 
           <div>
 
@@ -196,14 +359,19 @@ export default function RegisterPage() {
               Email
             </label>
 
+
             <input
               id="email"
               type="email"
               required
               autoComplete="email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
+              onChange={(
+                e
+              ) =>
+                setEmail(
+                  e.target.value
+                )
               }
               placeholder="Enter your email"
               className="
@@ -214,6 +382,7 @@ export default function RegisterPage() {
                 border-neutral-200
                 px-6
                 py-4
+                text-neutral-900
                 outline-none
                 transition-all
                 duration-300
@@ -224,6 +393,80 @@ export default function RegisterPage() {
             />
 
           </div>
+
+
+          {/* ================================================== */}
+          {/* DATE OF BIRTH */}
+          {/* ================================================== */}
+
+          <div>
+
+            <label
+              htmlFor="dateOfBirth"
+              className="
+                text-[11px]
+                uppercase
+                tracking-[0.35em]
+                text-neutral-400
+              "
+            >
+              Date of Birth
+            </label>
+
+
+            <input
+              id="dateOfBirth"
+              type="date"
+              required
+              autoComplete="bday"
+              value={
+                dateOfBirth
+              }
+              onChange={(
+                e
+              ) =>
+                setDateOfBirth(
+                  e.target.value
+                )
+              }
+              className="
+                mt-3
+                w-full
+                rounded-2xl
+                border
+                border-neutral-200
+                px-6
+                py-4
+                text-neutral-900
+                outline-none
+                transition-all
+                duration-300
+                focus:border-[#C8A96A]
+                focus:ring-4
+                focus:ring-[#C8A96A]/10
+              "
+            />
+
+
+            <p
+              className="
+                mt-3
+                text-xs
+                leading-5
+                text-neutral-400
+              "
+            >
+              Your date of birth helps us
+              provide birthday benefits and
+              special offers.
+            </p>
+
+          </div>
+
+
+          {/* ================================================== */}
+          {/* PASSWORD */}
+          {/* ================================================== */}
 
           <div>
 
@@ -239,14 +482,19 @@ export default function RegisterPage() {
               Password
             </label>
 
+
             <input
               id="password"
               type="password"
               required
               autoComplete="new-password"
               value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
+              onChange={(
+                e
+              ) =>
+                setPassword(
+                  e.target.value
+                )
               }
               placeholder="Create a password"
               className="
@@ -257,6 +505,7 @@ export default function RegisterPage() {
                 border-neutral-200
                 px-6
                 py-4
+                text-neutral-900
                 outline-none
                 transition-all
                 duration-300
@@ -267,6 +516,11 @@ export default function RegisterPage() {
             />
 
           </div>
+
+
+          {/* ================================================== */}
+          {/* CONFIRM PASSWORD */}
+          {/* ================================================== */}
 
           <div>
 
@@ -282,14 +536,21 @@ export default function RegisterPage() {
               Confirm Password
             </label>
 
+
             <input
               id="confirmPassword"
               type="password"
               required
               autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(e) =>
-                setConfirmPassword(e.target.value)
+              value={
+                confirmPassword
+              }
+              onChange={(
+                e
+              ) =>
+                setConfirmPassword(
+                  e.target.value
+                )
               }
               placeholder="Confirm your password"
               className="
@@ -300,6 +561,7 @@ export default function RegisterPage() {
                 border-neutral-200
                 px-6
                 py-4
+                text-neutral-900
                 outline-none
                 transition-all
                 duration-300
@@ -310,6 +572,11 @@ export default function RegisterPage() {
             />
 
           </div>
+
+
+          {/* ================================================== */}
+          {/* ERROR */}
+          {/* ================================================== */}
 
           {error && (
             <div
@@ -328,9 +595,16 @@ export default function RegisterPage() {
             </div>
           )}
 
+
+          {/* ================================================== */}
+          {/* SUBMIT */}
+          {/* ================================================== */}
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={
+              loading
+            }
             className="
               inline-flex
               w-full
@@ -361,6 +635,11 @@ export default function RegisterPage() {
 
         </form>
 
+
+        {/* ==================================================== */}
+        {/* SIGN IN */}
+        {/* ==================================================== */}
+
         <div
           className="
             mt-12
@@ -371,9 +650,14 @@ export default function RegisterPage() {
           "
         >
 
-          <p className="text-neutral-500">
+          <p
+            className="
+              text-neutral-500
+            "
+          >
             Already have an account?
           </p>
+
 
           <Link
             href="/login"

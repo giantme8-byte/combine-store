@@ -6,6 +6,7 @@ import {
 
 import InquiryRow from "./InquiryRow";
 import ViewInquiryButton from "./ViewInquiryButton";
+import DeleteInquiryButton from "./DeleteInquiryButton";
 
 
 // ============================================================
@@ -90,7 +91,6 @@ export default function InquiryTable({
           border
           border-neutral-200
           bg-white
-
           md:block
         "
       >
@@ -115,6 +115,10 @@ export default function InquiryTable({
 
             <tr>
 
+              {/* =================================================
+                  CUSTOMER
+                  ================================================= */}
+
               <th
                 className="
                   px-6
@@ -128,6 +132,10 @@ export default function InquiryTable({
                 Customer
               </th>
 
+
+              {/* =================================================
+                  WHATSAPP
+                  ================================================= */}
 
               <th
                 className="
@@ -143,6 +151,10 @@ export default function InquiryTable({
               </th>
 
 
+              {/* =================================================
+                  PRODUCTS
+                  ================================================= */}
+
               <th
                 className="
                   px-6
@@ -156,6 +168,10 @@ export default function InquiryTable({
                 Products
               </th>
 
+
+              {/* =================================================
+                  STATUS
+                  ================================================= */}
 
               <th
                 className="
@@ -171,6 +187,10 @@ export default function InquiryTable({
               </th>
 
 
+              {/* =================================================
+                  CREATED
+                  ================================================= */}
+
               <th
                 className="
                   px-6
@@ -184,6 +204,10 @@ export default function InquiryTable({
                 Created
               </th>
 
+
+              {/* =================================================
+                  ACTIONS
+                  ================================================= */}
 
               <th
                 className="
@@ -261,7 +285,6 @@ export default function InquiryTable({
       <div
         className="
           space-y-4
-
           md:hidden
         "
       >
@@ -334,9 +357,9 @@ function MobileInquiryCard({
       "
     >
 
-      {/* ==================================================
+      {/* ======================================================
           HEADER
-          ================================================== */}
+          ====================================================== */}
 
       <div
         className="
@@ -351,7 +374,9 @@ function MobileInquiryCard({
         "
       >
 
-        {/* CUSTOMER */}
+        {/* ====================================================
+            CUSTOMER
+            ==================================================== */}
 
         <div
           className="
@@ -387,7 +412,9 @@ function MobileInquiryCard({
         </div>
 
 
-        {/* STATUS */}
+        {/* ====================================================
+            STATUS
+            ==================================================== */}
 
         <span
           className={`
@@ -409,9 +436,9 @@ function MobileInquiryCard({
       </div>
 
 
-      {/* ==================================================
+      {/* ======================================================
           DETAILS
-          ================================================== */}
+          ====================================================== */}
 
       <div
         className="
@@ -424,7 +451,9 @@ function MobileInquiryCard({
         "
       >
 
-        {/* WHATSAPP */}
+        {/* ====================================================
+            WHATSAPP
+            ==================================================== */}
 
         <div
           className="
@@ -459,7 +488,9 @@ function MobileInquiryCard({
         </div>
 
 
-        {/* PRODUCTS */}
+        {/* ====================================================
+            PRODUCTS
+            ==================================================== */}
 
         <div>
 
@@ -490,7 +521,9 @@ function MobileInquiryCard({
         </div>
 
 
-        {/* CREATED */}
+        {/* ====================================================
+            CREATED
+            ==================================================== */}
 
         <div
           className="
@@ -533,12 +566,15 @@ function MobileInquiryCard({
       </div>
 
 
-      {/* ==================================================
-          ACTION
-          ================================================== */}
+      {/* ======================================================
+          ACTIONS
+          ====================================================== */}
 
       <div
         className="
+          flex
+          items-center
+          gap-2
           border-t
           border-neutral-100
           px-4
@@ -546,9 +582,35 @@ function MobileInquiryCard({
         "
       >
 
-        <ViewInquiryButton
-          inquiry={
-            inquiry
+        {/* ====================================================
+            VIEW
+            ==================================================== */}
+
+        <div
+          className="
+            flex-1
+          "
+        >
+
+          <ViewInquiryButton
+            inquiry={
+              inquiry
+            }
+          />
+
+        </div>
+
+
+        {/* ====================================================
+            DELETE
+            ==================================================== */}
+
+        <DeleteInquiryButton
+          inquiryId={
+            inquiry.id
+          }
+          customerName={
+            inquiry.name
           }
         />
 

@@ -64,6 +64,12 @@ export async function PATCH(
         : "";
 
 
+    const dateOfBirth =
+      typeof body.dateOfBirth === "string"
+        ? body.dateOfBirth.trim()
+        : "";
+
+
     // ========================================================
     // VALIDATE NAME
     // ========================================================
@@ -104,7 +110,10 @@ export async function PATCH(
     // VALIDATE PHONE
     // ========================================================
 
-    if (phone.length > 0 && phone.length < 6) {
+    if (
+      phone.length > 0 &&
+      phone.length < 6
+    ) {
 
       return NextResponse.json(
         {
@@ -121,6 +130,82 @@ export async function PATCH(
 
 
     // ========================================================
+    // VALIDATE DATE OF BIRTH
+    // ========================================================
+
+    let parsedDateOfBirth:
+      Date | null = null;
+
+
+    if (dateOfBirth) {
+
+      parsedDateOfBirth =
+        new Date(
+          `${dateOfBirth}T00:00:00.000Z`
+        );
+
+
+      // ------------------------------------------------------
+      // INVALID DATE
+      // ------------------------------------------------------
+
+      if (
+        Number.isNaN(
+          parsedDateOfBirth.getTime()
+        )
+      ) {
+
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Please enter a valid date of birth.",
+          },
+          {
+            status: 400,
+          }
+        );
+
+      }
+
+
+      // ------------------------------------------------------
+      // FUTURE DATE
+      // ------------------------------------------------------
+
+      const today =
+        new Date();
+
+      today.setUTCHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+
+      if (
+        parsedDateOfBirth >
+        today
+      ) {
+
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Date of birth cannot be in the future.",
+          },
+          {
+            status: 400,
+          }
+        );
+
+      }
+
+    }
+
+
+    // ========================================================
     // UPDATE CURRENT USER
     // ========================================================
 
@@ -128,7 +213,8 @@ export async function PATCH(
       await prisma.user.update({
 
         where: {
-          id: currentUser.id,
+          id:
+            currentUser.id,
         },
 
         data: {
@@ -137,6 +223,9 @@ export async function PATCH(
 
           phone:
             phone || null,
+
+          dateOfBirth:
+            parsedDateOfBirth,
 
           image:
             image || null,
@@ -152,6 +241,8 @@ export async function PATCH(
           email: true,
 
           phone: true,
+
+          dateOfBirth: true,
 
           image: true,
 

@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from "react";
 
-
 // ============================================================
 // PRODUCT COLOR IMAGE
 // ============================================================
@@ -22,7 +21,6 @@ export type ProductColorImage = {
 
   sortOrder: number;
 };
-
 
 // ============================================================
 // PRODUCT COLOR
@@ -51,7 +49,6 @@ export type ProductColor = {
   images: ProductColorImage[];
 };
 
-
 // ============================================================
 // PRODUCT VARIANT IMAGE
 // ============================================================
@@ -70,7 +67,6 @@ export type ProductVariantImage = {
   sortOrder: number;
 };
 
-
 // ============================================================
 // PRODUCT VARIANT
 // ============================================================
@@ -88,6 +84,12 @@ export type ProductVariant = {
    *
    * Black / Small
    * colorId = 1
+   *
+   * null = this Variant does not belong
+   * to a Product Color.
+   *
+   * This is used for products that have
+   * multiple Size Variants but no Colours.
    */
   colorId: number | null;
 
@@ -105,23 +107,12 @@ export type ProductVariant = {
   /**
    * Variant-specific selling price.
    *
-   * This is the ONLY pricing field
-   * required by the customer-facing page.
-   *
-   * Cost price, exchange rate and profit
-   * are intentionally NOT exposed here.
-   *
    * null = use Product price as fallback.
    */
   price: number | null;
 
   /**
    * Variant-specific Model No.
-   *
-   * Example:
-   *
-   * Black / Small → M12345
-   * Black / Large → M12346
    *
    * null = use Color Model or
    * Product Model as fallback.
@@ -141,7 +132,6 @@ export type ProductVariant = {
   images: ProductVariantImage[];
 };
 
-
 // ============================================================
 // PRODUCT GALLERY SELECTION
 // ============================================================
@@ -149,7 +139,6 @@ export type ProductVariant = {
 export type ProductGallerySelection =
   | "color"
   | "variant";
-
 
 // ============================================================
 // PRODUCT CONTEXT TYPE
@@ -185,7 +174,6 @@ type ProductContextType = {
   ) => void;
 };
 
-
 // ============================================================
 // CONTEXT
 // ============================================================
@@ -194,7 +182,6 @@ const ProductContext =
   createContext<ProductContextType | null>(
     null
   );
-
 
 // ============================================================
 // PROVIDER PROPS
@@ -208,7 +195,6 @@ type ProviderProps = {
   children: ReactNode;
 };
 
-
 // ============================================================
 // PROVIDER
 // ============================================================
@@ -218,39 +204,51 @@ export function ProductProvider({
   variants,
   children,
 }: ProviderProps) {
-
   const [
     selectedColor,
     setSelectedColor,
-  ] =
-    useState<ProductColor | null>(
-      colors[0] ?? null
-    );
-
+  ] = useState<ProductColor | null>(
+    colors[0] ?? null
+  );
 
   const [
     selectedVariant,
     setSelectedVariant,
-  ] =
-    useState<ProductVariant | null>(
-      variants[0] ?? null
-    );
+  ] = useState<ProductVariant | null>(
+    variants[0] ?? null
+  );
 
-
+  /*
+   * IMPORTANT:
+   *
+   * Products with Colours start in Color mode.
+   *
+   * Products without Colours but with Variants
+   * start directly in Variant mode.
+   *
+   * Example:
+   *
+   * Keepall 35
+   * Keepall 20
+   *
+   * colors = []
+   * variants = [...]
+   *
+   * → Variant mode
+   */
   const [
     selectionSource,
     setSelectionSource,
-  ] =
-    useState<ProductGallerySelection>(
-      "color"
-    );
-
+  ] = useState<ProductGallerySelection>(
+    colors.length > 0
+      ? "color"
+      : "variant"
+  );
 
   const [
     quantity,
     setQuantity,
   ] = useState(1);
-
 
   const value =
     useMemo(
@@ -290,7 +288,6 @@ export function ProductProvider({
       ]
     );
 
-
   return (
     <ProductContext.Provider
       value={value}
@@ -300,27 +297,21 @@ export function ProductProvider({
   );
 }
 
-
 // ============================================================
 // HOOK
 // ============================================================
 
 export function useProduct() {
-
   const context =
     useContext(
       ProductContext
     );
 
-
   if (!context) {
-
     throw new Error(
       "useProduct must be used inside ProductProvider."
     );
-
   }
-
 
   return context;
 }

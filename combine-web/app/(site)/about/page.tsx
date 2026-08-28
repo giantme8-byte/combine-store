@@ -310,7 +310,7 @@ export default function ContactPage() {
 
             {/* Email */}
             <Link
-              href="mailto:support@combine.com"
+              href="mailto:support@combineluxe.com"
               className="
                 group
                 rounded-[22px]
@@ -370,7 +370,7 @@ export default function ContactPage() {
                   sm:text-base
                 "
               >
-                support@combine.com
+                support@combineluxe.com
               </p>
 
             </Link>

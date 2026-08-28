@@ -437,7 +437,7 @@ export default function SettingsForm({
                 settings?.email ??
                 ""
               }
-              placeholder="hello@combine.com"
+              placeholder="hello@combineluxe.com"
               className="
                 h-11
                 w-full
@@ -485,7 +485,7 @@ export default function SettingsForm({
                 settings?.website ??
                 ""
               }
-              placeholder="https://combine.com"
+              placeholder="https://combineluxe.com"
               className="
                 h-11
                 w-full

@@ -27,17 +27,42 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings =
     await prisma.setting.findFirst();
 
+  const siteUrl =
+    "https://www.combineluxe.com";
+
   const title =
     settings?.siteTitle ||
-    "COMBINE | Luxury Bags, Watches & Jewelry";
+    "COMBINE | Premium Luxury Collection";
 
   const description =
     settings?.metaDescription ||
-    "Discover premium luxury handbags, designer watches, fine jewellery and timeless accessories at COMBINE.";
+    "Premium luxury handbags, watches, jewellery and accessories.";
 
   return {
+    /*
+     * =========================================================
+     * SITE URL
+     * =========================================================
+     */
+
     metadataBase:
-      new URL("https://combine.com"),
+      new URL(siteUrl),
+
+    /*
+     * =========================================================
+     * CANONICAL
+     * =========================================================
+     */
+
+    alternates: {
+      canonical: siteUrl,
+    },
+
+    /*
+     * =========================================================
+     * TITLE
+     * =========================================================
+     */
 
     title: {
       default: title,
@@ -45,6 +70,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
 
     description,
+
+    /*
+     * =========================================================
+     * KEYWORDS
+     * =========================================================
+     */
 
     keywords: [
       "Luxury Bags",
@@ -57,7 +88,14 @@ export async function generateMetadata(): Promise<Metadata> {
       "COMBINE",
     ],
 
-    applicationName: "COMBINE",
+    /*
+     * =========================================================
+     * APPLICATION
+     * =========================================================
+     */
+
+    applicationName:
+      "COMBINE",
 
     authors: [
       {
@@ -65,19 +103,19 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     ],
 
-    creator: "COMBINE",
+    creator:
+      "COMBINE",
 
-    publisher: "COMBINE",
+    publisher:
+      "COMBINE",
 
-    category: "Luxury Fashion",
+    category:
+      "Luxury Fashion",
 
     /*
      * =========================================================
      * SEARCH ENGINE INDEXING
      * =========================================================
-     *
-     * The website is intended to be discoverable by Google
-     * and other search engines.
      */
 
     robots: {
@@ -135,9 +173,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
     openGraph: {
       type: "website",
+
       locale: "en_US",
-      url: "https://combine.com",
-      siteName: "COMBINE",
+
+      url: siteUrl,
+
+      siteName:
+        "COMBINE",
 
       title,
 
@@ -148,7 +190,8 @@ export async function generateMetadata(): Promise<Metadata> {
           url: "/og-image.jpg",
           width: 1200,
           height: 630,
-          alt: "COMBINE Luxury Collection",
+          alt:
+            "COMBINE Luxury Collection",
         },
       ],
     },
@@ -160,7 +203,8 @@ export async function generateMetadata(): Promise<Metadata> {
      */
 
     twitter: {
-      card: "summary_large_image",
+      card:
+        "summary_large_image",
 
       title,
 
@@ -186,6 +230,7 @@ export default function RootLayout({
       <body>
         <InquiryProvider>
           <QuickViewProvider>
+
             {children}
 
             <InquiryDrawer />
@@ -201,6 +246,7 @@ export default function RootLayout({
               duration={3000}
               expand
             />
+
           </QuickViewProvider>
         </InquiryProvider>
       </body>

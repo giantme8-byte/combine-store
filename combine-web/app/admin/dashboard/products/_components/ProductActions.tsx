@@ -7,6 +7,10 @@ import DeleteProductButton from "./DeleteProductButton";
 import DuplicateProductButton from "./DuplicateProductButton";
 
 
+// ============================================================
+// TYPES
+// ============================================================
+
 type ProductActionsProps = {
   productId: number;
   productName: string;
@@ -28,6 +32,18 @@ type ProductActionsProps = {
 };
 
 
+// ============================================================
+// SCROLL STORAGE
+// ============================================================
+
+const PRODUCTS_SCROLL_KEY =
+  "combine-admin-products-scroll";
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function ProductActions({
   productId,
   productName,
@@ -41,9 +57,9 @@ export default function ProductActions({
   sort,
 }: ProductActionsProps) {
 
-  // =========================================================
+  // ==========================================================
   // RETURN URL
-  // =========================================================
+  // ==========================================================
 
   const returnTo = (() => {
 
@@ -58,53 +74,65 @@ export default function ProductActions({
 
 
     if (search) {
+
       params.set(
         "search",
         search
       );
+
     }
 
 
     if (brand) {
+
       params.set(
         "brand",
         brand
       );
+
     }
 
 
     if (category) {
+
       params.set(
         "category",
         category
       );
+
     }
 
 
     if (availability) {
+
       params.set(
         "availability",
         availability
       );
+
     }
 
 
     if (sort) {
+
       params.set(
         "sort",
         sort
       );
+
     }
 
 
-    return `/admin/dashboard/products?${params.toString()}`;
+    return (
+      `/admin/dashboard/products?${params.toString()}`
+    );
 
   })();
 
 
-  // =========================================================
+  // ==========================================================
   // EDIT URL
-  // =========================================================
+  // ==========================================================
 
   const editParams =
     new URLSearchParams();
@@ -120,42 +148,88 @@ export default function ProductActions({
     `/admin/dashboard/products/${productId}/edit?${editParams.toString()}`;
 
 
-  // =========================================================
+  // ==========================================================
+  // HANDLE EDIT
+  // ==========================================================
+
+  function handleEditClick() {
+
+    /*
+     * Save the exact scroll position immediately
+     * before navigating to the Edit Product page.
+     *
+     * This is more reliable than listening for
+     * beforeunload / visibilitychange because
+     * Next.js client-side navigation does not
+     * necessarily unload the page.
+     */
+
+    sessionStorage.setItem(
+      PRODUCTS_SCROLL_KEY,
+      String(
+        window.scrollY
+      )
+    );
+
+  }
+
+
+  // ==========================================================
   // RENDER
-  // =========================================================
+  // ==========================================================
 
   return (
-    <div className="flex justify-end gap-2">
 
-      {/* ================================================= */}
-      {/* VIEW */}
-      {/* ================================================= */}
+    <div
+      className="
+        flex
+        justify-end
+        gap-2
+      "
+    >
+
+      {/* ======================================================
+          VIEW
+          ====================================================== */}
 
       <Link
-        href={`/admin/dashboard/products/${productId}`}
+        href={
+          `/admin/dashboard/products/${productId}`
+        }
       >
-        <Button variant="secondary">
+
+        <Button
+          variant="secondary"
+        >
           View
         </Button>
+
       </Link>
 
 
-      {/* ================================================= */}
-      {/* EDIT */}
-      {/* ================================================= */}
+      {/* ======================================================
+          EDIT
+          ====================================================== */}
 
       <Link
         href={editUrl}
+        onClick={
+          handleEditClick
+        }
       >
-        <Button variant="secondary">
+
+        <Button
+          variant="secondary"
+        >
           Edit
         </Button>
+
       </Link>
 
 
-      {/* ================================================= */}
-      {/* DUPLICATE */}
-      {/* ================================================= */}
+      {/* ======================================================
+          DUPLICATE
+          ====================================================== */}
 
       <DuplicateProductButton
         productId={
@@ -164,9 +238,9 @@ export default function ProductActions({
       />
 
 
-      {/* ================================================= */}
-      {/* DELETE */}
-      {/* ================================================= */}
+      {/* ======================================================
+          DELETE
+          ====================================================== */}
 
       {canDelete && (
 
@@ -183,5 +257,7 @@ export default function ProductActions({
       )}
 
     </div>
+
   );
+
 }

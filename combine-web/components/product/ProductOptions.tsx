@@ -1,6 +1,8 @@
 "use client";
 
-import { useProduct } from "./ProductContext";
+import {
+  useProduct,
+} from "./ProductContext";
 
 export default function ProductOptions() {
   const {
@@ -24,33 +26,39 @@ export default function ProductOptions() {
   // ============================================================
 
   /*
-   * Size options are based on ALL ProductVariants.
+   * Size options are based on ALL Product Variants.
    *
-   * We keep all sizes visible for the product.
+   * Examples:
    *
-   * The actual selected Variant is always resolved using:
+   * Keepall 35
+   * Keepall 20
    *
-   * Selected Color + Selected Size
+   * Products with Colours:
+   *
+   * Black / 20
+   * Black / 35
+   * White / 20
+   * White / 35
    */
 
-  const availableSizes = Array.from(
-    new Map(
-      variants
-        .filter(
-          (variant) =>
-            variant.size.trim() !== ""
-        )
-        .map(
-          (variant) => [
-            variant.size
-              .trim()
-              .toLowerCase(),
-
-            variant,
-          ]
-        )
-    ).values()
-  );
+  const availableSizes =
+    Array.from(
+      new Map(
+        variants
+          .filter(
+            (variant) =>
+              variant.size.trim() !== ""
+          )
+          .map(
+            (variant) => [
+              variant.size
+                .trim()
+                .toLowerCase(),
+              variant,
+            ]
+          )
+      ).values()
+    );
 
   // ============================================================
   // CHANGE COLOR
@@ -62,26 +70,7 @@ export default function ProductOptions() {
     setSelectedColor(color);
 
     /*
-     * ----------------------------------------------------------
-     * Keep the currently selected Size when possible.
-     * ----------------------------------------------------------
-     *
-     * Example:
-     *
-     * Black / Large
-     *       ↓
-     * White
-     *       ↓
-     * White / Large
-     *
-     * If White / Large does not exist,
-     * select the first Variant belonging
-     * to White.
-     *
-     * IMPORTANT:
-     *
-     * We NEVER fall back to a Variant
-     * belonging to another Color.
+     * Keep the current Size when possible.
      */
 
     const currentSize =
@@ -112,26 +101,14 @@ export default function ProductOptions() {
       matchingColorVariants[0] ??
       null;
 
-    /*
-     * ----------------------------------------------------------
-     * Update Variant
-     * ----------------------------------------------------------
-     *
-     * If the selected Color has Variants,
-     * selectedVariant must belong to that Color.
-     *
-     * If the Color has no connected Variant,
-     * clear the Variant instead of silently
-     * selecting another Color's Variant.
-     */
-
     setSelectedVariant(
       nextVariant
     );
 
     /*
-     * Color selection means ProductGallery
-     * should display the selected Color gallery.
+     * Selecting a Colour uses the
+     * Colour gallery until a specific
+     * Size / Variant is selected.
      */
 
     setSelectionSource(
@@ -151,52 +128,99 @@ export default function ProductOptions() {
         .trim()
         .toLowerCase();
 
+    let variant = null;
+
     /*
-     * ----------------------------------------------------------
-     * Find EXACT Variant
-     * ----------------------------------------------------------
+     * ==========================================================
+     * PRODUCTS WITH COLOURS
+     * ==========================================================
      *
-     * The selected Variant must match BOTH:
+     * Find:
      *
-     * 1. Selected Color
-     * 2. Selected Size
-     *
-     * This guarantees:
-     *
-     * Color × Size
-     *
-     * always points to the correct ProductVariant.
+     * Selected Colour + Selected Size
      */
 
-    const variant =
+    if (
+      colors.length > 0 &&
       selectedColor
-        ? variants.find(
-            (item) =>
-              item.colorId ===
-                selectedColor.id &&
-              item.size
-                .trim()
-                .toLowerCase() ===
-                normalizedSize
-          ) ?? null
-        : null;
+    ) {
+      variant =
+        variants.find(
+          (item) =>
+            item.colorId ===
+              selectedColor.id &&
+            item.size
+              .trim()
+              .toLowerCase() ===
+              normalizedSize
+        ) ?? null;
+    }
 
     /*
-     * ----------------------------------------------------------
-     * IMPORTANT
-     * ----------------------------------------------------------
+     * ==========================================================
+     * PRODUCTS WITHOUT COLOURS
+     * ==========================================================
      *
-     * Do NOT fallback to another Color.
+     * IMPORTANT:
+     *
+     * If the product has NO Colours,
+     * we do NOT require colorId === null.
+     *
+     * The Size itself identifies the Variant.
      *
      * Example:
      *
-     * Black / M exists
-     * White / M does not exist
+     * Keepall 35
+     * Keepall 20
      *
-     * If White is selected and customer clicks M,
-     * we must NOT silently switch to Black / M.
+     * → Size is enough to find the exact Variant.
+     */
+
+    if (
+      colors.length === 0
+    ) {
+      variant =
+        variants.find(
+          (item) =>
+            item.size
+              .trim()
+              .toLowerCase() ===
+            normalizedSize
+        ) ?? null;
+    }
+
+    /*
+     * ==========================================================
+     * SAFETY FALLBACK
+     * ==========================================================
      *
-     * The selected Color remains authoritative.
+     * If there are Colours but no selected
+     * Colour for some reason, try to find
+     * the Variant by Size only.
+     *
+     * This prevents the Size button from
+     * becoming completely unresponsive.
+     */
+
+    if (
+      !variant &&
+      colors.length > 0 &&
+      !selectedColor
+    ) {
+      variant =
+        variants.find(
+          (item) =>
+            item.size
+              .trim()
+              .toLowerCase() ===
+            normalizedSize
+        ) ?? null;
+    }
+
+    /*
+     * ==========================================================
+     * NO VARIANT FOUND
+     * ==========================================================
      */
 
     if (!variant) {
@@ -204,7 +228,9 @@ export default function ProductOptions() {
     }
 
     /*
-     * Exact Color + Size Variant found.
+     * ==========================================================
+     * UPDATE EXACT VARIANT
+     * ==========================================================
      */
 
     setSelectedVariant(
@@ -212,8 +238,9 @@ export default function ProductOptions() {
     );
 
     /*
-     * Variant selection means ProductGallery
-     * should display the exact Variant gallery.
+     * ==========================================================
+     * SWITCH PRODUCT GALLERY TO VARIANT
+     * ==========================================================
      */
 
     setSelectionSource(
@@ -235,7 +262,7 @@ export default function ProductOptions() {
       "
     >
       {/* ====================================================== */}
-      {/* Colour */}
+      {/* COLOUR */}
       {/* ====================================================== */}
 
       {colors.length > 0 && (
@@ -309,7 +336,7 @@ export default function ProductOptions() {
       )}
 
       {/* ====================================================== */}
-      {/* Size */}
+      {/* SIZE */}
       {/* ====================================================== */}
 
       {availableSizes.length > 0 && (
@@ -341,28 +368,47 @@ export default function ProductOptions() {
                 const size =
                   variant.size;
 
-                /*
-                 * Active state is based on
-                 * the currently selected Variant size.
-                 */
-
-                const active =
-                  selectedVariant?.size
-                    ?.trim()
-                    .toLowerCase() ===
+                const normalizedSize =
                   size
                     .trim()
                     .toLowerCase();
 
                 /*
                  * ------------------------------------------------
-                 * Check whether this Size actually exists for
-                 * the currently selected Color.
+                 * ACTIVE VARIANT
                  * ------------------------------------------------
                  */
 
+                const active =
+                  selectedVariant?.size
+                    ?.trim()
+                    .toLowerCase() ===
+                  normalizedSize;
+
+                /*
+                 * ------------------------------------------------
+                 * CHECK WHETHER THIS SIZE EXISTS
+                 * ------------------------------------------------
+                 *
+                 * No Colour:
+                 *
+                 * Size alone identifies Variant.
+                 *
+                 * With Colour:
+                 *
+                 * Selected Colour + Size identifies Variant.
+                 */
+
                 const hasMatchingVariant =
-                  selectedColor
+                  colors.length === 0
+                    ? variants.some(
+                        (item) =>
+                          item.size
+                            .trim()
+                            .toLowerCase() ===
+                          normalizedSize
+                      )
+                    : selectedColor
                     ? variants.some(
                         (item) =>
                           item.colorId ===
@@ -370,11 +416,27 @@ export default function ProductOptions() {
                           item.size
                             .trim()
                             .toLowerCase() ===
-                            size
-                              .trim()
-                              .toLowerCase()
+                          normalizedSize
                       )
-                    : false;
+                    : variants.some(
+                        (item) =>
+                          item.size
+                            .trim()
+                            .toLowerCase() ===
+                          normalizedSize
+                      );
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * We do NOT disable Size buttons
+                 * for products without Colours.
+                 */
+
+                const disabled =
+                  colors.length > 0 &&
+                  selectedColor !== null &&
+                  !hasMatchingVariant;
 
                 return (
                   <button
@@ -386,9 +448,7 @@ export default function ProductOptions() {
                       )
                     }
                     disabled={
-                      colors.length > 0 &&
-                      selectedColor !== null &&
-                      !hasMatchingVariant
+                      disabled
                     }
                     className={`
                       min-h-[100px]
@@ -405,14 +465,15 @@ export default function ProductOptions() {
                       ${
                         active
                           ? "scale-[1.01] border-black bg-black text-white shadow-lg"
-                          : hasMatchingVariant ||
-                            colors.length === 0
+                          : hasMatchingVariant
                           ? "border-neutral-200 bg-white hover:-translate-y-1 hover:border-black hover:shadow-lg"
                           : "cursor-not-allowed border-neutral-100 bg-neutral-50 opacity-40"
                       }
                     `}
                   >
-                    {/* Size + Check */}
+                    {/* ================================================= */}
+                    {/* SIZE + CHECK */}
+                    {/* ================================================= */}
 
                     <div
                       className="
@@ -446,7 +507,9 @@ export default function ProductOptions() {
                       )}
                     </div>
 
-                    {/* Dimensions */}
+                    {/* ================================================= */}
+                    {/* DIMENSIONS */}
+                    {/* ================================================= */}
 
                     {variant.dimensions && (
                       <p
@@ -463,11 +526,15 @@ export default function ProductOptions() {
                           }
                         `}
                       >
-                        {variant.dimensions}
+                        {
+                          variant.dimensions
+                        }
                       </p>
                     )}
 
-                    {/* Size Variation Notice */}
+                    {/* ================================================= */}
+                    {/* SIZE NOTICE */}
+                    {/* ================================================= */}
 
                     <p
                       className="
@@ -491,7 +558,7 @@ export default function ProductOptions() {
       )}
 
       {/* ====================================================== */}
-      {/* Quantity */}
+      {/* QUANTITY */}
       {/* ====================================================== */}
 
       <div>

@@ -1010,42 +1010,59 @@ export default function ProductForm({
     // SAVE PRODUCT
     // =======================================================
 
-    startTransition(
-      async () => {
+startTransition(
+  async () => {
 
-        try {
+    try {
 
-          await action(
-            formData
-          );
-
-
-          router.push(
-            returnTo ||
-              "/admin/dashboard/products"
-          );
+      await action(
+        formData
+      );
 
 
-          router.refresh();
+      // =====================================================
+      // RETURN TO PRODUCTS LIST
+      // =====================================================
 
-        } catch (
-          error
-        ) {
-
-          console.error(
-            "Failed to save product:",
-            error
-          );
+      const destination =
+        returnTo ||
+        "/admin/dashboard/products";
 
 
-          alert(
-            "Failed to save product. Please try again."
-          );
+      console.log(
+        "RETURN TO:",
+        returnTo
+      );
 
-        }
 
-      }
-    );
+      console.log(
+        "DESTINATION:",
+        destination
+      );
+
+
+      router.push(
+        destination
+      );
+
+    } catch (
+      error
+    ) {
+
+      console.error(
+        "Failed to save product:",
+        error
+      );
+
+
+      alert(
+        "Failed to save product. Please try again."
+      );
+
+    }
+
+  }
+);
 
   }
 
@@ -2223,12 +2240,12 @@ export default function ProductForm({
                 </label>
 
 
-                <select
-                  name="availability"
-                  defaultValue={
-                    product?.availability ??
-                    "PRE_ORDER"
-                  }
+<select
+  name="availability"
+  defaultValue={
+    product?.availability ??
+    "IN_STOCK"
+  }
                   className="
                     w-full
                     rounded-xl

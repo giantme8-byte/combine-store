@@ -27,6 +27,7 @@ type EditProfileFormProps = {
   name: string;
   email: string;
   phone: string | null;
+  dateOfBirth: string | null;
   image: string | null;
 };
 
@@ -39,6 +40,7 @@ export default function EditProfileForm({
   name: initialName,
   email,
   phone: initialPhone,
+  dateOfBirth: initialDateOfBirth,
   image: initialImage,
 }: EditProfileFormProps) {
 
@@ -73,6 +75,16 @@ export default function EditProfileForm({
     setPhone,
   ] = useState(
     initialPhone ?? ""
+  );
+
+
+  const [
+    dateOfBirth,
+    setDateOfBirth,
+  ] = useState(
+    initialDateOfBirth
+      ? initialDateOfBirth.slice(0, 10)
+      : ""
   );
 
 
@@ -142,7 +154,6 @@ export default function EditProfileForm({
 
 
     fileInputRef.current?.click();
-
   }
 
 
@@ -278,7 +289,6 @@ export default function EditProfileForm({
           data.error ??
           "Failed to upload profile photo."
         );
-
       }
 
 
@@ -314,9 +324,7 @@ export default function EditProfileForm({
     } finally {
 
       setUploadingImage(false);
-
     }
-
   }
 
 
@@ -336,12 +344,13 @@ export default function EditProfileForm({
 
     setImage("");
 
+
     setSuccess(
       "Profile photo removed. Click Save Changes to confirm."
     );
 
-    setError("");
 
+    setError("");
   }
 
 
@@ -390,6 +399,7 @@ export default function EditProfileForm({
               JSON.stringify({
                 name,
                 phone,
+                dateOfBirth,
                 image,
               }),
           }
@@ -445,11 +455,13 @@ export default function EditProfileForm({
     } finally {
 
       setLoading(false);
-
     }
-
   }
 
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
     <main
@@ -533,7 +545,6 @@ export default function EditProfileForm({
       </div>
 
 
-
       {/* ======================================================
           FORM
       ====================================================== */}
@@ -560,7 +571,6 @@ export default function EditProfileForm({
           "
         >
 
-
           {/* ==================================================
               AVATAR
           ================================================== */}
@@ -575,10 +585,6 @@ export default function EditProfileForm({
               pb-10
             "
           >
-
-            {/* =================================================
-                AVATAR PREVIEW
-            ================================================= */}
 
             <div
               className="
@@ -666,10 +672,6 @@ export default function EditProfileForm({
             </div>
 
 
-            {/* =================================================
-                TITLE
-            ================================================= */}
-
             <p
               className="
                 mt-5
@@ -683,10 +685,6 @@ export default function EditProfileForm({
             </p>
 
 
-            {/* =================================================
-                DESCRIPTION
-            ================================================= */}
-
             <p
               className="
                 mt-2
@@ -698,10 +696,6 @@ export default function EditProfileForm({
               JPG, PNG or WEBP · Max 5MB
             </p>
 
-
-            {/* =================================================
-                HIDDEN INPUT
-            ================================================= */}
 
             <input
               ref={
@@ -725,10 +719,6 @@ export default function EditProfileForm({
             />
 
 
-            {/* =================================================
-                ACTIONS
-            ================================================= */}
-
             <div
               className="
                 mt-6
@@ -740,9 +730,7 @@ export default function EditProfileForm({
               "
             >
 
-              {/* =================================================
-                  CHANGE PHOTO
-              ================================================= */}
+              {/* CHANGE PHOTO */}
 
               <button
                 type="button"
@@ -805,9 +793,7 @@ export default function EditProfileForm({
               </button>
 
 
-              {/* =================================================
-                  REMOVE PHOTO
-              ================================================= */}
+              {/* REMOVE PHOTO */}
 
               {image &&
                 !uploadingImage && (
@@ -857,10 +843,6 @@ export default function EditProfileForm({
             </div>
 
 
-            {/* =================================================
-                UPLOAD NOTE
-            ================================================= */}
-
             <p
               className="
                 mt-4
@@ -877,7 +859,6 @@ export default function EditProfileForm({
             </p>
 
           </div>
-
 
 
           {/* ==================================================
@@ -944,7 +925,6 @@ export default function EditProfileForm({
             </div>
 
 
-
             {/* =================================================
                 EMAIL
             ================================================= */}
@@ -998,6 +978,71 @@ export default function EditProfileForm({
             </div>
 
 
+            {/* =================================================
+                DATE OF BIRTH
+            ================================================= */}
+
+            <div>
+
+              <label
+                htmlFor="dateOfBirth"
+                className="
+                  text-[11px]
+                  uppercase
+                  tracking-[0.35em]
+                  text-neutral-400
+                "
+              >
+                Date of Birth
+              </label>
+
+
+              <input
+                id="dateOfBirth"
+                type="date"
+                autoComplete="bday"
+                value={
+                  dateOfBirth
+                }
+                onChange={(event) =>
+                  setDateOfBirth(
+                    event.target.value
+                  )
+                }
+                className="
+                  mt-3
+                  w-full
+                  rounded-2xl
+                  border
+                  border-neutral-200
+                  px-6
+                  py-4
+                  text-neutral-900
+                  outline-none
+                  transition-all
+                  duration-300
+                  focus:border-[#C8A96A]
+                  focus:ring-4
+                  focus:ring-[#C8A96A]/10
+                "
+              />
+
+
+              <p
+                className="
+                  mt-3
+                  text-xs
+                  leading-5
+                  text-neutral-400
+                "
+              >
+                Keep your birthday up to date so
+                we can send you birthday benefits
+                and special offers.
+              </p>
+
+            </div>
+
 
             {/* =================================================
                 PHONE
@@ -1050,7 +1095,6 @@ export default function EditProfileForm({
             </div>
 
           </div>
-
 
 
           {/* ==================================================
@@ -1112,7 +1156,6 @@ export default function EditProfileForm({
             </div>
 
           )}
-
 
 
           {/* ==================================================

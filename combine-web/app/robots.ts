@@ -22,6 +22,6 @@ export default function robots(): MetadataRoute.Robots {
     },
 
     sitemap:
-      "https://combine.com/sitemap.xml",
+      "https://combineluxe.com/sitemap.xml",
   };
 }

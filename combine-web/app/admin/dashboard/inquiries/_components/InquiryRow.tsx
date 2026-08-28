@@ -1,6 +1,16 @@
-import { Inquiry, InquiryStatus, Product } from "@prisma/client";
+import {
+  Inquiry,
+  InquiryStatus,
+  Product,
+} from "@prisma/client";
 
 import ViewInquiryButton from "./ViewInquiryButton";
+import DeleteInquiryButton from "./DeleteInquiryButton";
+
+
+// ============================================================
+// INQUIRY WITH ITEMS
+// ============================================================
 
 type InquiryWithItems = Inquiry & {
   items: {
@@ -9,20 +19,37 @@ type InquiryWithItems = Inquiry & {
     quantity: number;
 
     color: string | null;
+
     variant: string | null;
+
     dimensions: string | null;
+
     packaging: string | null;
 
     notes: string | null;
   }[];
 };
 
+
+// ============================================================
+// PROPS
+// ============================================================
+
 type InquiryRowProps = {
   inquiry: InquiryWithItems;
 };
 
-function getStatusColor(status: InquiryStatus) {
+
+// ============================================================
+// STATUS COLOR
+// ============================================================
+
+function getStatusColor(
+  status: InquiryStatus
+) {
+
   switch (status) {
+
     case "PENDING":
       return "bg-yellow-100 text-yellow-800";
 
@@ -38,44 +65,155 @@ function getStatusColor(status: InquiryStatus) {
     default:
       return "bg-neutral-100 text-neutral-700";
   }
+
 }
+
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function InquiryRow({
   inquiry,
 }: InquiryRowProps) {
+
   return (
-    <tr className="border-b">
-      <td className="px-6 py-4 font-medium">
+
+    <tr
+      className="
+        border-b
+        transition-colors
+        hover:bg-neutral-50
+      "
+    >
+
+      {/* ======================================================
+          CUSTOMER
+          ====================================================== */}
+
+      <td
+        className="
+          px-6
+          py-4
+          font-medium
+        "
+      >
         {inquiry.name}
       </td>
 
-      <td className="px-6 py-4">
+
+      {/* ======================================================
+          WHATSAPP
+          ====================================================== */}
+
+      <td
+        className="
+          px-6
+          py-4
+        "
+      >
         {inquiry.whatsapp}
       </td>
 
-      <td className="px-6 py-4 text-center">
+
+      {/* ======================================================
+          PRODUCTS
+          ====================================================== */}
+
+      <td
+        className="
+          px-6
+          py-4
+          text-center
+        "
+      >
         {inquiry.items.length}
       </td>
 
-      <td className="px-6 py-4 text-center">
+
+      {/* ======================================================
+          STATUS
+          ====================================================== */}
+
+      <td
+        className="
+          px-6
+          py-4
+          text-center
+        "
+      >
+
         <span
-          className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(
-            inquiry.status
-          )}`}
+          className={`
+            rounded-full
+            px-3
+            py-1
+            text-xs
+            font-medium
+            ${getStatusColor(
+              inquiry.status
+            )}
+          `}
         >
           {inquiry.status}
         </span>
+
       </td>
 
-      <td className="px-6 py-4">
+
+      {/* ======================================================
+          CREATED
+          ====================================================== */}
+
+      <td
+        className="
+          px-6
+          py-4
+        "
+      >
         {inquiry.createdAt.toLocaleDateString()}
       </td>
 
-      <td className="px-6 py-4 text-right">
-        <ViewInquiryButton
-          inquiry={inquiry}
-        />
+
+      {/* ======================================================
+          ACTIONS
+          ====================================================== */}
+
+      <td
+        className="
+          px-6
+          py-4
+        "
+      >
+
+        <div
+          className="
+            flex
+            items-center
+            justify-end
+            gap-2
+          "
+        >
+
+          <ViewInquiryButton
+            inquiry={inquiry}
+          />
+
+          <DeleteInquiryButton
+            inquiryId={
+              inquiry.id
+            }
+            customerName={
+              inquiry.name
+            }
+          />
+
+        </div>
+
       </td>
+
     </tr>
+
   );
+
 }

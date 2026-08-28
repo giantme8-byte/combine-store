@@ -59,6 +59,8 @@ export async function getCurrentUser() {
 
             phone: true,
 
+            dateOfBirth: true,
+
             image: true,
 
             // ------------------------------------------------

@@ -1,7 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   ChevronLeft,
@@ -15,7 +20,9 @@ import {
   useProduct,
 } from "@/components/product/ProductContext";
 
-import { optimizeCloudinaryImage } from "@/lib/cloudinary-image";
+import {
+  optimizeCloudinaryImage,
+} from "@/lib/cloudinary-image";
 
 type ColorGalleryImage = {
   id: number;
@@ -48,33 +55,28 @@ export default function ProductGallery({
   const {
     selectedColor,
     setSelectedColor,
-
     selectedVariant,
-
     selectionSource,
-    setSelectionSource,
   } = useProduct();
 
-  /*
-   * ============================================================
-   * BASE PRODUCT GALLERY
-   * ============================================================
-   */
+  // ============================================================
+  // BASE PRODUCT GALLERY
+  // ============================================================
 
-  const baseImages = Array.from(
-    new Set(
-      [
-        cover,
-        ...gallery,
-      ].filter(Boolean)
-    )
-  );
+  const baseImages = useMemo(() => {
+    return Array.from(
+      new Set(
+        [
+          cover,
+          ...gallery,
+        ].filter(Boolean)
+      )
+    );
+  }, [cover, gallery]);
 
-  /*
-   * ============================================================
-   * ACTIVE COLOR
-   * ============================================================
-   */
+  // ============================================================
+  // ACTIVE COLOR
+  // ============================================================
 
   const activeColor =
     colors.find(
@@ -83,152 +85,150 @@ export default function ProductGallery({
         selectedColor?.id
     ) ?? null;
 
-  /*
-   * ============================================================
-   * COLOR GALLERY
-   * ============================================================
-   */
+  // ============================================================
+  // COLOR GALLERY
+  // ============================================================
 
-  const colorImages =
-    activeColor
-      ? Array.from(
-          new Set(
-            [
-              ...(activeColor.images ?? [])
-                .slice()
-                .sort(
-                  (a, b) =>
-                    a.sortOrder -
-                    b.sortOrder
-                )
-                .map(
-                  (image) =>
-                    image.url
-                ),
+  const colorImages = useMemo(() => {
+    if (!activeColor) {
+      return [];
+    }
 
-              activeColor.imageUrl ??
-                "",
-            ].filter(Boolean)
-          )
-        )
-      : [];
+    return Array.from(
+      new Set(
+        [
+          ...(activeColor.images ?? [])
+            .slice()
+            .sort(
+              (a, b) =>
+                a.sortOrder -
+                b.sortOrder
+            )
+            .map(
+              (image) =>
+                image.url
+            ),
 
-  /*
-   * ============================================================
-   * VARIANT GALLERY
-   * ============================================================
-   *
-   * Priority:
-   *
-   * 1. Variant images[]
-   * 2. Legacy variant imageUrl
-   */
+          activeColor.imageUrl ?? "",
+        ].filter(Boolean)
+      )
+    );
+  }, [activeColor]);
 
-  const variantImages =
-    selectedVariant
-      ? Array.from(
-          new Set(
-            [
-              ...(selectedVariant.images ??
-                [])
-                .slice()
-                .sort(
-                  (a, b) =>
-                    a.sortOrder -
-                    b.sortOrder
-                )
-                .map(
-                  (image) =>
-                    image.url
-                ),
+  // ============================================================
+  // VARIANT GALLERY
+  // ============================================================
 
-              selectedVariant.imageUrl ??
-                "",
-            ].filter(Boolean)
-          )
-        )
-      : [];
+  const variantImages = useMemo(() => {
+    if (!selectedVariant) {
+      return [];
+    }
 
-  /*
-   * ============================================================
-   * ACTIVE GALLERY
-   * ============================================================
-   *
-   * Colour mode:
-   *
-   * Colour Gallery
-   * → Product Gallery fallback
-   *
-   * Variant mode:
-   *
-   * Variant Gallery
-   * → Colour Gallery fallback
-   * → Product Gallery fallback
-   */
+    return Array.from(
+      new Set(
+        [
+          ...(selectedVariant.images ?? [])
+            .slice()
+            .sort(
+              (a, b) =>
+                a.sortOrder -
+                b.sortOrder
+            )
+            .map(
+              (image) =>
+                image.url
+            ),
 
-  const images =
-    selectionSource === "variant"
-      ? variantImages.length > 0
-        ? variantImages
-        : colorImages.length > 0
-        ? colorImages
-        : baseImages
-      : colorImages.length > 0
-      ? colorImages
-      : baseImages;
+          selectedVariant.imageUrl ?? "",
+        ].filter(Boolean)
+      )
+    );
+  }, [selectedVariant]);
 
-  /*
-   * ============================================================
-   * INITIAL IMAGE
-   * ============================================================
-   */
+  // ============================================================
+  // ACTIVE GALLERY
+  // ============================================================
 
-  const initialImage =
-    images[0] ??
-    "/placeholder.png";
+  const images = useMemo(() => {
+    if (
+      selectionSource ===
+      "variant"
+    ) {
+      if (
+        variantImages.length > 0
+      ) {
+        return variantImages;
+      }
+
+      if (
+        colorImages.length > 0
+      ) {
+        return colorImages;
+      }
+
+      return baseImages;
+    }
+
+    if (
+      colorImages.length > 0
+    ) {
+      return colorImages;
+    }
+
+    return baseImages;
+  }, [
+    selectionSource,
+    variantImages,
+    colorImages,
+    baseImages,
+  ]);
+
+  // ============================================================
+  // CURRENT IMAGE INDEX
+  // ============================================================
 
   /*
-   * ============================================================
-   * SELECTED IMAGE
-   * ============================================================
+   * IMPORTANT:
+   *
+   * The gallery is controlled by an INDEX,
+   * not by the image URL.
+   *
+   * This prevents the main image from getting
+   * stuck on the first image when the active
+   * Variant gallery changes.
    */
 
   const [
-    selectedImage,
-    setSelectedImage,
-  ] = useState(
-    initialImage
-  );
+    currentIndex,
+    setCurrentIndex,
+  ] = useState(0);
 
-  /*
-   * ============================================================
-   * LIGHTBOX
-   * ============================================================
-   */
+  // ============================================================
+  // LIGHTBOX
+  // ============================================================
 
   const [
     lightboxOpen,
     setLightboxOpen,
   ] = useState(false);
 
-  /*
-   * ============================================================
-   * CURRENT IMAGE INDEX
-   * ============================================================
-   */
+  // ============================================================
+  // SELECTED IMAGE
+  // ============================================================
 
-  const currentIndex = Math.max(
-    0,
-    images.indexOf(
-      selectedImage
-    )
-  );
+  const selectedImage =
+    images.length > 0
+      ? images[
+          Math.min(
+            currentIndex,
+            images.length - 1
+          )
+        ]
+      : "/placeholder.png";
 
-  /*
-   * ============================================================
-   * SWIPE
-   * ============================================================
-   */
+  // ============================================================
+  // SWIPE
+  // ============================================================
 
   const touchStartX =
     useRef(0);
@@ -239,11 +239,9 @@ export default function ProductGallery({
   const isSwiping =
     useRef(false);
 
-  /*
-   * ============================================================
-   * CHANGE IMAGE
-   * ============================================================
-   */
+  // ============================================================
+  // CHANGE IMAGE
+  // ============================================================
 
   function changeImage(
     index: number
@@ -256,13 +254,14 @@ export default function ProductGallery({
     }
 
     const next =
-      (index + total) %
-      total;
+      (index + total) % total;
 
-    setSelectedImage(
-      images[next]
-    );
+    setCurrentIndex(next);
   }
+
+  // ============================================================
+  // PREVIOUS
+  // ============================================================
 
   function previousImage() {
     changeImage(
@@ -270,17 +269,69 @@ export default function ProductGallery({
     );
   }
 
+  // ============================================================
+  // NEXT
+  // ============================================================
+
   function nextImage() {
     changeImage(
       currentIndex + 1
     );
   }
 
+  // ============================================================
+  // RESET IMAGE WHEN GALLERY CHANGES
+  // ============================================================
+
   /*
-   * ============================================================
-   * TOUCH
-   * ============================================================
+   * When the user changes:
+   *
+   * Keepall 35
+   *      ↓
+   * Keepall 20
+   *
+   * the new Variant gallery should
+   * always start from image #1.
+   *
+   * Same for Colour changes.
    */
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [
+    selectedVariant?.id,
+    selectedColor?.id,
+    selectionSource,
+  ]);
+
+  // ============================================================
+  // SAFETY: KEEP INDEX INSIDE CURRENT GALLERY
+  // ============================================================
+
+  useEffect(() => {
+    if (
+      images.length === 0
+    ) {
+      setCurrentIndex(0);
+      return;
+    }
+
+    if (
+      currentIndex >=
+      images.length
+    ) {
+      setCurrentIndex(
+        images.length - 1
+      );
+    }
+  }, [
+    images.length,
+    currentIndex,
+  ]);
+
+  // ============================================================
+  // TOUCH START
+  // ============================================================
 
   function handleTouchStart(
     event: React.TouchEvent<HTMLDivElement>
@@ -294,6 +345,10 @@ export default function ProductGallery({
     touchEndX.current =
       touchStartX.current;
   }
+
+  // ============================================================
+  // TOUCH MOVE
+  // ============================================================
 
   function handleTouchMove(
     event: React.TouchEvent<HTMLDivElement>
@@ -312,6 +367,10 @@ export default function ProductGallery({
     }
   }
 
+  // ============================================================
+  // TOUCH END
+  // ============================================================
+
   function handleTouchEnd() {
     const distance =
       touchStartX.current -
@@ -329,279 +388,32 @@ export default function ProductGallery({
     touchEndX.current = 0;
   }
 
-  /*
-   * ============================================================
-   * COLOUR CHANGE
-   * ============================================================
-   */
+  // ============================================================
+  // COLOUR CHANGE
+  // ============================================================
 
   function handleColorChange(
     color: ProductGalleryColor
   ) {
-    setSelectionSource(
-      "color"
-    );
-
     setSelectedColor({
       id: color.id,
+
       name: color.name,
+
       imageUrl:
         color.imageUrl ?? null,
+
       model:
         color.model ?? null,
+
       images:
         color.images ?? [],
     });
-
-    const selectedColorImages =
-      Array.from(
-        new Set(
-          [
-            ...(color.images ?? [])
-              .slice()
-              .sort(
-                (a, b) =>
-                  a.sortOrder -
-                  b.sortOrder
-              )
-              .map(
-                (image) =>
-                  image.url
-              ),
-
-            color.imageUrl ??
-              "",
-          ].filter(Boolean)
-        )
-      );
-
-    if (
-      selectedColorImages.length >
-      0
-    ) {
-      setSelectedImage(
-        selectedColorImages[0]
-      );
-
-      return;
-    }
-
-    if (
-      color.imageUrl
-    ) {
-      setSelectedImage(
-        color.imageUrl
-      );
-    }
   }
 
-  /*
-   * ============================================================
-   * COLOUR CHANGE EFFECT
-   * ============================================================
-   *
-   * Only run this when Colour is the active gallery source.
-   */
-
-  useEffect(() => {
-    if (
-      selectionSource !==
-      "color"
-    ) {
-      return;
-    }
-
-    const color =
-      colors.find(
-        (item) =>
-          item.id ===
-          selectedColor?.id
-      ) ?? null;
-
-    if (!color) {
-      if (
-        baseImages.length > 0
-      ) {
-        setSelectedImage(
-          baseImages[0]
-        );
-      }
-
-      return;
-    }
-
-    const selectedColorImages =
-      Array.from(
-        new Set(
-          [
-            ...(color.images ?? [])
-              .slice()
-              .sort(
-                (a, b) =>
-                  a.sortOrder -
-                  b.sortOrder
-              )
-              .map(
-                (image) =>
-                  image.url
-              ),
-
-            color.imageUrl ??
-              "",
-          ].filter(Boolean)
-        )
-      );
-
-    if (
-      selectedColorImages.length >
-      0
-    ) {
-      setSelectedImage(
-        selectedColorImages[0]
-      );
-
-      return;
-    }
-
-    if (
-      color.imageUrl
-    ) {
-      setSelectedImage(
-        color.imageUrl
-      );
-    }
-  }, [
-    selectedColor,
-    colors,
-    selectionSource,
-  ]);
-
-  /*
-   * ============================================================
-   * VARIANT CHANGE EFFECT
-   * ============================================================
-   *
-   * Only run this when Variant is the active gallery source.
-   *
-   * This is the important fix:
-   *
-   * Variant images[]
-   * → complete Variant Gallery
-   *
-   * imageUrl
-   * → legacy fallback
-   */
-
-  useEffect(() => {
-    if (
-      selectionSource !==
-      "variant"
-    ) {
-      return;
-    }
-
-    if (!selectedVariant) {
-      return;
-    }
-
-    const selectedVariantImages =
-      Array.from(
-        new Set(
-          [
-            ...(selectedVariant.images ??
-              [])
-              .slice()
-              .sort(
-                (a, b) =>
-                  a.sortOrder -
-                  b.sortOrder
-              )
-              .map(
-                (image) =>
-                  image.url
-              ),
-
-            selectedVariant.imageUrl ??
-              "",
-          ].filter(Boolean)
-        )
-      );
-
-    if (
-      selectedVariantImages.length >
-      0
-    ) {
-      setSelectedImage(
-        selectedVariantImages[0]
-      );
-
-      return;
-    }
-
-    /*
-     * If Variant has no images,
-     * fallback to current Colour Gallery.
-     */
-
-    if (
-      colorImages.length > 0
-    ) {
-      setSelectedImage(
-        colorImages[0]
-      );
-
-      return;
-    }
-
-    if (
-      baseImages.length > 0
-    ) {
-      setSelectedImage(
-        baseImages[0]
-      );
-    }
-  }, [
-    selectedVariant,
-    selectionSource,
-    colorImages,
-    baseImages,
-  ]);
-
-  /*
-   * ============================================================
-   * ACTIVE GALLERY SYNC
-   * ============================================================
-   *
-   * This handles cases where the image currently selected
-   * no longer exists inside the new gallery.
-   */
-
-  useEffect(() => {
-    if (
-      images.length === 0
-    ) {
-      return;
-    }
-
-    if (
-      !images.includes(
-        selectedImage
-      )
-    ) {
-      setSelectedImage(
-        images[0]
-      );
-    }
-  }, [
-    images,
-    selectedImage,
-  ]);
-
-  /*
-   * ============================================================
-   * KEYBOARD NAVIGATION
-   * ============================================================
-   */
+  // ============================================================
+  // KEYBOARD NAVIGATION
+  // ============================================================
 
   useEffect(() => {
     function handleKeyDown(
@@ -661,11 +473,9 @@ export default function ProductGallery({
     lightboxOpen,
   ]);
 
-  /*
-   * ============================================================
-   * CURRENT COLOUR
-   * ============================================================
-   */
+  // ============================================================
+  // CURRENT COLOUR
+  // ============================================================
 
   const currentColor =
     colors.find(
@@ -677,12 +487,16 @@ export default function ProductGallery({
   const hasMultipleImages =
     images.length > 1;
 
+  // ============================================================
+  // RENDER
+  // ============================================================
+
   return (
     <>
       <div className="flex flex-col gap-6 lg:flex-row">
 
         {/* ==================================================== */}
-        {/* Thumbnails */}
+        {/* THUMBNAILS */}
         {/* ==================================================== */}
 
         <div
@@ -713,14 +527,16 @@ export default function ProductGallery({
                   )
                 }
                 className={`
+                  shrink-0
                   overflow-hidden
                   rounded-xl
                   transition-all
                   duration-300
                   lg:rounded-2xl
+
                   ${
-                    selectedImage ===
-                    img
+                    currentIndex ===
+                    index
                       ? "scale-105 ring-2 ring-black shadow-md"
                       : "ring-1 ring-neutral-200 hover:-translate-y-1 hover:ring-neutral-400"
                   }
@@ -761,7 +577,7 @@ export default function ProductGallery({
         </div>
 
         {/* ==================================================== */}
-        {/* Main Image */}
+        {/* MAIN IMAGE */}
         {/* ==================================================== */}
 
         <div className="group relative flex-1">
@@ -800,7 +616,9 @@ export default function ProductGallery({
             "
           >
 
-            {/* Previous */}
+            {/* ================================================= */}
+            {/* PREVIOUS */}
+            {/* ================================================= */}
 
             {hasMultipleImages && (
               <button
@@ -843,29 +661,39 @@ export default function ProductGallery({
               >
                 <ChevronLeft
                   size={22}
-                  strokeWidth={
-                    1.8
-                  }
+                  strokeWidth={1.8}
                 />
               </button>
             )}
 
-            {/* Image */}
+            {/* ================================================= */}
+            {/* IMAGE */}
+            {/* ================================================= */}
 
             <div>
               <ZoomImage
+                /*
+                 * Force ZoomImage to receive a
+                 * completely new instance whenever
+                 * the selected image changes.
+                 *
+                 * This prevents the previous image
+                 * from visually sticking.
+                 */
+                key={`${selectedImage}-${currentIndex}`}
                 src={
                   selectedImage
                 }
                 alt={name}
                 priority={
-                  selectedImage ===
-                  initialImage
+                  currentIndex === 0
                 }
               />
             </div>
 
-            {/* Next */}
+            {/* ================================================= */}
+            {/* NEXT */}
+            {/* ================================================= */}
 
             {hasMultipleImages && (
               <button
@@ -908,33 +736,55 @@ export default function ProductGallery({
               >
                 <ChevronRight
                   size={22}
-                  strokeWidth={
-                    1.8
-                  }
+                  strokeWidth={1.8}
                 />
               </button>
             )}
+
           </div>
 
-          {/* Counter */}
+          {/* ==================================================== */}
+          {/* COUNTER */}
+          {/* ==================================================== */}
 
-          <div className="mt-5 flex items-center justify-between px-1">
-            <span className="text-xs tracking-[0.25em] text-neutral-400">
-              {images.length >
-              0
-                ? currentIndex +
-                  1
+          <div
+            className="
+              mt-5
+              flex
+              items-center
+              justify-between
+              px-1
+            "
+          >
+            <span
+              className="
+                text-xs
+                tracking-[0.25em]
+                text-neutral-400
+              "
+            >
+              {images.length > 0
+                ? currentIndex + 1
                 : 0}{" "}
               /{" "}
               {images.length}
             </span>
 
-            <span className="text-xs uppercase tracking-[0.25em] text-neutral-400">
+            <span
+              className="
+                text-xs
+                uppercase
+                tracking-[0.25em]
+                text-neutral-400
+              "
+            >
               IMAGE
             </span>
           </div>
 
-          {/* Mobile Swipe Hint */}
+          {/* ==================================================== */}
+          {/* MOBILE SWIPE HINT */}
+          {/* ==================================================== */}
 
           {hasMultipleImages && (
             <div
@@ -953,9 +803,7 @@ export default function ProductGallery({
             >
               <ChevronLeft
                 size={13}
-                strokeWidth={
-                  1.5
-                }
+                strokeWidth={1.5}
               />
 
               <span>
@@ -964,17 +812,25 @@ export default function ProductGallery({
 
               <ChevronRight
                 size={13}
-                strokeWidth={
-                  1.5
-                }
+                strokeWidth={1.5}
               />
             </div>
           )}
 
-          {/* Mobile Dots */}
+          {/* ==================================================== */}
+          {/* MOBILE DOTS */}
+          {/* ==================================================== */}
 
           {hasMultipleImages && (
-            <div className="mt-4 flex justify-center gap-2 lg:hidden">
+            <div
+              className="
+                mt-4
+                flex
+                justify-center
+                gap-2
+                lg:hidden
+              "
+            >
               {images.map(
                 (
                   img,
@@ -997,6 +853,7 @@ export default function ProductGallery({
                       transition-all
                       duration-300
                       ease-out
+
                       ${
                         index ===
                         currentIndex
@@ -1010,23 +867,47 @@ export default function ProductGallery({
             </div>
           )}
 
-          {/* ================================================= */}
-          {/* Colour Selector */}
-          {/* ================================================= */}
+          {/* ==================================================== */}
+          {/* COLOUR SELECTOR */}
+          {/* ==================================================== */}
 
-          {colors.length >
-            0 && (
-            <div className="mt-8 lg:mt-10">
-              <p className="mb-2 text-xs uppercase tracking-[0.3em] text-neutral-500">
+          {colors.length > 0 && (
+            <div
+              className="
+                mt-8
+                lg:mt-10
+              "
+            >
+              <p
+                className="
+                  mb-2
+                  text-xs
+                  uppercase
+                  tracking-[0.3em]
+                  text-neutral-500
+                "
+              >
                 Colour
               </p>
 
-              <p className="mb-5 text-lg font-medium">
+              <p
+                className="
+                  mb-5
+                  text-lg
+                  font-medium
+                "
+              >
                 {currentColor?.name ??
                   "Select Colour"}
               </p>
 
-              <div className="flex flex-wrap gap-4">
+              <div
+                className="
+                  flex
+                  flex-wrap
+                  gap-4
+                "
+              >
                 {colors.map(
                   (
                     color
@@ -1039,9 +920,7 @@ export default function ProductGallery({
 
                     return (
                       <button
-                        key={
-                          color.id
-                        }
+                        key={color.id}
                         type="button"
                         onClick={() =>
                           handleColorChange(
@@ -1051,6 +930,7 @@ export default function ProductGallery({
                         className={`
                           group
                           transition
+
                           ${
                             currentColor?.id ===
                             color.id
@@ -1065,6 +945,7 @@ export default function ProductGallery({
                             rounded-full
                             border-2
                             p-1
+
                             ${
                               currentColor?.id ===
                               color.id
@@ -1095,7 +976,13 @@ export default function ProductGallery({
                           />
                         </div>
 
-                        <p className="mt-2 text-center text-xs">
+                        <p
+                          className="
+                            mt-2
+                            text-center
+                            text-xs
+                          "
+                        >
                           {
                             color.name
                           }
@@ -1110,19 +997,23 @@ export default function ProductGallery({
         </div>
       </div>
 
-      {/* ==================================================== */}
-      {/* Lightbox */}
-      {/* ==================================================== */}
+      {/* ====================================================== */}
+      {/* LIGHTBOX */}
+      {/* ====================================================== */}
 
       <Lightbox
         open={
           lightboxOpen
         }
-        images={images}
+        images={
+          images
+        }
         image={
           selectedImage
         }
-        name={name}
+        name={
+          name
+        }
         onClose={() =>
           setLightboxOpen(
             false
@@ -1136,7 +1027,9 @@ export default function ProductGallery({
               image
             );
 
-          if (index >= 0) {
+          if (
+            index >= 0
+          ) {
             changeImage(
               index
             );

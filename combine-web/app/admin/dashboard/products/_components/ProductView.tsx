@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import {
   LayoutGrid,
@@ -14,6 +17,10 @@ import type {
 import ProductTable from "./ProductTable";
 import ProductGrid from "./ProductGrid";
 
+
+// ============================================================
+// TYPES
+// ============================================================
 
 type ProductViewProps = {
   products: ProductWithImages[];
@@ -59,6 +66,18 @@ type ProductViewProps = {
   availability: string;
 };
 
+
+// ============================================================
+// STORAGE KEYS
+// ============================================================
+
+const PRODUCTS_SCROLL_KEY =
+  "combine-admin-products-scroll";
+
+
+// ============================================================
+// PRODUCT VIEW
+// ============================================================
 
 export default function ProductView({
   products,
@@ -145,6 +164,152 @@ export default function ProductView({
 
 
   // =========================================================
+  // RESTORE PRODUCTS SCROLL POSITION
+  // =========================================================
+  //
+  // ProductActions saves the exact scroll position
+  // immediately before navigating to Edit Product.
+  //
+  // When the Products page comes back, restore that
+  // position after the DOM has had enough time to render.
+  //
+
+  useEffect(() => {
+
+    const savedScroll =
+      sessionStorage.getItem(
+        PRODUCTS_SCROLL_KEY
+      );
+
+
+    if (!savedScroll) {
+      return;
+    }
+
+
+    const scrollY =
+      Number(
+        savedScroll
+      );
+
+
+    if (
+      !Number.isFinite(
+        scrollY
+      ) ||
+      scrollY < 0
+    ) {
+
+      sessionStorage.removeItem(
+        PRODUCTS_SCROLL_KEY
+      );
+
+      return;
+    }
+
+
+    let attempts = 0;
+
+    const maxAttempts = 10;
+
+
+    function restoreScroll() {
+
+      attempts += 1;
+
+
+      /*
+       * Only restore if the document is tall enough
+       * to contain the requested scroll position.
+       */
+
+      const maxScroll =
+        Math.max(
+          0,
+          document.documentElement
+            .scrollHeight -
+            window.innerHeight
+        );
+
+
+      const targetScroll =
+        Math.min(
+          scrollY,
+          maxScroll
+        );
+
+
+      window.scrollTo({
+        top: targetScroll,
+        behavior: "auto",
+      });
+
+
+      /*
+       * If the page is still rendering and the browser
+       * could not reach the original position, try again.
+       */
+
+      if (
+        attempts < maxAttempts &&
+        Math.abs(
+          window.scrollY -
+            targetScroll
+        ) > 2
+      ) {
+
+        requestAnimationFrame(
+          restoreScroll
+        );
+
+        return;
+      }
+
+
+      /*
+       * Give the browser one final frame before
+       * removing the saved position.
+       */
+
+      if (
+        attempts < maxAttempts
+      ) {
+
+        requestAnimationFrame(
+          restoreScroll
+        );
+
+        return;
+      }
+
+
+      sessionStorage.removeItem(
+        PRODUCTS_SCROLL_KEY
+      );
+
+    }
+
+
+    requestAnimationFrame(
+      restoreScroll
+    );
+
+
+    return () => {
+
+      /*
+       * No persistent event listeners are used.
+       *
+       * This keeps the component simple and avoids
+       * hydration-related browser/server differences.
+       */
+
+    };
+
+  }, []);
+
+
+  // =========================================================
   // DESKTOP VIEW
   //
   // Mobile is always Grid.
@@ -164,9 +329,9 @@ export default function ProductView({
   return (
     <div className="space-y-4">
 
-      {/* ================================================= */}
-      {/* TOOLBAR */}
-      {/* ================================================= */}
+      {/* =====================================================
+          TOOLBAR
+          ===================================================== */}
 
       <div
         className="
@@ -177,9 +342,9 @@ export default function ProductView({
         "
       >
 
-        {/* ================================================= */}
-        {/* LEFT */}
-        {/* ================================================= */}
+        {/* ===================================================
+            LEFT
+            =================================================== */}
 
         <div
           className="
@@ -187,7 +352,6 @@ export default function ProductView({
             min-w-0
             items-center
             gap-2
-
             sm:gap-3
           "
         >
@@ -196,7 +360,6 @@ export default function ProductView({
             className="
               text-xs
               text-neutral-500
-
               sm:text-sm
             "
           >
@@ -215,7 +378,6 @@ export default function ProductView({
               text-xs
               transition
               hover:bg-neutral-100
-
               sm:px-4
               sm:text-sm
             "
@@ -234,9 +396,9 @@ export default function ProductView({
         </div>
 
 
-        {/* ================================================= */}
-        {/* VIEW SWITCHER */}
-        {/* ================================================= */}
+        {/* ===================================================
+            VIEW SWITCHER
+            =================================================== */}
 
         <div
           className="
@@ -250,9 +412,9 @@ export default function ProductView({
           "
         >
 
-          {/* ================================================= */}
-          {/* TABLE */}
-          {/* ================================================= */}
+          {/* =================================================
+              TABLE
+              ================================================= */}
 
           <button
             type="button"
@@ -268,13 +430,11 @@ export default function ProductView({
               py-2
               text-sm
               transition
-
               sm:flex
               sm:px-4
 
               ${
-                desktopView ===
-                "table"
+                desktopView === "table"
                   ? "bg-black text-white"
                   : "text-neutral-600 hover:bg-neutral-100"
               }
@@ -290,9 +450,9 @@ export default function ProductView({
           </button>
 
 
-          {/* ================================================= */}
-          {/* GRID */}
-          {/* ================================================= */}
+          {/* =================================================
+              GRID
+              ================================================= */}
 
           <button
             type="button"
@@ -308,12 +468,10 @@ export default function ProductView({
               py-2
               text-sm
               transition
-
               sm:px-4
 
               ${
-                desktopView ===
-                "grid"
+                desktopView === "grid"
                   ? "bg-black text-white"
                   : "text-neutral-600 hover:bg-neutral-100"
               }
@@ -335,9 +493,9 @@ export default function ProductView({
       </div>
 
 
-      {/* ================================================= */}
-      {/* MOBILE */}
-      {/* ================================================= */}
+      {/* =====================================================
+          MOBILE
+          ===================================================== */}
 
       <div className="block sm:hidden">
 
@@ -378,14 +536,13 @@ export default function ProductView({
       </div>
 
 
-      {/* ================================================= */}
-      {/* DESKTOP */}
-      {/* ================================================= */}
+      {/* =====================================================
+          DESKTOP
+          ===================================================== */}
 
       <div className="hidden sm:block">
 
-        {desktopView ===
-        "table" ? (
+        {desktopView === "table" ? (
 
           <ProductTable
             products={
@@ -419,18 +576,6 @@ export default function ProductView({
             sort={
               sort
             }
-
-            /*
-             * =================================================
-             * CURRENT PAGE STATE
-             * =================================================
-             *
-             * IMPORTANT:
-             *
-             * These are the actual Products page filters.
-             *
-             * Do NOT use ProductTable's Bulk Action state here.
-             */
 
             search={
               search

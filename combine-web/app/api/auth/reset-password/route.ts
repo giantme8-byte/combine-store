@@ -5,191 +5,135 @@ import { prisma } from "@/lib/prisma";
 
 
 // ============================================================
-// POST /api/auth/register
+// POST — RESET PASSWORD
 // ============================================================
 
 export async function POST(
   request: Request
 ) {
+
   try {
+
     // ========================================================
-    // READ REQUEST
+    // REQUEST BODY
     // ========================================================
 
     const body =
       await request.json();
 
-    const name =
-      typeof body.name === "string"
-        ? body.name.trim()
+
+    const token =
+      typeof body.token === "string"
+        ? body.token.trim()
         : "";
 
-    const email =
-      typeof body.email === "string"
-        ? body.email
-            .trim()
-            .toLowerCase()
-        : "";
 
     const password =
       typeof body.password === "string"
         ? body.password
         : "";
 
-    const dateOfBirth =
-      typeof body.dateOfBirth === "string"
-        ? body.dateOfBirth.trim()
-        : "";
-
 
     // ========================================================
-    // BASIC VALIDATION
+    // VALIDATE TOKEN
     // ========================================================
 
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !dateOfBirth
-    ) {
+    if (!token) {
+
       return NextResponse.json(
         {
           success: false,
           message:
-            "Please complete all required fields.",
+            "This password reset link is invalid.",
         },
         {
           status: 400,
         }
       );
+
     }
 
 
     // ========================================================
-    // EMAIL VALIDATION
+    // VALIDATE PASSWORD
     // ========================================================
 
-    const emailPattern =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (password.length < 8) {
 
-    if (
-      !emailPattern.test(email)
-    ) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Please enter a valid email address.",
+            "Password must be at least 8 characters.",
         },
         {
           status: 400,
         }
       );
+
     }
 
 
     // ========================================================
-    // PASSWORD VALIDATION
+    // FIND RESET TOKEN
     // ========================================================
 
-    if (
-      password.length < 6
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Password must be at least 6 characters.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-
-    // ========================================================
-    // DATE OF BIRTH VALIDATION
-    // ========================================================
-
-    const parsedDate =
-      new Date(
-        `${dateOfBirth}T00:00:00.000Z`
-      );
-
-
-    if (
-      Number.isNaN(
-        parsedDate.getTime()
-      )
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Please enter a valid date of birth.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-
-    // ========================================================
-    // DATE OF BIRTH CANNOT BE IN THE FUTURE
-    // ========================================================
-
-    const today =
-      new Date();
-
-    today.setUTCHours(
-      0,
-      0,
-      0,
-      0
-    );
-
-
-    if (
-      parsedDate > today
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Date of birth cannot be in the future.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-
-    // ========================================================
-    // FIND EXISTING USER
-    // ========================================================
-
-    const existingUser =
-      await prisma.user.findUnique({
+    const resetToken =
+      await prisma.passwordResetToken.findUnique({
         where: {
-          email,
+          token,
         },
       });
 
 
-    if (existingUser) {
+    // ========================================================
+    // INVALID TOKEN
+    // ========================================================
+
+    if (!resetToken) {
+
       return NextResponse.json(
         {
           success: false,
           message:
-            "An account with this email already exists.",
+            "This password reset link is invalid or has already been used.",
         },
         {
-          status: 409,
+          status: 400,
         }
       );
+
+    }
+
+
+    // ========================================================
+    // EXPIRED TOKEN
+    // ========================================================
+
+    if (
+      resetToken.expiresAt <
+      new Date()
+    ) {
+
+      await prisma.passwordResetToken.delete({
+        where: {
+          id:
+            resetToken.id,
+        },
+      });
+
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "This password reset link has expired. Please request a new one.",
+        },
+        {
+          status: 400,
+        }
+      );
+
     }
 
 
@@ -205,62 +149,56 @@ export async function POST(
 
 
     // ========================================================
-    // CREATE CUSTOMER
+    // UPDATE PASSWORD + DELETE TOKEN
     // ========================================================
 
-    const user =
-      await prisma.user.create({
+    await prisma.$transaction([
+
+      prisma.user.update({
+
+        where: {
+          id:
+            resetToken.userId,
+        },
+
         data: {
-          name,
-
-          email,
-
           password:
             hashedPassword,
-
-          dateOfBirth:
-            parsedDate,
-
-          role:
-            "CUSTOMER",
-
-          active:
-            true,
         },
 
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          dateOfBirth: true,
-          role: true,
+      }),
+
+
+      prisma.passwordResetToken.delete({
+
+        where: {
+          id:
+            resetToken.id,
         },
-      });
+
+      }),
+
+    ]);
 
 
     // ========================================================
     // SUCCESS
     // ========================================================
 
-    return NextResponse.json(
-      {
-        success: true,
+    return NextResponse.json({
 
-        message:
-          "Account created successfully.",
+      success: true,
 
-        user,
-      },
-      {
-        status: 201,
-      }
-    );
+      message:
+        "Password updated successfully.",
+
+    });
 
 
   } catch (error) {
 
     console.error(
-      "Registration failed:",
+      "Reset password failed:",
       error
     );
 
@@ -275,5 +213,7 @@ export async function POST(
         status: 500,
       }
     );
+
   }
+
 }
