@@ -11,87 +11,222 @@ import { requireRole } from "@/lib/authorize";
 import { prisma } from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 
+
+// ============================================================
+// HELPERS
+// ============================================================
+
 function getString(
   formData: FormData,
   key: string
 ) {
-  const value = formData.get(key);
+  const value =
+    formData.get(key);
 
-  if (typeof value !== "string") {
+  if (
+    typeof value !== "string"
+  ) {
     return "";
   }
 
   return value.trim();
 }
 
-/**
- * Create Payment Method
- */
+
+// ============================================================
+// VALIDATE PAYMENT METHOD TYPE
+// ============================================================
+
+function getPaymentMethodType(
+  value: string
+): PaymentMethodType {
+
+  if (
+    value ===
+    PaymentMethodType.BANK_TRANSFER
+  ) {
+    return PaymentMethodType.BANK_TRANSFER;
+  }
+
+  if (
+    value ===
+    PaymentMethodType.QR
+  ) {
+    return PaymentMethodType.QR;
+  }
+
+  if (
+    value ===
+    PaymentMethodType.PAYPAL
+  ) {
+    return PaymentMethodType.PAYPAL;
+  }
+
+  if (
+    value ===
+    PaymentMethodType.WISE
+  ) {
+    return PaymentMethodType.WISE;
+  }
+
+  throw new Error(
+    "Invalid payment method type."
+  );
+}
+
+
+// ============================================================
+// CREATE PAYMENT METHOD
+// ============================================================
+
 export async function createPaymentMethod(
   formData: FormData
 ) {
+
   await requireRole([
     UserRole.OWNER,
     UserRole.ADMIN,
   ]);
 
+
+  // ==========================================================
+  // FORM DATA
+  // ==========================================================
+
   const name =
-    getString(formData, "name");
+    getString(
+      formData,
+      "name"
+    );
+
 
   const typeValue =
-    getString(formData, "type");
+    getString(
+      formData,
+      "type"
+    );
+
 
   const instructions =
-    getString(formData, "instructions");
+    getString(
+      formData,
+      "instructions"
+    );
+
 
   const bankName =
-    getString(formData, "bankName");
+    getString(
+      formData,
+      "bankName"
+    );
+
 
   const accountName =
-    getString(formData, "accountName");
+    getString(
+      formData,
+      "accountName"
+    );
+
 
   const accountNumber =
-    getString(formData, "accountNumber");
+    getString(
+      formData,
+      "accountNumber"
+    );
+
 
   const qrImageUrl =
-    getString(formData, "qrImageUrl");
+    getString(
+      formData,
+      "qrImageUrl"
+    );
+
 
   const qrPublicId =
-    getString(formData, "qrPublicId");
+    getString(
+      formData,
+      "qrPublicId"
+    );
+
+
+  const wiseName =
+    getString(
+      formData,
+      "wiseName"
+    );
+
+
+  const wiseEmail =
+    getString(
+      formData,
+      "wiseEmail"
+    );
+
+
+  const wiseAccount =
+    getString(
+      formData,
+      "wiseAccount"
+    );
+
 
   const sortOrderValue =
-    getString(formData, "sortOrder");
+    getString(
+      formData,
+      "sortOrder"
+    );
+
 
   const active =
-    formData.get("active") === "on";
+    formData.get(
+      "active"
+    ) === "on";
+
+
+  // ==========================================================
+  // BASIC VALIDATION
+  // ==========================================================
 
   if (!name) {
+
     throw new Error(
       "Payment method name is required."
     );
+
   }
 
-  if (
-    typeValue !==
-      PaymentMethodType.BANK_TRANSFER &&
-    typeValue !==
-      PaymentMethodType.QR
-  ) {
-    throw new Error(
-      "Invalid payment method type."
-    );
-  }
+
+  // ==========================================================
+  // PAYMENT TYPE
+  // ==========================================================
 
   const type =
-    typeValue as PaymentMethodType;
+    getPaymentMethodType(
+      typeValue
+    );
+
+
+  // ==========================================================
+  // SORT ORDER
+  // ==========================================================
 
   const parsedSortOrder =
-    Number(sortOrderValue);
+    Number(
+      sortOrderValue
+    );
+
 
   const sortOrder =
-    Number.isFinite(parsedSortOrder)
+    Number.isFinite(
+      parsedSortOrder
+    )
       ? parsedSortOrder
       : 9999;
+
+
+  // ==========================================================
+  // PAYMENT-SPECIFIC DATA
+  // ==========================================================
 
   const finalBankName =
     type ===
@@ -99,11 +234,13 @@ export async function createPaymentMethod(
       ? bankName || null
       : null;
 
+
   const finalAccountName =
     type ===
     PaymentMethodType.BANK_TRANSFER
       ? accountName || null
       : null;
+
 
   const finalAccountNumber =
     type ===
@@ -111,123 +248,276 @@ export async function createPaymentMethod(
       ? accountNumber || null
       : null;
 
+
   const finalQrImageUrl =
-    type === PaymentMethodType.QR
+    type ===
+    PaymentMethodType.QR
       ? qrImageUrl || null
       : null;
 
+
   const finalQrPublicId =
-    type === PaymentMethodType.QR
+    type ===
+    PaymentMethodType.QR
       ? qrPublicId || null
       : null;
 
+
+  const finalWiseName =
+    type ===
+    PaymentMethodType.WISE
+      ? wiseName || null
+      : null;
+
+
+  const finalWiseEmail =
+    type ===
+    PaymentMethodType.WISE
+      ? wiseEmail || null
+      : null;
+
+
+  const finalWiseAccount =
+    type ===
+    PaymentMethodType.WISE
+      ? wiseAccount || null
+      : null;
+
+
+  // ==========================================================
+  // CREATE
+  // ==========================================================
+
   await prisma.paymentMethod.create({
+
     data: {
+
       name,
+
       type,
 
-      bankName: finalBankName,
-      accountName: finalAccountName,
-      accountNumber: finalAccountNumber,
+      bankName:
+        finalBankName,
 
-      qrImageUrl: finalQrImageUrl,
-      qrPublicId: finalQrPublicId,
+      accountName:
+        finalAccountName,
+
+      accountNumber:
+        finalAccountNumber,
+
+      qrImageUrl:
+        finalQrImageUrl,
+
+      qrPublicId:
+        finalQrPublicId,
+
+      wiseName:
+        finalWiseName,
+
+      wiseEmail:
+        finalWiseEmail,
+
+      wiseAccount:
+        finalWiseAccount,
 
       instructions:
         instructions || null,
 
       active,
+
       sortOrder,
+
     },
+
   });
+
+
+  // ==========================================================
+  // REDIRECT
+  // ==========================================================
 
   redirect(
     "/admin/dashboard/payment-methods"
   );
 }
 
-/**
- * Update Payment Method
- */
+
+// ============================================================
+// UPDATE PAYMENT METHOD
+// ============================================================
+
 export async function updatePaymentMethod(
   id: number,
   formData: FormData
 ) {
+
   await requireRole([
     UserRole.OWNER,
     UserRole.ADMIN,
   ]);
 
+
+  // ==========================================================
+  // LOAD EXISTING
+  // ==========================================================
+
   const existing =
     await prisma.paymentMethod.findUnique({
+
       where: {
         id,
       },
+
     });
 
+
   if (!existing) {
+
     throw new Error(
       "Payment method not found."
     );
+
   }
 
+
+  // ==========================================================
+  // FORM DATA
+  // ==========================================================
+
   const name =
-    getString(formData, "name");
+    getString(
+      formData,
+      "name"
+    );
+
 
   const typeValue =
-    getString(formData, "type");
+    getString(
+      formData,
+      "type"
+    );
+
 
   const instructions =
-    getString(formData, "instructions");
+    getString(
+      formData,
+      "instructions"
+    );
+
 
   const bankName =
-    getString(formData, "bankName");
+    getString(
+      formData,
+      "bankName"
+    );
+
 
   const accountName =
-    getString(formData, "accountName");
+    getString(
+      formData,
+      "accountName"
+    );
+
 
   const accountNumber =
-    getString(formData, "accountNumber");
+    getString(
+      formData,
+      "accountNumber"
+    );
+
 
   const qrImageUrl =
-    getString(formData, "qrImageUrl");
+    getString(
+      formData,
+      "qrImageUrl"
+    );
+
 
   const qrPublicId =
-    getString(formData, "qrPublicId");
+    getString(
+      formData,
+      "qrPublicId"
+    );
+
+
+  const wiseName =
+    getString(
+      formData,
+      "wiseName"
+    );
+
+
+  const wiseEmail =
+    getString(
+      formData,
+      "wiseEmail"
+    );
+
+
+  const wiseAccount =
+    getString(
+      formData,
+      "wiseAccount"
+    );
+
 
   const sortOrderValue =
-    getString(formData, "sortOrder");
+    getString(
+      formData,
+      "sortOrder"
+    );
+
 
   const active =
-    formData.get("active") === "on";
+    formData.get(
+      "active"
+    ) === "on";
+
+
+  // ==========================================================
+  // BASIC VALIDATION
+  // ==========================================================
 
   if (!name) {
+
     throw new Error(
       "Payment method name is required."
     );
+
   }
 
-  if (
-    typeValue !==
-      PaymentMethodType.BANK_TRANSFER &&
-    typeValue !==
-      PaymentMethodType.QR
-  ) {
-    throw new Error(
-      "Invalid payment method type."
-    );
-  }
+
+  // ==========================================================
+  // PAYMENT TYPE
+  // ==========================================================
 
   const type =
-    typeValue as PaymentMethodType;
+    getPaymentMethodType(
+      typeValue
+    );
+
+
+  // ==========================================================
+  // SORT ORDER
+  // ==========================================================
 
   const parsedSortOrder =
-    Number(sortOrderValue);
+    Number(
+      sortOrderValue
+    );
+
 
   const sortOrder =
-    Number.isFinite(parsedSortOrder)
+    Number.isFinite(
+      parsedSortOrder
+    )
       ? parsedSortOrder
       : 9999;
+
+
+  // ==========================================================
+  // PAYMENT-SPECIFIC DATA
+  // ==========================================================
 
   const finalBankName =
     type ===
@@ -235,11 +525,13 @@ export async function updatePaymentMethod(
       ? bankName || null
       : null;
 
+
   const finalAccountName =
     type ===
     PaymentMethodType.BANK_TRANSFER
       ? accountName || null
       : null;
+
 
   const finalAccountNumber =
     type ===
@@ -247,140 +539,229 @@ export async function updatePaymentMethod(
       ? accountNumber || null
       : null;
 
+
   const finalQrImageUrl =
-    type === PaymentMethodType.QR
+    type ===
+    PaymentMethodType.QR
       ? qrImageUrl || null
       : null;
 
+
   const finalQrPublicId =
-    type === PaymentMethodType.QR
+    type ===
+    PaymentMethodType.QR
       ? qrPublicId || null
       : null;
 
-  /*
-   * If the QR image was replaced,
-   * remove the old Cloudinary image.
-   *
-   * We only remove it when:
-   *
-   * 1. The old record has a publicId.
-   * 2. The new publicId is different.
-   */
+
+  const finalWiseName =
+    type ===
+    PaymentMethodType.WISE
+      ? wiseName || null
+      : null;
+
+
+  const finalWiseEmail =
+    type ===
+    PaymentMethodType.WISE
+      ? wiseEmail || null
+      : null;
+
+
+  const finalWiseAccount =
+    type ===
+    PaymentMethodType.WISE
+      ? wiseAccount || null
+      : null;
+
+
+  // ==========================================================
+  // QR REPLACEMENT CHECK
+  // ==========================================================
+
   const qrWasReplaced =
-    existing.qrPublicId &&
+    Boolean(
+      existing.qrPublicId
+    ) &&
     existing.qrPublicId !==
       finalQrPublicId;
 
+
+  // ==========================================================
+  // UPDATE
+  // ==========================================================
+
   await prisma.paymentMethod.update({
+
     where: {
       id,
     },
 
     data: {
+
       name,
+
       type,
 
-      bankName: finalBankName,
-      accountName: finalAccountName,
-      accountNumber: finalAccountNumber,
+      bankName:
+        finalBankName,
 
-      qrImageUrl: finalQrImageUrl,
-      qrPublicId: finalQrPublicId,
+      accountName:
+        finalAccountName,
+
+      accountNumber:
+        finalAccountNumber,
+
+      qrImageUrl:
+        finalQrImageUrl,
+
+      qrPublicId:
+        finalQrPublicId,
+
+      wiseName:
+        finalWiseName,
+
+      wiseEmail:
+        finalWiseEmail,
+
+      wiseAccount:
+        finalWiseAccount,
 
       instructions:
         instructions || null,
 
       active,
+
       sortOrder,
+
     },
+
   });
 
-  /*
-   * Delete the old QR from Cloudinary
-   * only after the database update succeeds.
-   */
-  if (qrWasReplaced) {
+
+  // ==========================================================
+  // DELETE OLD QR
+  // ==========================================================
+
+  if (
+    qrWasReplaced
+  ) {
+
     try {
+
       await cloudinary.uploader.destroy(
         existing.qrPublicId!,
         {
-          resource_type: "image",
+          resource_type:
+            "image",
         }
       );
+
     } catch (error) {
-      /*
-       * Do not fail the payment method update
-       * just because Cloudinary cleanup failed.
-       *
-       * The database already contains the new QR.
-       */
+
       console.error(
         "Failed to delete old payment QR from Cloudinary:",
         error
       );
+
     }
+
   }
+
+
+  // ==========================================================
+  // REDIRECT
+  // ==========================================================
 
   redirect(
     "/admin/dashboard/payment-methods"
   );
 }
 
-/**
- * Delete Payment Method
- */
+
+// ============================================================
+// DELETE PAYMENT METHOD
+// ============================================================
+
 export async function deletePaymentMethod(
   id: number
 ) {
+
   await requireRole([
     UserRole.OWNER,
     UserRole.ADMIN,
   ]);
 
+
+  // ==========================================================
+  // LOAD EXISTING
+  // ==========================================================
+
   const existing =
     await prisma.paymentMethod.findUnique({
+
       where: {
         id,
       },
+
     });
 
+
   if (!existing) {
+
     throw new Error(
       "Payment method not found."
     );
+
   }
 
-  /*
-   * Delete database record first.
-   */
+
+  // ==========================================================
+  // DELETE DATABASE RECORD
+  // ==========================================================
+
   await prisma.paymentMethod.delete({
+
     where: {
       id,
     },
+
   });
 
-  /*
-   * Then remove the QR image from Cloudinary.
-   *
-   * If Cloudinary cleanup fails,
-   * the payment method is still successfully
-   * deleted from the database.
-   */
-  if (existing.qrPublicId) {
+
+  // ==========================================================
+  // DELETE QR FROM CLOUDINARY
+  // ==========================================================
+
+  if (
+    existing.qrPublicId
+  ) {
+
     try {
+
       await cloudinary.uploader.destroy(
         existing.qrPublicId,
         {
-          resource_type: "image",
+          resource_type:
+            "image",
         }
       );
+
     } catch (error) {
+
       console.error(
         "Failed to delete payment QR from Cloudinary:",
         error
       );
+
     }
+
   }
+
+
+  // ==========================================================
+  // REDIRECT
+  // ==========================================================
 
   redirect(
     "/admin/dashboard/payment-methods"

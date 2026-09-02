@@ -96,12 +96,15 @@ export default async function ProductsPage({
   // ==========================================================
 
   /*
-   * Manual Order is the default
+   * Latest First is the default
    * sorting mode.
+   *
+   * If a specific sort is provided
+   * in the URL, that sort is preserved.
    */
 
   const sort =
-    params.sort ?? "manual";
+    params.sort ?? "latest";
 
 
   // ==========================================================

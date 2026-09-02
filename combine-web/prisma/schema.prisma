@@ -2,20 +2,14 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-
-// ============================================================
-// PRODUCT
-// ============================================================
-
 model Product {
-  id                Int          @id @default(autoincrement())
-  sku               String?      @unique
+  id                Int               @id @default(autoincrement())
+  sku               String?           @unique
   brand             String
   category          String
   subCategory       String?
@@ -28,31 +22,28 @@ model Product {
   price             Float
   mainColor         String?
   dimensions        String?
-  availability      Availability @default(PRE_ORDER)
-  featured          Boolean      @default(false)
-  newArrival        Boolean      @default(false)
-  bestSeller        Boolean      @default(false)
-  limited           Boolean      @default(false)
-  onSale            Boolean      @default(false)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  slug              String?      @unique
-  displayOrder      Int          @default(9999)
+  availability      Availability      @default(PRE_ORDER)
+  featured          Boolean           @default(false)
+  newArrival        Boolean           @default(false)
+  bestSeller        Boolean           @default(false)
+  limited           Boolean           @default(false)
+  onSale            Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  slug              String?           @unique
+  displayOrder      Int               @default(9999)
   customPackagingId Int?
   categoryId        Int?
   subCategoryId     Int?
-
-  inquiryItems InquiryItem[]
-  orderItems   OrderItem[]
-
+  inquiryItems      InquiryItem[]
+  orderItems        OrderItem[]
   categoryRecord    Category?         @relation("ProductCategory", fields: [categoryId], references: [id])
   customPackaging   PackagingProfile? @relation("ProductCustomPackaging", fields: [customPackagingId], references: [id])
   subCategoryRecord SubCategory?      @relation("ProductSubCategory", fields: [subCategoryId], references: [id])
-
-  colors        ProductColor[]
-  images        ProductImage[]
-  variants      ProductVariant[]
-  wishlistItems WishlistItem[]
+  colors            ProductColor[]
+  images            ProductImage[]
+  variants          ProductVariant[]
+  wishlistItems     WishlistItem[]
 
   @@index([brand])
   @@index([category])
@@ -65,45 +56,33 @@ model Product {
   @@index([customPackagingId])
 }
 
-
-// ============================================================
-// PRODUCT IMAGE
-// ============================================================
-
 model ProductImage {
   id        Int       @id @default(autoincrement())
   productId Int
   url       String
   publicId  String
-  sortOrder Int      @default(1)
+  sortOrder Int       @default(1)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   altText   String?
   caption   String?
   type      ImageType @default(GALLERY)
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([type])
   @@index([sortOrder])
 }
 
-
-// ============================================================
-// COLOR
-// ============================================================
-
 model Color {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  slug      String   @unique
-  hexCode   String?
-  active    Boolean  @default(true)
-  sortOrder Int      @default(9999)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id            Int              @id @default(autoincrement())
+  name          String           @unique
+  slug          String           @unique
+  hexCode       String?
+  active        Boolean          @default(true)
+  sortOrder     Int              @default(9999)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
   productColors ProductColor[]
   variants      ProductVariant[]
 
@@ -111,88 +90,60 @@ model Color {
   @@index([sortOrder])
 }
 
-
-// ============================================================
-// PRODUCT COLOR
-// ============================================================
-
 model ProductColor {
-  id        Int      @id @default(autoincrement())
+  id        Int                 @id @default(autoincrement())
   productId Int
   name      String
   imageUrl  String
   publicId  String?
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sortOrder Int                 @default(0)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
   model     String?
   colorId   Int?
-
-  color   Color?              @relation(fields: [colorId], references: [id])
-  product Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
-  images  ProductColorImage[]
+  color     Color?              @relation(fields: [colorId], references: [id])
+  product   Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  images    ProductColorImage[]
 
   @@index([productId])
   @@index([colorId])
   @@index([sortOrder])
 }
 
-
-// ============================================================
-// PRODUCT COLOR IMAGE
-// ============================================================
-
 model ProductColorImage {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   colorId   Int
   url       String
   publicId  String
   altText   String?
   caption   String?
-  sortOrder Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  color ProductColor @relation(fields: [colorId], references: [id], onDelete: Cascade)
+  sortOrder Int          @default(1)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  color     ProductColor @relation(fields: [colorId], references: [id], onDelete: Cascade)
 
   @@index([colorId])
 }
 
-
-// ============================================================
-// PRODUCT VARIANT
-// ============================================================
-
 model ProductVariant {
-  id           Int      @id @default(autoincrement())
-  productId    Int
-  size         String
-  model        String?
-  dimensions   String?
-  sortOrder    Int      @default(1)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  imageUrl     String?
-  publicId     String?
-  colorId      Int?
-  price        Float?
-  costPriceCny Float?
-  exchangeRate Float?
-
-  color   Color?  @relation(fields: [colorId], references: [id])
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  images  ProductVariantImage[]
-
-  /*
-   * IMPORTANT:
-   *
-   * This relation is named productOrderItems
-   * because OrderItem already has:
-   *
-   * variant String?
-   */
-
+  id                Int                   @id @default(autoincrement())
+  productId         Int
+  size              String
+  model             String?
+  dimensions        String?
+  sortOrder         Int                   @default(1)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  imageUrl          String?
+  publicId          String?
+  colorId           Int?
+  price             Float?
+  costPriceCny      Float?
+  exchangeRate      Float?
   productOrderItems OrderItem[]
+  color             Color?                @relation(fields: [colorId], references: [id])
+  product           Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  images            ProductVariantImage[]
 
   @@unique([productId, size, colorId])
   @@index([productId])
@@ -200,63 +151,45 @@ model ProductVariant {
   @@index([sortOrder])
 }
 
-
-// ============================================================
-// PRODUCT VARIANT IMAGE
-// ============================================================
-
 model ProductVariantImage {
-  id        Int      @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
   variantId Int
   url       String
   publicId  String
   altText   String?
   caption   String?
-  sortOrder Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  sortOrder Int            @default(1)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   @@index([variantId])
 }
 
-
-// ============================================================
-// CATEGORY
-// ============================================================
-
 model Category {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  slug      String   @unique
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  slug          String        @unique
+  active        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   products      Product[]     @relation("ProductCategory")
   subCategories SubCategory[]
 
   @@index([active])
 }
 
-
-// ============================================================
-// SUB CATEGORY
-// ============================================================
-
 model SubCategory {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   name       String
-  slug       String   @unique
+  slug       String    @unique
   categoryId Int?
-  active     Boolean  @default(true)
-  sortOrder  Int      @default(9999)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  products Product[] @relation("ProductSubCategory")
-  category Category? @relation(fields: [categoryId], references: [id])
+  active     Boolean   @default(true)
+  sortOrder  Int       @default(9999)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  products   Product[] @relation("ProductSubCategory")
+  category   Category? @relation(fields: [categoryId], references: [id])
 
   @@index([name])
   @@index([categoryId])
@@ -264,120 +197,84 @@ model SubCategory {
   @@index([sortOrder])
 }
 
-
-// ============================================================
-// BRAND
-// ============================================================
-
 model Brand {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  slug      String   @unique
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                Int                @id @default(autoincrement())
+  name              String             @unique
+  slug              String             @unique
+  active            Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   packagingProfiles PackagingProfile[]
 
   @@index([active])
 }
 
-
-// ============================================================
-// PACKAGING PROFILE
-// ============================================================
-
 model PackagingProfile {
-  id          Int      @id @default(autoincrement())
-  key         String   @unique
-  name        String
-  brand       String?
-  title       String?
-  description String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  images PackagingImage[]
-  items  PackagingItem[]
-
-  brandRecord    Brand?    @relation(fields: [brand], references: [name])
-  customProducts Product[] @relation("ProductCustomPackaging")
+  id             Int              @id @default(autoincrement())
+  key            String           @unique
+  name           String
+  brand          String?
+  title          String?
+  description    String?
+  active         Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  images         PackagingImage[]
+  items          PackagingItem[]
+  brandRecord    Brand?           @relation(fields: [brand], references: [name])
+  customProducts Product[]        @relation("ProductCustomPackaging")
 
   @@index([brand])
   @@index([active])
 }
 
-
-// ============================================================
-// PACKAGING IMAGE
-// ============================================================
-
 model PackagingImage {
-  id          Int      @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   packagingId Int
   url         String
   publicId    String
   altText     String?
   caption     String?
-  sortOrder   Int      @default(1)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  packaging PackagingProfile @relation(fields: [packagingId], references: [id], onDelete: Cascade)
+  sortOrder   Int              @default(1)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  packaging   PackagingProfile @relation(fields: [packagingId], references: [id], onDelete: Cascade)
 
   @@index([packagingId])
   @@index([sortOrder])
 }
 
-
-// ============================================================
-// PACKAGING ITEM
-// ============================================================
-
 model PackagingItem {
-  id         Int      @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   packagingId Int
-  name       String
-  sortOrder  Int      @default(1)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  packaging PackagingProfile @relation(fields: [packagingId], references: [id], onDelete: Cascade)
+  name        String
+  sortOrder   Int              @default(1)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  packaging   PackagingProfile @relation(fields: [packagingId], references: [id], onDelete: Cascade)
 
   @@index([packagingId])
 }
 
-
-// ============================================================
-// USER
-// ============================================================
-
 model User {
-  id           Int      @id @default(autoincrement())
-  name         String
-  email        String   @unique
-  password     String
-  phone        String?
-  dateOfBirth  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  role         UserRole
-  active       Boolean  @default(true)
-  image        String?
-
-  sessions             Session[]
-  passwordResetTokens  PasswordResetToken[]
-  wishlistItems        WishlistItem[]
-  orders               Order[]
-  inquiries            Inquiry[]
-  voucherUsages        VoucherUsage[]
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  email               String               @unique
+  password            String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  role                UserRole
+  active              Boolean              @default(true)
+  image               String?
+  phone               String?
+  dateOfBirth         DateTime?
+  inquiries           Inquiry[]
+  orders              Order[]
+  passwordResetTokens PasswordResetToken[]
+  sessions            Session[]
+  voucherUsages       VoucherUsage[]
+  wishlistItems       WishlistItem[]
 }
-
-
-// ============================================================
-// PASSWORD RESET TOKEN
-// ============================================================
 
 model PasswordResetToken {
   id        Int      @id @default(autoincrement())
@@ -385,18 +282,12 @@ model PasswordResetToken {
   userId    Int
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
 }
-
-
-// ============================================================
-// SESSION
-// ============================================================
 
 model Session {
   id        String   @id @default(cuid())
@@ -405,35 +296,23 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
 }
 
-
-// ============================================================
-// WISHLIST
-// ============================================================
-
 model WishlistItem {
   id        Int      @id @default(autoincrement())
   userId    Int
   productId Int
   createdAt DateTime @default(now())
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }
-
-
-// ============================================================
-// INQUIRY ITEM
-// ============================================================
 
 model InquiryItem {
   id         Int      @id @default(autoincrement())
@@ -447,18 +326,12 @@ model InquiryItem {
   dimensions String?
   packaging  String?
   variant    String?
-
-  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inquiry    Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([inquiryId])
   @@index([productId])
 }
-
-
-// ============================================================
-// INQUIRY
-// ============================================================
 
 model Inquiry {
   id        Int           @id @default(autoincrement())
@@ -470,21 +343,14 @@ model Inquiry {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   status    InquiryStatus @default(PENDING)
-
-  userId Int?
-  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  items InquiryItem[]
+  userId    Int?
+  user      User?         @relation(fields: [userId], references: [id])
+  items     InquiryItem[]
 
   @@index([status])
   @@index([createdAt])
   @@index([userId])
 }
-
-
-// ============================================================
-// PAYMENT METHOD
-// ============================================================
 
 model PaymentMethod {
   id            Int               @id @default(autoincrement())
@@ -500,68 +366,127 @@ model PaymentMethod {
   sortOrder     Int               @default(9999)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-
-  payments Payment[]
+  wiseAccount   String?
+  wiseEmail     String?
+  wiseName      String?
+  payments      Payment[]
 
   @@index([type])
   @@index([active])
   @@index([sortOrder])
 }
 
-
-// ============================================================
-// ORDER
-// ============================================================
-
 model Order {
-  id            Int     @id @default(autoincrement())
-  customerName  String
-  customerPhone String
-  customerEmail String?
-  address       String?
-  message       String?
+  id                    Int                  @id @default(autoincrement())
+  customerName          String
+  customerPhone         String
+  customerEmail         String?
+  address               String?
+  subtotal              Float
+  voucherCode           String?
+  voucherDiscount       Float                @default(0)
+  finalAmount           Float
+  status                OrderStatus          @default(PENDING_PAYMENT)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
 
-  subtotal Float
+  /// *
+  ///    * Random public token used for customer-facing
+  ///    * order/payment pages.
+  ///    * Customers must use this token instead of
+  ///    * exposing the numeric Order ID directly.
+  /// *
+  publicToken            String               @unique @default(cuid())
 
-  voucherCode     String?
-  voucherDiscount Float   @default(0)
+  shippingCourier        String?
+  trackingNumber         String?
+  trackingUrl            String?
+  message                String?
 
-  shippingFee    Float   @default(0)
-  shippingRegion String?
+  /// *
+  ///    * Customer Account relation.
+  ///    * Optional so existing orders created before
+  ///    * Customer Account linking continue to work.
+  /// *
+  userId                 Int?
 
-  finalAmount Float
+  /// *
+  ///    * Shipping fee snapshot.
+  ///    *
+  ///    * For Malaysia orders this stores the normal
+  ///    * ABX shipping fee.
+  ///    *
+  ///    * For international orders this remains 0
+  ///    * until the shipping fee is confirmed.
+  /// *
+  shippingFee            Float                @default(0)
 
-  status OrderStatus @default(PENDING_PAYMENT)
+  /// *
+  ///    * Malaysia shipping region.
+  ///    *
+  ///    * WEST / EAST for the existing Malaysia
+  ///    * ABX shipping calculation.
+  ///    *
+  ///    * International orders use null.
+  /// *
+  shippingRegion         String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  /// *
+  ///    * Customer shipping country.
+  ///    *
+  ///    * Example:
+  ///    * Malaysia
+  ///    * Singapore
+  ///    * United Arab Emirates
+  /// *
+  shippingCountry        String?
 
-  /*
-   * Random public token used for customer-facing
-   * order/payment pages.
-   * Customers must use this token instead of
-   * exposing the numeric Order ID directly.
-   */
+  /// *
+  ///    * Shipping type.
+  ///    *
+  ///    * LOCAL:
+  ///    * Existing Malaysia shipping rules.
+  ///    *
+  ///    * INTERNATIONAL:
+  ///    * Shipping fee must be confirmed manually.
+  /// *
+  shippingType           ShippingType         @default(LOCAL)
 
-  publicToken String @unique @default(cuid())
+  /// *
+  ///    * International shipping quotation status.
+  ///    *
+  ///    * NOT_REQUIRED:
+  ///    * Malaysia/local order.
+  ///    *
+  ///    * PENDING:
+  ///    * Customer has requested shipping fee.
+  ///    *
+  ///    * QUOTED:
+  ///    * Admin has confirmed the international
+  ///    * shipping fee and customer can continue
+  ///    * with payment.
+  /// *
+  shippingQuoteStatus    ShippingQuoteStatus  @default(NOT_REQUIRED)
 
-  shippingCourier String?
-  trackingNumber  String?
-  trackingUrl     String?
+  /// *
+  ///    * Customer-facing Order Reference.
+  ///    * Example:
+  ///    * CL-20260901-0050
+  ///    *
+  ///    * Nullable temporarily so existing orders can remain
+  ///    * in the database while their Order Reference is backfilled.
+  /// *
+  orderNumber            String?              @unique
 
-  /*
-   * Customer Account relation.
-   * Optional so existing orders created before
-   * Customer Account linking continue to work.
-   */
+  /// *
+  ///    * PayPal processing fee snapshot.
+  /// *
+  paypalFee              Float                @default(0)
 
-  userId Int?
-  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  items   OrderItem[]
-  payment Payment?
-
-  voucherUsage VoucherUsage?
+  user                   User?                @relation(fields: [userId], references: [id])
+  items                  OrderItem[]
+  payment                Payment?
+  voucherUsage           VoucherUsage?
 
   @@index([status])
   @@index([customerPhone])
@@ -569,76 +494,51 @@ model Order {
   @@index([publicToken])
   @@index([userId])
   @@index([voucherCode])
+  @@index([shippingCountry])
+  @@index([shippingType])
+  @@index([shippingQuoteStatus])
 }
 
-
-// ============================================================
-// ORDER ITEM
-// ============================================================
-
 model OrderItem {
-  id        Int @id @default(autoincrement())
-  orderId   Int
-  productId Int
-
-  /*
-   * Exact ProductVariant ID.
-   * Nullable so products without Variants
-   * remain supported.
-   */
-
-  variantId Int?
-
-  brand       String
-  productName String
-  sku         String?
-  color       String?
-  variant     String?
-  dimensions  String?
-  packaging   String?
-  quantity    Int      @default(1)
-  unitPrice   Float
-  totalPrice  Float
-
-  /*
-   * Cost / Profit Snapshot
-   *
-   * These values are stored permanently on the
-   * OrderItem so historical orders remain accurate
-   * even if the Product / ProductVariant cost price
-   * or exchange rate changes later.
-   *
-   * unitCost:
-   * Cost of one unit in MYR.
-   *
-   * totalCost:
-   * unitCost × quantity.
-   *
-   * profit:
-   * totalPrice - totalCost.
-   *
-   * Nullable for legacy orders or products where
-   * a valid cost price cannot be determined.
-   */
-
-  unitCost  Float?
-  totalCost Float?
-  profit    Float?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
-
-  /*
-   * IMPORTANT:
-   *
-   * Do NOT name this relation "variant"
-   * because "variant" is already the String field
-   * that stores the selected Size / Variant display value.
-   */
-
+  id             Int             @id @default(autoincrement())
+  orderId        Int
+  productId      Int
+  brand          String
+  productName    String
+  sku            String?
+  color          String?
+  variant        String?
+  dimensions     String?
+  packaging      String?
+  quantity       Int             @default(1)
+  unitPrice      Float
+  totalPrice     Float
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  /// *
+  ///    * Exact ProductVariant ID.
+  ///    * Nullable so products without Variants
+  ///    * remain supported.
+  variantId      Int?
+  profit         Float?
+  totalCost      Float?
+  /// *
+  ///    * Cost / Profit Snapshot
+  ///    * These values are stored permanently on the
+  ///    * OrderItem so historical orders remain accurate
+  ///    * even if the Product / ProductVariant cost price
+  ///    * or exchange rate changes later.
+  ///    * unitCost:
+  ///    * Cost of one unit in MYR.
+  ///    * totalCost:
+  ///    * unitCost × quantity.
+  ///    * profit:
+  ///    * totalPrice - totalCost.
+  ///    * Nullable for legacy orders or products where
+  ///    * a valid cost price cannot be determined.
+  unitCost       Float?
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        Product         @relation(fields: [productId], references: [id])
   productVariant ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@index([orderId])
@@ -646,22 +546,10 @@ model OrderItem {
   @@index([variantId])
 }
 
-
-// ============================================================
-// PAYMENT
-// ============================================================
-
 model Payment {
-  id              Int  @id @default(autoincrement())
-  orderId         Int  @unique
-  paymentMethodId Int?
-
-  /*
-   * Snapshot of the selected payment method.
-   * Existing orders keep the original payment information
-   * even if the Payment Method is changed later.
-   */
-
+  id                Int               @id @default(autoincrement())
+  orderId           Int               @unique
+  paymentMethodId   Int?
   paymentMethodName String
   paymentMethodType PaymentMethodType
   bankName          String?
@@ -678,135 +566,85 @@ model Payment {
   adminNote         String?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
-
-  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  wiseAccount       String?
+  wiseEmail         String?
+  wiseName          String?
+  order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentMethod     PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
 
   @@index([paymentMethodId])
   @@index([status])
   @@index([createdAt])
 }
 
-
-// ============================================================
-// VOUCHER
-// ============================================================
-
 model Voucher {
-  id Int @id @default(autoincrement())
-
-  /*
-   * Voucher code shown to customers.
-   * Stored uppercase so validation remains consistent.
-   */
-
-  code String @unique
-
-  /*
-   * FIXED:
-   * RM100 OFF
-   *
-   * PERCENTAGE:
-   * 10% OFF
-   */
-
-  type VoucherType
-
-  /*
-   * Discount value.
-   *
-   * FIXED:
-   * 100 = RM100
-   *
-   * PERCENTAGE:
-   * 10 = 10%
-   */
-
-  value Float
-
-  /*
-   * Minimum product subtotal required
-   * before the voucher can be used.
-   */
-
-  minSpend Float @default(0)
-
-  /*
-   * Maximum discount allowed.
-   * Mainly useful for percentage vouchers.
-   *
-   * Example:
-   * 10% OFF
-   * Maximum RM300
-   */
-
-  maxDiscount Float?
-
-  /*
-   * Optional category restriction.
-   *
-   * NULL:
-   * All categories
-   *
-   * "Bags":
-   * Bags only
-   *
-   * "Watches":
-   * Watches only
-   */
-
-  category String?
-
-  /*
-   * Voucher validity period.
-   */
-
-  startAt   DateTime @default(now())
-  expiresAt DateTime?
-
-  /*
-   * Total number of times this voucher
-   * can be redeemed.
-   *
-   * NULL = unlimited.
-   */
-
-  usageLimit Int?
-
-  /*
-   * Number of successful redemptions.
-   */
-
-  usageCount Int @default(0)
-
-  /*
-   * Maximum number of times one customer
-   * can use this voucher.
-   *
-   * NULL = unlimited.
-   */
-
+  id               Int            @id @default(autoincrement())
+  /// *
+  ///    * Voucher code shown to customers.
+  ///    * Stored uppercase so validation remains consistent.
+  code             String         @unique
+  /// *
+  ///    * FIXED:
+  ///    * RM100 OFF
+  ///    * PERCENTAGE:
+  ///    * 10% OFF
+  type             VoucherType
+  /// *
+  ///    * Discount value.
+  ///    * FIXED:
+  ///    * 100 = RM100
+  ///    * PERCENTAGE:
+  ///    * 10 = 10%
+  value            Float
+  /// *
+  ///    * Minimum product subtotal required
+  ///    * before the voucher can be used.
+  minSpend         Float          @default(0)
+  /// *
+  ///    * Maximum discount allowed.
+  ///    * Mainly useful for percentage vouchers.
+  ///    * Example:
+  ///    * 10% OFF
+  ///    * Maximum RM300
+  maxDiscount      Float?
+  /// *
+  ///    * Optional category restriction.
+  ///    * NULL:
+  ///    * All categories
+  ///    * "Bags":
+  ///    * Bags only
+  ///    * "Watches":
+  ///    * Watches only
+  category         String?
+  /// *
+  ///    * Voucher validity period.
+  startAt          DateTime       @default(now())
+  expiresAt        DateTime?
+  /// *
+  ///    * Total number of times this voucher
+  ///    * can be redeemed.
+  ///    * NULL = unlimited.
+  usageLimit       Int?
+  /// *
+  ///    * Number of successful redemptions.
+  usageCount       Int            @default(0)
+  /// *
+  ///    * Maximum number of times one customer
+  ///    * can use this voucher.
+  ///    * NULL = unlimited.
   usagePerCustomer Int?
-
-  /*
-   * Only customers who have never
-   * successfully placed an order
-   * can use this voucher.
-   */
-
-  newCustomerOnly Boolean @default(false)
-
-  /*
-   * Admin can activate/deactivate
-   * the voucher without deleting it.
-   */
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  usage VoucherUsage[]
+  /// *
+  ///    * Only customers who have never
+  ///    * successfully placed an order
+  ///    * can use this voucher.
+  newCustomerOnly  Boolean        @default(false)
+  /// *
+  ///    * Admin can activate/deactivate
+  ///    * the voucher without deleting it.
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  usage            VoucherUsage[]
 
   @@index([code])
   @@index([isActive])
@@ -815,56 +653,30 @@ model Voucher {
   @@index([category])
 }
 
-
-// ============================================================
-// VOUCHER USAGE
-// ============================================================
-
 model VoucherUsage {
-  id Int @id @default(autoincrement())
-
+  id        Int      @id @default(autoincrement())
   voucherId Int
-  orderId   Int
-
-  /*
-   * Nullable because orders can exist
-   * without a logged-in Customer Account.
-   */
-
-  userId Int?
-
-  /*
-   * Actual discount granted by this
-   * particular Voucher usage.
-   *
-   * This is stored permanently so changing
-   * the Voucher later does not alter
-   * historical order records.
-   */
-
-  discount Float
-
+  orderId   Int      @unique
+  /// *
+  ///    * Nullable because orders can exist
+  ///    * without a logged-in Customer Account.
+  userId    Int?
+  /// *
+  ///    * Actual discount granted by this
+  ///    * particular Voucher usage.
+  ///    * This is stored permanently so changing
+  ///    * the Voucher later does not alter
+  ///    * historical order records.
+  discount  Float
   createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
+  voucher   Voucher  @relation(fields: [voucherId], references: [id])
 
-  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Restrict)
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  /*
-   * One Voucher can only be attached
-   * once to one Order.
-   */
-
-  @@unique([orderId])
   @@index([voucherId])
   @@index([userId])
   @@index([createdAt])
 }
-
-
-// ============================================================
-// SETTING
-// ============================================================
 
 model Setting {
   id                 Int      @id @default(autoincrement())
@@ -886,12 +698,9 @@ model Setting {
   tiktok             String?
   website            String?
   youtube            String?
+  paypalFeeFixed     Float    @default(2.00)
+  paypalFeeRate      Float    @default(6.0)
 }
-
-
-// ============================================================
-// ANALYTICS VISITOR
-// ============================================================
 
 model AnalyticsVisitor {
   id          Int      @id @default(autoincrement())
@@ -902,11 +711,6 @@ model AnalyticsVisitor {
   @@index([firstSeenAt])
   @@index([lastSeenAt])
 }
-
-
-// ============================================================
-// ANALYTICS EVENT
-// ============================================================
 
 model AnalyticsEvent {
   id        Int                @id @default(autoincrement())
@@ -922,16 +726,12 @@ model AnalyticsEvent {
   @@index([productId])
 }
 
-
-// ============================================================
-// ENUMS
-// ============================================================
-
 enum PaymentMethodType {
   BANK_TRANSFER
   QR
+  PAYPAL
+  WISE
 }
-
 
 enum OrderStatus {
   PENDING_PAYMENT
@@ -943,6 +743,16 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum ShippingType {
+  LOCAL
+  INTERNATIONAL
+}
+
+enum ShippingQuoteStatus {
+  NOT_REQUIRED
+  PENDING
+  QUOTED
+}
 
 enum PaymentStatus {
   PENDING
@@ -951,7 +761,6 @@ enum PaymentStatus {
   REJECTED
 }
 
-
 enum Availability {
   IN_STOCK
   PRE_ORDER
@@ -959,14 +768,12 @@ enum Availability {
   SOLD_OUT
 }
 
-
 enum ImageType {
   MAIN
   GALLERY
   DETAIL
   PACKAGING
 }
-
 
 enum UserRole {
   CUSTOMER
@@ -976,7 +783,6 @@ enum UserRole {
   OWNER
 }
 
-
 enum InquiryStatus {
   PENDING
   CONTACTED
@@ -984,16 +790,10 @@ enum InquiryStatus {
   CANCELLED
 }
 
-
-// ============================================================
-// VOUCHER TYPE
-// ============================================================
-
 enum VoucherType {
   FIXED
   PERCENTAGE
 }
-
 
 enum AnalyticsEventType {
   PAGE_VIEW

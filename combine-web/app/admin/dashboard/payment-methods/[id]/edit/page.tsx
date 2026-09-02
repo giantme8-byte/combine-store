@@ -261,6 +261,15 @@ export default async function EditPaymentMethodPage({
           qrPublicId:
             paymentMethod.qrPublicId,
 
+          wiseName:
+            paymentMethod.wiseName,
+
+          wiseEmail:
+            paymentMethod.wiseEmail,
+
+          wiseAccount:
+            paymentMethod.wiseAccount,
+
           instructions:
             paymentMethod.instructions,
 

@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import PaymentReviewActions from "../_components/PaymentReviewActions";
 import OrderFulfillmentActions from "../_components/OrderFulfillmentActions";
 import ShippingInformationForm from "../_components/ShippingInformationForm";
+import InternationalShippingQuoteForm from "../_components/InternationalShippingQuoteForm";
 
 
 // ============================================================
@@ -215,6 +216,18 @@ export default async function OrderDetailPage({
           orderBy: {
             id: "asc",
           },
+
+          include: {
+            product: {
+              include: {
+                images: {
+                  orderBy: {
+                    sortOrder: "asc",
+                  },
+                },
+              },
+            },
+          },
         },
 
         payment: true,
@@ -231,56 +244,91 @@ export default async function OrderDetailPage({
   }
 
 
-  // ============================================================
-  // ORDER PROFITABILITY
-  // ============================================================
+// ============================================================
+// ORDER PROFITABILITY
+// ============================================================
 
-  const hasCompleteCostData =
-    order.items.length > 0 &&
-    order.items.every(
-      (item) =>
-        item.totalCost !== null &&
-        item.profit !== null
-    );
+/*
+ * Order profitability
+ *
+ * Priority:
+ * 1. Use stored totalCost when available.
+ * 2. Otherwise calculate totalCost from unitCost × quantity.
+ * 3. Use stored profit when available.
+ * 4. Otherwise calculate profit from totalPrice - totalCost.
+ */
+
+const calculatedItemFinancials = order.items.map(
+  (item) => {
+    const calculatedTotalCost =
+      item.totalCost !== null
+        ? Number(item.totalCost)
+        : item.unitCost !== null
+          ? Number(item.unitCost) *
+            Number(item.quantity)
+          : null;
+
+    const calculatedProfit =
+      item.profit !== null
+        ? Number(item.profit)
+        : calculatedTotalCost !== null
+          ? Number(item.totalPrice) -
+            calculatedTotalCost
+          : null;
+
+    return {
+      totalCost: calculatedTotalCost,
+      profit: calculatedProfit,
+    };
+  }
+);
 
 
-  const totalCost =
-    hasCompleteCostData
-      ? order.items.reduce(
-          (
-            total,
-            item
-          ) =>
+const hasCompleteCostData =
+  order.items.length > 0 &&
+  calculatedItemFinancials.every(
+    (item) =>
+      item.totalCost !== null &&
+      item.profit !== null
+  );
+
+
+const totalCost =
+  hasCompleteCostData
+    ? calculatedItemFinancials.reduce(
+        (total, item) => {
+          return (
             total +
-            (item.totalCost ?? 0),
-          0
-        )
-      : null;
+            (item.totalCost ?? 0)
+          );
+        },
+        0
+      )
+    : null;
 
 
-  const totalProfit =
-    hasCompleteCostData
-      ? order.items.reduce(
-          (
-            total,
-            item
-          ) =>
+const totalProfit =
+  hasCompleteCostData
+    ? calculatedItemFinancials.reduce(
+        (total, item) => {
+          return (
             total +
-            (item.profit ?? 0),
-          0
-        )
-      : null;
+            (item.profit ?? 0)
+          );
+        },
+        0
+      )
+    : null;
 
 
-  const margin =
-    totalProfit !== null &&
-    order.finalAmount > 0
-      ? (
-          totalProfit /
-          order.finalAmount
-        ) *
-        100
-      : null;
+const margin =
+  totalProfit !== null &&
+  Number(order.finalAmount) > 0
+    ? (
+        totalProfit /
+        Number(order.finalAmount)
+      ) * 100
+    : null;
 
 
   return (
@@ -361,7 +409,7 @@ export default async function OrderDetailPage({
                 text-neutral-900
               "
             >
-              #{order.id}
+              {order.orderNumber ?? `#${order.id}`}
             </h1>
 
 
@@ -452,6 +500,38 @@ export default async function OrderDetailPage({
                 order.payment.status
               )}
 
+            </span>
+
+          )}
+
+
+          {order.shippingType === "INTERNATIONAL" && (
+
+            <span
+              className={`
+                inline-flex
+                items-center
+                rounded-full
+                border
+                px-3
+                py-1.5
+                text-[10px]
+                font-medium
+                sm:px-4
+                sm:py-2
+                sm:text-xs
+                uppercase
+                tracking-[0.12em]
+                ${
+                  order.shippingQuoteStatus === "QUOTED"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-amber-200 bg-amber-50 text-amber-700"
+                }
+              `}
+            >
+              {order.shippingQuoteStatus === "QUOTED"
+                ? "Shipping Fee Quoted"
+                : "Shipping Fee Pending"}
             </span>
 
           )}
@@ -620,6 +700,33 @@ export default async function OrderDetailPage({
 
             )}
 
+
+            {order.shippingType === "INTERNATIONAL" &&
+            order.shippingCountry && (
+
+              <div>
+                <p
+                  className="
+                    text-xs
+                    text-neutral-400
+                  "
+                >
+                  Country
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    font-medium
+                    text-neutral-900
+                  "
+                >
+                  {order.shippingCountry}
+                </p>
+              </div>
+
+            )}
+
           </div>
 
         </section>
@@ -765,6 +872,75 @@ export default async function OrderDetailPage({
 
             <div
               className="
+                flex
+                justify-between
+                gap-5
+              "
+            >
+
+              <span
+                className="
+                  text-sm
+                  text-neutral-500
+                "
+              >
+                Shipping Fee
+              </span>
+
+              <span
+                className="
+                  text-sm
+                  text-neutral-900
+                "
+              >
+                {order.shippingType === "INTERNATIONAL" &&
+                order.shippingQuoteStatus === "PENDING"
+                  ? "To be confirmed"
+                  : formatAmount(
+                      order.shippingFee
+                    )}
+              </span>
+
+            </div>
+
+
+            {order.payment?.paymentMethodType === "PAYPAL" && (
+
+              <div
+                className="
+                  flex
+                  justify-between
+                  gap-5
+                "
+              >
+
+                <span
+                  className="
+                    text-sm
+                    text-neutral-500
+                  "
+                >
+                  PayPal Fee
+                </span>
+
+                <span
+                  className="
+                    text-sm
+                    text-neutral-900
+                  "
+                >
+                  {formatAmount(
+                    order.paypalFee
+                  )}
+                </span>
+
+              </div>
+
+            )}
+
+
+            <div
+              className="
                 border-t
                 border-neutral-200
                 pt-4
@@ -856,317 +1032,372 @@ export default async function OrderDetailPage({
           "
         >
 
-          {order.items.map(
-            (item) => (
+{order.items.map(
+  (item) => {
 
-              <div
-                key={item.id}
-                className="
-                  flex
-                  flex-col
-                  gap-5
-                  p-6
-                  md:flex-row
-                  md:items-start
-                  md:justify-between
-                "
-              >
-
-                <div className="min-w-0">
-
-                  <p
-                    className="
-                      break-words
-                      font-medium
-                      text-neutral-900
-                    "
-                  >
-                    {item.productName}
-                  </p>
+    const productImage =
+      item.product?.images?.[0]?.url ??
+      null;
 
 
-                  <p
-                    className="
-                      mt-1
-                      text-sm
-                      text-neutral-500
-                    "
-                  >
+    return (
 
-                    {item.brand}
-
-                    {item.sku
-                      ? ` · ${item.sku}`
-                      : ""}
-
-                  </p>
-
+      <div
+        key={item.id}
+        className="
+          flex
+          flex-col
+          gap-5
+          p-4
+          sm:p-6
+          md:flex-row
+          md:items-start
+          md:justify-between
+        "
+      >
+                  {/* ================================================= */}
+                  {/* PRODUCT INFORMATION */}
+                  {/* ================================================= */}
 
                   <div
                     className="
-                      mt-4
-                      space-y-1
-                      text-sm
-                      text-neutral-500
+                      flex
+                      min-w-0
+                      flex-1
+                      gap-4
+                      sm:gap-5
                     "
                   >
 
-                    {item.color && (
+                    {/* PRODUCT IMAGE */}
 
-                      <p>
-                        Color:{" "}
-                        {item.color}
+                    <div
+                      className="
+                        relative
+                        h-24
+                        w-24
+                        shrink-0
+                        overflow-hidden
+                        rounded-xl
+                        border
+                        border-neutral-200
+                        bg-neutral-50
+                        sm:h-28
+                        sm:w-28
+                      "
+                    >
+
+                      {productImage ? (
+
+                        <Image
+                          src={productImage}
+                          alt={item.productName}
+                          fill
+                          sizes="112px"
+                          className="object-cover"
+                        />
+
+                      ) : (
+
+                        <div
+                          className="
+                            flex
+                            h-full
+                            w-full
+                            items-center
+                            justify-center
+                            text-neutral-300
+                          "
+                        >
+                          <FileImage className="h-7 w-7" />
+                        </div>
+
+                      )}
+
+                    </div>
+
+
+                    {/* PRODUCT DETAILS */}
+
+                    <div className="min-w-0 flex-1">
+
+                      <p
+                        className="
+                          break-words
+                          font-medium
+                          text-neutral-900
+                        "
+                      >
+                        {item.productName}
                       </p>
 
-                    )}
 
+                      <p
+                        className="
+                          mt-1
+                          break-words
+                          text-sm
+                          text-neutral-500
+                        "
+                      >
+                        {item.brand}
 
-                    {item.variant && (
-
-                      <p>
-                        Size:{" "}
-                        {item.variant}
+                        {item.sku
+                          ? ` · ${item.sku}`
+                          : ""}
                       </p>
 
-                    )}
+
+                      <div
+                        className="
+                          mt-4
+                          space-y-1
+                          text-sm
+                          text-neutral-500
+                        "
+                      >
+
+                        {item.color && (
+                          <p>
+                            Color: {item.color}
+                          </p>
+                        )}
 
 
-                    {item.dimensions && (
-
-                      <p>
-                        Dimensions:{" "}
-                        {item.dimensions}
-                      </p>
-
-                    )}
+                        {item.variant && (
+                          <p>
+                            Size: {item.variant}
+                          </p>
+                        )}
 
 
-                    {item.packaging && (
-
-                      <p>
-                        Packaging:{" "}
-                        {item.packaging}
-                      </p>
-
-                    )}
+                        {item.dimensions && (
+                          <p>
+                            Dimensions: {item.dimensions}
+                          </p>
+                        )}
 
 
-                    <p>
-                      Quantity:{" "}
-                      {item.quantity}
-                    </p>
+                        {item.packaging && (
+                          <p>
+                            Packaging: {item.packaging}
+                          </p>
+                        )}
+
+
+                        <p>
+                          Quantity: {item.quantity}
+                        </p>
+
+                      </div>
+
+                    </div>
 
                   </div>
 
-                </div>
 
-
-                {/* ================================================= */}
-                {/* ITEM FINANCIALS */}
-                {/* ================================================= */}
-
-                <div
-                  className="
-                    min-w-0
-                    shrink-0
-                    md:min-w-[180px]
-                    md:text-right
-                  "
-                >
-
-                  <p
-                    className="
-                      text-xs
-                      uppercase
-                      tracking-[0.12em]
-                      text-neutral-400
-                    "
-                  >
-                    Unit Price
-                  </p>
-
-
-                  <p
-                    className="
-                      mt-1
-                      text-sm
-                      text-neutral-700
-                    "
-                  >
-                    {formatAmount(
-                      item.unitPrice
-                    )}
-                  </p>
-
+                  {/* ================================================= */}
+                  {/* ITEM FINANCIALS */}
+                  {/* ================================================= */}
 
                   <div
                     className="
-                      mt-4
-                      space-y-2
+                      w-full
+                      shrink-0
+                      rounded-xl
+                      bg-neutral-50
+                      p-4
+                      md:w-[230px]
+                      md:p-5
                     "
                   >
 
                     <div
                       className="
                         flex
+                        items-center
                         justify-between
-                        gap-6
-                        md:justify-end
+                        gap-4
                       "
                     >
 
                       <span
                         className="
                           text-xs
-                          text-neutral-400
-                          md:hidden
-                        "
-                      >
-                        Unit Cost
-                      </span>
-
-                      <span
-                        className="
-                          text-xs
+                          uppercase
+                          tracking-[0.12em]
                           text-neutral-400
                         "
                       >
-                        <span className="md:hidden">
-                          Unit Cost
-                        </span>
-
-                        <span className="hidden md:inline">
-                          Unit Cost
-                        </span>
+                        Unit Price
                       </span>
 
                       <span
                         className="
-                          text-sm
-                          text-neutral-700
-                        "
-                      >
-                        {item.unitCost !== null
-                          ? formatAmount(
-                              item.unitCost
-                            )
-                          : "—"}
-                      </span>
-
-                    </div>
-
-
-                    <div
-                      className="
-                        flex
-                        justify-between
-                        gap-6
-                        md:justify-end
-                      "
-                    >
-
-                      <span
-                        className="
-                          text-xs
-                          text-neutral-400
-                        "
-                      >
-                        Total Cost
-                      </span>
-
-                      <span
-                        className="
-                          text-sm
-                          text-neutral-700
-                        "
-                      >
-                        {item.totalCost !== null
-                          ? formatAmount(
-                              item.totalCost
-                            )
-                          : "—"}
-                      </span>
-
-                    </div>
-
-
-                    <div
-                      className="
-                        flex
-                        justify-between
-                        gap-6
-                        border-t
-                        border-neutral-100
-                        pt-2
-                        md:justify-end
-                      "
-                    >
-
-                      <span
-                        className="
-                          text-xs
-                          text-neutral-400
-                        "
-                      >
-                        Profit
-                      </span>
-
-                      <span
-                        className={`
                           text-sm
                           font-medium
-                          ${
-                            item.profit !== null
-                              ? item.profit >= 0
-                                ? "text-green-600"
-                                : "text-red-600"
-                              : "text-neutral-400"
-                          }
-                        `}
+                          text-neutral-900
+                        "
                       >
-                        {item.profit !== null
-                          ? formatAmount(
-                              item.profit
-                            )
-                          : "—"}
+                        {formatAmount(
+                          item.unitPrice
+                        )}
                       </span>
+
+                    </div>
+
+
+                    <div
+                      className="
+                        mt-4
+                        space-y-3
+                        border-t
+                        border-neutral-200
+                        pt-4
+                      "
+                    >
+
+                      <div
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                        "
+                      >
+
+                        <span
+                          className="text-xs text-neutral-400"
+                        >
+                          Unit Cost
+                        </span>
+
+                        <span
+                          className="text-sm text-neutral-700"
+                        >
+                          {item.unitCost !== null
+                            ? formatAmount(
+                                item.unitCost
+                              )
+                            : "—"}
+                        </span>
+
+                      </div>
+
+
+                      <div
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                        "
+                      >
+
+                        <span
+                          className="text-xs text-neutral-400"
+                        >
+                          Total Cost
+                        </span>
+
+                        <span
+                          className="text-sm text-neutral-700"
+                        >
+                          {item.totalCost !== null
+                            ? formatAmount(
+                                item.totalCost
+                              )
+                            : "—"}
+                        </span>
+
+                      </div>
+
+
+                      <div
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                          border-t
+                          border-neutral-200
+                          pt-3
+                        "
+                      >
+
+                        <span
+                          className="text-xs text-neutral-400"
+                        >
+                          Profit
+                        </span>
+
+                        <span
+                          className={`
+                            text-sm
+                            font-semibold
+                            ${
+                              item.profit !== null
+                                ? item.profit >= 0
+                                  ? "text-emerald-600"
+                                  : "text-red-600"
+                                : "text-neutral-400"
+                            }
+                          `}
+                        >
+                          {item.profit !== null
+                            ? formatAmount(
+                                item.profit
+                              )
+                            : "—"}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+
+                    <div
+                      className="
+                        mt-4
+                        border-t
+                        border-neutral-200
+                        pt-4
+                      "
+                    >
+
+                      <p
+                        className="
+                          text-[10px]
+                          uppercase
+                          tracking-[0.12em]
+                          text-neutral-400
+                        "
+                      >
+                        Total Sales
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+                          text-lg
+                          font-semibold
+                          text-neutral-900
+                        "
+                      >
+                        {formatAmount(
+                          item.totalPrice
+                        )}
+                      </p>
 
                     </div>
 
                   </div>
 
-
-                  <p
-                    className="
-                      mt-4
-                      text-xs
-                      uppercase
-                      tracking-[0.12em]
-                      text-neutral-400
-                    "
-                  >
-                    Total Sales
-                  </p>
-
-
-                  <p
-                    className="
-                      mt-1
-                      text-lg
-                      font-semibold
-                      text-neutral-900
-                    "
-                  >
-                    {formatAmount(
-                      item.totalPrice
-                    )}
-                  </p>
-
                 </div>
 
-              </div>
+              );
 
-            )
+            }
           )}
 
         </div>
@@ -1541,7 +1772,16 @@ export default async function OrderDetailPage({
                 {order.payment.paymentMethodType ===
                 "BANK_TRANSFER"
                   ? "Bank Transfer"
-                  : "QR Payment"}
+                  : order.payment.paymentMethodType ===
+                    "QR"
+                    ? "QR Payment"
+                    : order.payment.paymentMethodType ===
+                      "PAYPAL"
+                      ? "PayPal"
+                      : order.payment.paymentMethodType ===
+                        "WISE"
+                        ? "Wise"
+                        : order.payment.paymentMethodType}
               </p>
 
             )}
@@ -1746,6 +1986,19 @@ export default async function OrderDetailPage({
                   order.payment.amount
                 )}
               </p>
+
+              {order.payment.paymentMethodType === "PAYPAL" && (
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    text-neutral-500
+                  "
+                >
+                  Includes PayPal Fee of{" "}
+                  {formatAmount(order.paypalFee)}
+                </p>
+              )}
 
             </div>
 
@@ -2159,8 +2412,9 @@ export default async function OrderDetailPage({
             text-neutral-500
           "
         >
-          Add the ABX Express tracking number
-          after the order enters processing.
+          {order.shippingType === "INTERNATIONAL"
+            ? "International shipping fee must be confirmed before the customer can complete payment."
+            : "Add the ABX Express tracking number after the order enters processing."}
         </p>
 
 
@@ -2171,7 +2425,82 @@ export default async function OrderDetailPage({
           "
         >
 
-          {order.status === "PROCESSING" ||
+          {order.shippingType === "INTERNATIONAL" ? (
+
+            <div
+              className="
+                rounded-xl
+                border
+                border-amber-200
+                bg-amber-50
+                p-5
+              "
+            >
+
+              <p
+                className="
+                  text-xs
+                  font-semibold
+                  uppercase
+                  tracking-[0.15em]
+                  text-amber-700
+                "
+              >
+                International Shipping
+              </p>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  leading-6
+                  text-amber-800
+                "
+              >
+                {order.shippingQuoteStatus === "QUOTED"
+                  ? "Shipping fee has been quoted. The customer can proceed with payment once the payment flow is available."
+                  : "Shipping fee is pending. Please provide the international shipping quote before the customer proceeds with payment."}
+              </p>
+
+              {order.shippingCountry && (
+                <p
+                  className="
+                    mt-3
+                    text-sm
+                    font-medium
+                    text-amber-900
+                  "
+                >
+                  Destination: {order.shippingCountry}
+                </p>
+              )}
+
+              {order.shippingQuoteStatus === "QUOTED" && (
+                <p
+                  className="
+                    mt-1
+                    text-sm
+                    font-semibold
+                    text-amber-900
+                  "
+                >
+                  Shipping Fee: {formatAmount(order.shippingFee)}
+                </p>
+              )}
+
+              <InternationalShippingQuoteForm
+                orderId={order.id}
+                currentFee={Number(order.shippingFee)}
+                quoteStatus={
+                  order.shippingQuoteStatus === "QUOTED"
+                    ? "QUOTED"
+                    : "PENDING"
+                }
+              />
+
+            </div>
+
+          ) : order.status === "PROCESSING" ||
           order.status === "SHIPPED" ? (
 
             <ShippingInformationForm

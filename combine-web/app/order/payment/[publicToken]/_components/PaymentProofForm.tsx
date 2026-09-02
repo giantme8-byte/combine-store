@@ -5,6 +5,12 @@ import {
   useState,
 } from "react";
 
+import Link from "next/link";
+
+import {
+  useRouter,
+} from "next/navigation";
+
 
 // ============================================================
 // TYPES
@@ -28,6 +34,10 @@ export default function PaymentProofForm({
   initialProofUrl = null,
   initialStatus = "PENDING",
 }: PaymentProofFormProps) {
+
+  const router =
+    useRouter();
+
 
   const fileInputRef =
     useRef<HTMLInputElement | null>(
@@ -156,10 +166,12 @@ export default function PaymentProofForm({
     // PREVIEW
     // ========================================================
 
-    if (previewUrl &&
-        !previewUrl.startsWith(
-          "http"
-        )) {
+    if (
+      previewUrl &&
+      !previewUrl.startsWith(
+        "http"
+      )
+    ) {
 
       URL.revokeObjectURL(
         previewUrl
@@ -247,6 +259,7 @@ export default function PaymentProofForm({
       setError(
         "Please select your payment receipt first."
       );
+
 
       return;
 
@@ -350,7 +363,6 @@ export default function PaymentProofForm({
 
               proofPublicId,
             }),
-
           }
         );
 
@@ -387,6 +399,15 @@ export default function PaymentProofForm({
 
       setPreviewUrl(
         proofUrl
+      );
+
+
+      // ======================================================
+      // REDIRECT TO MY ORDERS
+      // ======================================================
+
+      router.push(
+        "/profile/orders"
       );
 
 
@@ -654,6 +675,72 @@ export default function PaymentProofForm({
           </div>
         )}
 
+
+        {/* ====================================================
+            ACTIONS
+            ==================================================== */}
+
+        <div
+          className="
+            mt-8
+            flex
+            flex-col
+            gap-3
+            sm:flex-row
+          "
+        >
+
+          <Link
+            href="/profile/orders"
+            className="
+              inline-flex
+              min-h-12
+              flex-1
+              items-center
+              justify-center
+              rounded-full
+              bg-black
+              px-6
+              text-sm
+              font-medium
+              uppercase
+              tracking-[0.18em]
+              text-white
+              transition
+              hover:bg-neutral-800
+            "
+          >
+            View My Orders
+          </Link>
+
+
+          <Link
+            href="/"
+            className="
+              inline-flex
+              min-h-12
+              flex-1
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-neutral-300
+              px-6
+              text-sm
+              font-medium
+              uppercase
+              tracking-[0.18em]
+              text-neutral-700
+              transition
+              hover:border-black
+              hover:text-black
+            "
+          >
+            Back to Home
+          </Link>
+
+        </div>
+
       </div>
     );
 
@@ -715,9 +802,9 @@ export default function PaymentProofForm({
       </p>
 
 
-      {/* ==================================================== */}
-      {/* ERROR */}
-      {/* ==================================================== */}
+      {/* ====================================================
+          ERROR
+          ==================================================== */}
 
       {error && (
         <div
@@ -739,9 +826,9 @@ export default function PaymentProofForm({
       )}
 
 
-      {/* ==================================================== */}
-      {/* PREVIEW */}
-      {/* ==================================================== */}
+      {/* ====================================================
+          PREVIEW
+          ==================================================== */}
 
       {previewUrl ? (
 
@@ -798,9 +885,9 @@ export default function PaymentProofForm({
 
       ) : (
 
-        /* ================================================== */
-        /* UPLOAD BOX */
-        /* ================================================== */
+        /* ==================================================
+           UPLOAD BOX
+           ================================================== */
 
         <button
           type="button"
@@ -873,9 +960,9 @@ export default function PaymentProofForm({
       )}
 
 
-      {/* ==================================================== */}
-      {/* HIDDEN FILE INPUT */}
-      {/* ==================================================== */}
+      {/* ====================================================
+          HIDDEN FILE INPUT
+          ==================================================== */}
 
       <input
         ref={fileInputRef}
@@ -893,9 +980,9 @@ export default function PaymentProofForm({
       />
 
 
-      {/* ==================================================== */}
-      {/* SUBMIT */}
-      {/* ==================================================== */}
+      {/* ====================================================
+          SUBMIT
+          ==================================================== */}
 
       {selectedFile && (
         <button
@@ -932,9 +1019,9 @@ export default function PaymentProofForm({
       )}
 
 
-      {/* ==================================================== */}
-      {/* SECURITY NOTE */}
-      {/* ==================================================== */}
+      {/* ====================================================
+          SECURITY NOTE
+          ==================================================== */}
 
       <p
         className="

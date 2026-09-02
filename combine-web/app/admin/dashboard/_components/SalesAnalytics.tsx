@@ -6,13 +6,16 @@ import {
   useSearchParams,
 } from "next/navigation";
 
+import {
+  useTransition,
+} from "react";
+
 
 // ============================================================
 // SALES PERIOD
 // ============================================================
 
 export type SalesPeriod =
-  | "ALL_TIME"
   | "TODAY"
   | "THIS_WEEK"
   | "THIS_MONTH"
@@ -46,6 +49,12 @@ export default function SalesAnalytics({
     useSearchParams();
 
 
+  const [
+    isPending,
+    startTransition,
+  ] = useTransition();
+
+
   // ==========================================================
   // CHANGE PERIOD
   // ==========================================================
@@ -54,40 +63,82 @@ export default function SalesAnalytics({
     period: SalesPeriod
   ) {
 
+    if (
+      period ===
+      value
+    ) {
+      return;
+    }
+
+
     const params =
       new URLSearchParams(
         searchParams.toString()
       );
 
 
-    if (
-      period ===
-      "ALL_TIME"
-    ) {
-
-      params.delete(
-        "salesPeriod"
-      );
-
-    } else {
-
-      params.set(
-        "salesPeriod",
-        period
-      );
-
-    }
+    params.set(
+      "salesPeriod",
+      period
+    );
 
 
     const query =
       params.toString();
 
 
-    router.push(
+    const url =
       query
         ? `${pathname}?${query}`
-        : pathname
-    );
+        : pathname;
+
+
+    startTransition(() => {
+
+      router.replace(
+        url,
+        {
+          scroll:
+            false,
+        }
+      );
+
+    });
+
+  }
+
+
+  // ==========================================================
+  // BUTTON CLASS
+  // ==========================================================
+
+  function getButtonClass(
+    period: SalesPeriod
+  ) {
+
+    const isActive =
+      value ===
+      period;
+
+
+    return `
+      rounded-full
+      px-4
+      py-2
+      text-xs
+      font-medium
+      transition
+      ${
+        isActive
+          ? "bg-black text-white"
+          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+      }
+      ${
+        isPending
+          ? "pointer-events-none opacity-70"
+          : ""
+      }
+    `;
 
   }
 
@@ -108,35 +159,6 @@ export default function SalesAnalytics({
     >
 
       {/* ==================================================== */}
-      {/* ALL TIME */}
-      {/* ==================================================== */}
-
-      <button
-        type="button"
-        onClick={() =>
-          changePeriod(
-            "ALL_TIME"
-          )
-        }
-        className={`
-          rounded-full
-          px-4
-          py-2
-          text-xs
-          font-medium
-          transition
-          ${
-            value === "ALL_TIME"
-              ? "bg-black text-white"
-              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-          }
-        `}
-      >
-        All Time
-      </button>
-
-
-      {/* ==================================================== */}
       {/* TODAY */}
       {/* ==================================================== */}
 
@@ -147,19 +169,14 @@ export default function SalesAnalytics({
             "TODAY"
           )
         }
-        className={`
-          rounded-full
-          px-4
-          py-2
-          text-xs
-          font-medium
-          transition
-          ${
-            value === "TODAY"
-              ? "bg-black text-white"
-              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-          }
-        `}
+        disabled={
+          isPending
+        }
+        className={
+          getButtonClass(
+            "TODAY"
+          )
+        }
       >
         Today
       </button>
@@ -176,19 +193,14 @@ export default function SalesAnalytics({
             "THIS_WEEK"
           )
         }
-        className={`
-          rounded-full
-          px-4
-          py-2
-          text-xs
-          font-medium
-          transition
-          ${
-            value === "THIS_WEEK"
-              ? "bg-black text-white"
-              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-          }
-        `}
+        disabled={
+          isPending
+        }
+        className={
+          getButtonClass(
+            "THIS_WEEK"
+          )
+        }
       >
         This Week
       </button>
@@ -205,19 +217,14 @@ export default function SalesAnalytics({
             "THIS_MONTH"
           )
         }
-        className={`
-          rounded-full
-          px-4
-          py-2
-          text-xs
-          font-medium
-          transition
-          ${
-            value === "THIS_MONTH"
-              ? "bg-black text-white"
-              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-          }
-        `}
+        disabled={
+          isPending
+        }
+        className={
+          getButtonClass(
+            "THIS_MONTH"
+          )
+        }
       >
         This Month
       </button>
@@ -234,19 +241,14 @@ export default function SalesAnalytics({
             "THIS_YEAR"
           )
         }
-        className={`
-          rounded-full
-          px-4
-          py-2
-          text-xs
-          font-medium
-          transition
-          ${
-            value === "THIS_YEAR"
-              ? "bg-black text-white"
-              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-          }
-        `}
+        disabled={
+          isPending
+        }
+        className={
+          getButtonClass(
+            "THIS_YEAR"
+          )
+        }
       >
         This Year
       </button>

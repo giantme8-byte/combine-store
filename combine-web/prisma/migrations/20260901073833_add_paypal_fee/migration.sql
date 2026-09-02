@@ -1,0 +1,9 @@
+-- AlterEnum
+ALTER TYPE "PaymentMethodType" ADD VALUE 'PAYPAL';
+
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "paypalFee" DOUBLE PRECISION NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "Setting" ADD COLUMN     "paypalFeeFixed" DOUBLE PRECISION NOT NULL DEFAULT 2.00,
+ADD COLUMN     "paypalFeeRate" DOUBLE PRECISION NOT NULL DEFAULT 6.0;

@@ -48,6 +48,14 @@ import {
 
 
 // ============================================================
+// SCROLL STORAGE
+// ============================================================
+
+const PRODUCTS_SCROLL_KEY =
+  "combine-admin-products-scroll";
+
+
+// ============================================================
 // TYPES
 // ============================================================
 
@@ -250,6 +258,14 @@ function SortableProductCard({
   };
 
 
+  function handleEditClick() {
+    sessionStorage.setItem(
+      PRODUCTS_SCROLL_KEY,
+      String(window.scrollY)
+    );
+  }
+
+
   return (
     <div
       ref={setNodeRef}
@@ -299,6 +315,7 @@ function SortableProductCard({
 
       <Link
         href={editUrl}
+        onClick={handleEditClick}
         draggable={false}
         className="
           relative
@@ -467,6 +484,7 @@ function SortableProductCard({
 
       <Link
         href={editUrl}
+        onClick={handleEditClick}
         draggable={false}
         className="
           flex

@@ -36,7 +36,9 @@ type PaymentMethod = {
 
   type:
     | "BANK_TRANSFER"
-    | "QR";
+    | "QR"
+    | "PAYPAL"
+    | "WISE";
 
   bankName: string | null;
 
@@ -47,6 +49,12 @@ type PaymentMethod = {
   qrImageUrl: string | null;
 
   instructions: string | null;
+
+  wiseName: string | null;
+
+  wiseEmail: string | null;
+
+  wiseAccount: string | null;
 };
 
 
@@ -68,6 +76,203 @@ function formatAmount(
 }
 
 
+const checkoutCountries = [
+  'Afghanistan',
+  'Albania',
+  'Algeria',
+  'Andorra',
+  'Angola',
+  'Antigua and Barbuda',
+  'Argentina',
+  'Armenia',
+  'Australia',
+  'Austria',
+  'Azerbaijan',
+  'Bahamas',
+  'Bahrain',
+  'Bangladesh',
+  'Barbados',
+  'Belarus',
+  'Belgium',
+  'Belize',
+  'Benin',
+  'Bhutan',
+  'Bolivia',
+  'Bosnia and Herzegovina',
+  'Botswana',
+  'Brazil',
+  'Brunei',
+  'Bulgaria',
+  'Burkina Faso',
+  'Burundi',
+  'Cambodia',
+  'Cameroon',
+  'Canada',
+  'Cape Verde',
+  'Central African Republic',
+  'Chad',
+  'Chile',
+  'China',
+  'Colombia',
+  'Comoros',
+  'Congo',
+  'Costa Rica',
+  'Croatia',
+  'Cuba',
+  'Cyprus',
+  'Czech Republic',
+  'Denmark',
+  'Djibouti',
+  'Dominica',
+  'Dominican Republic',
+  'Ecuador',
+  'Egypt',
+  'El Salvador',
+  'Estonia',
+  'Eswatini',
+  'Ethiopia',
+  'Fiji',
+  'Finland',
+  'France',
+  'Gabon',
+  'Gambia',
+  'Georgia',
+  'Germany',
+  'Ghana',
+  'Greece',
+  'Grenada',
+  'Guatemala',
+  'Guinea',
+  'Guyana',
+  'Haiti',
+  'Honduras',
+  'Hong Kong',
+  'Hungary',
+  'Iceland',
+  'India',
+  'Indonesia',
+  'Iran',
+  'Iraq',
+  'Ireland',
+  'Israel',
+  'Italy',
+  'Ivory Coast',
+  'Jamaica',
+  'Japan',
+  'Jordan',
+  'Kazakhstan',
+  'Kenya',
+  'Kiribati',
+  'Kuwait',
+  'Kyrgyzstan',
+  'Laos',
+  'Latvia',
+  'Lebanon',
+  'Lesotho',
+  'Liberia',
+  'Libya',
+  'Liechtenstein',
+  'Lithuania',
+  'Luxembourg',
+  'Macau',
+  'Madagascar',
+  'Malawi',
+  'Malaysia',
+  'Maldives',
+  'Mali',
+  'Malta',
+  'Marshall Islands',
+  'Mauritania',
+  'Mauritius',
+  'Mexico',
+  'Micronesia',
+  'Moldova',
+  'Monaco',
+  'Mongolia',
+  'Montenegro',
+  'Morocco',
+  'Mozambique',
+  'Myanmar',
+  'Namibia',
+  'Nauru',
+  'Nepal',
+  'Netherlands',
+  'New Zealand',
+  'Nicaragua',
+  'Niger',
+  'Nigeria',
+  'North Korea',
+  'North Macedonia',
+  'Norway',
+  'Oman',
+  'Pakistan',
+  'Palau',
+  'Palestine',
+  'Panama',
+  'Papua New Guinea',
+  'Paraguay',
+  'Peru',
+  'Philippines',
+  'Poland',
+  'Portugal',
+  'Qatar',
+  'Romania',
+  'Russia',
+  'Rwanda',
+  'Saint Kitts and Nevis',
+  'Saint Lucia',
+  'Saint Vincent and the Grenadines',
+  'Samoa',
+  'San Marino',
+  'Saudi Arabia',
+  'Senegal',
+  'Serbia',
+  'Seychelles',
+  'Sierra Leone',
+  'Singapore',
+  'Slovakia',
+  'Slovenia',
+  'Solomon Islands',
+  'Somalia',
+  'South Africa',
+  'South Korea',
+  'South Sudan',
+  'Spain',
+  'Sri Lanka',
+  'Sudan',
+  'Suriname',
+  'Sweden',
+  'Switzerland',
+  'Syria',
+  'Taiwan',
+  'Tajikistan',
+  'Tanzania',
+  'Thailand',
+  'Timor-Leste',
+  'Togo',
+  'Tonga',
+  'Trinidad and Tobago',
+  'Tunisia',
+  'Turkey',
+  'Turkmenistan',
+  'Tuvalu',
+  'Uganda',
+  'Ukraine',
+  'United Arab Emirates',
+  'United Kingdom',
+  'United States',
+  'Uruguay',
+  'Uzbekistan',
+  'Vanuatu',
+  'Vatican City',
+  'Venezuela',
+  'Vietnam',
+  'Yemen',
+  'Zambia',
+  'Zimbabwe',
+];
+
+
 // ============================================================
 // CHECKOUT FORM
 // ============================================================
@@ -83,11 +288,18 @@ export default function CheckoutForm({
   const router =
     useRouter();
 
-  const {
-    items,
-    subtotal,
-    removeFromCart,
-  } = useCart();
+const {
+  items,
+  selectedItems,
+  selectedCartItemIds,
+  selectedSubtotal,
+  removeFromCart,
+} = useCart();
+
+  // Only the products selected in Cart are included in Checkout.
+  const checkoutItems = items.filter((item) =>
+    selectedCartItemIds.includes(item.cartItemId)
+  );
 
 
   // ==========================================================
@@ -116,13 +328,26 @@ export default function CheckoutForm({
 
 
   // ==========================================================
-  // SHIPPING STATE
+  // SHIPPING COUNTRY / STATE
   // ==========================================================
+
+  const [
+    country,
+    setCountry,
+  ] = useState("Malaysia");
 
   const [
     state,
     setState,
   ] = useState("");
+
+  const isMalaysia = country === "Malaysia";
+  const isInternational = Boolean(country) && !isMalaysia;
+
+  const [
+    shippingRequestSubmitted,
+    setShippingRequestSubmitted,
+  ] = useState(false);
 
 
   // ==========================================================
@@ -188,6 +413,11 @@ export default function CheckoutForm({
     setCalculatingCheckout,
   ] = useState(false);
 
+  const [
+    paymentFee,
+    setPaymentFee,
+  ] = useState(0);
+
 
   // ==========================================================
   // SUBMIT
@@ -219,6 +449,363 @@ export default function CheckoutForm({
 
   const isEmpty =
     items.length === 0;
+
+
+  // ==========================================================
+  // SELECTED PAYMENT METHOD
+  // ==========================================================
+
+  const selectedPaymentMethod =
+    useMemo(() => {
+
+      return (
+        paymentMethods.find(
+          (method) =>
+            method.id ===
+            paymentMethodId
+        ) ?? null
+      );
+
+    }, [
+      paymentMethods,
+      paymentMethodId,
+    ]);
+
+
+  // ==========================================================
+  // CHECKOUT CALCULATION
+  // ==========================================================
+
+  const calculateOrderTotal =
+    useCallback(
+      async (code?: string) => {
+
+        if (
+          checkoutItems.length === 0 ||
+          !country ||
+          (isMalaysia && !state)
+        ) {
+          setShippingFee(0);
+          setShippingIsFree(false);
+          setVoucherDiscount(0);
+          setPaymentFee(0);
+
+          return;
+        }
+
+        try {
+
+          setCalculatingCheckout(true);
+          setVoucherError("");
+
+          const response =
+            await fetch(
+              "/api/checkout/calculate",
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+
+                body:
+                  JSON.stringify({
+
+                    country,
+                    state: isMalaysia ? state : undefined,
+
+                    voucherCode:
+                      code ??
+                      voucherCode,
+
+                    paymentMethodType:
+                      selectedPaymentMethod?.type,
+
+                    items:
+                      checkoutItems.map(
+                        (item) => ({
+                          productId:
+                            item.productId,
+
+                          quantity:
+                            item.quantity,
+
+                          variantId:
+                            item.variantId ??
+                            null,
+                        })
+                      ),
+
+                  }),
+              }
+            );
+
+
+          const data =
+            await response.json();
+
+
+          if (
+            !response.ok
+          ) {
+
+            throw new Error(
+              data?.error ||
+              "Unable to calculate checkout."
+            );
+
+          }
+
+
+          setShippingFee(
+            Number(
+              data.shipping?.fee ??
+              0
+            )
+          );
+
+
+          setShippingIsFree(
+            Boolean(
+              data.shipping?.isFree
+            )
+          );
+
+
+          setVoucherDiscount(
+            Number(
+              data.voucherDiscount ??
+              0
+            )
+          );
+
+
+          setPaymentFee(
+            Number(
+              data.paypalFee ??
+              data.paymentFee ??
+              0
+            )
+          );
+
+
+          const returnedVoucherError =
+            typeof data.voucherError ===
+            "string"
+              ? data.voucherError
+              : "";
+
+
+          setVoucherError(
+            returnedVoucherError
+          );
+
+
+          if (
+            code?.trim() &&
+            !returnedVoucherError
+          ) {
+
+            setVoucherApplied(
+              true
+            );
+
+          } else if (
+            !code?.trim()
+          ) {
+
+            setVoucherApplied(
+              false
+            );
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            "Checkout calculation failed:",
+            error
+          );
+
+
+          setShippingFee(0);
+
+          setShippingIsFree(
+            false
+          );
+
+          setVoucherDiscount(0);
+
+          setPaymentFee(0);
+
+
+          if (
+            code?.trim()
+          ) {
+
+            setVoucherError(
+              error instanceof Error
+                ? error.message
+                : "Unable to apply voucher."
+            );
+
+            setVoucherApplied(
+              false
+            );
+
+          }
+
+        } finally {
+
+          setCalculatingCheckout(
+            false
+          );
+
+        }
+
+      },
+      [
+        checkoutItems,
+        country,
+        state,
+        isMalaysia,
+        voucherCode,
+        selectedPaymentMethod,
+      ]
+    );
+
+
+  // ==========================================================
+  // RECALCULATE CHECKOUT WHEN
+  // STATE / CART / PAYMENT CHANGES
+  // ==========================================================
+
+  useEffect(() => {
+
+    if (
+      checkoutItems.length === 0 ||
+      !country ||
+      (isMalaysia && !state)
+    ) {
+
+      setShippingFee(0);
+
+      setShippingIsFree(
+        false
+      );
+
+      setPaymentFee(0);
+
+      return;
+    }
+
+
+    void calculateOrderTotal(
+      voucherApplied
+        ? voucherCode
+        : ""
+    );
+
+  }, [
+    checkoutItems,
+    country,
+    state,
+    isMalaysia,
+    voucherApplied,
+    voucherCode,
+    paymentMethodId,
+    calculateOrderTotal,
+  ]);
+
+
+  // ==========================================================
+  // LOAD PAYMENT METHODS
+  // ==========================================================
+
+  useEffect(() => {
+
+    async function loadPaymentMethods() {
+
+      try {
+
+        setLoadingPaymentMethods(
+          true
+        );
+
+
+        const response =
+          await fetch(
+            "/api/payment-methods",
+            {
+              cache: "no-store",
+            }
+          );
+
+
+        if (
+          !response.ok
+        ) {
+
+          throw new Error(
+            "Failed to load payment methods."
+          );
+
+        }
+
+
+        const data =
+          await response.json();
+
+
+        const methods =
+          Array.isArray(data)
+            ? data
+            : [];
+
+
+        setPaymentMethods(
+          methods
+        );
+
+
+        // ------------------------------------------------------
+        // AUTO SELECT FIRST METHOD
+        // ------------------------------------------------------
+
+        if (
+          methods.length > 0
+        ) {
+
+          setPaymentMethodId(
+            methods[0].id
+          );
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Failed to load payment methods:",
+          error
+        );
+
+        setPaymentMethods([]);
+
+      } finally {
+
+        setLoadingPaymentMethods(
+          false
+        );
+
+      }
+
+    }
+
+
+    loadPaymentMethods();
+
+  }, []);
 
 
   // ==========================================================
@@ -333,15 +920,19 @@ export default function CheckoutForm({
 
             <div className="flex items-center gap-4 py-3">
               <div className="h-px flex-1 bg-neutral-200" />
+
               <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400">
                 OR
               </span>
+
               <div className="h-px flex-1 bg-neutral-200" />
             </div>
 
             <button
               type="button"
-              onClick={() => setGuestCheckout(true)}
+              onClick={() =>
+                setGuestCheckout(true)
+              }
               className="
                 inline-flex
                 w-full
@@ -393,230 +984,6 @@ export default function CheckoutForm({
     );
   }
 
-  // ==========================================================
-  // CHECKOUT CALCULATION
-  // ==========================================================
-
-  const calculateOrderTotal = useCallback(
-    async (code?: string) => {
-
-      if (items.length === 0 || !state) {
-        setShippingFee(0);
-        setShippingIsFree(false);
-        setVoucherDiscount(0);
-        return;
-      }
-
-      try {
-        setCalculatingCheckout(true);
-        setVoucherError("");
-
-        const response = await fetch(
-          "/api/checkout/calculate",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              state,
-              voucherCode: code ?? voucherCode,
-              items: items.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                variantId: item.variantId ?? null,
-              })),
-            }),
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data?.error ||
-            "Unable to calculate checkout."
-          );
-        }
-
-        setShippingFee(
-          Number(data.shipping?.fee ?? 0)
-        );
-
-        setShippingIsFree(
-          Boolean(data.shipping?.isFree)
-        );
-
-        setVoucherDiscount(
-          Number(data.voucherDiscount ?? 0)
-        );
-
-        const returnedVoucherError =
-          typeof data.voucherError === "string"
-            ? data.voucherError
-            : "";
-
-        setVoucherError(
-          returnedVoucherError
-        );
-
-        if (
-          code?.trim() &&
-          !returnedVoucherError
-        ) {
-          setVoucherApplied(true);
-        } else if (!code?.trim()) {
-          setVoucherApplied(false);
-        }
-
-      } catch (error) {
-        console.error(
-          "Checkout calculation failed:",
-          error
-        );
-
-        setShippingFee(0);
-        setShippingIsFree(false);
-        setVoucherDiscount(0);
-
-        if (code?.trim()) {
-          setVoucherError(
-            error instanceof Error
-              ? error.message
-              : "Unable to apply voucher."
-          );
-          setVoucherApplied(false);
-        }
-
-      } finally {
-        setCalculatingCheckout(false);
-      }
-    },
-    [items, state, voucherCode]
-  );
-
-
-  // ==========================================================
-  // RECALCULATE CHECKOUT WHEN STATE / CART CHANGES
-  // ==========================================================
-
-  useEffect(() => {
-    if (items.length === 0 || !state) {
-      setShippingFee(0);
-      setShippingIsFree(false);
-      return;
-    }
-
-    void calculateOrderTotal(
-      voucherApplied ? voucherCode : ""
-    );
-  }, [
-    items,
-    state,
-    voucherApplied,
-    voucherCode,
-    calculateOrderTotal,
-  ]);
-
-
-  // ==========================================================
-  // LOAD PAYMENT METHODS
-  // ==========================================================
-
-  useEffect(() => {
-
-    async function loadPaymentMethods() {
-
-      try {
-
-        setLoadingPaymentMethods(
-          true
-        );
-
-        const response =
-          await fetch(
-            "/api/payment-methods",
-            {
-              cache: "no-store",
-            }
-          );
-
-        if (!response.ok) {
-          throw new Error(
-            "Failed to load payment methods."
-          );
-        }
-
-        const data =
-          await response.json();
-
-        const methods =
-          Array.isArray(data)
-            ? data
-            : [];
-
-        setPaymentMethods(
-          methods
-        );
-
-
-        // ------------------------------------------------------
-        // AUTO SELECT FIRST METHOD
-        // ------------------------------------------------------
-
-        if (
-          methods.length > 0
-        ) {
-
-          setPaymentMethodId(
-            methods[0].id
-          );
-
-        }
-
-      } catch (error) {
-
-        console.error(
-          "Failed to load payment methods:",
-          error
-        );
-
-        setPaymentMethods([]);
-
-      } finally {
-
-        setLoadingPaymentMethods(
-          false
-        );
-
-      }
-
-    }
-
-    loadPaymentMethods();
-
-  }, []);
-
-
-  // ==========================================================
-  // SELECTED PAYMENT METHOD
-  // ==========================================================
-
-  const selectedPaymentMethod =
-    useMemo(() => {
-
-      return (
-        paymentMethods.find(
-          (method) =>
-            method.id ===
-            paymentMethodId
-        ) ?? null
-      );
-
-    }, [
-      paymentMethods,
-      paymentMethodId,
-    ]);
 
 
   // ==========================================================
@@ -633,7 +1000,7 @@ export default function CheckoutForm({
     // --------------------------------------------------------
 
     if (
-      items.length === 0
+      checkoutItems.length === 0
     ) {
 
       setError(
@@ -697,19 +1064,135 @@ export default function CheckoutForm({
 
 
     // --------------------------------------------------------
-    // STATE
+    // COUNTRY
     // --------------------------------------------------------
 
-    if (!state.trim()) {
+    if (
+      !country.trim()
+    ) {
+
       setError(
-        "Please select your state."
+        "Please select your country."
       );
+
       return;
+
     }
 
 
     // --------------------------------------------------------
-    // PAYMENT METHOD
+    // STATE (MALAYSIA ONLY)
+    // --------------------------------------------------------
+
+    if (
+      isMalaysia &&
+      !state.trim()
+    ) {
+
+      setError(
+        "Please select your state."
+      );
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // INTERNATIONAL SHIPPING REQUEST
+    // --------------------------------------------------------
+
+    if (isInternational) {
+
+      try {
+
+        setSubmitting(true);
+
+        const response =
+          await fetch(
+            "/api/orders",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+              body: JSON.stringify({
+                customerName:
+                  customerName.trim(),
+                customerPhone:
+                  customerPhone.trim(),
+                customerEmail:
+                  customerEmail.trim() ||
+                  undefined,
+                address:
+                  address.trim(),
+                country:
+                  country.trim(),
+                shippingCountry:
+                  country.trim(),
+                shippingType:
+                  "INTERNATIONAL",
+                voucherCode:
+                  voucherCode.trim() ||
+                  undefined,
+                items:
+                  checkoutItems.map((item) => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    variantId:
+                      item.variantId ?? null,
+                    color:
+                      item.color ?? undefined,
+                    variant:
+                      item.variant ?? undefined,
+                    dimensions:
+                      item.dimensions ?? undefined,
+                  })),
+              }),
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error ||
+              "Unable to request international shipping fee."
+          );
+        }
+
+        setShippingRequestSubmitted(true);
+        setError("");
+
+        return;
+
+      } catch (error) {
+
+        console.error(
+          "Failed to request international shipping fee:",
+          error
+        );
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Unable to request international shipping fee."
+        );
+
+        return;
+
+      } finally {
+
+        setSubmitting(false);
+
+      }
+    }
+
+
+    // --------------------------------------------------------
+    // PAYMENT METHOD (MALAYSIA ONLY)
     // --------------------------------------------------------
 
     if (
@@ -740,7 +1223,9 @@ export default function CheckoutForm({
 
     try {
 
-      setSubmitting(true);
+      setSubmitting(
+        true
+      );
 
 
       // ======================================================
@@ -774,6 +1259,15 @@ export default function CheckoutForm({
                 address:
                   address.trim(),
 
+                country:
+                  country.trim(),
+
+                shippingCountry:
+                  country.trim(),
+
+                shippingType:
+                  "LOCAL",
+
                 state:
                   state.trim(),
 
@@ -784,7 +1278,7 @@ export default function CheckoutForm({
                 paymentMethodId,
 
                 items:
-                  items.map(
+                  checkoutItems.map(
                     (item) => ({
 
                       productId:
@@ -875,7 +1369,7 @@ export default function CheckoutForm({
        * created in the database.
        */
 
-      items.forEach(
+      checkoutItems.forEach(
         (item) => {
 
           removeFromCart(
@@ -904,6 +1398,7 @@ export default function CheckoutForm({
         error
       );
 
+
       setError(
         error instanceof Error
           ? error.message
@@ -912,7 +1407,9 @@ export default function CheckoutForm({
 
     } finally {
 
-      setSubmitting(false);
+      setSubmitting(
+        false
+      );
 
     }
 
@@ -953,9 +1450,11 @@ export default function CheckoutForm({
               text-neutral-500
             "
           >
+
             <ShoppingBag
               className="h-7 w-7"
             />
+
           </div>
 
 
@@ -1036,7 +1535,10 @@ export default function CheckoutForm({
           ====================================================== */}
 
       <div
-        className="space-y-6 sm:space-y-10"
+        className="
+          space-y-6
+          sm:space-y-10
+        "
       >
 
         {/* ====================================================
@@ -1316,7 +1818,72 @@ export default function CheckoutForm({
             </div>
 
 
-            {/* STATE */}
+            {/* COUNTRY */}
+
+            <div>
+
+              <label
+                className="
+                  mb-2
+                  block
+                  text-sm
+                  font-medium
+                  text-neutral-700
+                "
+              >
+                Country
+
+                <span className="ml-1 text-red-500">
+                  *
+                </span>
+              </label>
+
+              <input
+                list="checkout-country-options"
+                value={country}
+                onChange={(event) => {
+                  const nextCountry =
+                    event.target.value;
+
+                  setCountry(nextCountry);
+                  setState("");
+                  setShippingRequestSubmitted(false);
+                  setError("");
+                }}
+                placeholder="Search or enter your country"
+                autoComplete="country-name"
+                className="
+                  w-full
+                  rounded-2xl
+                  border
+                  border-neutral-200
+                  bg-neutral-50
+                  px-5
+                  py-4
+                  text-sm
+                  text-neutral-800
+                  outline-none
+                  transition
+                  focus:border-[#C8A96A]
+                  focus:bg-white
+                "
+              />
+
+              <datalist id="checkout-country-options">
+                {checkoutCountries.map((countryName) => (
+                  <option
+                    key={countryName}
+                    value={countryName}
+                  />
+                ))}
+              </datalist>
+
+            </div>
+
+
+            {/* STATE — MALAYSIA ONLY */}
+
+            {isMalaysia && (
 
             <div>
 
@@ -1336,10 +1903,13 @@ export default function CheckoutForm({
                 </span>
               </label>
 
+
               <select
                 value={state}
                 onChange={(event) =>
-                  setState(event.target.value)
+                  setState(
+                    event.target.value
+                  )
                 }
                 className="
                   w-full
@@ -1357,32 +1927,80 @@ export default function CheckoutForm({
                   focus:bg-white
                 "
               >
+
                 <option value="">
                   Select your state
                 </option>
-                <option value="Johor">Johor</option>
-                <option value="Kedah">Kedah</option>
-                <option value="Kelantan">Kelantan</option>
-                <option value="Melaka">Melaka</option>
+
+                <option value="Johor">
+                  Johor
+                </option>
+
+                <option value="Kedah">
+                  Kedah
+                </option>
+
+                <option value="Kelantan">
+                  Kelantan
+                </option>
+
+                <option value="Melaka">
+                  Melaka
+                </option>
+
                 <option value="Negeri Sembilan">
                   Negeri Sembilan
                 </option>
-                <option value="Pahang">Pahang</option>
-                <option value="Penang">Penang</option>
-                <option value="Perak">Perak</option>
-                <option value="Perlis">Perlis</option>
-                <option value="Sabah">Sabah</option>
-                <option value="Sarawak">Sarawak</option>
-                <option value="Selangor">Selangor</option>
-                <option value="Terengganu">Terengganu</option>
+
+                <option value="Pahang">
+                  Pahang
+                </option>
+
+                <option value="Penang">
+                  Penang
+                </option>
+
+                <option value="Perak">
+                  Perak
+                </option>
+
+                <option value="Perlis">
+                  Perlis
+                </option>
+
+                <option value="Sabah">
+                  Sabah
+                </option>
+
+                <option value="Sarawak">
+                  Sarawak
+                </option>
+
+                <option value="Selangor">
+                  Selangor
+                </option>
+
+                <option value="Terengganu">
+                  Terengganu
+                </option>
+
                 <option value="Kuala Lumpur">
                   Kuala Lumpur
                 </option>
-                <option value="Putrajaya">Putrajaya</option>
-                <option value="Labuan">Labuan</option>
+
+                <option value="Putrajaya">
+                  Putrajaya
+                </option>
+
+                <option value="Labuan">
+                  Labuan
+                </option>
+
               </select>
 
             </div>
+
+            )}
 
           </div>
 
@@ -1445,6 +2063,22 @@ export default function CheckoutForm({
           />
 
 
+          {checkoutItems.length === 0 && (
+            <div
+              className="
+                mt-8
+                rounded-2xl
+                bg-neutral-50
+                p-5
+                text-sm
+                leading-6
+                text-neutral-500
+              "
+            >
+              No items are selected for checkout. Please return to your cart and select the items you would like to purchase.
+            </div>
+          )}
+
           <div
             className="
               mt-8
@@ -1452,7 +2086,7 @@ export default function CheckoutForm({
             "
           >
 
-            {items.map(
+            {checkoutItems.map(
               (item) => (
 
                 <div
@@ -1552,9 +2186,9 @@ export default function CheckoutForm({
                         text-sm
                         font-medium
                         leading-5
+                        text-neutral-900
                         sm:mt-2
                         sm:text-lg
-                        text-neutral-900
                       "
                     >
                       {item.name}
@@ -1580,10 +2214,10 @@ export default function CheckoutForm({
                       className="
                         mt-2
                         space-y-1
-                        sm:mt-3
                         text-xs
                         leading-5
                         text-neutral-500
+                        sm:mt-3
                       "
                     >
 
@@ -1619,10 +2253,10 @@ export default function CheckoutForm({
                       className="
                         mt-3
                         flex
-                        sm:mt-4
                         items-center
                         justify-between
                         gap-4
+                        sm:mt-4
                       "
                     >
 
@@ -1740,122 +2374,122 @@ export default function CheckoutForm({
           />
 
 
-{/* ==========================================================
-    ITEMS
-    ========================================================== */}
+          {/* ==========================================================
+              ITEMS
+              ========================================================== */}
 
-<div
-  className="
-    mt-8
-    space-y-5
-  "
->
-
-  {items.map(
-    (item) => (
-
-      <div
-        key={item.cartItemId}
-        className="
-          flex
-          items-start
-          justify-between
-          gap-5
-        "
-      >
-
-        {/* ==================================================
-            PRODUCT INFORMATION
-            ================================================== */}
-
-        <div
-          className="
-            min-w-0
-            flex-1
-          "
-        >
-
-          {/* BRAND */}
-
-          {item.brand && (
-            <p
-              className="
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-[0.28em]
-                text-neutral-400
-              "
-            >
-              {item.brand}
-            </p>
-          )}
-
-
-          {/* PRODUCT NAME */}
-
-          <p
+          <div
             className="
-              mt-1
-              text-sm
-              font-medium
-              leading-5
-              text-neutral-800
+              mt-8
+              space-y-5
             "
           >
-            {item.name}
-          </p>
+
+            {checkoutItems.map(
+              (item) => (
+
+                <div
+                  key={item.cartItemId}
+                  className="
+                    flex
+                    items-start
+                    justify-between
+                    gap-5
+                  "
+                >
+
+                  {/* ==================================================
+                      PRODUCT INFORMATION
+                      ================================================== */}
+
+                  <div
+                    className="
+                      min-w-0
+                      flex-1
+                    "
+                  >
+
+                    {/* BRAND */}
+
+                    {item.brand && (
+                      <p
+                        className="
+                          text-[10px]
+                          font-medium
+                          uppercase
+                          tracking-[0.28em]
+                          text-neutral-400
+                        "
+                      >
+                        {item.brand}
+                      </p>
+                    )}
 
 
-          {/* QUANTITY */}
+                    {/* PRODUCT NAME */}
 
-          <p
-            className="
-              mt-1.5
-              text-xs
-              leading-4
-              text-neutral-400
-            "
-          >
-            × {item.quantity}
-          </p>
+                    <p
+                      className="
+                        mt-1
+                        text-sm
+                        font-medium
+                        leading-5
+                        text-neutral-800
+                      "
+                    >
+                      {item.name}
+                    </p>
 
-        </div>
+
+                    {/* QUANTITY */}
+
+                    <p
+                      className="
+                        mt-1.5
+                        text-xs
+                        leading-4
+                        text-neutral-400
+                      "
+                    >
+                      × {item.quantity}
+                    </p>
+
+                  </div>
 
 
-        {/* ==================================================
-            PRICE
-            ================================================== */}
+                  {/* ==================================================
+                      PRICE
+                      ================================================== */}
 
-        <div
-          className="
-            shrink-0
-            pt-5
-            text-right
-          "
-        >
+                  <div
+                    className="
+                      shrink-0
+                      pt-5
+                      text-right
+                    "
+                  >
 
-          <p
-            className="
-              text-sm
-              font-medium
-              text-neutral-700
-            "
-          >
-            {formatAmount(
-              item.price *
-              item.quantity
+                    <p
+                      className="
+                        text-sm
+                        font-medium
+                        text-neutral-700
+                      "
+                    >
+                      {formatAmount(
+                        item.price *
+                        item.quantity
+                      )}
+                    </p>
+
+                  </div>
+
+                </div>
+
+              )
             )}
-          </p>
 
-        </div>
-
-      </div>
-
-    )
-  )}
-
-</div>
+          </div>
 
 
           {/* VOUCHER */}
@@ -1920,7 +2554,8 @@ export default function CheckoutForm({
                 disabled={
                   calculatingCheckout ||
                   !voucherCode.trim() ||
-                  !state
+                  !country ||
+                  (isMalaysia && !state)
                 }
                 onClick={() => {
                   void calculateOrderTotal(
@@ -1945,7 +2580,9 @@ export default function CheckoutForm({
 
             </div>
 
+
             {voucherError ? (
+
               <p
                 className="
                   mt-2
@@ -1955,7 +2592,9 @@ export default function CheckoutForm({
               >
                 {voucherError}
               </p>
+
             ) : voucherApplied ? (
+
               <p
                 className="
                   mt-2
@@ -1965,7 +2604,9 @@ export default function CheckoutForm({
               >
                 Voucher applied successfully.
               </p>
+
             ) : (
+
               <p
                 className="
                   mt-2
@@ -1975,6 +2616,7 @@ export default function CheckoutForm({
               >
                 Enter your voucher code and click Apply.
               </p>
+
             )}
 
           </div>
@@ -2012,7 +2654,7 @@ export default function CheckoutForm({
                 className="text-neutral-800"
               >
                 {formatAmount(
-                  subtotal
+                  selectedSubtotal
                 )}
               </span>
 
@@ -2039,7 +2681,9 @@ export default function CheckoutForm({
                 <span
                   className="text-green-600"
                 >
-                  -{formatAmount(voucherDiscount)}
+                  -{formatAmount(
+                    voucherDiscount
+                  )}
                 </span>
 
               </div>
@@ -2066,16 +2710,52 @@ export default function CheckoutForm({
               <span
                 className="text-right text-neutral-800"
               >
-                {!state ? (
+                {!country ? (
+                  "Select country"
+                ) : isInternational ? (
+                  "To be confirmed"
+                ) : !state ? (
                   "Select state"
                 ) : shippingIsFree ? (
                   "FREE"
                 ) : (
-                  formatAmount(shippingFee)
+                  formatAmount(
+                    shippingFee
+                  )
                 )}
               </span>
 
             </div>
+
+
+            {paymentFee > 0 && (
+
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  text-sm
+                "
+              >
+
+                <span
+                  className="text-neutral-500"
+                >
+                  PayPal Fee
+                </span>
+
+                <span
+                  className="text-neutral-800"
+                >
+                  {formatAmount(
+                    paymentFee
+                  )}
+                </span>
+
+              </div>
+
+            )}
 
 
             <div
@@ -2111,9 +2791,10 @@ export default function CheckoutForm({
               >
                 {formatAmount(
                   Math.max(
-                    subtotal -
+                    selectedSubtotal -
                       voucherDiscount +
-                      shippingFee,
+                      shippingFee +
+                      paymentFee,
                     0
                   )
                 )}
@@ -2125,16 +2806,136 @@ export default function CheckoutForm({
 
 
           {/* ==================================================
-              PAYMENT
+              PAYMENT / SHIPPING REQUEST
               ================================================== */}
+
+          {isInternational ? (
+
+            <div
+              className="
+                mt-8
+                border-t
+                border-neutral-200
+                pt-8
+                sm:mt-10
+              "
+            >
+
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-[#C8A96A]/30
+                  bg-[#C8A96A]/5
+                  p-5
+                "
+              >
+                <p
+                  className="
+                    text-xs
+                    font-medium
+                    uppercase
+                    tracking-[0.2em]
+                    text-neutral-500
+                  "
+                >
+                  International Shipping
+                </p>
+
+                <p
+                  className="
+                    mt-3
+                    text-sm
+                    leading-6
+                    text-neutral-700
+                  "
+                >
+                  Shipping fee will be confirmed by COMBINE before payment.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handlePlaceOrder();
+                  }}
+                  disabled={
+                    submitting ||
+                    checkoutItems.length === 0 ||
+                    !country ||
+                    !address.trim() ||
+                    !customerName.trim() ||
+                    !customerPhone.trim() ||
+                    shippingRequestSubmitted
+                  }
+                  className="
+                    mt-5
+                    inline-flex
+                    w-full
+                    items-center
+                    justify-center
+                    gap-3
+                    rounded-full
+                    bg-black
+                    px-5
+                    py-4
+                    text-[10px]
+                    font-medium
+                    uppercase
+                    tracking-[0.3em]
+                    text-white
+                    transition-all
+                    duration-300
+                    hover:-translate-y-0.5
+                    hover:bg-[#C8A96A]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                  "
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Requesting...
+                    </>
+                  ) : shippingRequestSubmitted ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Shipping Fee Requested
+                    </>
+                  ) : (
+                    <>
+                      Request Shipping Fee
+                      <span>→</span>
+                    </>
+                  )}
+                </button>
+
+                {shippingRequestSubmitted && (
+                  <p
+                    className="
+                      mt-4
+                      text-center
+                      text-xs
+                      leading-5
+                      text-green-600
+                    "
+                  >
+                    Your request has been submitted. We will confirm the international shipping fee before payment.
+                  </p>
+                )}
+
+              </div>
+
+            </div>
+
+          ) : (
 
           <div
             className="
               mt-8
               border-t
-              sm:mt-10
               border-neutral-200
               pt-8
+              sm:mt-10
             "
           >
 
@@ -2248,11 +3049,11 @@ export default function CheckoutForm({
                       <button
                         type="button"
                         key={method.id}
-                        onClick={() =>
+                        onClick={() => {
                           setPaymentMethodId(
                             method.id
-                          )
-                        }
+                          );
+                        }}
                         className={`
                           flex
                           w-full
@@ -2337,10 +3138,13 @@ export default function CheckoutForm({
                               text-neutral-400
                             "
                           >
-                            {method.type ===
-                            "QR"
+                            {method.type === "QR"
                               ? "QR Payment"
-                              : "Bank Transfer"}
+                              : method.type === "PAYPAL"
+                                ? "PayPal"
+                                : method.type === "WISE"
+                                  ? "Wise"
+                                  : "Bank Transfer"}
                           </p>
 
                         </div>
@@ -2365,12 +3169,14 @@ export default function CheckoutForm({
                         >
 
                           {selected && (
+
                             <Check
                               className="
                                 h-3
                                 w-3
                               "
                             />
+
                           )}
 
                         </div>
@@ -2568,6 +3374,196 @@ export default function CheckoutForm({
                 )}
 
 
+                {selectedPaymentMethod.type ===
+                  "PAYPAL" && (
+
+                  <div
+                    className="space-y-3"
+                  >
+
+                    <p
+                      className="
+                        text-sm
+                        font-medium
+                        text-neutral-900
+                      "
+                    >
+                      PayPal Payment
+                    </p>
+
+                    <p
+                      className="
+                        text-xs
+                        leading-6
+                        text-neutral-500
+                      "
+                    >
+                      A 6% + RM2.00 payment processing fee is added when paying via PayPal.
+                    </p>
+
+
+                    {selectedPaymentMethod.accountName && (
+
+                      <div>
+
+                        <p
+                          className="
+                            text-[10px]
+                            uppercase
+                            tracking-[0.2em]
+                            text-neutral-400
+                          "
+                        >
+                          PayPal Account
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
+                            break-all
+                            text-sm
+                            font-medium
+                            text-neutral-900
+                          "
+                        >
+                          {
+                            selectedPaymentMethod.accountName
+                          }
+                        </p>
+
+                      </div>
+
+                    )}
+
+                  </div>
+
+                )}
+
+
+                {selectedPaymentMethod.type ===
+                  "WISE" && (
+
+                  <div
+                    className="space-y-4"
+                  >
+
+                    <p
+                      className="
+                        text-sm
+                        font-medium
+                        text-neutral-900
+                      "
+                    >
+                      Wise Payment
+                    </p>
+
+
+                    {selectedPaymentMethod.wiseName && (
+
+                      <div>
+
+                        <p
+                          className="
+                            text-[10px]
+                            uppercase
+                            tracking-[0.2em]
+                            text-neutral-400
+                          "
+                        >
+                          Account Name
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
+                            text-sm
+                            font-medium
+                            text-neutral-900
+                          "
+                        >
+                          {
+                            selectedPaymentMethod.wiseName
+                          }
+                        </p>
+
+                      </div>
+
+                    )}
+
+
+                    {selectedPaymentMethod.wiseEmail && (
+
+                      <div>
+
+                        <p
+                          className="
+                            text-[10px]
+                            uppercase
+                            tracking-[0.2em]
+                            text-neutral-400
+                          "
+                        >
+                          Wise Email
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
+                            break-all
+                            text-sm
+                            font-medium
+                            text-neutral-900
+                          "
+                        >
+                          {
+                            selectedPaymentMethod.wiseEmail
+                          }
+                        </p>
+
+                      </div>
+
+                    )}
+
+
+                    {selectedPaymentMethod.wiseAccount && (
+
+                      <div>
+
+                        <p
+                          className="
+                            text-[10px]
+                            uppercase
+                            tracking-[0.2em]
+                            text-neutral-400
+                          "
+                        >
+                          Wise Account
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
+                            break-all
+                            font-mono
+                            text-sm
+                            font-medium
+                            text-neutral-900
+                          "
+                        >
+                          {
+                            selectedPaymentMethod.wiseAccount
+                          }
+                        </p>
+
+                      </div>
+
+                    )}
+
+                  </div>
+
+                )}
+
+
                 {selectedPaymentMethod.instructions && (
 
                   <p
@@ -2591,6 +3587,8 @@ export default function CheckoutForm({
             )}
 
           </div>
+
+          )}
 
 
           {/* ERROR */}
@@ -2617,7 +3615,10 @@ export default function CheckoutForm({
           )}
 
 
-          {/* PLACE ORDER */}
+          {/* PLACE ORDER — MALAYSIA ONLY */}
+
+          {!isInternational && (
+            <>
 
           <button
             type="button"
@@ -2627,7 +3628,7 @@ export default function CheckoutForm({
             disabled={
               submitting ||
               loadingPaymentMethods ||
-              items.length === 0 ||
+              checkoutItems.length === 0 ||
               paymentMethods.length === 0
             }
             className="
@@ -2704,6 +3705,9 @@ export default function CheckoutForm({
             secure payment page to complete
             your payment.
           </p>
+
+            </>
+          )}
 
 
           {/* BACK */}

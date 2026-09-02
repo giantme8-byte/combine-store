@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
 
 import PaymentProofForm from "./_components/PaymentProofForm";
+import InternationalPaymentMethodSelector from "./_components/InternationalPaymentMethodSelector";
 
 
 // ============================================================
@@ -83,6 +85,35 @@ export default async function PaymentPage({
           orderBy: {
             id: "asc",
           },
+          include: {
+            product: {
+              select: {
+                images: {
+                  orderBy: {
+                    sortOrder: "asc",
+                  },
+                  take: 1,
+                  select: {
+                    url: true,
+                  },
+                },
+              },
+            },
+            productVariant: {
+              select: {
+                imageUrl: true,
+                images: {
+                  orderBy: {
+                    sortOrder: "asc",
+                  },
+                  take: 1,
+                  select: {
+                    url: true,
+                  },
+                },
+              },
+            },
+          },
         },
 
         payment: true,
@@ -107,6 +138,17 @@ export default async function PaymentPage({
 
   const payment =
     order.payment;
+
+  const isInternational =
+    order.shippingType === "INTERNATIONAL";
+
+  const isShippingQuotePending =
+    isInternational &&
+    order.shippingQuoteStatus === "PENDING";
+
+  const isShippingQuoted =
+    isInternational &&
+    order.shippingQuoteStatus === "QUOTED";
 
 
   // ==========================================================
@@ -189,6 +231,32 @@ export default async function PaymentPage({
     >
 
       {/* ==================================================== */}
+      {/* BACK TO MY ORDERS */}
+      {/* ==================================================== */}
+
+      <div className="mx-auto max-w-5xl">
+        <Link
+          href="/profile/orders"
+          className="
+            inline-flex
+            items-center
+            gap-2
+            text-xs
+            font-medium
+            uppercase
+            tracking-[0.16em]
+            text-neutral-500
+            transition
+            hover:text-neutral-900
+          "
+        >
+          <span aria-hidden="true">←</span>
+          Back to My Orders
+        </Link>
+      </div>
+
+
+      {/* ==================================================== */}
       {/* HEADER */}
       {/* ==================================================== */}
 
@@ -252,8 +320,12 @@ export default async function PaymentPage({
             sm:text-base
           "
         >
-          {paymentStatus === "PENDING"
-            ? "Your order has been successfully received. Please complete your payment using the information below."
+          {isShippingQuotePending
+            ? "Your order has been successfully received. We are confirming the international shipping fee. Please wait for the shipping quote before completing payment."
+            : isShippingQuoted && !payment
+              ? "Your international shipping fee has been confirmed. Please review the updated total and continue to payment."
+              : paymentStatus === "PENDING"
+                ? "Your order has been successfully received. Please complete your payment using the information below."
             : paymentStatus === "SUBMITTED"
               ? "Your payment proof has been submitted and is awaiting manual verification."
               : paymentStatus === "REJECTED"
@@ -309,7 +381,7 @@ export default async function PaymentPage({
               text-neutral-900
             "
           >
-            {order.publicToken}
+            {order.orderNumber ?? "—"}
           </span>
 
         </div>
@@ -435,9 +507,138 @@ export default async function PaymentPage({
             </div>
           </div>
         ) : (
-          <div className="mt-8 overflow-x-auto pb-2">
-            <div className="min-w-[620px]">
+          <div className="mt-8">
+
+            {/* ================================================== */}
+            {/* MOBILE TIMELINE */}
+            {/* ================================================== */}
+
+            <div className="sm:hidden">
+
+              <div className="relative">
+
+                {/* Vertical connecting line */}
+
+                <div
+                  className="
+                    absolute
+                    bottom-5
+                    left-5
+                    top-5
+                    w-px
+                    bg-neutral-200
+                  "
+                />
+
+                <div className="space-y-7">
+
+                  {orderProgress.steps.map(
+                    (step) => (
+
+                      <div
+                        key={step.key}
+                        className="
+                          relative
+                          z-10
+                          flex
+                          items-center
+                          gap-4
+                        "
+                      >
+
+                        <div
+                          className={`
+                            flex
+                            h-10
+                            w-10
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded-full
+                            border
+                            bg-white
+                            text-xs
+                            font-medium
+                            shadow-sm
+                            ${
+                              step.completed
+                                ? "border-[#C8A96A] bg-[#C8A96A] text-white"
+                                : "border-neutral-200 text-neutral-300"
+                            }
+                          `}
+                        >
+                          {step.completed
+                            ? "✓"
+                            : ""}
+                        </div>
+
+
+                        <p
+                          className={`
+                            text-xs
+                            font-medium
+                            uppercase
+                            tracking-[0.16em]
+                            ${
+                              step.completed
+                                ? "text-neutral-800"
+                                : "text-neutral-400"
+                            }
+                          `}
+                        >
+                          {step.label}
+                        </p>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </div>
+
+
+              {paymentStatus === "SUBMITTED" && (
+                <p
+                  className="
+                    mt-7
+                    text-xs
+                    leading-6
+                    text-neutral-500
+                  "
+                >
+                  Your payment proof has been submitted and is awaiting manual verification.
+                </p>
+              )}
+
+
+              {paymentStatus === "REJECTED" && (
+                <p
+                  className="
+                    mt-7
+                    text-xs
+                    leading-6
+                    text-red-600
+                  "
+                >
+                  Your payment proof was rejected. Please review the payment note below and submit a new proof.
+                </p>
+              )}
+
+            </div>
+
+
+            {/* ================================================== */}
+            {/* DESKTOP TIMELINE */}
+            {/* ================================================== */}
+
+            <div className="hidden sm:block">
+
               <div className="relative grid grid-cols-5 gap-3">
+
+                {/* Horizontal connecting line */}
+
                 <div
                   className="
                     absolute
@@ -449,60 +650,72 @@ export default async function PaymentPage({
                   "
                 />
 
-                {orderProgress.steps.map((step) => (
-                  <div
-                    key={step.key}
-                    className="
-                      relative
-                      z-10
-                      flex
-                      flex-col
-                      items-center
-                      text-center
-                    "
-                  >
+
+                {orderProgress.steps.map(
+                  (step) => (
+
                     <div
-                      className={`
+                      key={step.key}
+                      className="
+                        relative
+                        z-10
                         flex
-                        h-10
-                        w-10
+                        flex-col
                         items-center
-                        justify-center
-                        rounded-full
-                        border
-                        bg-white
-                        text-xs
-                        font-medium
-                        shadow-sm
-                        ${
-                          step.completed
-                            ? "border-[#C8A96A] bg-[#C8A96A] text-white"
-                            : "border-neutral-200 text-neutral-300"
-                        }
-                      `}
+                        text-center
+                      "
                     >
-                      {step.completed ? "✓" : ""}
+
+                      <div
+                        className={`
+                          flex
+                          h-10
+                          w-10
+                          items-center
+                          justify-center
+                          rounded-full
+                          border
+                          bg-white
+                          text-xs
+                          font-medium
+                          shadow-sm
+                          ${
+                            step.completed
+                              ? "border-[#C8A96A] bg-[#C8A96A] text-white"
+                              : "border-neutral-200 text-neutral-300"
+                          }
+                        `}
+                      >
+                        {step.completed
+                          ? "✓"
+                          : ""}
+                      </div>
+
+
+                      <p
+                        className={`
+                          mt-4
+                          text-[10px]
+                          font-medium
+                          uppercase
+                          tracking-[0.16em]
+                          ${
+                            step.completed
+                              ? "text-neutral-800"
+                              : "text-neutral-400"
+                          }
+                        `}
+                      >
+                        {step.label}
+                      </p>
+
                     </div>
 
-                    <p
-                      className={`
-                        mt-4
-                        text-[10px]
-                        font-medium
-                        uppercase
-                        tracking-[0.16em]
-                        ${
-                          step.completed
-                            ? "text-neutral-800"
-                            : "text-neutral-400"
-                        }
-                      `}
-                    >
-                      {step.label}
-                    </p>
-                  </div>
-                ))}
+                  )
+                )}
+
               </div>
+
 
               {paymentStatus === "SUBMITTED" && (
                 <p
@@ -518,6 +731,7 @@ export default async function PaymentPage({
                 </p>
               )}
 
+
               {paymentStatus === "REJECTED" && (
                 <p
                   className="
@@ -531,9 +745,12 @@ export default async function PaymentPage({
                   Your payment proof was rejected. Please review the payment note below and submit a new proof.
                 </p>
               )}
+
             </div>
+
           </div>
         )}
+
       </section>
 
       {/* ==================================================== */}
@@ -656,12 +873,48 @@ export default async function PaymentPage({
                     "
                   >
 
-                    <div
-                      className="
-                        min-w-0
-                        flex-1
-                      "
-                    >
+                    <div className="flex min-w-0 flex-1 items-start gap-4">
+
+                      <div
+                        className="
+                          h-24
+                          w-24
+                          shrink-0
+                          overflow-hidden
+                          rounded-2xl
+                          bg-neutral-100
+                          sm:h-28
+                          sm:w-28
+                        "
+                      >
+                        {(
+                          item.productVariant?.imageUrl ??
+                          item.productVariant?.images?.[0]?.url ??
+                          item.product?.images?.[0]?.url
+                        ) ? (
+                          <img
+                            src={
+                              item.productVariant?.imageUrl ??
+                              item.productVariant?.images?.[0]?.url ??
+                              item.product?.images?.[0]?.url ??
+                              ""
+                            }
+                            alt={item.productName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.15em] text-neutral-400">
+                            No Image
+                          </div>
+                        )}
+                      </div>
+
+                      <div
+                        className="
+                          min-w-0
+                          flex-1
+                        "
+                      >
 
                       <p
                         className="
@@ -729,6 +982,8 @@ export default async function PaymentPage({
                         <span>
                           Qty · {item.quantity}
                         </span>
+
+                      </div>
 
                       </div>
 
@@ -924,11 +1179,15 @@ export default async function PaymentPage({
                 >
 
                   <span>
-                    {order.shippingCourier ||
-                      "ABX Express"}
+                    {isInternational
+                      ? order.shippingCountry ||
+                        "International"
+                      : order.shippingCourier ||
+                        "ABX Express"}
                   </span>
 
-                  {order.shippingRegion && (
+                  {!isInternational &&
+                    order.shippingRegion && (
                     <>
                       <span>·</span>
                       <span>
@@ -958,11 +1217,13 @@ export default async function PaymentPage({
                     `
                 }
               >
-                {order.shippingFee === 0
-                  ? "FREE"
-                  : formatMoney(
-                      order.shippingFee
-                    )}
+                {isShippingQuotePending
+                  ? "To be confirmed"
+                  : order.shippingFee === 0
+                    ? "FREE"
+                    : formatMoney(
+                        order.shippingFee
+                      )}
               </span>
 
             </div>
@@ -1000,9 +1261,11 @@ export default async function PaymentPage({
                   tabular-nums
                 "
               >
-                {formatMoney(
-                  order.finalAmount
-                )}
+                {isShippingQuotePending
+                  ? "To be confirmed"
+                  : formatMoney(
+                      order.finalAmount
+                    )}
               </span>
 
             </div>
@@ -1062,7 +1325,52 @@ export default async function PaymentPage({
             </h2>
 
 
-            {payment ? (
+            {isShippingQuotePending ? (
+
+              <div
+                className="
+                  mt-8
+                  rounded-2xl
+                  border
+                  border-amber-200
+                  bg-amber-50
+                  p-5
+                "
+              >
+                <p
+                  className="
+                    text-xs
+                    font-semibold
+                    uppercase
+                    tracking-[0.2em]
+                    text-amber-700
+                  "
+                >
+                  International Shipping
+                </p>
+
+                <p
+                  className="
+                    mt-3
+                    text-sm
+                    leading-6
+                    text-amber-800
+                  "
+                >
+                  Your shipping fee is currently being confirmed.
+                  Payment will become available after the shipping fee
+                  has been quoted.
+                </p>
+              </div>
+
+            ) : isShippingQuoted && !payment ? (
+
+              <InternationalPaymentMethodSelector
+                publicToken={order.publicToken}
+                amount={Number(order.finalAmount)}
+              />
+
+            ) : payment ? (
 
               <div className="mt-8">
 

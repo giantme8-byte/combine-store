@@ -40,7 +40,12 @@ export default function CartPage() {
 
   const {
     items,
-    subtotal,
+    selectedItems,
+    selectedCartItemIds,
+    selectedSubtotal,
+    toggleItemSelection,
+    selectAll,
+    deselectAll,
     updateQuantity,
     removeFromCart,
   } = useCart();
@@ -58,6 +63,34 @@ export default function CartPage() {
         ) ||
         item.price <= 0
     );
+
+  // ==========================================================
+  // SELECTION
+  // ==========================================================
+
+  const allItemsSelected =
+    items.length > 0 &&
+    selectedItems.length === items.length;
+
+  const hasSelectedItems =
+    selectedItems.length > 0;
+
+  const hasUnpricedSelectedItems =
+    items.some(
+      (item) =>
+        selectedCartItemIds.includes(item.cartItemId) &&
+        (!Number.isFinite(item.price) ||
+          item.price <= 0)
+    );
+
+  function handleToggleSelectAll() {
+    if (allItemsSelected) {
+      deselectAll();
+      return;
+    }
+
+    selectAll();
+  }
 
 
   // ==========================================================
@@ -221,24 +254,68 @@ export default function CartPage() {
           </h1>
 
 
-          <p
+          <div
             className="
-              mt-3
-              text-sm
-              text-neutral-500
+              mt-4
+              flex
+              flex-wrap
+              items-center
+              gap-4
             "
           >
-            {items.reduce(
-              (
-                total,
-                item
-              ) =>
-                total +
-                item.quantity,
-              0
-            )}{" "}
-            item(s)
-          </p>
+            <p
+              className="
+                text-sm
+                text-neutral-500
+              "
+            >
+              {items.reduce(
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  item.quantity,
+                0
+              )}{" "}
+              item(s)
+            </p>
+
+            <span
+              className="
+                h-4
+                w-px
+                bg-neutral-200
+              "
+            />
+
+            <button
+              type="button"
+              onClick={handleToggleSelectAll}
+              className="
+                text-sm
+                font-medium
+                text-neutral-900
+                underline
+                underline-offset-4
+                transition
+                hover:text-neutral-500
+              "
+            >
+              {allItemsSelected
+                ? "Deselect All"
+                : "Select All"}
+            </button>
+
+            <span
+              className="
+                text-xs
+                text-neutral-400
+              "
+            >
+              {selectedItems.length} selected
+            </span>
+          </div>
 
         </div>
 
@@ -284,6 +361,40 @@ export default function CartPage() {
                     sm:gap-7
                   "
                 >
+
+                  {/* ==================================================
+                      SELECT
+                      ================================================== */}
+
+                  <div
+                    className="
+                      flex
+                      shrink-0
+                      items-start
+                      pt-1
+                    "
+                  >
+                    <input
+                      type="checkbox"
+checked={selectedCartItemIds.includes(
+  item.cartItemId
+)}
+                      onChange={() =>
+                        toggleItemSelection(
+                          item.cartItemId
+                        )
+                      }
+                      aria-label={`Select ${item.name}`}
+                      className="
+                        h-5
+                        w-5
+                        cursor-pointer
+                        rounded
+                        border-neutral-300
+                        accent-black
+                      "
+                    />
+                  </div>
 
                   {/* ==================================================
                       IMAGE
@@ -831,7 +942,7 @@ export default function CartPage() {
                   "
                 >
                   {formatAmount(
-                    subtotal
+                    selectedSubtotal
                   )}
                 </span>
 
@@ -909,7 +1020,7 @@ export default function CartPage() {
                   "
                 >
                   {formatAmount(
-                    subtotal
+                    selectedSubtotal
                   )}
                 </span>
 
@@ -922,7 +1033,7 @@ export default function CartPage() {
                 PRICE CONFIRMATION WARNING
                 ================================================== */}
 
-            {hasUnpricedItems && (
+            {hasUnpricedSelectedItems && (
 
               <div
                 className="
@@ -969,7 +1080,7 @@ export default function CartPage() {
                 CHECKOUT
                 ================================================== */}
 
-            {hasUnpricedItems ? (
+            {!hasSelectedItems || hasUnpricedSelectedItems ? (
 
               <div
                 className="
@@ -989,7 +1100,9 @@ export default function CartPage() {
                 "
                 aria-disabled="true"
               >
-                Checkout Unavailable
+                {!hasSelectedItems
+                  ? "Select Items to Checkout"
+                  : "Checkout Unavailable"}
               </div>
 
             ) : (
@@ -1059,7 +1172,7 @@ export default function CartPage() {
             >
               Voucher discounts and final
               shipping charges will be applied
-              during checkout.
+              during checkout for selected items.
             </p>
 
           </aside>

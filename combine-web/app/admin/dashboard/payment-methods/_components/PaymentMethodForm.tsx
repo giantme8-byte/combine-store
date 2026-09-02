@@ -20,7 +20,9 @@ import {
 
 type PaymentMethodType =
   | "BANK_TRANSFER"
-  | "QR";
+  | "QR"
+  | "PAYPAL"
+  | "WISE";
 
 
 type PaymentMethodData = {
@@ -39,6 +41,12 @@ type PaymentMethodData = {
   qrImageUrl: string | null;
 
   qrPublicId: string | null;
+
+wiseEmail: string | null;
+
+wiseName: string | null;
+
+wiseAccount: string | null;
 
   instructions: string | null;
 
@@ -490,14 +498,21 @@ export default function PaymentMethodForm({
               "
             >
 
-              <option value="BANK_TRANSFER">
-                Bank Transfer
-              </option>
+<option value="BANK_TRANSFER">
+  Bank Transfer
+</option>
 
+<option value="QR">
+  QR Payment
+</option>
 
-              <option value="QR">
-                QR Payment
-              </option>
+<option value="PAYPAL">
+  PayPal
+</option>
+
+<option value="WISE">
+  Wise
+</option>
 
             </select>
 
@@ -1184,6 +1199,224 @@ export default function PaymentMethodForm({
         </section>
 
       )}
+
+      {/* ================================================== */}
+{/* WISE */}
+{/* ================================================== */}
+
+{type === "WISE" && (
+
+  <section
+    className="
+      rounded-2xl
+      border
+      border-neutral-200
+      bg-white
+      p-4
+      shadow-sm
+
+      sm:p-8
+    "
+  >
+
+    <div
+      className="
+        mb-5
+
+        sm:mb-6
+      "
+    >
+
+      <h2
+        className="
+          text-lg
+          font-semibold
+          text-neutral-900
+
+          sm:text-xl
+        "
+      >
+        Wise Details
+      </h2>
+
+      <p
+        className="
+          mt-1
+          text-sm
+          leading-6
+          text-neutral-500
+        "
+      >
+        These details will be displayed to customers when
+        they choose Wise.
+      </p>
+
+    </div>
+
+
+    <div
+      className="
+        space-y-5
+
+        sm:space-y-6
+      "
+    >
+
+      {/* ================================================== */}
+      {/* WISE NAME */}
+      {/* ================================================== */}
+
+      <div
+        className="
+          space-y-2
+        "
+      >
+
+        <label
+          htmlFor="wiseName"
+          className="
+            block
+            text-sm
+            font-medium
+            text-neutral-900
+          "
+        >
+          Wise Account Name
+        </label>
+
+        <input
+          id="wiseName"
+          name="wiseName"
+          defaultValue={
+            paymentMethod?.wiseName ??
+            ""
+          }
+          placeholder="COMBINE"
+          className="
+            w-full
+            rounded-xl
+            border
+            border-neutral-200
+            bg-white
+            px-4
+            py-3
+            text-sm
+            outline-none
+            transition
+            focus:border-neutral-400
+            focus:ring-2
+            focus:ring-neutral-100
+          "
+        />
+
+      </div>
+
+
+      {/* ================================================== */}
+      {/* WISE EMAIL */}
+      {/* ================================================== */}
+
+      <div
+        className="
+          space-y-2
+        "
+      >
+
+        <label
+          htmlFor="wiseEmail"
+          className="
+            block
+            text-sm
+            font-medium
+            text-neutral-900
+          "
+        >
+          Wise Email
+        </label>
+
+        <input
+          id="wiseEmail"
+          name="wiseEmail"
+          type="email"
+          defaultValue={
+            paymentMethod?.wiseEmail ??
+            ""
+          }
+          placeholder="payments@example.com"
+          className="
+            w-full
+            rounded-xl
+            border
+            border-neutral-200
+            bg-white
+            px-4
+            py-3
+            text-sm
+            outline-none
+            transition
+            focus:border-neutral-400
+            focus:ring-2
+            focus:ring-neutral-100
+          "
+        />
+
+      </div>
+
+
+      {/* ================================================== */}
+      {/* WISE ACCOUNT */}
+      {/* ================================================== */}
+
+      <div
+        className="
+          space-y-2
+        "
+      >
+
+        <label
+          htmlFor="wiseAccount"
+          className="
+            block
+            text-sm
+            font-medium
+            text-neutral-900
+          "
+        >
+          Wise Account / Payment Details
+        </label>
+
+        <input
+          id="wiseAccount"
+          name="wiseAccount"
+          defaultValue={
+            paymentMethod?.wiseAccount ??
+            ""
+          }
+          placeholder="Wise account details"
+          className="
+            w-full
+            rounded-xl
+            border
+            border-neutral-200
+            bg-white
+            px-4
+            py-3
+            text-sm
+            outline-none
+            transition
+            focus:border-neutral-400
+            focus:ring-2
+            focus:ring-neutral-100
+          "
+        />
+
+      </div>
+
+    </div>
+
+  </section>
+
+)}
 
 
       {/* ================================================== */}

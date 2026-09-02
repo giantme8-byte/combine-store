@@ -428,3 +428,129 @@ export async function updateUser(
   );
 
 }
+
+
+// ============================================================
+// DELETE USER
+// ============================================================
+
+export async function deleteUser(
+  formData: FormData
+) {
+
+  const currentUser =
+    await requireRole([
+      UserRole.ADMIN,
+      UserRole.OWNER,
+    ]);
+
+
+  // ==========================================================
+  // USER ID
+  // ==========================================================
+
+  const id =
+    Number(
+      formData.get("id")
+    );
+
+
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+
+    throw new Error(
+      "Invalid user ID."
+    );
+
+  }
+
+
+  // ==========================================================
+  // LOAD TARGET USER
+  // ==========================================================
+
+  const targetUser =
+    await prisma.user.findUnique({
+
+      where: {
+        id,
+      },
+
+      select: {
+        id: true,
+        name: true,
+        role: true,
+      },
+
+    });
+
+
+  if (
+    !targetUser
+  ) {
+
+    throw new Error(
+      "User not found."
+    );
+
+  }
+
+
+  // ==========================================================
+  // CANNOT DELETE YOURSELF
+  // ==========================================================
+
+  if (
+    currentUser.id ===
+    targetUser.id
+  ) {
+
+    throw new Error(
+      "You cannot delete your own account."
+    );
+
+  }
+
+
+  // ==========================================================
+  // OWNER PROTECTION
+  // ==========================================================
+
+  if (
+    currentUser.role !==
+      UserRole.OWNER &&
+    targetUser.role ===
+      UserRole.OWNER
+  ) {
+
+    throw new Error(
+      "Only the owner can delete an Owner account."
+    );
+
+  }
+
+
+  // ==========================================================
+  // DELETE
+  // ==========================================================
+
+  await prisma.user.delete({
+
+    where: {
+      id,
+    },
+
+  });
+
+
+  // ==========================================================
+  // REVALIDATE
+  // ==========================================================
+
+  revalidatePath(
+    "/admin/dashboard/users"
+  );
+
+}

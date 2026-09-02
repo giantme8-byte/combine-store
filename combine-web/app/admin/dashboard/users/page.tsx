@@ -6,32 +6,113 @@ import { requireRole } from "@/lib/authorize";
 import CreateUserButton from "./_components/CreateUserButton";
 import UserTable from "./_components/UserTable";
 
+
 export default async function UsersPage() {
+
   // ============================================================
   // CURRENT USER
   // ============================================================
 
-  const currentUser = await requireRole([
-    UserRole.OWNER,
-    UserRole.ADMIN,
-  ]);
+  const currentUser =
+    await requireRole([
+      UserRole.OWNER,
+      UserRole.ADMIN,
+    ]);
+
 
   // ============================================================
   // LOAD USERS
   // ============================================================
 
-  const users = await prisma.user.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const users =
+    await prisma.user.findMany({
+
+      orderBy: {
+        createdAt: "asc",
+      },
+
+    });
+
+
+  // ============================================================
+  // SORT USERS
+  //
+  // Role priority:
+  // OWNER → ADMIN → MANAGER → STAFF → CUSTOMER
+  //
+  // Same role:
+  // Earliest registration → Latest registration
+  // ============================================================
+
+  const rolePriority: Record<
+    UserRole,
+    number
+  > = {
+
+    [UserRole.OWNER]: 1,
+
+    [UserRole.ADMIN]: 2,
+
+    [UserRole.MANAGER]: 3,
+
+    [UserRole.STAFF]: 4,
+
+    [UserRole.CUSTOMER]: 5,
+
+  };
+
+
+  users.sort(
+    (a, b) => {
+
+      // ========================================================
+      // ROLE PRIORITY
+      // ========================================================
+
+      const roleDifference =
+        rolePriority[a.role] -
+        rolePriority[b.role];
+
+
+      // ========================================================
+      // DIFFERENT ROLE
+      // ========================================================
+
+      if (
+        roleDifference !== 0
+      ) {
+
+        return roleDifference;
+
+      }
+
+
+      // ========================================================
+      // SAME ROLE
+      //
+      // EARLIEST → LATEST
+      // ========================================================
+
+      return (
+        a.createdAt.getTime() -
+        b.createdAt.getTime()
+      );
+
+    }
+  );
+
 
   // ============================================================
   // RENDER
   // ============================================================
 
   return (
-    <main className="space-y-8">
+
+    <main
+      className="
+        space-y-8
+      "
+    >
 
       {/* ====================================================== */}
       {/* HEADER */}
@@ -47,6 +128,7 @@ export default async function UsersPage() {
       >
 
         <div>
+
           <p
             className="
               text-sm
@@ -58,6 +140,7 @@ export default async function UsersPage() {
             COMBINE
           </p>
 
+
           <h1
             className="
               mt-2
@@ -68,10 +151,18 @@ export default async function UsersPage() {
             Users
           </h1>
 
-          <p className="mt-2 text-gray-500">
+
+          <p
+            className="
+              mt-2
+              text-gray-500
+            "
+          >
             Manage system users and roles.
           </p>
+
         </div>
+
 
         <CreateUserButton
           currentUserRole={
@@ -94,5 +185,7 @@ export default async function UsersPage() {
       />
 
     </main>
+
   );
+
 }

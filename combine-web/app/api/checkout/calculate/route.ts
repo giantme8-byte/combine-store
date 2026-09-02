@@ -13,7 +13,9 @@ import {
 
 type NormalizedItem = {
   productId: number;
+
   quantity: number;
+
   variantId: number | null;
 };
 
@@ -40,13 +42,23 @@ export async function POST(
     // BASIC VALIDATION
     // ========================================================
 
+    const country =
+      typeof body.country === "string"
+        ? body.country.trim()
+        : "Malaysia";
+
+
+    const isMalaysia =
+      country === "Malaysia";
+
+
     const state =
       typeof body.state === "string"
         ? body.state.trim()
         : "";
 
 
-    if (!state) {
+    if (isMalaysia && !state) {
 
       return NextResponse.json(
         {
@@ -61,11 +73,19 @@ export async function POST(
     }
 
 
+    // ========================================================
+    // VOUCHER
+    // ========================================================
+
     const voucherCode =
       typeof body.voucherCode === "string"
         ? body.voucherCode.trim()
         : "";
 
+
+    // ========================================================
+    // USER ID
+    // ========================================================
 
     const userId =
       Number.isInteger(
@@ -74,6 +94,29 @@ export async function POST(
       body.userId > 0
         ? body.userId
         : null;
+
+
+    // ========================================================
+    // PAYMENT METHOD TYPE
+    // ========================================================
+
+    const paymentMethodType =
+      typeof body.paymentMethodType === "string"
+        ? body.paymentMethodType.trim()
+        : "";
+
+
+    // ========================================================
+    // VALID PAYMENT METHOD TYPE
+    // ========================================================
+
+    const normalizedPaymentMethodType =
+      paymentMethodType === "BANK_TRANSFER" ||
+      paymentMethodType === "QR" ||
+      paymentMethodType === "PAYPAL" ||
+      paymentMethodType === "WISE"
+        ? paymentMethodType
+        : undefined;
 
 
     // ========================================================
@@ -588,11 +631,16 @@ export async function POST(
 
         state,
 
+        country,
+
         voucherCode,
 
         userId,
 
         productCategories,
+
+        paymentMethodType:
+          normalizedPaymentMethodType,
 
       });
 
@@ -605,6 +653,10 @@ export async function POST(
 
       success: true,
 
+      country,
+
+      isInternational: !isMalaysia,
+
       subtotal:
         calculation.subtotal,
 
@@ -613,6 +665,9 @@ export async function POST(
 
       voucherDiscount:
         calculation.voucherDiscount,
+
+      paypalFee:
+        calculation.paypalFee,
 
       voucherError:
         calculation.voucher.error,

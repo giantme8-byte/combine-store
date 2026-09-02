@@ -1,4 +1,4 @@
-import {
+﻿import {
   OrderStatus,
   UserRole,
 } from "@prisma/client";
@@ -61,7 +61,6 @@ type DashboardPageProps = {
 // ============================================================
 
 const SALES_PERIODS = [
-  "ALL_TIME",
   "TODAY",
   "THIS_WEEK",
   "THIS_MONTH",
@@ -91,20 +90,6 @@ function isSalesPeriod(
 function getSalesDateRange(
   period: SalesPeriod
 ) {
-
-  // ==========================================================
-  // ALL TIME
-  // ==========================================================
-
-  if (
-    period ===
-    "ALL_TIME"
-  ) {
-
-    return undefined;
-
-  }
-
 
   const now =
     new Date();
@@ -339,7 +324,7 @@ export default async function DashboardPage({
 
   const requestedPeriod =
     params.salesPeriod ??
-    "ALL_TIME";
+    "TODAY";
 
 
   const salesPeriod: SalesPeriod =
@@ -347,7 +332,7 @@ export default async function DashboardPage({
       requestedPeriod
     )
       ? requestedPeriod
-      : "ALL_TIME";
+      : "TODAY";
 
 
   // ==========================================================
@@ -366,15 +351,10 @@ export default async function DashboardPage({
 
   const actualSalesOrderWhere = {
 
-    status: {
-
-      in: [
-        OrderStatus.PAID,
-        OrderStatus.PROCESSING,
-        OrderStatus.SHIPPED,
-        OrderStatus.COMPLETED,
-      ],
-
+    payment: {
+      is: {
+        status: "VERIFIED" as const,
+      },
     },
 
     ...(salesDateRange
@@ -411,6 +391,8 @@ export default async function DashboardPage({
     settings,
 
     actualSales,
+
+    shippingCollected,
 
     productSales,
 
@@ -588,6 +570,25 @@ export default async function DashboardPage({
 
 
     // ========================================================
+    // SHIPPING COLLECTED
+    // ========================================================
+
+    prisma.order.aggregate({
+
+      where:
+        actualSalesOrderWhere,
+
+      _sum: {
+
+        shippingFee:
+          true,
+
+      },
+
+    }),
+
+
+    // ========================================================
     // PRODUCT SALES
     // ========================================================
 
@@ -656,6 +657,11 @@ export default async function DashboardPage({
 
   const actualTotalSales =
     actualSales._sum.totalPrice ??
+    0;
+
+
+  const actualShippingCollected =
+    shippingCollected._sum.shippingFee ??
     0;
 
 
@@ -1208,11 +1214,11 @@ export default async function DashboardPage({
           {/* PERIOD FILTER */}
           {/* ================================================== */}
 
-          <SalesAnalytics
-            value={
-              salesPeriod
-            }
-          />
+<SalesAnalytics
+  value={
+    salesPeriod
+  }
+/>
 
         </div>
 
@@ -1227,7 +1233,7 @@ export default async function DashboardPage({
             grid
             gap-5
             md:grid-cols-2
-            xl:grid-cols-5
+            xl:grid-cols-6
           "
         >
 
@@ -1241,6 +1247,19 @@ export default async function DashboardPage({
               }
             )}`}
             icon="💰"
+          />
+
+
+          <BusinessStatCard
+            title="Shipping Collected"
+            value={`RM ${actualShippingCollected.toLocaleString(
+              undefined,
+              {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }
+            )}`}
+            icon="🚚"
           />
 
 

@@ -9,6 +9,7 @@ import {
   Check,
   Eye,
   Loader2,
+  Trash2,
 } from "lucide-react";
 
 import {
@@ -27,6 +28,8 @@ import {
 type Order = {
   id: number;
 
+  orderNumber: string | null;
+
   customerName: string;
 
   customerPhone: string;
@@ -34,6 +37,8 @@ type Order = {
   customerEmail: string | null;
 
   finalAmount: number;
+
+  paypalFee: number;
 
   status: string;
 
@@ -68,9 +73,11 @@ items: {
 
     paymentMethodName: string;
 
-    paymentMethodType:
-      | "BANK_TRANSFER"
-      | "QR";
+paymentMethodType:
+  | "BANK_TRANSFER"
+  | "QR"
+  | "PAYPAL"
+  | "WISE";
 
     amount: number;
 
@@ -339,18 +346,20 @@ export default function OrderTable({
     useRouter();
 
 
-  const [
-    selectedPayment,
-    setSelectedPayment,
-  ] = useState<{
-    orderId: number;
+const [
+  selectedPayment,
+  setSelectedPayment,
+] = useState<{
+  orderId: number;
 
-    customerName: string;
+  orderNumber: string | null;
 
-    payment: NonNullable<
-      Order["payment"]
-    >;
-  } | null>(null);
+  customerName: string;
+
+  payment: NonNullable<
+    Order["payment"]
+  >;
+} | null>(null);
 
 
   const [
@@ -375,6 +384,104 @@ export default function OrderTable({
   >(null);
 
 
+  const [
+    deleteLoading,
+    setDeleteLoading,
+  ] = useState<number | null>(null);
+
+
+  const [
+    deleteError,
+    setDeleteError,
+  ] = useState<string | null>(null);
+
+
+  // ==========================================================
+  // DELETE ORDER
+  // ==========================================================
+
+  async function deleteOrder(
+    order: Order
+  ) {
+
+    const orderLabel =
+      order.orderNumber ??
+      `#${order.id}`;
+
+
+    const confirmed =
+      window.confirm(
+        `Delete order ${orderLabel}?\\n\\nThis action cannot be undone.`
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    setDeleteLoading(
+      order.id
+    );
+
+    setDeleteError(
+      null
+    );
+
+
+    try {
+
+      const response =
+        await fetch(
+          `/api/admin/orders/${order.id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data?.error ??
+            "Unable to delete order."
+        );
+
+      }
+
+
+      router.refresh();
+
+
+    } catch (error) {
+
+      console.error(
+        "Delete order error:",
+        error
+      );
+
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : "Unable to delete order."
+      );
+
+
+    } finally {
+
+      setDeleteLoading(
+        null
+      );
+
+    }
+
+  }
+
+
   // ==========================================================
   // OPEN PAYMENT REVIEW
   // ==========================================================
@@ -388,16 +495,19 @@ export default function OrderTable({
     }
 
 
-    setSelectedPayment({
-      orderId:
-        order.id,
+setSelectedPayment({
+  orderId:
+    order.id,
 
-      customerName:
-        order.customerName,
+  orderNumber:
+    order.orderNumber,
 
-      payment:
-        order.payment,
-    });
+  customerName:
+    order.customerName,
+
+  payment:
+    order.payment,
+});
 
 
     setAdminNote(
@@ -731,6 +841,22 @@ export default function OrderTable({
                   text-neutral-500
                 "
               >
+                PayPal Fee
+              </th>
+
+
+              <th
+                className="
+                  px-6
+                  py-4
+                  text-left
+                  text-xs
+                  font-semibold
+                  uppercase
+                  tracking-[0.2em]
+                  text-neutral-500
+                "
+              >
                 Cost
               </th>
 
@@ -884,7 +1010,7 @@ export default function OrderTable({
                         hover:underline
                       "
                     >
-                      #{order.id}
+                      {order.orderNumber ?? `#${order.id}`}
                     </Link>
 
                   </td>
@@ -975,6 +1101,26 @@ export default function OrderTable({
                       {formatAmount(
                         order.finalAmount
                       )}
+                    </p>
+
+                  </td>
+
+
+                  {/* ==========================================
+                      PAYPAL FEE
+                      ========================================== */}
+
+                  <td className="px-6 py-5">
+
+                    <p
+                      className="
+                        font-medium
+                        text-neutral-900
+                      "
+                    >
+                      {order.payment?.paymentMethodType === "PAYPAL"
+                        ? formatAmount(order.paypalFee)
+                        : "—"}
                     </p>
 
                   </td>
@@ -1449,6 +1595,71 @@ export default function OrderTable({
 
                       )}
 
+
+                      {/* ======================================
+                          DELETE ORDER
+                          ====================================== */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          deleteOrder(
+                            order
+                          )
+                        }
+                        disabled={
+                          deleteLoading ===
+                          order.id
+                        }
+                        className="
+                          inline-flex
+                          items-center
+                          gap-2
+                          rounded-lg
+                          border
+                          border-red-200
+                          bg-white
+                          px-3
+                          py-2
+                          text-xs
+                          font-medium
+                          text-red-600
+                          transition
+                          hover:bg-red-50
+                          disabled:cursor-not-allowed
+                          disabled:opacity-50
+                        "
+                      >
+
+                        {deleteLoading ===
+                        order.id ? (
+
+                          <Loader2
+                            className="
+                              h-3.5
+                              w-3.5
+                              animate-spin
+                            "
+                          />
+
+                        ) : (
+
+                          <Trash2
+                            className="
+                              h-3.5
+                              w-3.5
+                            "
+                          />
+
+                        )}
+
+                        {deleteLoading ===
+                        order.id
+                          ? "Deleting..."
+                          : "Delete"}
+
+                      </button>
+
                     </div>
 
                   </td>
@@ -1463,6 +1674,27 @@ export default function OrderTable({
         </table>
 
       </div>
+
+
+      {deleteError && (
+
+        <div
+          className="
+            mt-4
+            rounded-xl
+            border
+            border-red-100
+            bg-red-50
+            px-4
+            py-3
+            text-sm
+            text-red-700
+          "
+        >
+          {deleteError}
+        </div>
+
+      )}
 
 
       {/* ======================================================
@@ -1547,7 +1779,8 @@ export default function OrderTable({
                     text-neutral-900
                   "
                 >
-                  Order #{selectedPayment.orderId}
+                  {selectedPayment.orderNumber ??
+  `#${selectedPayment.orderId}`}
                 </h2>
 
 

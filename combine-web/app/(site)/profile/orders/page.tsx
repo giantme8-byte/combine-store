@@ -246,6 +246,35 @@ export default async function OrdersPage() {
 
             dimensions: true,
 
+            product: {
+              select: {
+                images: {
+                  orderBy: {
+                    sortOrder: "asc",
+                  },
+                  take: 1,
+                  select: {
+                    url: true,
+                  },
+                },
+              },
+            },
+
+            productVariant: {
+              select: {
+                imageUrl: true,
+                images: {
+                  orderBy: {
+                    sortOrder: "asc",
+                  },
+                  take: 1,
+                  select: {
+                    url: true,
+                  },
+                },
+              },
+            },
+
           },
 
           orderBy: {
@@ -575,7 +604,7 @@ export default async function OrdersPage() {
                           text-neutral-900
                         "
                       >
-                        #{order.id}
+                        {order.orderNumber ?? `#${order.id}`}
                       </h2>
 
 
@@ -697,11 +726,45 @@ export default async function OrdersPage() {
                           "
                         >
 
-                          <div
-                            className="
-                              min-w-0
-                            "
-                          >
+                          <div className="flex min-w-0 flex-1 items-start gap-4">
+
+                            <div
+                              className="
+                                h-20
+                                w-20
+                                shrink-0
+                                overflow-hidden
+                                rounded-2xl
+                                bg-neutral-100
+                              "
+                            >
+                              {(
+                                item.productVariant?.imageUrl ??
+                                item.productVariant?.images?.[0]?.url ??
+                                item.product?.images?.[0]?.url
+                              ) ? (
+                                <img
+                                  src={
+                                    item.productVariant?.imageUrl ??
+                                    item.productVariant?.images?.[0]?.url ??
+                                    item.product?.images?.[0]?.url ??
+                                    ""
+                                  }
+                                  alt={item.productName}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.15em] text-neutral-400">
+                                  No Image
+                                </div>
+                              )}
+                            </div>
+
+                            <div
+                              className="
+                                min-w-0
+                              "
+                            >
 
                             <p
                               className="
@@ -770,6 +833,8 @@ export default async function OrdersPage() {
 
                             </div>
 
+                            </div>
+
                           </div>
 
 
@@ -794,71 +859,238 @@ export default async function OrdersPage() {
                   </div>
 
 
-                  {/* ==========================================
+                                    {/* ==========================================
                       ORDER TOTAL
                   ========================================== */}
 
                   <div
                     className="
                       mt-8
-                      flex
-                      items-end
-                      justify-between
                       border-t
                       border-neutral-200
                       pt-7
                     "
                   >
 
-                    <div>
+                    <div
+                      className="
+                        ml-auto
+                        w-full
+                        max-w-sm
+                        space-y-3
+                      "
+                    >
 
-                      <p
+                      <div
                         className="
-                          text-[11px]
-                          uppercase
-                          tracking-[0.3em]
-                          text-neutral-400
+                          flex
+                          items-center
+                          justify-between
+                          gap-8
                         "
                       >
-                        Total
-                      </p>
+
+                        <span
+                          className="
+                            text-sm
+                            text-neutral-500
+                          "
+                        >
+                          Subtotal
+                        </span>
+
+                        <span
+                          className="
+                            text-sm
+                            text-neutral-700
+                          "
+                        >
+                          {formatCurrency(
+                            order.items.reduce(
+                              (
+                                sum,
+                                item
+                              ) =>
+                                sum +
+                                item.totalPrice,
+                              0
+                            )
+                          )}
+                        </span>
+
+                      </div>
+
+
+                      {order.shippingType ===
+                        "INTERNATIONAL" &&
+                        order.shippingCountry && (
+
+                          <div
+                            className="
+                              flex
+                              items-center
+                              justify-between
+                              gap-8
+                            "
+                          >
+
+                            <span
+                              className="
+                                text-sm
+                                text-neutral-500
+                              "
+                            >
+                              Destination
+                            </span>
+
+                            <span
+                              className="
+                                text-sm
+                                text-neutral-700
+                              "
+                            >
+                              {order.shippingCountry}
+                            </span>
+
+                          </div>
+
+                        )}
+
+
+                      <div
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-8
+                        "
+                      >
+
+                        <span
+                          className="
+                            text-sm
+                            text-neutral-500
+                          "
+                        >
+                          Shipping
+                        </span>
+
+                        <span
+                          className={`
+                            text-sm
+                            ${
+                              order.shippingType ===
+                                "INTERNATIONAL" &&
+                              order.shippingQuoteStatus ===
+                                "PENDING"
+                                ? "font-medium text-amber-700"
+                                : "text-neutral-700"
+                            }
+                          `}
+                        >
+                          {order.shippingType ===
+                            "INTERNATIONAL" &&
+                          order.shippingQuoteStatus ===
+                            "PENDING"
+                            ? "To be confirmed"
+                            : formatCurrency(
+                                order.shippingFee
+                              )}
+                        </span>
+
+                      </div>
 
 
                       {order.voucherCode && (
 
-                        <p
+                        <div
                           className="
-                            mt-2
-                            text-xs
-                            text-neutral-500
+                            flex
+                            items-center
+                            justify-between
+                            gap-8
                           "
                         >
-                          Voucher:{" "}
-                          {order.voucherCode}
+
+                          <span
+                            className="
+                              text-sm
+                              text-neutral-500
+                            "
+                          >
+                            Voucher
+                          </span>
+
+                          <span
+                            className="
+                              text-sm
+                              text-neutral-500
+                            "
+                          >
+                            {order.voucherCode}
+                          </span>
+
+                        </div>
+
+                      )}
+
+
+                      <div
+                        className="
+                          flex
+                          items-end
+                          justify-between
+                          gap-8
+                          border-t
+                          border-neutral-100
+                          pt-4
+                        "
+                      >
+
+                        <span
+                          className="
+                            text-[11px]
+                            uppercase
+                            tracking-[0.3em]
+                            text-neutral-400
+                          "
+                        >
+                          Total
+                        </span>
+
+                        <p
+                          className={`
+                            text-2xl
+                            font-light
+                            tracking-[-0.03em]
+                            ${
+                              order.shippingType ===
+                                "INTERNATIONAL" &&
+                              order.shippingQuoteStatus ===
+                                "PENDING"
+                                ? "text-amber-700"
+                                : "text-neutral-900"
+                            }
+                          `}
+                        >
+                          {order.shippingType ===
+                            "INTERNATIONAL" &&
+                          order.shippingQuoteStatus ===
+                            "PENDING"
+                            ? "To be confirmed"
+                            : formatCurrency(
+                                order.finalAmount
+                              )}
                         </p>
 
-                      )}
+                      </div>
 
                     </div>
-
-
-                    <p
-                      className="
-                        text-2xl
-                        font-light
-                        tracking-[-0.03em]
-                        text-neutral-900
-                      "
-                    >
-                      {formatCurrency(
-                        order.finalAmount
-                      )}
-                    </p>
 
                   </div>
 
 
-                  {/* ==========================================
+{/* ==========================================
                       REJECTION REASON
                   ========================================== */}
 

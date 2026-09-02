@@ -1660,3 +1660,381 @@ export async function updateShippingInformation(
     trackingNumber: tracking,
   };
 }
+
+
+// ============================================================
+// QUOTE INTERNATIONAL SHIPPING FEE
+// ============================================================
+
+export async function quoteInternationalShippingFee(
+  orderId: number,
+  shippingFee: number
+) {
+
+  await requireRole([
+    UserRole.ADMIN,
+    UserRole.OWNER,
+  ]);
+
+  if (
+    !Number.isInteger(orderId) ||
+    orderId <= 0
+  ) {
+    throw new Error("Invalid order ID.");
+  }
+
+  if (
+    !Number.isFinite(shippingFee) ||
+    shippingFee < 0
+  ) {
+    throw new Error(
+      "Please enter a valid shipping fee."
+    );
+  }
+
+  const fee = Math.round(
+    shippingFee * 100
+  ) / 100;
+
+  const order =
+    await prisma.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        status: true,
+        shippingType: true,
+        shippingQuoteStatus: true,
+        subtotal: true,
+        voucherDiscount: true,
+        paypalFee: true,
+        customerName: true,
+        customerEmail: true,
+      },
+    });
+
+  if (!order) {
+    throw new Error(
+      "Order not found."
+    );
+  }
+
+  if (
+    order.shippingType !==
+    "INTERNATIONAL"
+  ) {
+    throw new Error(
+      "This order is not an international shipping order."
+    );
+  }
+
+  if (
+    order.shippingQuoteStatus !==
+      "PENDING" &&
+    order.shippingQuoteStatus !==
+      "QUOTED"
+  ) {
+    throw new Error(
+      "This order is not awaiting an international shipping quote."
+    );
+  }
+
+  if (
+    order.status !==
+    OrderStatus.PENDING_PAYMENT
+  ) {
+    throw new Error(
+      "Shipping fee can only be quoted before payment."
+    );
+  }
+
+  const subtotal =
+    Number(order.subtotal);
+
+  const voucherDiscount =
+    Number(order.voucherDiscount);
+
+  const paypalFee =
+    Number(order.paypalFee);
+
+  const finalAmount =
+    Math.max(
+      0,
+      subtotal -
+        voucherDiscount +
+        fee +
+        paypalFee
+    );
+
+  await prisma.order.update({
+    where: {
+      id: order.id,
+    },
+    data: {
+      shippingFee: fee,
+      finalAmount,
+      shippingQuoteStatus: "QUOTED",
+    },
+  });
+
+  // ==========================================================
+  // SHIPPING QUOTE EMAIL
+  // ==========================================================
+
+  if (order.customerEmail) {
+
+    try {
+
+      const orderReference =
+        order.orderNumber ??
+        `#${order.id}`;
+
+      await sendEmail({
+
+        to:
+          order.customerEmail,
+
+        subject:
+          `📦 International Shipping Fee Confirmed — Order ${orderReference}`,
+
+        html: `
+          <!DOCTYPE html>
+          <html lang="en">
+
+            <head>
+              <meta charset="UTF-8" />
+              <meta
+                name="viewport"
+                content="width=device-width, initial-scale=1.0"
+              />
+              <title>Shipping Fee Confirmed</title>
+            </head>
+
+            <body
+              style="
+                margin: 0;
+                padding: 0;
+                background: #f7f7f7;
+                font-family: Arial, Helvetica, sans-serif;
+                color: #171717;
+              "
+            >
+
+              <div
+                style="
+                  max-width: 620px;
+                  margin: 0 auto;
+                  padding: 48px 20px;
+                "
+              >
+
+                <div
+                  style="
+                    background: #ffffff;
+                    border: 1px solid #e5e5e5;
+                    border-radius: 18px;
+                    padding: 40px 32px;
+                  "
+                >
+
+                  <div
+                    style="
+                      text-align: center;
+                      margin-bottom: 32px;
+                    "
+                  >
+
+                    <div
+                      style="
+                        font-size: 12px;
+                        letter-spacing: 4px;
+                        color: #999999;
+                        text-transform: uppercase;
+                      "
+                    >
+                      COMBINE
+                    </div>
+
+                    <h1
+                      style="
+                        margin: 18px 0 0;
+                        font-size: 28px;
+                        font-weight: 500;
+                        letter-spacing: -0.5px;
+                      "
+                    >
+                      📦 Shipping Fee Confirmed
+                    </h1>
+
+                  </div>
+
+                  <p
+                    style="
+                      margin: 0 0 18px;
+                      font-size: 15px;
+                      line-height: 1.8;
+                    "
+                  >
+                    Hi ${order.customerName},
+                  </p>
+
+                  <p
+                    style="
+                      margin: 0 0 24px;
+                      font-size: 15px;
+                      line-height: 1.8;
+                      color: #525252;
+                    "
+                  >
+                    Good news! We have confirmed the international
+                    shipping fee for your order
+                    <strong style="color: #171717;">
+                      ${orderReference}
+                    </strong>.
+                  </p>
+
+                  <div
+                    style="
+                      margin: 28px 0;
+                      padding: 20px;
+                      border-radius: 14px;
+                      background: #fafafa;
+                      border: 1px solid #eeeeee;
+                    "
+                  >
+
+                    <div
+                      style="
+                        font-size: 11px;
+                        letter-spacing: 2px;
+                        text-transform: uppercase;
+                        color: #999999;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      Shipping Fee
+                    </div>
+
+                    <div
+                      style="
+                        font-size: 20px;
+                        font-weight: 600;
+                      "
+                    >
+                      RM ${fee.toFixed(2)}
+                    </div>
+
+                    <div
+                      style="
+                        margin-top: 20px;
+                        padding-top: 20px;
+                        border-top: 1px solid #eeeeee;
+                        font-size: 11px;
+                        letter-spacing: 2px;
+                        text-transform: uppercase;
+                        color: #999999;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      Order Total
+                    </div>
+
+                    <div
+                      style="
+                        font-size: 20px;
+                        font-weight: 600;
+                      "
+                    >
+                      RM ${finalAmount.toFixed(2)}
+                    </div>
+
+                  </div>
+
+                  <p
+                    style="
+                      margin: 0 0 18px;
+                      font-size: 15px;
+                      line-height: 1.8;
+                      color: #525252;
+                    "
+                  >
+                    Your order is now ready for payment.
+                    Please return to your order page to review
+                    the updated total and complete your payment.
+                  </p>
+
+                  <div
+                    style="
+                      margin-top: 36px;
+                      padding-top: 24px;
+                      border-top: 1px solid #eeeeee;
+                    "
+                  >
+
+                    <p
+                      style="
+                        margin: 0;
+                        font-size: 14px;
+                        line-height: 1.8;
+                        color: #737373;
+                      "
+                    >
+                      Thank you for shopping with
+                      <strong style="color: #171717;">
+                        COMBINE
+                      </strong>
+                      . 🤍
+                    </p>
+
+                    <p
+                      style="
+                        margin: 8px 0 0;
+                        font-size: 14px;
+                        color: #737373;
+                      "
+                    >
+                      COMBINE Team
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </body>
+
+          </html>
+        `,
+
+      });
+
+    } catch (emailError) {
+
+      console.error(
+        `Failed to send international shipping quote email for order #${order.id}:`,
+        emailError
+      );
+
+    }
+
+  }
+
+  revalidatePath(
+    "/admin/dashboard/orders"
+  );
+
+  revalidatePath(
+    `/admin/dashboard/orders/${order.id}`
+  );
+
+  return {
+    success: true,
+    shippingFee: fee,
+    finalAmount,
+    shippingQuoteStatus:
+      "QUOTED" as const,
+  };
+}

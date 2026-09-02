@@ -305,6 +305,26 @@ export default async function OrdersPage({
             status:
               true,
 
+            // --------------------------------------------------
+            // PAYMENT ACCOUNT DETAILS
+            // --------------------------------------------------
+
+            bankName:
+              true,
+
+            accountName:
+              true,
+
+            accountNumber:
+              true,
+
+            qrImageUrl:
+              true,
+
+            // --------------------------------------------------
+            // PAYMENT PROOF
+            // --------------------------------------------------
+
             proofUrl:
               true,
 

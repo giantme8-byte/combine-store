@@ -14,8 +14,15 @@ import type {
   ProductWithImages,
 } from "@/types/product";
 
-import ProductTable from "./ProductTable";
+import dynamic from "next/dynamic";
 import ProductGrid from "./ProductGrid";
+
+const ProductTable = dynamic(
+  () => import("./ProductTable"),
+  {
+    ssr: false,
+  }
+);
 
 
 // ============================================================

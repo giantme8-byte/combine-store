@@ -110,6 +110,9 @@ export default function ProductFilters({
    * "manual" = Product.displayOrder
    *
    * This is the sorting mode used by Drag & Drop.
+   *
+   * "latest" is now the default sorting mode
+   * for the Admin Products page.
    */
 
   const [
@@ -118,7 +121,7 @@ export default function ProductFilters({
   ] = useState(
     searchParams.get(
       "sort"
-    ) ?? "manual"
+    ) ?? "latest"
   );
 
 
@@ -133,7 +136,7 @@ export default function ProductFilters({
    *
    * Otherwise, when returning from Edit Product:
    *
-   * /products?page=2&sort=manual
+   * /products?page=2&sort=latest
    *
    * the initial search value "" would trigger
    * updateFilters(), which deletes the page parameter.
@@ -180,7 +183,7 @@ export default function ProductFilters({
     setSort(
       searchParams.get(
         "sort"
-      ) ?? "manual"
+      ) ?? "latest"
     );
 
   }, [
@@ -195,16 +198,24 @@ export default function ProductFilters({
   useEffect(() => {
 
     /*
-     * Skip the first render.
+     * IMPORTANT:
+     *
+     * Only update the URL when the local search value is
+     * actually different from the search value already in
+     * the URL.
+     *
+     * This prevents the initial mount / return from Edit Product
+     * from deleting the current page parameter.
      */
 
-    if (!searchMounted.current) {
+    const urlSearch =
+      searchParams.get(
+        "search"
+      ) ?? "";
 
-      searchMounted.current =
-        true;
 
+    if (urlSearch === search) {
       return;
-
     }
 
 
@@ -225,6 +236,7 @@ export default function ProductFilters({
 
   }, [
     search,
+    searchParams,
   ]);
 
 
@@ -476,10 +488,10 @@ export default function ProductFilters({
 
 
     /*
-     * Manual Order is the default.
+     * Latest First is now the default.
      *
-     * Keep it in the URL so the current sorting mode
-     * remains explicit.
+     * Keep the current sorting mode in the URL
+     * so the selected sorting remains explicit.
      */
 
     if (sort) {
@@ -519,18 +531,18 @@ export default function ProductFilters({
 
     setAvailability("");
 
+
     /*
-     * Reset returns to Manual Order,
-     * not Featured Order.
+     * Reset returns to Latest First.
      */
 
     setSort(
-      "manual"
+      "latest"
     );
 
 
     router.push(
-      "/admin/dashboard/products?sort=manual"
+      "/admin/dashboard/products?sort=latest"
     );
 
   }
@@ -544,6 +556,7 @@ export default function ProductFilters({
     <div className="mb-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
 
       <div className="grid gap-4 md:grid-cols-5">
+
 
         {/* =================================================
             SEARCH

@@ -185,6 +185,9 @@ export default async function VoucherUsagePage({
             id:
               true,
 
+            orderNumber:
+              true,
+
             publicToken:
               true,
 
@@ -633,7 +636,8 @@ export default async function VoucherUsagePage({
                             hover:underline
                           "
                         >
-                          #{usage.order.id}
+                          {usage.order.orderNumber ??
+                            `#${usage.order.id}`}
                         </Link>
 
                       </div>
@@ -991,7 +995,8 @@ export default async function VoucherUsagePage({
                             hover:underline
                           "
                         >
-                          #{usage.order.id}
+                          {usage.order.orderNumber ??
+                            `#${usage.order.id}`}
                         </Link>
 
 

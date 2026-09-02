@@ -4,12 +4,15 @@ import {
 } from "@prisma/client";
 
 import EditUserButton from "./EditUserButton";
+import DeleteUserButton from "./DeleteUserButton";
+
 
 type UserRowProps = {
   user: User;
 
   currentUserRole: UserRole;
 };
+
 
 export default function UserRow({
   user,
@@ -36,7 +39,9 @@ export default function UserRow({
       ? "Admin"
       : user.role === UserRole.MANAGER
       ? "Manager"
-      : "Staff";
+      : user.role === UserRole.STAFF
+      ? "Staff"
+      : "Customer";
 
 
   // ==========================================================
@@ -50,7 +55,9 @@ export default function UserRow({
       ? "bg-blue-100 text-blue-700"
       : user.role === UserRole.MANAGER
       ? "bg-amber-100 text-amber-700"
-      : "bg-neutral-100 text-neutral-700";
+      : user.role === UserRole.STAFF
+      ? "bg-neutral-100 text-neutral-700"
+      : "bg-green-100 text-green-700";
 
 
   // ==========================================================
@@ -128,16 +135,49 @@ export default function UserRow({
       {/* ACTIONS */}
       {/* ==================================================== */}
 
-      <td className="px-6 py-4 text-right">
+      <td
+        className="
+          px-6
+          py-4
+          text-right
+        "
+      >
 
-        {canEdit && (
-          <EditUserButton
+        <div
+          className="
+            flex
+            items-center
+            justify-end
+            gap-2
+          "
+        >
+
+          {/* ============================================== */}
+          {/* EDIT */}
+          {/* ============================================== */}
+
+          {canEdit && (
+            <EditUserButton
+              user={user}
+              currentUserRole={
+                currentUserRole
+              }
+            />
+          )}
+
+
+          {/* ============================================== */}
+          {/* DELETE */}
+          {/* ============================================== */}
+
+          <DeleteUserButton
             user={user}
             currentUserRole={
               currentUserRole
             }
           />
-        )}
+
+        </div>
 
       </td>
 

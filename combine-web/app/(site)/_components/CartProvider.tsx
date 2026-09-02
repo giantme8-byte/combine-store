@@ -109,6 +109,19 @@ type CartContextValue = {
   ) => void;
 
   clearCart: () => void;
+
+  /**
+   * Selected Cart items are the only items that should proceed to Checkout.
+   * Unselected items remain safely inside the Cart.
+   */
+  selectedCartItemIds: string[];
+  selectedItems: CartItem[];
+  selectedItemCount: number;
+  selectedSubtotal: number;
+  isItemSelected: (cartItemId: string) => boolean;
+  toggleItemSelection: (cartItemId: string) => void;
+  selectAll: () => void;
+  deselectAll: () => void;
 };
 
 
@@ -128,6 +141,9 @@ const CartContext =
 
 const CART_STORAGE_KEY =
   "combine-cart";
+
+const CART_SELECTED_STORAGE_KEY =
+  "combine-cart-selected";
 
 
 // ============================================================
@@ -195,6 +211,11 @@ export default function CartProvider({
     setHydrated,
   ] = useState(false);
 
+  const [
+    selectedCartItemIds,
+    setSelectedCartItemIds,
+  ] = useState<string[]>([]);
+
 
   // ==========================================================
   // LOAD CART
@@ -208,6 +229,8 @@ export default function CartProvider({
         window.localStorage.getItem(
           CART_STORAGE_KEY
         );
+
+      let loadedItems: CartItem[] = [];
 
       if (stored) {
 
@@ -263,12 +286,63 @@ export default function CartProvider({
                 })
               );
 
-          setItems(
-            normalizedItems
-          );
+          loadedItems = normalizedItems;
+          setItems(normalizedItems);
 
         }
 
+      }
+
+      const selectedStored =
+        window.localStorage.getItem(
+          CART_SELECTED_STORAGE_KEY
+        );
+
+      if (selectedStored) {
+        try {
+          const parsedSelected =
+            JSON.parse(selectedStored);
+
+          if (Array.isArray(parsedSelected)) {
+            const validIds = new Set(
+              loadedItems.map(
+                (item) => item.cartItemId
+              )
+            );
+
+            setSelectedCartItemIds(
+              parsedSelected.filter(
+                (id): id is string =>
+                  typeof id === "string" &&
+                  validIds.has(id)
+              )
+            );
+          } else {
+            setSelectedCartItemIds(
+              loadedItems.map(
+                (item) => item.cartItemId
+              )
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Failed to load selected cart items:",
+            error
+          );
+          setSelectedCartItemIds(
+            loadedItems.map(
+              (item) => item.cartItemId
+            )
+          );
+        }
+      } else {
+        // Existing carts are selected by default so the new
+        // selection feature does not unexpectedly block checkout.
+        setSelectedCartItemIds(
+          loadedItems.map(
+            (item) => item.cartItemId
+          )
+        );
       }
 
     } catch (error) {
@@ -320,6 +394,75 @@ export default function CartProvider({
 
 
   // ==========================================================
+  // SAVE SELECTED ITEMS
+  // ==========================================================
+
+  useEffect(() => {
+
+    if (!hydrated) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        CART_SELECTED_STORAGE_KEY,
+        JSON.stringify(selectedCartItemIds)
+      );
+    } catch (error) {
+      console.error(
+        "Failed to save selected cart items:",
+        error
+      );
+    }
+
+  }, [
+    selectedCartItemIds,
+    hydrated,
+  ]);
+
+
+  // ==========================================================
+  // SELECTION
+  // ==========================================================
+
+  function isItemSelected(
+    cartItemId: string
+  ) {
+    return selectedCartItemIds.includes(
+      cartItemId
+    );
+  }
+
+
+  function toggleItemSelection(
+    cartItemId: string
+  ) {
+    setSelectedCartItemIds(
+      (currentIds) =>
+        currentIds.includes(cartItemId)
+          ? currentIds.filter(
+              (id) => id !== cartItemId
+            )
+          : [...currentIds, cartItemId]
+    );
+  }
+
+
+  function selectAll() {
+    setSelectedCartItemIds(
+      items.map(
+        (item) => item.cartItemId
+      )
+    );
+  }
+
+
+  function deselectAll() {
+    setSelectedCartItemIds([]);
+  }
+
+
+  // ==========================================================
   // ADD TO CART
   // ==========================================================
 
@@ -356,6 +499,13 @@ export default function CartProvider({
            * such as slug, price, image and dimensions.
            */
 
+          setSelectedCartItemIds(
+            (currentIds) =>
+              currentIds.includes(cartItemId)
+                ? currentIds
+                : [...currentIds, cartItemId]
+          );
+
           return currentItems.map(
             (item) =>
               item.cartItemId ===
@@ -379,6 +529,13 @@ export default function CartProvider({
          *
          * create a separate Cart item.
          */
+
+        setSelectedCartItemIds(
+          (currentIds) =>
+            currentIds.includes(cartItemId)
+              ? currentIds
+              : [...currentIds, cartItemId]
+        );
 
         return [
           ...currentItems,
@@ -451,6 +608,13 @@ export default function CartProvider({
         )
     );
 
+    setSelectedCartItemIds(
+      (currentIds) =>
+        currentIds.filter(
+          (id) => id !== cartItemId
+        )
+    );
+
   }
 
 
@@ -461,6 +625,7 @@ export default function CartProvider({
   function clearCart() {
 
     setItems([]);
+    setSelectedCartItemIds([]);
 
   }
 
@@ -507,6 +672,51 @@ export default function CartProvider({
 
 
   // ==========================================================
+  // SELECTED ITEMS
+  // ==========================================================
+
+  const selectedItems =
+    useMemo(
+      () =>
+        items.filter((item) =>
+          selectedCartItemIds.includes(
+            item.cartItemId
+          )
+        ),
+      [
+        items,
+        selectedCartItemIds,
+      ]
+    );
+
+
+  const selectedItemCount =
+    useMemo(
+      () =>
+        selectedItems.reduce(
+          (total, item) =>
+            total + item.quantity,
+          0
+        ),
+      [selectedItems]
+    );
+
+
+  const selectedSubtotal =
+    useMemo(
+      () =>
+        selectedItems.reduce(
+          (total, item) =>
+            total +
+            item.price *
+              item.quantity,
+          0
+        ),
+      [selectedItems]
+    );
+
+
+  // ==========================================================
   // VALUE
   // ==========================================================
 
@@ -520,11 +730,23 @@ export default function CartProvider({
         updateQuantity,
         removeFromCart,
         clearCart,
+        selectedCartItemIds,
+        selectedItems,
+        selectedItemCount,
+        selectedSubtotal,
+        isItemSelected,
+        toggleItemSelection,
+        selectAll,
+        deselectAll,
       }),
       [
         items,
         itemCount,
         subtotal,
+        selectedCartItemIds,
+        selectedItems,
+        selectedItemCount,
+        selectedSubtotal,
       ]
     );
 

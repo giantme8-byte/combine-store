@@ -338,7 +338,7 @@ export default function ProductSalesAnalytics({
               text-neutral-900
             "
           >
-            Product Sales
+            Product Sales Performance
           </h2>
 
 
@@ -349,7 +349,7 @@ export default function ProductSalesAnalytics({
               text-neutral-500
             "
           >
-            Actual sales performance by product.
+            Sales, cost, profit, and margin by product.
           </p>
 
         </div>
@@ -443,170 +443,6 @@ export default function ProductSalesAnalytics({
           >
             Profit
           </button>
-
-        </div>
-
-      </div>
-
-
-      {/* ==================================================== */}
-      {/* SUMMARY */}
-      {/* ==================================================== */}
-
-      <div
-        className="
-          mt-8
-          grid
-          grid-cols-2
-          gap-3
-          sm:grid-cols-2
-          sm:gap-4
-          xl:grid-cols-4
-        "
-      >
-
-        <div
-          className="
-            rounded-2xl
-            bg-neutral-50
-            p-5
-          "
-        >
-
-          <p
-            className="
-              text-xs
-              uppercase
-              tracking-[0.2em]
-              text-neutral-400
-            "
-          >
-            Units Sold
-          </p>
-
-
-          <p
-            className="
-              mt-2
-              text-2xl
-              font-light
-              text-neutral-900
-            "
-          >
-            {totalUnits.toLocaleString()}
-          </p>
-
-        </div>
-
-
-        <div
-          className="
-            rounded-2xl
-            bg-neutral-50
-            p-5
-          "
-        >
-
-          <p
-            className="
-              text-xs
-              uppercase
-              tracking-[0.2em]
-              text-neutral-400
-            "
-          >
-            Total Sales
-          </p>
-
-
-          <p
-            className="
-              mt-2
-              text-2xl
-              font-light
-              text-neutral-900
-            "
-          >
-            {formatMoney(
-              totalSales
-            )}
-          </p>
-
-        </div>
-
-
-        <div
-          className="
-            rounded-2xl
-            bg-neutral-50
-            p-5
-          "
-        >
-
-          <p
-            className="
-              text-xs
-              uppercase
-              tracking-[0.2em]
-              text-neutral-400
-            "
-          >
-            Total Cost
-          </p>
-
-
-          <p
-            className="
-              mt-2
-              text-2xl
-              font-light
-              text-neutral-900
-            "
-          >
-            {formatMoney(
-              totalCost
-            )}
-          </p>
-
-        </div>
-
-
-        <div
-          className="
-            rounded-2xl
-            bg-neutral-50
-            p-5
-          "
-        >
-
-          <p
-            className="
-              text-xs
-              uppercase
-              tracking-[0.2em]
-              text-neutral-400
-            "
-          >
-            Actual Profit
-          </p>
-
-
-          <p
-            className={`
-              mt-2
-              text-2xl
-              font-light
-              ${
-                totalProfit >= 0
-                  ? "text-green-600"
-                  : "text-red-600"
-              }
-            `}
-          >
-            {formatMoney(
-              totalProfit
-            )}
-          </p>
 
         </div>
 
@@ -1292,46 +1128,6 @@ export default function ProductSalesAnalytics({
             </div>
           )
         )}
-      </div>
-
-      {/* ==================================================== */}
-      {/* TOTAL MARGIN */}
-      {/* ==================================================== */}
-
-      <div
-        className="
-          mt-6
-          flex
-          items-center
-          justify-between
-          rounded-2xl
-          border
-          border-neutral-200
-          px-5
-          py-4
-        "
-      >
-
-        <span
-          className="
-            text-sm
-            text-neutral-500
-          "
-        >
-          Overall Actual Margin
-        </span>
-
-
-        <span
-          className="
-            text-sm
-            font-medium
-            text-neutral-900
-          "
-        >
-          {totalMargin.toFixed(1)}%
-        </span>
-
       </div>
 
 

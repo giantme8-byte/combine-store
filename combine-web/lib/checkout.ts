@@ -1,57 +1,53 @@
 import { prisma } from "@/lib/prisma";
 
-
 // ============================================================
 // TYPES
 // ============================================================
 
 export type CheckoutItem = {
   productId: number;
-
   quantity: number;
-
   variantId?: number | null;
 };
-
 
 export type ShippingRegion =
   | "WEST"
   | "EAST";
 
-
 export type VoucherCalculation = {
   code: string | null;
-
   discount: number;
-
   error: string | null;
-
   voucherId: number | null;
 };
 
-
 export type ShippingCalculation = {
-  courier: "ABX";
-
-  region: ShippingRegion;
-
+  courier: "ABX" | "MANUAL";
+  region: ShippingRegion | null;
   fee: number;
-
   isFree: boolean;
 };
 
-
 export type CheckoutCalculation = {
   subtotal: number;
-
   voucherDiscount: number;
-
   shippingFee: number;
+
+  /*
+   * PayPal payment processing fee.
+   *
+   * Store-side fee:
+   *
+   * 6% of the order amount
+   * + RM2.00 fixed fee
+   *
+   * Only applied when payment method is PAYPAL.
+   */
+  paypalFee: number;
 
   finalAmount: number;
 
   voucher: VoucherCalculation;
-
   shipping: ShippingCalculation;
 };
 
@@ -63,6 +59,31 @@ export type CheckoutCalculation = {
 const WEST_SHIPPING_FEE = 15;
 
 const EAST_SHIPPING_FEE = 25;
+
+
+// ============================================================
+// PAYPAL FEE
+// ============================================================
+
+/*
+ * Store-side PayPal fee:
+ *
+ * 6% + RM2.00
+ *
+ * Example:
+ *
+ * RM100
+ * 6% = RM6.00
+ * Fixed = RM2.00
+ *
+ * PayPal Fee = RM8.00
+ *
+ * Final = RM108.00
+ */
+
+const PAYPAL_FEE_RATE = 0.06;
+
+const PAYPAL_FEE_FIXED = 2.00;
 
 
 // ============================================================
@@ -83,7 +104,11 @@ function roundMoney(
   amount: number
 ) {
   return Math.round(
-    (amount + Number.EPSILON) * 100
+    (
+      amount +
+      Number.EPSILON
+    ) *
+      100
   ) / 100;
 }
 
@@ -101,17 +126,13 @@ export function getShippingRegion(
       .trim()
       .toLowerCase();
 
-
   if (
     EAST_MALAYSIA_STATES.includes(
       normalizedState
     )
   ) {
-
     return "EAST";
-
   }
-
 
   return "WEST";
 }
@@ -124,15 +145,43 @@ export function getShippingRegion(
 export function calculateShipping({
   totalQuantity,
   state,
+  country = "Malaysia",
+  internationalShippingFee,
 }: {
   totalQuantity: number;
-
-  state: string;
+  state?: string | null;
+  country?: string | null;
+  internationalShippingFee?: number | null;
 }): ShippingCalculation {
+
+  const normalizedCountry =
+    (country ?? "Malaysia").trim();
+
+  // ------------------------------------------------------------
+  // INTERNATIONAL SHIPPING
+  // ------------------------------------------------------------
+
+  if (
+    normalizedCountry &&
+    normalizedCountry !== "Malaysia"
+  ) {
+    const fee =
+      Math.max(
+        Number(internationalShippingFee ?? 0),
+        0
+      );
+
+    return {
+      courier: "MANUAL",
+      region: null,
+      fee: roundMoney(fee),
+      isFree: false,
+    };
+  }
 
   const region =
     getShippingRegion(
-      state
+      state ?? ""
     );
 
 
@@ -190,11 +239,8 @@ export async function calculateVoucher({
   productCategories,
 }: {
   code?: string | null;
-
   subtotal: number;
-
   userId?: number | null;
-
   productCategories: string[];
 }): Promise<VoucherCalculation> {
 
@@ -474,7 +520,6 @@ export async function calculateVoucher({
         where: {
           voucherId:
             voucher.id,
-
           userId,
         },
       });
@@ -523,7 +568,10 @@ export async function calculateVoucher({
 
     discount =
       subtotal *
-      (voucher.value / 100);
+      (
+        voucher.value /
+        100
+      );
 
   }
 
@@ -573,7 +621,6 @@ export async function calculateVoucher({
   // ==========================================================
 
   return {
-
     code:
       normalizedCode,
 
@@ -584,8 +631,61 @@ export async function calculateVoucher({
 
     voucherId:
       voucher.id,
-
   };
+
+}
+
+
+// ============================================================
+// CALCULATE PAYPAL FEE
+// ============================================================
+
+export function calculatePaypalFee({
+  amount,
+  paymentMethodType,
+}: {
+  amount: number;
+  paymentMethodType?:
+    | "BANK_TRANSFER"
+    | "QR"
+    | "PAYPAL"
+    | "WISE"
+    | null;
+}): number {
+
+  /*
+   * Only PAYPAL receives
+   * the additional processing fee.
+   */
+
+  if (
+    paymentMethodType !==
+    "PAYPAL"
+  ) {
+    return 0;
+  }
+
+
+  if (
+    amount <= 0
+  ) {
+    return 0;
+  }
+
+
+  const percentageFee =
+    amount *
+    PAYPAL_FEE_RATE;
+
+
+  const paypalFee =
+    percentageFee +
+    PAYPAL_FEE_FIXED;
+
+
+  return roundMoney(
+    paypalFee
+  );
 
 }
 
@@ -598,22 +698,37 @@ export async function calculateCheckout({
   subtotal,
   totalQuantity,
   state,
+  country = "Malaysia",
+  internationalShippingFee,
   voucherCode,
   userId,
   productCategories,
+  paymentMethodType,
 }: {
   subtotal: number;
 
   totalQuantity: number;
 
-  state: string;
+  state?: string | null;
+
+  country?: string | null;
+
+  internationalShippingFee?: number | null;
 
   voucherCode?: string | null;
 
   userId?: number | null;
 
   productCategories: string[];
+
+  paymentMethodType?:
+    | "BANK_TRANSFER"
+    | "QR"
+    | "PAYPAL"
+    | "WISE"
+    | null;
 }): Promise<CheckoutCalculation> {
+
 
   // ==========================================================
   // VOUCHER
@@ -621,7 +736,6 @@ export async function calculateCheckout({
 
   const voucher =
     await calculateVoucher({
-
       code:
         voucherCode,
 
@@ -630,7 +744,6 @@ export async function calculateCheckout({
       userId,
 
       productCategories,
-
     });
 
 
@@ -640,11 +753,66 @@ export async function calculateCheckout({
 
   const shipping =
     calculateShipping({
-
       totalQuantity,
 
       state,
+    });
 
+
+  // ==========================================================
+  // BASE AMOUNT
+  // ==========================================================
+
+  /*
+   * Base amount before PayPal fee:
+   *
+   * Subtotal
+   * - Voucher Discount
+   * + Shipping
+   */
+
+  const baseAmount =
+    roundMoney(
+      Math.max(
+        subtotal -
+          voucher.discount +
+          shipping.fee,
+        0
+      )
+    );
+
+
+  // ==========================================================
+  // PAYPAL FEE
+  // ==========================================================
+
+  /*
+   * PayPal fee is calculated
+   * from the amount customer
+   * would otherwise pay.
+   *
+   * Example:
+   *
+   * Subtotal = RM100
+   * Shipping = RM15
+   * Voucher = RM0
+   *
+   * Base = RM115
+   *
+   * PayPal fee:
+   * RM115 × 6% + RM2.00
+   * = RM8.90
+   *
+   * Final:
+   * RM123.90
+   */
+
+  const paypalFee =
+    calculatePaypalFee({
+      amount:
+        baseAmount,
+
+      paymentMethodType,
     });
 
 
@@ -655,13 +823,16 @@ export async function calculateCheckout({
   const finalAmount =
     roundMoney(
       Math.max(
-        subtotal -
-          voucher.discount +
-          shipping.fee,
+        baseAmount +
+          paypalFee,
         0
       )
     );
 
+
+  // ==========================================================
+  // RETURN
+  // ==========================================================
 
   return {
 
@@ -675,6 +846,8 @@ export async function calculateCheckout({
 
     shippingFee:
       shipping.fee,
+
+    paypalFee,
 
     finalAmount,
 

@@ -19,6 +19,8 @@ import OrderGrid from "./OrderGrid";
 type Order = {
   id: number;
 
+  orderNumber: string | null;
+
   customerName: string;
 
   customerPhone: string;
@@ -26,6 +28,8 @@ type Order = {
   customerEmail: string | null;
 
   finalAmount: number;
+
+  paypalFee: number;
 
   status: string;
 
@@ -50,20 +54,39 @@ type Order = {
 
   payment: {
     id: number;
+
     paymentMethodName: string;
-    paymentMethodType:
-      | "BANK_TRANSFER"
-      | "QR";
+
+paymentMethodType:
+  | "BANK_TRANSFER"
+  | "QR"
+  | "PAYPAL"
+  | "WISE";
+
     amount: number;
+
     status:
       | "PENDING"
       | "SUBMITTED"
       | "VERIFIED"
       | "REJECTED";
+
+    bankName: string | null;
+
+    accountName: string | null;
+
+    accountNumber: string | null;
+
+    qrImageUrl: string | null;
+
     proofUrl: string | null;
+
     proofPublicId: string | null;
+
     verifiedAt: Date | null;
+
     verifiedBy: number | null;
+
     adminNote: string | null;
   } | null;
 };

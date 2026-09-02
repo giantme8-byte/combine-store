@@ -2,6 +2,7 @@
 
 import {
   useMemo,
+  useState,
 } from "react";
 
 import Image from "next/image";
@@ -183,6 +184,13 @@ export default function ProductCard({
         )
       : undefined;
 
+  // ============================================================
+  // SMART IMAGE FILL
+  // ============================================================
+
+  const [imageScale, setImageScale] =
+    useState(1);
+
 
   // ============================================================
   // DISPLAY PRICE
@@ -216,32 +224,32 @@ export default function ProductCard({
   );
 
   const displayPrice =
-    productPrice !== null
-      ? `RM ${productPrice.toLocaleString(
+    uniqueVariantPrices.length === 1
+      ? `RM ${uniqueVariantPrices[0].toLocaleString(
           "en-MY",
           {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2,
           }
         )}`
-      : uniqueVariantPrices.length === 1
+      : uniqueVariantPrices.length > 1
         ? `RM ${uniqueVariantPrices[0].toLocaleString(
             "en-MY",
             {
               minimumFractionDigits: 0,
               maximumFractionDigits: 2,
             }
+          )} – RM ${uniqueVariantPrices[
+            uniqueVariantPrices.length - 1
+          ].toLocaleString(
+            "en-MY",
+            {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            }
           )}`
-        : uniqueVariantPrices.length > 1
-          ? `RM ${uniqueVariantPrices[0].toLocaleString(
-              "en-MY",
-              {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2,
-              }
-            )} – RM ${uniqueVariantPrices[
-              uniqueVariantPrices.length - 1
-            ].toLocaleString(
+        : productPrice !== null
+          ? `RM ${productPrice.toLocaleString(
               "en-MY",
               {
                 minimumFractionDigits: 0,
@@ -267,14 +275,15 @@ export default function ProductCard({
         border-neutral-100
         bg-white
         shadow-sm
-        transition-all
-        duration-700
+transition-[transform,box-shadow]
+duration-300
+ease-out
 
-        sm:rounded-[32px]
-        sm:hover:-translate-y-3
-        sm:hover:scale-[1.02]
-        sm:hover:border-[#C8A96A]/60
-        sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
+sm:rounded-[32px]
+sm:hover:-translate-y-3
+sm:hover:scale-[1.02]
+sm:hover:border-[#C8A96A]/60
+sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
       "
     >
 
@@ -299,7 +308,7 @@ export default function ProductCard({
         <div
           className="
             relative
-            aspect-[4/5]
+            aspect-square
             w-full
             overflow-hidden
             rounded-[15px]
@@ -546,20 +555,34 @@ export default function ProductCard({
                 25vw
               "
               loading="lazy"
+              onLoad={(event) => {
+                const img = event.currentTarget;
+                const ratio =
+                  img.naturalWidth /
+                  img.naturalHeight;
+
+                if (ratio >= 1.15 || ratio <= 0.88) {
+                  setImageScale(1.05);
+                } else {
+                  setImageScale(1);
+                }
+              }}
+              style={{
+                transform: `scale(${imageScale})`,
+              }}
               className={`
                 pointer-events-none
                 object-contain
                 object-center
                 p-0
-                will-change-transform
-                transition-all
-                duration-700
-                ease-[cubic-bezier(0.22,1,0.36,1)]
+                transition-[opacity,transform]
+                duration-300
+                ease-out
 
                 ${
                   secondImage
-                    ? "opacity-100 sm:group-hover:opacity-0 sm:group-hover:scale-[1.03]"
-                    : "sm:group-hover:scale-[1.03]"
+                    ? "opacity-100 sm:group-hover:opacity-0"
+                    : ""
                 }
               `}
             />
@@ -583,6 +606,9 @@ export default function ProductCard({
                   25vw
                 "
                 loading="lazy"
+                style={{
+                  transform: `scale(${imageScale})`,
+                }}
                 className="
                   pointer-events-none
                   absolute
@@ -590,13 +616,10 @@ export default function ProductCard({
                   object-contain
                   object-center
                   p-0
-                  will-change-transform
                   opacity-0
-                  transition-all
-                  duration-700
-                  ease-[cubic-bezier(0.22,1,0.36,1)]
-
-                  sm:group-hover:scale-[1.03]
+                  transition-[opacity,transform]
+                  duration-300
+                  ease-out
                   sm:group-hover:opacity-100
                 "
               />
@@ -608,22 +631,6 @@ export default function ProductCard({
           {/* ================================================== */}
           {/* LUXURY SHINE */}
           {/* ================================================== */}
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              inset-0
-              translate-x-[-120%]
-              bg-[linear-gradient(120deg,transparent_25%,rgba(255,255,255,.12)_50%,transparent_75%)]
-              opacity-0
-              transition-all
-              duration-1000
-
-              sm:group-hover:translate-x-[120%]
-              sm:group-hover:opacity-100
-            "
-          />
 
 
           {/* ================================================== */}
@@ -663,15 +670,15 @@ export default function ProductCard({
               hidden
               -translate-x-1/2
               -translate-y-1/2
-              scale-90
-              opacity-0
-              transition-all
-              duration-700
-              ease-[cubic-bezier(0.22,1,0.36,1)]
+scale-95
+opacity-0
+transition-all
+duration-300
+ease-out
 
-              sm:block
-              sm:group-hover:scale-100
-              sm:group-hover:opacity-100
+sm:block
+sm:group-hover:scale-100
+sm:group-hover:opacity-100
             "
           >
 

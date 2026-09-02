@@ -145,6 +145,21 @@ function handleInquiry() {
 
 if (!product) return null;
 
+const hasPrice =
+  typeof product.price === "number" &&
+  Number.isFinite(product.price) &&
+  product.price > 0;
+
+const displayPrice =
+  typeof product.price === "number" &&
+  Number.isFinite(product.price) &&
+  product.price > 0
+    ? `RM ${product.price.toLocaleString("en-MY", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`
+    : null;
+
 const productHref = product.slug
   ? `/shop/${product.slug}`
   : "/shop";
@@ -403,59 +418,77 @@ return (
 
           </div>
 
-          <div className="mt-10 h-px bg-neutral-200" />
+<div className="mt-10 h-px bg-neutral-200" />
 
-          <p className="mt-10 text-base leading-8 text-neutral-600">
-            Crafted with exceptional attention to detail, featuring premium
-            materials and timeless elegance. Designed for those who appreciate
-            luxury craftsmanship and refined style.
-          </p>
+<p className="mt-10 text-base leading-8 text-neutral-600">
+  Crafted with exceptional attention to detail, featuring premium
+  materials and timeless elegance. Designed for those who appreciate
+  luxury craftsmanship and refined style.
+</p>
 
-          <div className="mt-12 flex flex-wrap gap-4">
+<div className="mt-10">
+  <p className="text-xs uppercase tracking-[0.3em] text-neutral-400">
+    Price
+  </p>
 
-<button
-  type="button"
-  onClick={handleInquiry}
-  className="
-                rounded-full
-                border
-                border-black
-                px-9
-                py-3.5
-                text-sm
-                font-medium
-                uppercase
-                tracking-[0.25em]
-                transition-all
-                duration-300
-                hover:scale-105
-                hover:border-[#C8A96A]
-                hover:bg-[#C8A96A]
-                hover:text-white
-              "
-            >
-              Request Price
-            </button>
+  {hasPrice ? (
+    <p className="mt-2 text-2xl font-light tracking-[-0.02em] text-neutral-900">
+      {displayPrice}
+    </p>
+  ) : (
+    <p className="mt-2 text-xl font-light tracking-[-0.02em] text-neutral-900">
+      Price Upon Request
+    </p>
+  )}
+</div>
 
-            <Link
-              href={productHref}
-              onClick={close}
-              className="
-                inline-flex
-                items-center
-                text-sm
-                font-medium
-                uppercase
-                tracking-[0.25em]
-                transition-all
-                duration-300
-                hover:text-[#C8A96A]
-              "
-            >
-              View Details →
-            </Link>
+<div className="mt-12 flex flex-wrap gap-4">
 
-          </div>
+  {!hasPrice && (
+    <button
+      type="button"
+      onClick={handleInquiry}
+      className="
+        rounded-full
+        border
+        border-black
+        px-9
+        py-3.5
+        text-sm
+        font-medium
+        uppercase
+        tracking-[0.25em]
+        transition-all
+        duration-300
+        hover:scale-105
+        hover:border-[#C8A96A]
+        hover:bg-[#C8A96A]
+        hover:text-white
+      "
+    >
+      Request Price
+    </button>
+  )}
+
+  <Link
+    href={productHref}
+    onClick={close}
+    className="
+      inline-flex
+      items-center
+      text-sm
+      font-medium
+      uppercase
+      tracking-[0.25em]
+      transition-all
+      duration-300
+      hover:text-[#C8A96A]
+    "
+  >
+    View Details →
+  </Link>
+
+</div>
 
         </div>
 
