@@ -52,6 +52,7 @@ import Link from "next/link";
 type DashboardPageProps = {
   searchParams: Promise<{
     salesPeriod?: string;
+    productSalesPeriod?: string;
   }>;
 };
 
@@ -62,6 +63,7 @@ type DashboardPageProps = {
 
 const SALES_PERIODS = [
   "TODAY",
+  "YESTERDAY",
   "THIS_WEEK",
   "THIS_MONTH",
   "THIS_YEAR",
@@ -73,6 +75,17 @@ const SALES_PERIODS = [
 // ============================================================
 
 function isSalesPeriod(
+  value: string
+): value is SalesPeriod {
+
+  return SALES_PERIODS.includes(
+    value as SalesPeriod
+  );
+
+}
+
+
+function isProductSalesPeriod(
   value: string
 ): value is SalesPeriod {
 
@@ -120,6 +133,53 @@ function getSalesDateRange(
     const end =
       new Date(
         now
+      );
+
+    end.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+
+    return {
+      gte: start,
+      lte: end,
+    };
+
+  }
+
+
+  // ==========================================================
+  // YESTERDAY
+  // ==========================================================
+
+  if (
+    period ===
+    "YESTERDAY"
+  ) {
+
+    const start =
+      new Date(
+        now
+      );
+
+    start.setDate(
+      start.getDate() - 1
+    );
+
+    start.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+
+    const end =
+      new Date(
+        start
       );
 
     end.setHours(
@@ -335,6 +395,19 @@ export default async function DashboardPage({
       : "TODAY";
 
 
+  const requestedProductSalesPeriod =
+    params.productSalesPeriod ??
+    "TODAY";
+
+
+  const productSalesPeriod: SalesPeriod =
+    isProductSalesPeriod(
+      requestedProductSalesPeriod
+    )
+      ? requestedProductSalesPeriod
+      : "TODAY";
+
+
   // ==========================================================
   // SALES DATE RANGE
   // ==========================================================
@@ -342,6 +415,12 @@ export default async function DashboardPage({
   const salesDateRange =
     getSalesDateRange(
       salesPeriod
+    );
+
+
+  const productSalesDateRange =
+    getSalesDateRange(
+      productSalesPeriod
     );
 
 
@@ -361,6 +440,24 @@ export default async function DashboardPage({
       ? {
           createdAt:
             salesDateRange,
+        }
+      : {}),
+
+  };
+
+
+  const productSalesOrderWhere = {
+
+    payment: {
+      is: {
+        status: "VERIFIED" as const,
+      },
+    },
+
+    ...(productSalesDateRange
+      ? {
+          createdAt:
+            productSalesDateRange,
         }
       : {}),
 
@@ -395,6 +492,10 @@ export default async function DashboardPage({
     shippingCollected,
 
     productSales,
+
+    productViews,
+
+    productOrderRows,
 
   ] = await Promise.all([
 
@@ -601,7 +702,7 @@ export default async function DashboardPage({
       where: {
 
         order:
-          actualSalesOrderWhere,
+          productSalesOrderWhere,
 
       },
 
@@ -617,6 +718,70 @@ export default async function DashboardPage({
           true,
 
         profit:
+          true,
+
+      },
+
+    }),
+
+
+    // ========================================================
+    // PRODUCT VIEWS
+    // ========================================================
+
+    prisma.analyticsEvent.groupBy({
+
+      by: [
+        "productId",
+      ],
+
+      where: {
+
+        event:
+          "PRODUCT_VIEW",
+
+        productId: {
+          not: null,
+        },
+
+        ...(productSalesDateRange
+          ? {
+              createdAt:
+                productSalesDateRange,
+            }
+          : {}),
+
+      },
+
+      _count: {
+
+        _all:
+          true,
+
+      },
+
+    }),
+
+
+    // ========================================================
+    // PRODUCT ORDERS
+    // ========================================================
+
+    prisma.orderItem.findMany({
+
+      where: {
+
+        order:
+          productSalesOrderWhere,
+
+      },
+
+      select: {
+
+        productId:
+          true,
+
+        orderId:
           true,
 
       },
@@ -706,46 +871,116 @@ export default async function DashboardPage({
 
 
   // ============================================================
-  // PRODUCT SALES DATA
+  // PRODUCT ANALYTICS DATA
   // ============================================================
 
-  const productSalesData =
-    productSales
-      .map(
+  const productViewsMap =
+    new Map(
+      productViews.map(
         (
           item
+        ) => [
+          item.productId,
+          item._count._all,
+        ]
+      )
+    );
+
+
+  const productOrdersMap =
+    new Map<
+      number,
+      Set<number>
+    >();
+
+
+  for (
+    const row
+    of productOrderRows
+  ) {
+
+    if (
+      !productOrdersMap.has(
+        row.productId
+      )
+    ) {
+
+      productOrdersMap.set(
+        row.productId,
+        new Set<number>()
+      );
+
+    }
+
+
+    productOrdersMap
+      .get(
+        row.productId
+      )!
+      .add(
+        row.orderId
+      );
+
+  }
+
+
+  const productSalesMap =
+    new Map(
+      productSales.map(
+        (
+          item
+        ) => [
+          item.productId,
+          item,
+        ]
+      )
+    );
+
+
+  const productSalesData =
+    allProducts
+      .map(
+        (
+          product
         ) => {
 
-          const product =
-            productMap.get(
-              item.productId
+          const sales =
+            productSalesMap.get(
+              product.id
             );
 
 
-          if (!product) {
+          const views =
+            productViewsMap.get(
+              product.id
+            ) ??
+            0;
 
-            return null;
 
-          }
+          const orders =
+            productOrdersMap.get(
+              product.id
+            )?.size ??
+            0;
 
 
           const unitsSold =
-            item._sum.quantity ??
+            sales?._sum.quantity ??
             0;
 
 
           const totalSales =
-            item._sum.totalPrice ??
+            sales?._sum.totalPrice ??
             0;
 
 
           const totalCost =
-            item._sum.totalCost ??
+            sales?._sum.totalCost ??
             0;
 
 
           const profit =
-            item._sum.profit ??
+            sales?._sum.profit ??
             (
               totalSales -
               totalCost
@@ -762,6 +997,16 @@ export default async function DashboardPage({
               : 0;
 
 
+          const conversion =
+            views > 0
+              ? (
+                  orders /
+                  views
+                ) *
+                100
+              : 0;
+
+
           return {
 
             productId:
@@ -773,6 +1018,10 @@ export default async function DashboardPage({
             brand:
               product.brand,
 
+            views,
+
+            orders,
+
             unitsSold,
 
             totalSales,
@@ -783,17 +1032,11 @@ export default async function DashboardPage({
 
             margin,
 
+            conversion,
+
           };
 
         }
-      )
-      .filter(
-        (
-          item
-        ): item is NonNullable<
-          typeof item
-        > =>
-          item !== null
       )
       .sort(
         (
@@ -916,7 +1159,7 @@ export default async function DashboardPage({
 
   return (
 
-    <main className="space-y-8">
+    <main className="space-y-5 sm:space-y-8">
 
 
       {/* ====================================================== */}
@@ -1074,7 +1317,9 @@ export default async function DashboardPage({
       <div
         className="
           grid
-          gap-5
+          grid-cols-2
+          gap-3
+          sm:gap-4
           md:grid-cols-2
           xl:grid-cols-4
         "
@@ -1146,12 +1391,17 @@ export default async function DashboardPage({
 
       <section
         className="
-          rounded-3xl
+          rounded-2xl
           border
           border-neutral-200
           bg-white
-          p-8
+          p-4
           shadow-sm
+
+          sm:rounded-3xl
+          sm:p-6
+
+          lg:p-8
         "
       >
 
@@ -1229,9 +1479,11 @@ export default async function DashboardPage({
 
         <div
           className="
-            mt-8
+            mt-6
             grid
-            gap-5
+            grid-cols-2
+            gap-3
+            sm:gap-4
             md:grid-cols-2
             xl:grid-cols-6
           "

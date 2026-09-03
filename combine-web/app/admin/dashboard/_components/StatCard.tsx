@@ -7,7 +7,6 @@ type StatCardProps = {
   trendColor?: "green" | "red" | "yellow" | "blue";
 };
 
-
 const trendColors: Record<
   NonNullable<StatCardProps["trendColor"]>,
   string
@@ -18,7 +17,6 @@ const trendColors: Record<
   blue: "text-blue-600",
 };
 
-
 export default function StatCard({
   title,
   value,
@@ -27,9 +25,7 @@ export default function StatCard({
   trend,
   trendColor = "blue",
 }: StatCardProps) {
-
   return (
-
     <div
       className="
         group
@@ -40,7 +36,7 @@ export default function StatCard({
         border
         border-neutral-200
         bg-white
-        p-4
+        p-3
         shadow-sm
         transition-all
         duration-300
@@ -52,11 +48,6 @@ export default function StatCard({
         sm:p-6
       "
     >
-
-      {/* ====================================================== */}
-      {/* TOP ACCENT LINE */}
-      {/* ====================================================== */}
-
       <div
         className="
           absolute
@@ -79,44 +70,25 @@ export default function StatCard({
         "
       />
 
-
-      {/* ====================================================== */}
-      {/* CONTENT */}
-      {/* ====================================================== */}
-
       <div
         className="
           flex
           min-w-0
           items-start
           justify-between
-          gap-2
-
+          gap-1.5
           sm:gap-4
         "
       >
-
-        {/* ==================================================== */}
-        {/* LEFT CONTENT */}
-        {/* ==================================================== */}
-
-        <div
-          className="
-            min-w-0
-            flex-1
-          "
-        >
-
-          {/* Title */}
-
+        <div className="min-w-0 flex-1">
           <p
             className="
               min-w-0
               truncate
-              text-[9px]
+              text-[8px]
               font-medium
               uppercase
-              tracking-[0.16em]
+              tracking-[0.12em]
               text-neutral-400
 
               sm:text-xs
@@ -126,15 +98,12 @@ export default function StatCard({
             {title}
           </p>
 
-
-          {/* Value */}
-
           <h2
             className="
-              mt-2
+              mt-1.5
               min-w-0
               truncate
-              text-3xl
+              text-2xl
               font-extralight
               leading-none
               tracking-[-0.045em]
@@ -153,17 +122,13 @@ export default function StatCard({
             {value}
           </h2>
 
-
-          {/* Description */}
-
           {description && (
-
             <p
               className="
-                mt-2
+                mt-1.5
                 line-clamp-2
-                text-[10px]
-                leading-4
+                text-[9px]
+                leading-3.5
                 text-neutral-500
 
                 sm:mt-3
@@ -173,19 +138,14 @@ export default function StatCard({
             >
               {description}
             </p>
-
           )}
 
-
-          {/* Trend */}
-
           {trend && (
-
             <p
               className={`
-                mt-2
+                mt-1.5
                 truncate
-                text-[10px]
+                text-[9px]
                 font-medium
                 ${trendColors[trendColor]}
 
@@ -195,33 +155,25 @@ export default function StatCard({
             >
               {trend}
             </p>
-
           )}
-
         </div>
 
-
-        {/* ==================================================== */}
-        {/* ICON */}
-        {/* ==================================================== */}
-
         {icon && (
-
           <div
             className="
               flex
-              h-10
-              w-10
+              h-8
+              w-8
               shrink-0
               items-center
               justify-center
-              rounded-xl
+              rounded-lg
               border
               border-neutral-200
               bg-gradient-to-br
               from-neutral-50
               to-neutral-100
-              text-base
+              text-sm
               shadow-sm
               transition-all
               duration-300
@@ -237,12 +189,8 @@ export default function StatCard({
           >
             {icon}
           </div>
-
         )}
-
       </div>
-
     </div>
-
   );
 }

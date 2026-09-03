@@ -3,7 +3,14 @@
 import {
   useMemo,
   useState,
+  useTransition,
 } from "react";
+
+import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 
 // ============================================================
@@ -17,6 +24,10 @@ type ProductSales = {
 
   brand: string;
 
+  views: number;
+
+  orders: number;
+
   unitsSold: number;
 
   totalSales: number;
@@ -26,7 +37,21 @@ type ProductSales = {
   profit: number;
 
   margin: number;
+
+  conversion: number;
 };
+
+
+// ============================================================
+// SALES PERIOD
+// ============================================================
+
+export type ProductSalesPeriod =
+  | "TODAY"
+  | "YESTERDAY"
+  | "THIS_WEEK"
+  | "THIS_MONTH"
+  | "THIS_YEAR";
 
 
 // ============================================================
@@ -65,6 +90,100 @@ export default function ProductSalesAnalytics({
   products,
 }: ProductSalesAnalyticsProps) {
 
+  const router =
+    useRouter();
+
+  const pathname =
+    usePathname();
+
+  const searchParams =
+    useSearchParams();
+
+  const [
+    isPending,
+    startTransition,
+  ] = useTransition();
+
+
+  const currentPeriod =
+    (
+      searchParams.get(
+        "productSalesPeriod"
+      ) as ProductSalesPeriod | null
+    ) ??
+    "TODAY";
+
+
+  function changePeriod(
+    period: ProductSalesPeriod
+  ) {
+
+    if (
+      period ===
+      currentPeriod
+    ) {
+      return;
+    }
+
+
+    const params =
+      new URLSearchParams(
+        searchParams.toString()
+      );
+
+
+    params.set(
+      "productSalesPeriod",
+      period
+    );
+
+
+    startTransition(() => {
+
+      router.replace(
+        `${pathname}?${params.toString()}`,
+        {
+          scroll:
+            false,
+        }
+      );
+
+    });
+
+  }
+
+
+  function getPeriodButtonClass(
+    period: ProductSalesPeriod
+  ) {
+
+    const active =
+      currentPeriod ===
+      period;
+
+
+    return `
+      shrink-0
+      rounded-full
+      px-3.5
+      py-2
+      text-xs
+      font-medium
+      transition
+      ${
+        active
+          ? "bg-black text-white"
+          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+      }
+      ${
+        isPending
+          ? "pointer-events-none opacity-70"
+          : ""
+      }
+    `;
+
+  }
+
 
   // ==========================================================
   // SORT
@@ -74,8 +193,8 @@ export default function ProductSalesAnalytics({
     sortBy,
     setSortBy,
   ] = useState<
-    "sales" | "units" | "profit"
-  >("sales");
+    "sales" | "views" | "orders" | "units" | "profit"
+  >("views");
 
 
   // ==========================================================
@@ -102,6 +221,30 @@ export default function ProductSalesAnalytics({
           a,
           b
         ) => {
+
+          if (
+            sortBy ===
+            "views"
+          ) {
+
+            return (
+              b.views -
+              a.views
+            );
+
+          }
+
+          if (
+            sortBy ===
+            "orders"
+          ) {
+
+            return (
+              b.orders -
+              a.orders
+            );
+
+          }
 
           if (
             sortBy ===
@@ -152,7 +295,7 @@ export default function ProductSalesAnalytics({
       ? sortedProducts
       : sortedProducts.slice(
           0,
-          10
+          5
         );
 
 
@@ -210,7 +353,7 @@ export default function ProductSalesAnalytics({
             text-neutral-500
           "
         >
-          No completed sales yet.
+          No product analytics data yet.
         </p>
 
       </div>
@@ -349,8 +492,78 @@ export default function ProductSalesAnalytics({
               text-neutral-500
             "
           >
-            Sales, cost, profit, and margin by product.
+            Views, orders, sales, cost, profit, margin, and conversion by product.
           </p>
+
+          <p
+            className="
+              mt-2
+              text-xs
+              text-neutral-400
+            "
+          >
+            Conversion = orders ÷ product views.
+          </p>
+
+        </div>
+
+
+        {/* ================================================== */}
+        {/* PERIOD FILTER */}
+        {/* ================================================== */}
+
+        <div
+          className="
+            w-full
+            overflow-x-auto
+            pb-1
+            lg:w-auto
+          "
+        >
+
+          <div
+            className="
+              flex
+              min-w-max
+              gap-2
+            "
+          >
+
+            {(
+              [
+                ["TODAY", "Today"],
+                ["YESTERDAY", "Yesterday"],
+                ["THIS_WEEK", "This Week"],
+                ["THIS_MONTH", "This Month"],
+                ["THIS_YEAR", "This Year"],
+              ] as const
+            ).map(
+              ([period, label]) => (
+
+                <button
+                  key={period}
+                  type="button"
+                  onClick={() =>
+                    changePeriod(
+                      period
+                    )
+                  }
+                  disabled={
+                    isPending
+                  }
+                  className={
+                    getPeriodButtonClass(
+                      period
+                    )
+                  }
+                >
+                  {label}
+                </button>
+
+              )
+            )}
+
+          </div>
 
         </div>
 
@@ -366,6 +579,56 @@ export default function ProductSalesAnalytics({
             gap-2
           "
         >
+
+          <button
+            type="button"
+            onClick={() =>
+              setSortBy(
+                "views"
+              )
+            }
+            className={`
+              rounded-full
+              px-4
+              py-2
+              text-xs
+              font-medium
+              transition
+              ${
+                sortBy ===
+                "views"
+                  ? "bg-black text-white"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+              }
+            `}
+          >
+            Views
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              setSortBy(
+                "orders"
+              )
+            }
+            className={`
+              rounded-full
+              px-4
+              py-2
+              text-xs
+              font-medium
+              transition
+              ${
+                sortBy ===
+                "orders"
+                  ? "bg-black text-white"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+              }
+            `}
+          >
+            Orders
+          </button>
 
           <button
             type="button"
@@ -473,7 +736,7 @@ export default function ProductSalesAnalytics({
           >
             {showAll
               ? "All Products"
-              : "Top 10 Products"}
+              : "Top 5 Products"}
           </p>
 
 
@@ -499,7 +762,7 @@ export default function ProductSalesAnalytics({
         {/* ================================================== */}
 
         {sortedProducts.length >
-          10 && (
+          5 && (
 
           <button
             type="button"
@@ -526,7 +789,7 @@ export default function ProductSalesAnalytics({
             "
           >
             {showAll
-              ? "Show Top 10"
+              ? "Show Top 5"
               : "View All Products"}
           </button>
 
@@ -613,6 +876,36 @@ export default function ProductSalesAnalytics({
                   text-neutral-400
                 "
               >
+                Views
+              </th>
+
+              <th
+                className="
+                  px-4
+                  py-4
+                  text-right
+                  text-xs
+                  font-medium
+                  uppercase
+                  tracking-[0.18em]
+                  text-neutral-400
+                "
+              >
+                Orders
+              </th>
+
+              <th
+                className="
+                  px-4
+                  py-4
+                  text-right
+                  text-xs
+                  font-medium
+                  uppercase
+                  tracking-[0.18em]
+                  text-neutral-400
+                "
+              >
                 Units
               </th>
 
@@ -678,6 +971,21 @@ export default function ProductSalesAnalytics({
                 "
               >
                 Margin
+              </th>
+
+              <th
+                className="
+                  px-4
+                  py-4
+                  text-right
+                  text-xs
+                  font-medium
+                  uppercase
+                  tracking-[0.18em]
+                  text-neutral-400
+                "
+              >
+                Conversion
               </th>
 
             </tr>
@@ -763,6 +1071,42 @@ export default function ProductSalesAnalytics({
 
                   </td>
 
+
+                  {/* ======================================== */}
+                  {/* VIEWS */}
+                  {/* ======================================== */}
+
+                  <td
+                    className="
+                      px-4
+                      py-5
+                      text-right
+                      text-sm
+                      text-neutral-700
+                    "
+                  >
+                    {
+                      product.views.toLocaleString()
+                    }
+                  </td>
+
+                  {/* ======================================== */}
+                  {/* ORDERS */}
+                  {/* ======================================== */}
+
+                  <td
+                    className="
+                      px-4
+                      py-5
+                      text-right
+                      text-sm
+                      text-neutral-700
+                    "
+                  >
+                    {
+                      product.orders.toLocaleString()
+                    }
+                  </td>
 
                   {/* ======================================== */}
                   {/* UNITS */}
@@ -885,6 +1229,40 @@ export default function ProductSalesAnalytics({
 
                   </td>
 
+                  <td
+                    className="
+                      px-4
+                      py-5
+                      text-right
+                    "
+                  >
+
+                    <span
+                      className={`
+                        inline-flex
+                        rounded-full
+                        px-3
+                        py-1
+                        text-xs
+                        font-medium
+                        ${
+                          product.conversion >= 5
+                            ? "bg-green-100 text-green-700"
+                            : product.conversion > 0
+                              ? "bg-neutral-100 text-neutral-700"
+                              : "bg-red-50 text-red-500"
+                        }
+                      `}
+                    >
+                      {
+                        product.conversion.toFixed(
+                          2
+                        )
+                      }%
+                    </span>
+
+                  </td>
+
                 </tr>
 
               )
@@ -904,7 +1282,7 @@ export default function ProductSalesAnalytics({
       <div
         className="
           mt-4
-          space-y-3
+          space-y-2
           md:hidden
         "
       >
@@ -917,30 +1295,22 @@ export default function ProductSalesAnalytics({
                 border
                 border-neutral-200
                 bg-white
-                p-4
-                shadow-sm
+                px-3
+                py-3
               "
             >
-              {/* Product Header */}
-
-              <div
-                className="
-                  flex
-                  items-start
-                  gap-3
-                "
-              >
+              <div className="flex items-center gap-3">
                 <div
                   className="
                     flex
-                    h-8
-                    w-8
+                    h-7
+                    w-7
                     shrink-0
                     items-center
                     justify-center
                     rounded-full
                     bg-neutral-100
-                    text-[11px]
+                    text-[10px]
                     font-medium
                     text-neutral-500
                   "
@@ -951,7 +1321,7 @@ export default function ProductSalesAnalytics({
                 <div className="min-w-0 flex-1">
                   <p
                     className="
-                      break-words
+                      truncate
                       text-sm
                       font-medium
                       leading-5
@@ -961,167 +1331,46 @@ export default function ProductSalesAnalytics({
                     {product.productName}
                   </p>
 
-                  <p
-                    className="
-                      mt-1
-                      truncate
-                      text-[11px]
-                      text-neutral-400
-                    "
-                  >
+                  <p className="mt-0.5 truncate text-[10px] text-neutral-400">
                     {product.brand}
                   </p>
                 </div>
 
-                <span
-                  className="
-                    shrink-0
-                    rounded-full
-                    bg-neutral-100
-                    px-2.5
-                    py-1
-                    text-[10px]
-                    font-medium
-                    text-neutral-700
-                  "
-                >
-                  {product.margin.toFixed(1)}%
-                </span>
+                <div className="shrink-0 text-right">
+                  <p className="text-[9px] uppercase tracking-[0.16em] text-neutral-400">
+                    Views
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-neutral-900">
+                    {product.views.toLocaleString()}
+                  </p>
+                </div>
               </div>
 
-              {/* Metrics */}
-
-              <div
-                className="
-                  mt-4
-                  grid
-                  grid-cols-2
-                  gap-2
-                "
-              >
-                <div
-                  className="
-                    rounded-xl
-                    bg-neutral-50
-                    p-3
-                  "
-                >
-                  <p
-                    className="
-                      text-[9px]
-                      uppercase
-                      tracking-[0.18em]
-                      text-neutral-400
-                    "
-                  >
-                    Units
+              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-2.5">
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.14em] text-neutral-400">
+                    Orders
                   </p>
-
-                  <p
-                    className="
-                      mt-1
-                      text-sm
-                      font-medium
-                      text-neutral-900
-                    "
-                  >
-                    {product.unitsSold.toLocaleString()}
+                  <p className="mt-0.5 text-xs font-medium text-neutral-800">
+                    {product.orders.toLocaleString()}
                   </p>
                 </div>
 
-                <div
-                  className="
-                    rounded-xl
-                    bg-neutral-50
-                    p-3
-                  "
-                >
-                  <p
-                    className="
-                      text-[9px]
-                      uppercase
-                      tracking-[0.18em]
-                      text-neutral-400
-                    "
-                  >
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.14em] text-neutral-400">
                     Sales
                   </p>
-
-                  <p
-                    className="
-                      mt-1
-                      break-all
-                      text-sm
-                      font-medium
-                      text-neutral-900
-                    "
-                  >
+                  <p className="mt-0.5 text-xs font-medium text-neutral-800">
                     {formatMoney(product.totalSales)}
                   </p>
                 </div>
 
-                <div
-                  className="
-                    rounded-xl
-                    bg-neutral-50
-                    p-3
-                  "
-                >
-                  <p
-                    className="
-                      text-[9px]
-                      uppercase
-                      tracking-[0.18em]
-                      text-neutral-400
-                    "
-                  >
-                    Cost
+                <div className="text-right">
+                  <p className="text-[9px] uppercase tracking-[0.14em] text-neutral-400">
+                    Conversion
                   </p>
-
-                  <p
-                    className="
-                      mt-1
-                      break-all
-                      text-sm
-                      text-neutral-600
-                    "
-                  >
-                    {formatMoney(product.totalCost)}
-                  </p>
-                </div>
-
-                <div
-                  className="
-                    rounded-xl
-                    bg-neutral-50
-                    p-3
-                  "
-                >
-                  <p
-                    className="
-                      text-[9px]
-                      uppercase
-                      tracking-[0.18em]
-                      text-neutral-400
-                    "
-                  >
-                    Profit
-                  </p>
-
-                  <p
-                    className={`
-                      mt-1
-                      break-all
-                      text-sm
-                      font-medium
-                      ${
-                        product.profit >= 0
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }
-                    `}
-                  >
-                    {formatMoney(product.profit)}
+                  <p className="mt-0.5 text-xs font-medium text-neutral-800">
+                    {product.conversion.toFixed(2)}%
                   </p>
                 </div>
               </div>

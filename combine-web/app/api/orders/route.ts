@@ -62,24 +62,9 @@ type CreateOrderBody = {
    * Customer's Malaysian state.
    *
    * Used for ABX shipping calculation.
-   *
-   * Optional for international orders.
    */
 
-  state?: string;
-
-  /*
-   * Customer's shipping country.
-   *
-   * Malaysia uses the existing ABX shipping rules.
-   * Other countries require a manual shipping quotation.
-   */
-
-  country?: string;
-
-  shippingCountry?: string;
-
-  shippingType?: "LOCAL" | "INTERNATIONAL";
+  state: string;
 
   /*
    * Customer's Additional Notes.
@@ -93,12 +78,7 @@ type CreateOrderBody = {
 
   items: OrderItemInput[];
 
-  /*
-   * Required only for normal Malaysia checkout.
-   * International customers request a shipping quote first.
-   */
-
-  paymentMethodId?: number;
+  paymentMethodId: number;
 
   voucherCode?: string;
 };
@@ -200,62 +180,44 @@ function roundMoney(
 
 
 // ============================================================
-// ORDER REFERENCE
+// ADD ONE CALENDAR MONTH
 // ============================================================
-//
-// Format:
-// CL-YYYYMMDD-OOOO
-//
-// The date follows the order creation date in Malaysia time.
-// The last four digits follow the real Order ID.
-//
-// Example:
-// Order #50 created on 2026-09-01
-// → CL-20260901-0050
-//
-// IMPORTANT:
-// publicToken remains the secure public URL token.
-// orderNumber is only the customer/admin-facing reference.
-//
 
-function buildOrderNumber(
-  orderId: number,
-  createdAt: Date
-): string {
+function addOneCalendarMonth(date: Date): Date {
+  const year = date.getUTCFullYear();
+  const monthIndex = date.getUTCMonth();
+  const day = date.getUTCDate();
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+  const seconds = date.getUTCSeconds();
+  const milliseconds = date.getUTCMilliseconds();
 
-  const dateParts =
-    new Intl.DateTimeFormat(
-      "en-CA",
-      {
-        timeZone: "Asia/Kuala_Lumpur",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }
-    ).formatToParts(
-      createdAt
-    );
+  const targetMonthIndex = monthIndex + 1;
 
-  const year =
-    dateParts.find(
-      (part) =>
-        part.type === "year"
-    )?.value ?? "";
+  const lastDayOfTargetMonth =
+    new Date(
+      Date.UTC(
+        year,
+        targetMonthIndex + 1,
+        0
+      )
+    ).getUTCDate();
 
-  const month =
-    dateParts.find(
-      (part) =>
-        part.type === "month"
-    )?.value ?? "";
+  const targetDay = Math.min(
+    day,
+    lastDayOfTargetMonth
+  );
 
-  const day =
-    dateParts.find(
-      (part) =>
-        part.type === "day"
-    )?.value ?? "";
-
-  return (
-    `CL-${year}${month}${day}-${String(orderId).padStart(4, "0")}`
+  return new Date(
+    Date.UTC(
+      year,
+      targetMonthIndex,
+      targetDay,
+      hours,
+      minutes,
+      seconds,
+      milliseconds
+    )
   );
 }
 
@@ -332,24 +294,6 @@ export async function POST(
       );
 
 
-    const country =
-      cleanString(
-        body.country ||
-        body.shippingCountry
-      ) || "Malaysia";
-
-
-    const isMalaysia =
-      country.toLowerCase() ===
-      "malaysia";
-
-
-    const shippingType =
-      isMalaysia
-        ? "LOCAL"
-        : "INTERNATIONAL";
-
-
     const message =
       cleanString(
         body.message
@@ -412,7 +356,6 @@ export async function POST(
 
 
     if (
-      isMalaysia &&
       !state
     ) {
 
@@ -456,12 +399,6 @@ export async function POST(
     // ========================================================
     // PAYMENT METHOD
     // ========================================================
-    //
-    // Malaysia orders can proceed directly to payment.
-    //
-    // International orders MUST NOT select or create a payment
-    // method yet. The customer first requests a shipping quote.
-    //
 
     const paymentMethodId =
       Number(
@@ -469,67 +406,53 @@ export async function POST(
       );
 
 
-    let paymentMethod:
-      Awaited<
-        ReturnType<
-          typeof prisma.paymentMethod.findFirst
-        >
-      > = null;
+    if (
+      !Number.isInteger(
+        paymentMethodId
+      ) ||
+      paymentMethodId <= 0
+    ) {
+
+      return NextResponse.json(
+        {
+          error:
+            "Please select a valid payment method.",
+        },
+        {
+          status: 400,
+        }
+      );
+
+    }
+
+
+    const paymentMethod =
+      await prisma.paymentMethod.findFirst({
+
+        where: {
+          id:
+            paymentMethodId,
+
+          active:
+            true,
+        },
+
+      });
 
 
     if (
-      isMalaysia
+      !paymentMethod
     ) {
 
-      if (
-        !Number.isInteger(
-          paymentMethodId
-        ) ||
-        paymentMethodId <= 0
-      ) {
-
-        return NextResponse.json(
-          {
-            error:
-              "Please select a valid payment method.",
-          },
-          {
-            status: 400,
-          }
-        );
-
-      }
-
-
-      paymentMethod =
-        await prisma.paymentMethod.findFirst({
-
-          where: {
-            id:
-              paymentMethodId,
-
-            active:
-              true,
-          },
-
-        });
-
-
-      if (
-        !paymentMethod
-      ) {
-
-        return NextResponse.json(
-          {
-            error:
-              "The selected payment method is no longer available.",
-          },
-          {
-            status: 400,
-          }
-        );
-
-      }
+      return NextResponse.json(
+        {
+          error:
+            "The selected payment method is no longer available.",
+        },
+        {
+          status: 400,
+        }
+      );
 
     }
 
@@ -616,8 +539,6 @@ export async function POST(
 
           price: true,
 
-          costPriceCny: true,
-
           availability: true,
 
           variants: {
@@ -648,22 +569,6 @@ export async function POST(
         },
 
       });
-
-
-    // ========================================================
-    // GLOBAL EXCHANGE RATE
-    // ========================================================
-
-    const settings =
-      await prisma.setting.findFirst({
-        select: {
-          exchangeRate: true,
-        },
-      });
-
-    const globalExchangeRate =
-      settings?.exchangeRate ??
-      0.59;
 
 
     // ========================================================
@@ -1162,85 +1067,8 @@ export async function POST(
 
 
             const totalPrice =
-              roundMoney(
-                unitPrice *
-                quantity
-              );
-
-
-            // ==================================================
-            // COST / PROFIT SNAPSHOT
-            // ==================================================
-
-            /*
-             * ProductVariant stores:
-             *
-             * costPriceCny
-             * exchangeRate
-             *
-             * Cost in MYR is calculated from the exact
-             * Variant selected by the customer.
-             *
-             * We snapshot the result into OrderItem so
-             * future changes to the product cost do not
-             * change historical order profit.
-             */
-
-            /*
-             * COST / PROFIT SNAPSHOT
-             *
-             * Cost priority:
-             * 1. Variant costPriceCny
-             * 2. Product costPriceCny
-             *
-             * Exchange-rate priority:
-             * 1. Variant exchangeRate
-             * 2. Global Settings exchangeRate
-             */
-
-            const costPriceCny =
-              selectedVariant.costPriceCny ??
-              product.costPriceCny;
-
-
-            const exchangeRate =
-              selectedVariant.exchangeRate ??
-              globalExchangeRate;
-
-
-            const unitCost =
-              costPriceCny !== null &&
-              Number.isFinite(
-                costPriceCny
-              ) &&
-              costPriceCny >= 0 &&
-              Number.isFinite(
-                exchangeRate
-              ) &&
-              exchangeRate > 0
-                ? roundMoney(
-                    costPriceCny *
-                    exchangeRate
-                  )
-                : null;
-
-
-            const totalCost =
-              unitCost !== null
-                ? roundMoney(
-                    unitCost *
-                    quantity
-                  )
-                : null;
-
-
-            const profit =
-              totalCost !== null
-                ? roundMoney(
-                    totalPrice -
-                    totalCost
-                  )
-                : null;
+              unitPrice *
+              quantity;
 
 
             return {
@@ -1290,12 +1118,6 @@ export async function POST(
 
               totalPrice,
 
-              unitCost,
-
-              totalCost,
-
-              profit,
-
             };
 
           }
@@ -1326,49 +1148,8 @@ export async function POST(
 
 
           const totalPrice =
-            roundMoney(
-              unitPrice *
-              quantity
-            );
-
-
-          // ==================================================
-          // COST / PROFIT SNAPSHOT
-          // ==================================================
-          // Products without Variants use Product.costPriceCny
-          // and the global Settings exchange rate.
-          // The calculated values are saved to OrderItem as a
-          // historical snapshot for this order.
-
-          const costPriceCny =
-            product.costPriceCny;
-
-          const unitCost =
-            costPriceCny !== null &&
-            Number.isFinite(costPriceCny) &&
-            costPriceCny >= 0 &&
-            Number.isFinite(globalExchangeRate) &&
-            globalExchangeRate > 0
-              ? roundMoney(
-                  costPriceCny *
-                  globalExchangeRate
-                )
-              : null;
-
-          const totalCost =
-            unitCost !== null
-              ? roundMoney(
-                  unitCost * quantity
-                )
-              : null;
-
-          const profit =
-            totalCost !== null
-              ? roundMoney(
-                  totalPrice -
-                  totalCost
-                )
-              : null;
+            unitPrice *
+            quantity;
 
 
           return {
@@ -1413,12 +1194,6 @@ export async function POST(
             unitPrice,
 
             totalPrice,
-
-            unitCost,
-
-            totalCost,
-
-            profit,
 
           };
 
@@ -1532,16 +1307,11 @@ export async function POST(
 
         state,
 
-        country,
-
         voucherCode,
 
         userId,
 
         productCategories,
-
-        paymentMethodType:
-          paymentMethod?.type ?? null,
 
       });
 
@@ -1584,12 +1354,6 @@ export async function POST(
       );
 
 
-    const paypalFee =
-      roundMoney(
-        calculation.paypalFee ?? 0
-      );
-
-
     const finalAmount =
       roundMoney(
         calculation.finalAmount
@@ -1600,52 +1364,43 @@ export async function POST(
       calculation.shipping.region;
 
 
-    const shippingQuoteStatus =
-      isMalaysia
-        ? "NOT_REQUIRED"
-        : "PENDING";
-
-
     // ========================================================
     // PAYMENT SNAPSHOT
     // ========================================================
 
-    const paymentData =
-      paymentMethod
-        ? {
+    const paymentData = {
 
-            paymentMethodId:
-              paymentMethod.id,
+      paymentMethodId:
+        paymentMethod.id,
 
-            paymentMethodName:
-              paymentMethod.name,
+      paymentMethodName:
+        paymentMethod.name,
 
-            paymentMethodType:
-              paymentMethod.type,
+      paymentMethodType:
+        paymentMethod.type,
 
-            bankName:
-              paymentMethod.bankName,
+      bankName:
+        paymentMethod.bankName,
 
-            accountName:
-              paymentMethod.accountName,
+      accountName:
+        paymentMethod.accountName,
 
-            accountNumber:
-              paymentMethod.accountNumber,
+      accountNumber:
+        paymentMethod.accountNumber,
 
-            qrImageUrl:
-              paymentMethod.qrImageUrl,
+      qrImageUrl:
+        paymentMethod.qrImageUrl,
 
-            qrPublicId:
-              paymentMethod.qrPublicId,
+      qrPublicId:
+        paymentMethod.qrPublicId,
 
-            amount:
-              finalAmount,
+      amount:
+        finalAmount,
 
-            status:
-              "PENDING" as const,
+      status:
+        "PENDING" as const,
 
-          }
-        : null;
+    };
 
 
     // ========================================================
@@ -1732,9 +1487,74 @@ export async function POST(
             }
 
 
+            // ------------------------------------------------
+            // Expiry
+            // ------------------------------------------------
+            //
+            // Normal Voucher:
+            // - Uses the admin-defined expiresAt.
+            // - NULL means no expiry.
+            //
+            // New Customer Voucher:
+            // - Ignores voucher.expiresAt.
+            // - Starts from the customer's account creation time.
+            // - Expires one calendar month later.
+            //
+            // This is checked again inside the transaction
+            // so the final order cannot bypass the rule.
+            // ------------------------------------------------
+
             if (
+              voucher.newCustomerOnly
+            ) {
+
+              if (
+                !userId
+              ) {
+
+                throw new Error(
+                  "Please log in to use this voucher."
+                );
+
+              }
+
+              const customer =
+                await tx.user.findUnique({
+                  where: {
+                    id: userId,
+                  },
+                  select: {
+                    createdAt: true,
+                  },
+                });
+
+              if (!customer) {
+
+                throw new Error(
+                  "Customer account could not be found."
+                );
+
+              }
+
+              const customerVoucherExpiry =
+                addOneCalendarMonth(
+                  customer.createdAt
+                );
+
+              if (
+                now >=
+                customerVoucherExpiry
+              ) {
+
+                throw new Error(
+                  "This new customer voucher has expired."
+                );
+
+              }
+
+            } else if (
               voucher.expiresAt &&
-              now >
+              now >=
                 voucher.expiresAt
             ) {
 
@@ -1962,28 +1782,6 @@ export async function POST(
                 address,
 
                 /*
-                 * Shipping country.
-                 */
-
-                shippingCountry:
-                  country,
-
-                /*
-                 * Shipping type.
-                 *
-                 * INTERNATIONAL orders remain pending until
-                 * the shipping fee is manually quoted.
-                 */
-
-                shippingType,
-
-                /*
-                 * International shipping quotation status.
-                 */
-
-                shippingQuoteStatus,
-
-                /*
                  * Link the order to the authenticated
                  * Customer Account when available.
                  *
@@ -2024,15 +1822,6 @@ export async function POST(
                 shippingRegion,
 
                 /*
-                 * PayPal processing fee snapshot.
-                 *
-                 * This is only charged when the
-                 * selected payment method is PAYPAL.
-                 */
-
-                paypalFee,
-
-                /*
                  * Server-calculated final amount.
                  */
 
@@ -2048,14 +1837,12 @@ export async function POST(
 
                 },
 
-                ...(paymentData
-                  ? {
-                      payment: {
-                        create:
-                          paymentData,
-                      },
-                    }
-                  : {}),
+                payment: {
+
+                  create:
+                    paymentData,
+
+                },
 
               },
 
@@ -2070,50 +1857,9 @@ export async function POST(
             });
 
 
-          /*
-           * The Order ID is generated by the database, so the
-           * customer-facing Order Reference must be generated
-           * immediately after the Order is created.
-           *
-           * Example:
-           * id = 50
-           * createdAt = 2026-09-01
-           * → CL-20260901-0050
-           */
-
-          const orderNumber =
-            buildOrderNumber(
-              createdOrder.id,
-              createdOrder.createdAt
-            );
-
-
-          const orderWithNumber =
-            await tx.order.update({
-
-              where: {
-                id:
-                  createdOrder.id,
-              },
-
-              data: {
-                orderNumber,
-              },
-
-              include: {
-
-                items: true,
-
-                payment: true,
-
-              },
-
-            });
-
-
-          // ========================================================
+          // ==================================================
           // CREATE VOUCHER USAGE
-          // ========================================================
+          // ==================================================
 
           if (
             voucherCode &&
@@ -2141,7 +1887,7 @@ export async function POST(
           }
 
 
-          return orderWithNumber;
+          return createdOrder;
 
         }
       );
@@ -2164,9 +1910,6 @@ export async function POST(
           publicToken:
             order.publicToken,
 
-          orderNumber:
-            order.orderNumber,
-
           status:
             order.status,
 
@@ -2184,18 +1927,6 @@ export async function POST(
 
           shippingRegion:
             order.shippingRegion,
-
-          shippingCountry:
-            order.shippingCountry,
-
-          shippingType:
-            order.shippingType,
-
-          shippingQuoteStatus:
-            order.shippingQuoteStatus,
-
-          paypalFee:
-            order.paypalFee,
 
           finalAmount:
             order.finalAmount,

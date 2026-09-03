@@ -17,6 +17,7 @@ import {
 
 export type SalesPeriod =
   | "TODAY"
+  | "YESTERDAY"
   | "THIS_WEEK"
   | "THIS_MONTH"
   | "THIS_YEAR";
@@ -179,6 +180,30 @@ export default function SalesAnalytics({
         }
       >
         Today
+      </button>
+
+
+      {/* ==================================================== */}
+      {/* YESTERDAY */}
+      {/* ==================================================== */}
+
+      <button
+        type="button"
+        onClick={() =>
+          changePeriod(
+            "YESTERDAY"
+          )
+        }
+        disabled={
+          isPending
+        }
+        className={
+          getButtonClass(
+            "YESTERDAY"
+          )
+        }
+      >
+        Yesterday
       </button>
 
 

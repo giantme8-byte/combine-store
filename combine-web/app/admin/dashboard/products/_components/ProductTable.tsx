@@ -57,19 +57,6 @@ type ProductTableProps = {
 
   sort: string;
 
-  /*
-   * =========================================================
-   * CURRENT PRODUCTS PAGE STATE
-   * =========================================================
-   *
-   * These are the actual filters from the Products page.
-   *
-   * They are NOT the Bulk Action states below.
-   *
-   * They are passed to ProductRow -> ProductActions
-   * so Edit Product can return to the exact same list state.
-   */
-
   search: string;
 
   brand: string;
@@ -90,35 +77,17 @@ export default function ProductTable({
   canDelete,
   sort,
 
-  /*
-   * Current Products page filters.
-   */
-
   search,
   brand,
   category,
   availability,
 }: ProductTableProps) {
 
-  // =========================================================
-  // SELECTION
-  // =========================================================
-
   const [
     selectedProducts,
     setSelectedProducts,
   ] = useState<number[]>([]);
 
-
-  // =========================================================
-  // BULK ACTION STATE
-  // =========================================================
-  //
-  // IMPORTANT:
-  //
-  // These are separate from the current Products page filters.
-  //
-  // =========================================================
 
   const [
     bulkAvailability,
@@ -168,17 +137,9 @@ export default function ProductTable({
   ] = useState("");
 
 
-  // =========================================================
-  // ROUTER
-  // =========================================================
-
   const router =
     useRouter();
 
-
-  // =========================================================
-  // DISPLAY PRODUCTS
-  // =========================================================
 
   const [
     displayProducts,
@@ -188,28 +149,16 @@ export default function ProductTable({
   );
 
 
-  // =========================================================
-  // SAVING STATE
-  // =========================================================
-
   const [
     isSavingOrder,
     setIsSavingOrder,
   ] = useState(false);
 
 
-  // =========================================================
-  // MANUAL ORDER
-  // =========================================================
-
   const isManualOrder =
     sort === "manual" ||
     sort === "featured";
 
-
-  // =========================================================
-  // DRAG SENSOR
-  // =========================================================
 
   const sensors =
     useSensors(
@@ -224,10 +173,6 @@ export default function ProductTable({
     );
 
 
-  // =========================================================
-  // SYNC SERVER DATA
-  // =========================================================
-
   useEffect(() => {
 
     setDisplayProducts(
@@ -238,10 +183,6 @@ export default function ProductTable({
     products,
   ]);
 
-
-  // =========================================================
-  // SELECTION
-  // =========================================================
 
   const toggleProduct = (
     id: number
@@ -295,10 +236,6 @@ export default function ProductTable({
     };
 
 
-  // =========================================================
-  // BULK UPDATE
-  // =========================================================
-
   const applyAvailability =
     async () => {
 
@@ -306,7 +243,9 @@ export default function ProductTable({
         selectedProducts.length ===
         0
       ) {
+
         return;
+
       }
 
 
@@ -404,7 +343,6 @@ export default function ProductTable({
 
       setSelectedProducts([]);
 
-
       setBulkBrand("");
       setBulkCategory("");
       setBulkAvailability("");
@@ -415,35 +353,26 @@ export default function ProductTable({
       setLimited("");
       setOnSale("");
 
-
       router.refresh();
 
     };
 
 
-  // =========================================================
-  // DRAG & DROP
-  // =========================================================
-
   async function handleDragEnd(
     event: DragEndEvent
   ) {
 
-    // -------------------------------------------------------
-    // Prevent concurrent saves.
-    // -------------------------------------------------------
-
     if (isSavingOrder) {
+
       return;
+
     }
 
 
-    // -------------------------------------------------------
-    // Only Manual Order can be dragged.
-    // -------------------------------------------------------
-
     if (!isManualOrder) {
+
       return;
+
     }
 
 
@@ -454,7 +383,9 @@ export default function ProductTable({
 
 
     if (!over) {
+
       return;
+
     }
 
 
@@ -462,13 +393,11 @@ export default function ProductTable({
       active.id ===
       over.id
     ) {
+
       return;
+
     }
 
-
-    // -------------------------------------------------------
-    // Find indexes.
-    // -------------------------------------------------------
 
     const oldIndex =
       displayProducts.findIndex(
@@ -490,23 +419,17 @@ export default function ProductTable({
       oldIndex === -1 ||
       newIndex === -1
     ) {
+
       return;
+
     }
 
-
-    // -------------------------------------------------------
-    // Save previous UI state.
-    // -------------------------------------------------------
 
     const previousProducts =
       [
         ...displayProducts,
       ];
 
-
-    // -------------------------------------------------------
-    // Optimistic reorder.
-    // -------------------------------------------------------
 
     const reordered =
       arrayMove(
@@ -521,24 +444,12 @@ export default function ProductTable({
     );
 
 
-    // -------------------------------------------------------
-    // IMPORTANT
-    //
-    // Do NOT calculate displayOrder here.
-    //
-    // The server owns the global order.
-    // -------------------------------------------------------
-
     const orderedIds =
       reordered.map(
         (product) =>
           product.id
       );
 
-
-    // -------------------------------------------------------
-    // Save global order.
-    // -------------------------------------------------------
 
     setIsSavingOrder(
       true
@@ -582,10 +493,6 @@ export default function ProductTable({
   }
 
 
-  // =========================================================
-  // DELETE SELECTED
-  // =========================================================
-
   const deleteSelected =
     async () => {
 
@@ -593,7 +500,9 @@ export default function ProductTable({
         selectedProducts.length ===
         0
       ) {
+
         return;
+
       }
 
 
@@ -610,16 +519,8 @@ export default function ProductTable({
     };
 
 
-  // =========================================================
-  // RENDER
-  // =========================================================
-
   return (
     <>
-
-      {/* ================================================= */}
-      {/* Selection Toolbar */}
-      {/* ================================================= */}
 
       {selectedProducts.length >
         0 && (
@@ -717,10 +618,6 @@ export default function ProductTable({
       )}
 
 
-      {/* ================================================= */}
-      {/* Manual Order Notice */}
-      {/* ================================================= */}
-
       {!isManualOrder && (
 
         <div
@@ -749,10 +646,6 @@ export default function ProductTable({
       )}
 
 
-      {/* ================================================= */}
-      {/* Saving Notice */}
-      {/* ================================================= */}
-
       {isSavingOrder && (
 
         <div
@@ -768,15 +661,13 @@ export default function ProductTable({
             text-neutral-600
           "
         >
+
           Saving product order...
+
         </div>
 
       )}
 
-
-      {/* ================================================= */}
-      {/* Drag & Drop */}
-      {/* ================================================= */}
 
       <DndContext
         sensors={
@@ -835,16 +726,10 @@ export default function ProductTable({
           <table
             className="
               w-full
-              min-w-[760px]
+              min-w-[1500px]
               table-fixed
-
-              lg:min-w-[1500px]
             "
           >
-
-            {/* ================================================= */}
-            {/* Header */}
-            {/* ================================================= */}
 
             <thead
               className="
@@ -918,7 +803,9 @@ export default function ProductTable({
                     lg:tracking-[0.18em]
                   "
                 >
+
                   Product
+
                 </th>
 
 
@@ -941,7 +828,9 @@ export default function ProductTable({
                     lg:tracking-[0.18em]
                   "
                 >
+
                   Pricing
+
                 </th>
 
 
@@ -964,14 +853,56 @@ export default function ProductTable({
                     lg:tracking-[0.18em]
                   "
                 >
+
                   Availability
+
                 </th>
 
 
+                {/* ================================================= */}
+                {/* Video */}
+                {/* ================================================= */}
+
                 <th
                   className="
-                    w-[390px]
-                    min-w-[390px]
+                    w-[80px]
+                    px-3
+                    py-3
+                    text-center
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.16em]
+                    text-neutral-500
+
+                    lg:w-[100px]
+                    lg:px-4
+                    lg:py-4
+                    lg:text-xs
+                    lg:tracking-[0.18em]
+                  "
+                >
+
+                  Video
+
+                </th>
+
+
+                {/* ================================================= */}
+                {/* Actions */}
+                {/* ================================================= */}
+
+                <th
+                  className="
+                    sticky
+                    right-0
+                    z-40
+                    w-[360px]
+                    min-w-[360px]
+                    max-w-[360px]
+                    border-l
+                    border-neutral-200
+                    bg-white
                     px-3
                     py-3
                     text-right
@@ -980,26 +911,26 @@ export default function ProductTable({
                     uppercase
                     tracking-[0.16em]
                     text-neutral-500
+                    shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.35)]
 
-                    lg:w-[430px]
-                    lg:min-w-[430px]
+                    lg:w-[360px]
+                    lg:min-w-[360px]
+                    lg:max-w-[360px]
                     lg:px-6
                     lg:py-4
                     lg:text-xs
                     lg:tracking-[0.18em]
                   "
                 >
+
                   Actions
+
                 </th>
 
               </tr>
 
             </thead>
 
-
-            {/* ================================================= */}
-            {/* Products */}
-            {/* ================================================= */}
 
             <SortableContext
               items={
@@ -1052,14 +983,6 @@ export default function ProductTable({
                       canDelete={
                         canDelete
                       }
-
-                      /*
-                       * Current Products page state.
-                       *
-                       * Passed to ProductActions
-                       * so Edit Product can return
-                       * to the same list state.
-                       */
 
                       page={
                         page

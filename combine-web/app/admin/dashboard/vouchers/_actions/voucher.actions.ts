@@ -96,24 +96,63 @@ function parseDate(
   value: string,
   fieldName: string
 ) {
+  const trimmedValue = value.trim();
 
-  const date =
-    new Date(value);
+  if (!trimmedValue) {
+    throw new Error(`Invalid ${fieldName}.`);
+  }
+
+  // datetime-local has no timezone. Treat the submitted wall-clock value
+  // as Malaysia time (UTC+8), then store the equivalent UTC instant.
+  const match = trimmedValue.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/
+  );
+
+  if (!match) {
+    throw new Error(`Invalid ${fieldName}.`);
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6] ?? "0");
+
+  const utcMillis = Date.UTC(
+    year,
+    month - 1,
+    day,
+    hour,
+    minute,
+    second
+  ) - 8 * 60 * 60 * 1000;
+
+  const date = new Date(utcMillis);
+
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Invalid ${fieldName}.`);
+  }
+
+  // Date.UTC normalizes invalid calendar dates. Check the original
+  // Malaysia wall-clock components so dates such as 31 Feb are rejected.
+  const malaysiaCheck = new Date(
+    date.getTime() + 8 * 60 * 60 * 1000
+  );
 
   if (
-    Number.isNaN(
-      date.getTime()
-    )
+    malaysiaCheck.getUTCFullYear() !== year ||
+    malaysiaCheck.getUTCMonth() !== month - 1 ||
+    malaysiaCheck.getUTCDate() !== day ||
+    malaysiaCheck.getUTCHours() !== hour ||
+    malaysiaCheck.getUTCMinutes() !== minute ||
+    malaysiaCheck.getUTCSeconds() !== second
   ) {
-    throw new Error(
-      `Invalid ${fieldName}.`
-    );
+    throw new Error(`Invalid ${fieldName}.`);
   }
 
   return date;
-
 }
-
 
 // ============================================================
 // VALIDATE VOUCHER
@@ -564,12 +603,14 @@ export async function createVoucher(
         ),
 
       expiresAt:
-        data.expiresAt
-          ? parseDate(
-              data.expiresAt,
-              "expiry date"
-            )
-          : null,
+        data.newCustomerOnly
+          ? null
+          : data.expiresAt
+            ? parseDate(
+                data.expiresAt,
+                "expiry date"
+              )
+            : null,
 
       usageLimit:
         data.usageLimit,
@@ -775,12 +816,14 @@ export async function updateVoucher(
         ),
 
       expiresAt:
-        data.expiresAt
-          ? parseDate(
-              data.expiresAt,
-              "expiry date"
-            )
-          : null,
+        data.newCustomerOnly
+          ? null
+          : data.expiresAt
+            ? parseDate(
+                data.expiresAt,
+                "expiry date"
+              )
+            : null,
 
       usageLimit:
         data.usageLimit,
@@ -817,7 +860,7 @@ export async function updateVoucher(
   // ==========================================================
 
   redirect(
-    `/admin/dashboard/vouchers/${id}`
+    "/admin/dashboard/vouchers"
   );
 
 }

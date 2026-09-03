@@ -71,75 +71,24 @@ type VoucherEditFormProps = {
 function toDateTimeLocal(
   value: string | null
 ) {
+  if (!value) return "";
 
-  if (
-    !value
-  ) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
 
-    return "";
+  // Database values are UTC. Display them explicitly as Malaysia time (UTC+8).
+  const malaysiaTime = new Date(
+    date.getTime() + 8 * 60 * 60 * 1000
+  );
 
-  }
-
-
-  const date =
-    new Date(value);
-
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-
-    return "";
-
-  }
-
-
-  const year =
-    date.getFullYear();
-
-
-  const month =
-    String(
-      date.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
-
-
-  const day =
-    String(
-      date.getDate()
-    ).padStart(
-      2,
-      "0"
-    );
-
-
-  const hours =
-    String(
-      date.getHours()
-    ).padStart(
-      2,
-      "0"
-    );
-
-
-  const minutes =
-    String(
-      date.getMinutes()
-    ).padStart(
-      2,
-      "0"
-    );
-
+  const year = malaysiaTime.getUTCFullYear();
+  const month = String(malaysiaTime.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(malaysiaTime.getUTCDate()).padStart(2, "0");
+  const hours = String(malaysiaTime.getUTCHours()).padStart(2, "0");
+  const minutes = String(malaysiaTime.getUTCMinutes()).padStart(2, "0");
 
   return `${year}-${month}-${day}T${hours}:${minutes}`;
-
 }
-
 
 // ============================================================
 // COMPONENT
@@ -999,35 +948,84 @@ export default function VoucherEditForm({
               Expiry Date
             </label>
 
+            {newCustomerOnly ? (
 
-            <input
-              id="expiresAt"
-              name="expiresAt"
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(
-                event
-              ) =>
-                setExpiresAt(
-                  event.target.value
-                )
-              }
-              className="
-                w-full
-                rounded-xl
-                border
-                border-gray-300
-                bg-white
-                px-3
-                py-3
-                text-sm
-                sm:px-4
-                outline-none
-                focus:border-gray-900
-                focus:ring-1
-                focus:ring-gray-900
-              "
-            />
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-gray-200
+                  bg-gray-50
+                  px-4
+                  py-3
+                "
+              >
+                <p
+                  className="
+                    text-sm
+                    font-medium
+                    text-gray-800
+                  "
+                >
+                  Dynamic expiry
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    leading-5
+                    text-gray-500
+                  "
+                >
+                  This voucher is exclusively for new customers and expires 1 month after their registration date.
+                </p>
+              </div>
+
+            ) : (
+
+              <>
+                <input
+                  id="expiresAt"
+                  name="expiresAt"
+                  type="datetime-local"
+                  value={expiresAt}
+                  onChange={(
+                    event
+                  ) =>
+                    setExpiresAt(
+                      event.target.value
+                    )
+                  }
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-gray-300
+                    bg-white
+                    px-3
+                    py-3
+                    text-sm
+                    sm:px-4
+                    outline-none
+                    focus:border-gray-900
+                    focus:ring-1
+                    focus:ring-gray-900
+                  "
+                />
+
+                <p
+                  className="
+                    mt-2
+                    text-xs
+                    text-gray-500
+                  "
+                >
+                  Leave empty for no expiry date.
+                </p>
+              </>
+
+            )}
 
           </div>
 
@@ -1204,11 +1202,26 @@ export default function VoucherEditForm({
                   mt-1
                   block
                   text-xs
+                  leading-5
                   text-gray-500
                 "
               >
                 Restrict this voucher to customers who have not placed a previous order.
               </span>
+
+              {newCustomerOnly && (
+                <span
+                  className="
+                    mt-1
+                    block
+                    text-xs
+                    leading-5
+                    text-gray-500
+                  "
+                >
+                  This voucher is exclusively for new customers and expires 1 month after their registration date.
+                </span>
+              )}
 
             </span>
 

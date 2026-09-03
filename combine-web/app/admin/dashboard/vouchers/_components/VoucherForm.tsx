@@ -36,6 +36,61 @@ type VoucherFormProps = {
 
 
 // ============================================================
+// MALAYSIA DATE/TIME HELPERS
+// ============================================================
+
+const MALAYSIA_TIMEZONE_OFFSET_MINUTES = 8 * 60;
+
+function getMalaysiaDateTimeLocal() {
+  const now = new Date();
+  const malaysiaTime = new Date(
+    now.getTime() + MALAYSIA_TIMEZONE_OFFSET_MINUTES * 60 * 1000
+  );
+
+  const year = malaysiaTime.getUTCFullYear();
+  const month = String(malaysiaTime.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(malaysiaTime.getUTCDate()).padStart(2, "0");
+  const hours = String(malaysiaTime.getUTCHours()).padStart(2, "0");
+  const minutes = String(malaysiaTime.getUTCMinutes()).padStart(2, "0");
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function addOneMonthToMalaysiaDateTime(value: string) {
+  const match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/
+  );
+
+  if (!match) return "";
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hours = Number(match[4]);
+  const minutes = Number(match[5]);
+
+  const targetMonthIndex = month;
+  const lastDayOfTargetMonth = new Date(
+    Date.UTC(year, targetMonthIndex + 1, 0)
+  ).getUTCDate();
+
+  const targetDay = Math.min(day, lastDayOfTargetMonth);
+
+  const result = new Date(
+    Date.UTC(year, targetMonthIndex, targetDay, hours, minutes)
+  );
+
+  return [
+    result.getUTCFullYear(),
+    String(result.getUTCMonth() + 1).padStart(2, "0"),
+    String(result.getUTCDate()).padStart(2, "0"),
+  ].join("-") +
+    `T${String(result.getUTCHours()).padStart(2, "0")}:${String(
+      result.getUTCMinutes()
+    ).padStart(2, "0")}`;
+}
+
+// ============================================================
 // COMPONENT
 // ============================================================
 
@@ -102,50 +157,7 @@ export default function VoucherForm({
   const [
     startAt,
     setStartAt,
-  ] = useState(() => {
-
-    const now =
-      new Date();
-
-    const year =
-      now.getFullYear();
-
-    const month =
-      String(
-        now.getMonth() + 1
-      ).padStart(
-        2,
-        "0"
-      );
-
-    const day =
-      String(
-        now.getDate()
-      ).padStart(
-        2,
-        "0"
-      );
-
-    const hours =
-      String(
-        now.getHours()
-      ).padStart(
-        2,
-        "0"
-      );
-
-    const minutes =
-      String(
-        now.getMinutes()
-      ).padStart(
-        2,
-        "0"
-      );
-
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-
-  });
-
+  ] = useState(() => getMalaysiaDateTimeLocal());
 
   const [
     expiresAt,
@@ -1039,46 +1051,84 @@ export default function VoucherForm({
               Expiry Date
             </label>
 
+            {newCustomerOnly ? (
 
-            <input
-              id="expiresAt"
-              name="expiresAt"
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(
-                event
-              ) =>
-                setExpiresAt(
-                  event.target.value
-                )
-              }
-              className="
-                w-full
-                rounded-xl
-                border
-                border-gray-300
-                bg-white
-                px-3
-                py-3
-                text-sm
-                sm:px-4
-                outline-none
-                focus:border-gray-900
-                focus:ring-1
-                focus:ring-gray-900
-              "
-            />
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-gray-200
+                  bg-gray-50
+                  px-4
+                  py-3
+                "
+              >
+                <p
+                  className="
+                    text-sm
+                    font-medium
+                    text-gray-800
+                  "
+                >
+                  Dynamic expiry
+                </p>
 
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    leading-5
+                    text-gray-500
+                  "
+                >
+                  This voucher is exclusively for new customers and expires 1 month after their registration date.
+                </p>
+              </div>
 
-            <p
-              className="
-                mt-2
-                text-xs
-                text-gray-500
-              "
-            >
-              Leave empty for no expiry date.
-            </p>
+            ) : (
+
+              <>
+                <input
+                  id="expiresAt"
+                  name="expiresAt"
+                  type="datetime-local"
+                  value={expiresAt}
+                  onChange={(
+                    event
+                  ) =>
+                    setExpiresAt(
+                      event.target.value
+                    )
+                  }
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-gray-300
+                    bg-white
+                    px-3
+                    py-3
+                    text-sm
+                    sm:px-4
+                    outline-none
+                    focus:border-gray-900
+                    focus:ring-1
+                    focus:ring-gray-900
+                  "
+                />
+
+                <p
+                  className="
+                    mt-2
+                    text-xs
+                    text-gray-500
+                  "
+                >
+                  Leave empty for no expiry date.
+                </p>
+              </>
+
+            )}
 
           </div>
 
@@ -1279,11 +1329,26 @@ export default function VoucherForm({
                   mt-1
                   block
                   text-xs
+                  leading-5
                   text-gray-500
                 "
               >
-                Only customers who have never successfully placed an order can use this voucher.
+                Restrict this voucher to customers who have not placed a previous order.
               </span>
+
+              {newCustomerOnly && (
+                <span
+                  className="
+                    mt-1
+                    block
+                    text-xs
+                    leading-5
+                    text-gray-500
+                  "
+                >
+                  This voucher is exclusively for new customers and expires 1 month after their registration date.
+                </span>
+              )}
 
             </span>
 

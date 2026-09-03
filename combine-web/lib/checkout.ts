@@ -229,6 +229,49 @@ export function calculateShipping({
 
 
 // ============================================================
+// ADD ONE CALENDAR MONTH
+// ============================================================
+
+function addOneCalendarMonth(date: Date): Date {
+  const year = date.getUTCFullYear();
+  const monthIndex = date.getUTCMonth();
+  const day = date.getUTCDate();
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+  const seconds = date.getUTCSeconds();
+  const milliseconds = date.getUTCMilliseconds();
+
+  const targetMonthIndex = monthIndex + 1;
+
+  const lastDayOfTargetMonth =
+    new Date(
+      Date.UTC(
+        year,
+        targetMonthIndex + 1,
+        0
+      )
+    ).getUTCDate();
+
+  const targetDay = Math.min(
+    day,
+    lastDayOfTargetMonth
+  );
+
+  return new Date(
+    Date.UTC(
+      year,
+      targetMonthIndex,
+      targetDay,
+      hours,
+      minutes,
+      seconds,
+      milliseconds
+    )
+  );
+}
+
+
+// ============================================================
 // CALCULATE VOUCHER
 // ============================================================
 
@@ -339,10 +382,82 @@ export async function calculateVoucher({
   // ==========================================================
   // EXPIRY
   // ==========================================================
+  //
+  // Normal Voucher:
+  // - Uses the admin-defined expiresAt.
+  // - NULL means no expiry.
+  //
+  // New Customer Voucher:
+  // - Ignores voucher.expiresAt.
+  // - Starts from the customer's account creation time.
+  // - Expires exactly one calendar month later.
+  //
+  // Example:
+  // Customer registered 15 Sep
+  // -> Voucher expires 15 Oct
+  //
+  // ==========================================================
 
   if (
+    voucher.newCustomerOnly
+  ) {
+
+    if (!userId) {
+
+      return {
+        code: normalizedCode,
+        discount: 0,
+        error:
+          "Please log in to use this voucher.",
+        voucherId: voucher.id,
+      };
+
+    }
+
+    const customer =
+      await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          createdAt: true,
+        },
+      });
+
+    if (!customer) {
+
+      return {
+        code: normalizedCode,
+        discount: 0,
+        error:
+          "Customer account could not be found.",
+        voucherId: voucher.id,
+      };
+
+    }
+
+    const customerVoucherExpiry =
+      addOneCalendarMonth(
+        customer.createdAt
+      );
+
+    if (
+      now >= customerVoucherExpiry
+    ) {
+
+      return {
+        code: normalizedCode,
+        discount: 0,
+        error:
+          "This new customer voucher has expired.",
+        voucherId: voucher.id,
+      };
+
+    }
+
+  } else if (
     voucher.expiresAt &&
-    now > voucher.expiresAt
+    now >= voucher.expiresAt
   ) {
 
     return {
