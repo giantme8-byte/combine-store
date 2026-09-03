@@ -171,6 +171,8 @@ export default async function ProductPage({
 
         sku: true,
 
+        videoUrl: true,
+
         // ======================================================
         // PRICE
         // ======================================================
@@ -674,6 +676,10 @@ export default async function ProductPage({
 
             name={
               product.name
+            }
+
+            videoUrl={
+              product.videoUrl
             }
           />
 

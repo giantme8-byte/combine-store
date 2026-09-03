@@ -11,6 +11,7 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
+  Play,
 } from "lucide-react";
 
 import Lightbox from "@/components/Lightbox";
@@ -42,6 +43,7 @@ type ProductGalleryColor = {
 type Props = {
   cover: string;
   gallery: string[];
+  videoUrl?: string | null;
   colors: ProductGalleryColor[];
   name: string;
 };
@@ -49,6 +51,7 @@ type Props = {
 export default function ProductGallery({
   cover,
   gallery,
+  videoUrl,
   colors,
   name,
 }: Props) {
@@ -227,6 +230,61 @@ export default function ProductGallery({
       : "/placeholder.png";
 
   // ============================================================
+  // VIDEO
+  // ============================================================
+
+  const normalizedVideoUrl =
+    videoUrl?.trim() || null;
+
+  function getYouTubeEmbedUrl(url: string) {
+    try {
+      const parsed = new URL(url);
+      let videoId = "";
+
+      if (parsed.hostname === "youtu.be") {
+        videoId = parsed.pathname.slice(1);
+      } else if (
+        parsed.hostname.includes("youtube.com")
+      ) {
+        if (parsed.pathname === "/watch") {
+          videoId = parsed.searchParams.get("v") ?? "";
+        } else if (
+          parsed.pathname.startsWith("/shorts/")
+        ) {
+          videoId = parsed.pathname.split("/")[2] ?? "";
+        } else if (
+          parsed.pathname.startsWith("/embed/")
+        ) {
+          videoId = parsed.pathname.split("/")[2] ?? "";
+        }
+      }
+
+      if (!videoId) {
+        return null;
+      }
+
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    } catch {
+      return null;
+    }
+  }
+
+  const youtubeEmbedUrl =
+    normalizedVideoUrl
+      ? getYouTubeEmbedUrl(normalizedVideoUrl)
+      : null;
+
+  const hasVideo =
+    Boolean(normalizedVideoUrl);
+
+  const isVideoSelected =
+    hasVideo &&
+    currentIndex === images.length;
+
+  const totalItems =
+    images.length + (hasVideo ? 1 : 0);
+
+  // ============================================================
   // SWIPE
   // ============================================================
 
@@ -247,7 +305,7 @@ export default function ProductGallery({
     index: number
   ) {
     const total =
-      images.length;
+      totalItems;
 
     if (total === 0) {
       return;
@@ -310,7 +368,7 @@ export default function ProductGallery({
 
   useEffect(() => {
     if (
-      images.length === 0
+      totalItems === 0
     ) {
       setCurrentIndex(0);
       return;
@@ -318,14 +376,14 @@ export default function ProductGallery({
 
     if (
       currentIndex >=
-      images.length
+      totalItems
     ) {
       setCurrentIndex(
-        images.length - 1
+        totalItems - 1
       );
     }
   }, [
-    images.length,
+    totalItems,
     currentIndex,
   ]);
 
@@ -452,7 +510,7 @@ export default function ProductGallery({
         "End"
       ) {
         changeImage(
-          images.length - 1
+          totalItems - 1
         );
       }
     }
@@ -485,7 +543,7 @@ export default function ProductGallery({
     ) ?? null;
 
   const hasMultipleImages =
-    images.length > 1;
+    totalItems > 1;
 
   // ============================================================
   // RENDER
@@ -573,6 +631,39 @@ export default function ProductGallery({
                 />
               </button>
             )
+          )}
+
+          {hasVideo && (
+            <button
+              type="button"
+              aria-label="View product video"
+              onClick={() =>
+                changeImage(images.length)
+              }
+              className={`
+                relative
+                shrink-0
+                overflow-hidden
+                rounded-xl
+                transition-all
+                duration-300
+                lg:rounded-2xl
+                ${
+                  isVideoSelected
+                    ? "scale-105 ring-2 ring-black shadow-md"
+                    : "ring-1 ring-neutral-200 hover:-translate-y-1 hover:ring-neutral-400"
+                }
+              `}
+            >
+              <div className="flex h-14 w-14 items-center justify-center bg-neutral-950 lg:h-24 lg:w-24">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/50 bg-white/10 text-white backdrop-blur-sm lg:h-10 lg:w-10">
+                  <Play size={15} fill="currentColor" strokeWidth={1.5} />
+                </div>
+              </div>
+              <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[7px] font-medium uppercase tracking-[0.18em] text-white lg:bottom-2 lg:text-[8px]">
+                Video
+              </span>
+            </button>
           )}
         </div>
 
@@ -670,26 +761,56 @@ export default function ProductGallery({
             {/* IMAGE */}
             {/* ================================================= */}
 
-            <div>
-              <ZoomImage
-                /*
-                 * Force ZoomImage to receive a
-                 * completely new instance whenever
-                 * the selected image changes.
-                 *
-                 * This prevents the previous image
-                 * from visually sticking.
-                 */
-                key={`${selectedImage}-${currentIndex}`}
-                src={
-                  selectedImage
+            {isVideoSelected ? (
+              <div
+                className="relative aspect-square w-full overflow-hidden rounded-2xl bg-black lg:rounded-3xl"
+                onClick={(event) =>
+                  event.stopPropagation()
                 }
-                alt={name}
-                priority={
-                  currentIndex === 0
-                }
-              />
-            </div>
+              >
+                {youtubeEmbedUrl ? (
+                  <iframe
+                    key={youtubeEmbedUrl}
+                    src={youtubeEmbedUrl}
+                    title={`${name} product video`}
+                    className="absolute inset-0 h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    key={normalizedVideoUrl ?? "product-video"}
+                    src={normalizedVideoUrl ?? undefined}
+                    className="h-full w-full object-contain"
+                    controls
+                    playsInline
+                    autoPlay
+                    preload="metadata"
+                  />
+                )}
+              </div>
+            ) : (
+              <div>
+                <ZoomImage
+                  /*
+                   * Force ZoomImage to receive a
+                   * completely new instance whenever
+                   * the selected image changes.
+                   *
+                   * This prevents the previous image
+                   * from visually sticking.
+                   */
+                  key={`${selectedImage}-${currentIndex}`}
+                  src={
+                    selectedImage
+                  }
+                  alt={name}
+                  priority={
+                    currentIndex === 0
+                  }
+                />
+              </div>
+            )}
 
             {/* ================================================= */}
             {/* NEXT */}
@@ -763,11 +884,11 @@ export default function ProductGallery({
                 text-neutral-400
               "
             >
-              {images.length > 0
+              {totalItems > 0
                 ? currentIndex + 1
                 : 0}{" "}
               /{" "}
-              {images.length}
+              {totalItems}
             </span>
 
             <span
@@ -778,7 +899,7 @@ export default function ProductGallery({
                 text-neutral-400
               "
             >
-              IMAGE
+              {isVideoSelected ? "VIDEO" : "IMAGE"}
             </span>
           </div>
 
@@ -831,17 +952,16 @@ export default function ProductGallery({
                 lg:hidden
               "
             >
-              {images.map(
-                (
-                  img,
-                  index
-                ) => (
+              {Array.from({ length: totalItems }).map(
+                (_, index) => (
                   <button
-                    key={`${img}-dot-${index}`}
+                    key={`dot-${index}`}
                     type="button"
-                    aria-label={`View image ${
-                      index + 1
-                    }`}
+                    aria-label={
+                      index === images.length && hasVideo
+                        ? "View product video"
+                        : `View image ${index + 1}`
+                    }
                     onClick={() =>
                       changeImage(
                         index

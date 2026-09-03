@@ -36,13 +36,6 @@ type ProductRowProps = {
 
   canDelete: boolean;
 
-  /*
-   * Current Products page state.
-   *
-   * Used by Edit Product so the admin
-   * can return to the same list state.
-   */
-
   page: number;
 
   search: string;
@@ -72,24 +65,12 @@ export default function ProductRow({
   sort,
 }: ProductRowProps) {
 
-  // =========================================================
-  // PRODUCT-LEVEL PROFIT
-  // =========================================================
-  //
-  // Used only when this Product has no Variants.
-  //
-  // =========================================================
-
   const productResult =
     calculateProductProfit(
       product,
       exchangeRate
     );
 
-
-  // =========================================================
-  // SORTABLE
-  // =========================================================
 
   const {
     attributes,
@@ -112,28 +93,6 @@ export default function ProductRow({
     transition,
   };
 
-
-  // =========================================================
-  // VARIANT PROFIT CALCULATION
-  // =========================================================
-  //
-  // Every Variant represents ONE calculation unit.
-  //
-  // Cost:
-  //
-  // Variant Cost CNY
-  // × Variant Exchange Rate
-  //
-  // If Variant Exchange Rate is empty:
-  // use Product / Dashboard exchange rate.
-  //
-  // Selling:
-  //
-  // Variant Price
-  // ↓
-  // Product Price fallback
-  //
-  // =========================================================
 
   function calculateVariantProfit(
     variant: ProductWithImages["variants"][number]
@@ -183,18 +142,16 @@ export default function ProductRow({
       profit,
       margin,
     };
+
   }
 
-
-  // =========================================================
-  // RENDER
-  // =========================================================
 
   return (
     <tr
       ref={setNodeRef}
       style={style}
       className={`
+        group
         border-b
         border-neutral-200
         transition-[box-shadow,opacity,background-color]
@@ -451,14 +408,6 @@ export default function ProductRow({
                   );
 
 
-                /*
-                 * Color name comes from the
-                 * Prisma Color relation.
-                 *
-                 * If no Color relation exists,
-                 * fall back to Color ID.
-                 */
-
                 const colorName =
                   variant.color?.name ??
                   (
@@ -469,6 +418,7 @@ export default function ProductRow({
 
 
                 return (
+
                   <div
                     key={variant.id}
                     className="
@@ -479,10 +429,6 @@ export default function ProductRow({
                       p-4
                     "
                   >
-
-                    {/* ====================================== */}
-                    {/* Variant Name */}
-                    {/* ====================================== */}
 
                     <div className="mb-4">
 
@@ -514,10 +460,6 @@ export default function ProductRow({
 
                     </div>
 
-
-                    {/* ====================================== */}
-                    {/* Cost */}
-                    {/* ====================================== */}
 
                     <div>
 
@@ -567,10 +509,6 @@ export default function ProductRow({
                     </div>
 
 
-                    {/* ====================================== */}
-                    {/* Selling */}
-                    {/* ====================================== */}
-
                     <div
                       className="
                         mt-4
@@ -591,10 +529,6 @@ export default function ProductRow({
                         Selling
                       </p>
 
-
-                      {/* ================================================= */}
-                      {/* DIRECT VARIANT PRICE EDIT */}
-                      {/* ================================================= */}
 
                       <EditableField
                         value={
@@ -629,6 +563,7 @@ export default function ProductRow({
                             );
 
                             return;
+
                           }
 
 
@@ -662,10 +597,6 @@ export default function ProductRow({
 
                     </div>
 
-
-                    {/* ====================================== */}
-                    {/* Profit */}
-                    {/* ====================================== */}
 
                     <div
                       className="
@@ -729,6 +660,7 @@ export default function ProductRow({
                     </div>
 
                   </div>
+
                 );
 
               }
@@ -738,17 +670,7 @@ export default function ProductRow({
 
         ) : (
 
-          /*
-           * ==================================================
-           * PRODUCT WITHOUT VARIANTS
-           * ==================================================
-           */
-
           <div className="space-y-5">
-
-            {/* ============================================== */}
-            {/* Cost */}
-            {/* ============================================== */}
 
             <div>
 
@@ -795,10 +717,6 @@ export default function ProductRow({
 
             </div>
 
-
-            {/* ============================================== */}
-            {/* Selling */}
-            {/* ============================================== */}
 
             <div
               className="
@@ -852,6 +770,7 @@ export default function ProductRow({
                     );
 
                     return;
+
                   }
 
 
@@ -870,10 +789,6 @@ export default function ProductRow({
 
             </div>
 
-
-            {/* ============================================== */}
-            {/* Profit */}
-            {/* ============================================== */}
 
             <div
               className="
@@ -1041,25 +956,95 @@ export default function ProductRow({
 
 
       {/* ================================================= */}
+      {/* Video */}
+      {/* ================================================= */}
+
+      <td
+        className="
+          w-[80px]
+          px-3
+          py-4
+          align-top
+          text-center
+
+          lg:w-[100px]
+          lg:px-4
+          lg:py-6
+        "
+      >
+
+        <div className="flex justify-center">
+
+          {product.videoUrl?.trim() ? (
+
+            <span
+              className="
+                text-lg
+                font-semibold
+                text-cyan-600
+              "
+              title="Product video available"
+            >
+              ✓
+            </span>
+
+          ) : (
+
+            <span
+              className="
+                text-lg
+                font-medium
+                text-neutral-300
+              "
+              title="No product video"
+            >
+              —
+            </span>
+
+          )}
+
+        </div>
+
+      </td>
+
+
+      {/* ================================================= */}
       {/* Actions */}
       {/* ================================================= */}
 
       <td
         className="
-          w-[390px]
-          min-w-[390px]
+          sticky
+          right-0
+          z-30
+          w-[360px]
+          min-w-[360px]
+          max-w-[360px]
+          border-l
+          border-neutral-200
+          bg-white
           px-3
           py-4
           align-top
+          shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.35)]
+          group-hover:bg-neutral-50
 
-          lg:w-[430px]
-          lg:min-w-[430px]
+          lg:w-[360px]
+          lg:min-w-[360px]
+          lg:max-w-[360px]
           lg:px-6
           lg:py-6
         "
       >
 
-        <div className="flex justify-end whitespace-nowrap">
+        <div
+          className="
+            flex
+            w-full
+            justify-end
+            whitespace-nowrap
+          "
+        >
 
           <ProductActions
             productId={

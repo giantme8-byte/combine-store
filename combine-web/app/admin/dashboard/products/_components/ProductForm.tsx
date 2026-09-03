@@ -178,6 +178,31 @@ export default function ProductForm({
 
 
   // =========================================================
+  // PRODUCT VIDEO
+  // =========================================================
+
+  const [
+    videoUrl,
+    setVideoUrl,
+  ] = useState<string>(
+    product?.videoUrl ?? ""
+  );
+
+  const [
+    videoUploading,
+    setVideoUploading,
+  ] = useState(false);
+
+  const [
+    videoProgress,
+    setVideoProgress,
+  ] = useState(0);
+
+  const videoInputRef =
+    useRef<HTMLInputElement>(null);
+
+
+  // =========================================================
   // LOAD PRODUCT
   // =========================================================
 
@@ -427,6 +452,16 @@ export default function ProductForm({
     );
 
 
+    setVideoUrl(
+      product.videoUrl ??
+      ""
+    );
+
+
+    setVideoProgress(0);
+    setVideoUploading(false);
+
+
     slugEdited.current =
       false;
 
@@ -471,6 +506,207 @@ export default function ProductForm({
 
 
   // =========================================================
+  // PRODUCT VIDEO UPLOAD
+  // =========================================================
+
+  async function uploadProductVideo(
+    file: File
+  ) {
+    if (videoUploading) {
+      return;
+    }
+
+    if (!file.type.startsWith("video/")) {
+      alert("Please select a video file.");
+      return;
+    }
+
+    const MAX_VIDEO_SIZE =
+      100 * 1024 * 1024;
+
+    if (file.size > MAX_VIDEO_SIZE) {
+      alert("Maximum video size is 100MB.");
+      return;
+    }
+
+    setVideoUploading(true);
+    setVideoProgress(0);
+
+    try {
+      const signatureResponse =
+        await fetch(
+          "/api/cloudinary/video-signature",
+          {
+            method: "POST",
+          }
+        );
+
+      const signatureData =
+        await signatureResponse.json();
+
+      if (
+        !signatureResponse.ok ||
+        !signatureData.cloudName ||
+        !signatureData.apiKey ||
+        !signatureData.timestamp ||
+        !signatureData.signature ||
+        !signatureData.folder
+      ) {
+        throw new Error(
+          signatureData.error ||
+            "Unable to prepare video upload."
+        );
+      }
+
+      const uploadFormData =
+        new FormData();
+
+      uploadFormData.append(
+        "file",
+        file
+      );
+      uploadFormData.append(
+        "api_key",
+        signatureData.apiKey
+      );
+      uploadFormData.append(
+        "timestamp",
+        String(signatureData.timestamp)
+      );
+      uploadFormData.append(
+        "signature",
+        signatureData.signature
+      );
+      uploadFormData.append(
+        "folder",
+        signatureData.folder
+      );
+
+      const secureUrl =
+        await new Promise<string>(
+          (resolve, reject) => {
+            const xhr =
+              new XMLHttpRequest();
+
+            xhr.open(
+              "POST",
+              `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/video/upload`
+            );
+
+            xhr.upload.onprogress = (
+              event
+            ) => {
+              if (event.lengthComputable) {
+                setVideoProgress(
+                  Math.round(
+                    (event.loaded /
+                      event.total) *
+                      100
+                  )
+                );
+              }
+            };
+
+            xhr.onload = () => {
+              try {
+                const data =
+                  JSON.parse(
+                    xhr.responseText
+                  );
+
+                if (
+                  xhr.status >= 200 &&
+                  xhr.status < 300 &&
+                  data.secure_url
+                ) {
+                  resolve(
+                    data.secure_url
+                  );
+                  return;
+                }
+
+                reject(
+                  new Error(
+                    data.error?.message ||
+                      "Cloudinary video upload failed."
+                  )
+                );
+              } catch {
+                reject(
+                  new Error(
+                    "Invalid response from Cloudinary."
+                  )
+                );
+              }
+            };
+
+            xhr.onerror = () => {
+              reject(
+                new Error(
+                  "Network error during video upload."
+                )
+              );
+            };
+
+            xhr.onabort = () => {
+              reject(
+                new Error(
+                  "Video upload was cancelled."
+                )
+              );
+            };
+
+            xhr.send(
+              uploadFormData
+            );
+          }
+        );
+
+      setVideoUrl(secureUrl);
+      setVideoProgress(100);
+    } catch (error) {
+      console.error(
+        "Product video upload failed:",
+        error
+      );
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Video upload failed. Please try again."
+      );
+
+      setVideoUrl(
+        product?.videoUrl ??
+          ""
+      );
+      setVideoProgress(0);
+    } finally {
+      setVideoUploading(false);
+
+      if (videoInputRef.current) {
+        videoInputRef.current.value =
+          "";
+      }
+    }
+  }
+
+
+  function removeProductVideo() {
+    if (videoUploading) {
+      return;
+    }
+
+    setVideoUrl("");
+    setVideoProgress(0);
+
+    if (videoInputRef.current) {
+      videoInputRef.current.value = "";
+    }
+  }
+
+
+  // =========================================================
   // SUBMIT
   // =========================================================
 
@@ -487,6 +723,18 @@ export default function ProductForm({
 
 
     if (isPending) {
+      return;
+    }
+
+
+    // =======================================================
+    // VIDEO UPLOAD CHECK
+    // =======================================================
+
+    if (videoUploading) {
+      alert(
+        "Please wait for the video to finish uploading."
+      );
       return;
     }
 
@@ -671,6 +919,12 @@ export default function ProductForm({
       new FormData(
         formRef.current
       );
+
+
+    formData.set(
+      "videoUrl",
+      videoUrl.trim()
+    );
 
 
     // =======================================================
@@ -2622,6 +2876,240 @@ startTransition(
                 setImages
               }
             />
+
+          </div>
+
+
+          {/* ================================================= */}
+          {/* PRODUCT VIDEO */}
+          {/* ================================================= */}
+
+          <div
+            className="
+              mt-6
+              rounded-2xl
+              border
+              border-neutral-200
+              bg-white
+              p-6
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-0.5
+              hover:shadow-md
+            "
+          >
+
+            <div className="mb-5">
+
+              <label
+                className="
+                  mb-1
+                  block
+                  text-sm
+                  font-semibold
+                  text-neutral-700
+                "
+              >
+                Product Video
+              </label>
+
+              <p
+                className="
+                  mt-1
+                  text-xs
+                  leading-5
+                  text-neutral-500
+                "
+              >
+                Upload one product video. The video will be uploaded directly to Cloudinary.
+              </p>
+
+            </div>
+
+
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime,video/*"
+              className="hidden"
+              disabled={videoUploading}
+              onChange={(e) => {
+                const file =
+                  e.target.files?.[0];
+
+                if (file) {
+                  void uploadProductVideo(
+                    file
+                  );
+                }
+              }}
+            />
+
+
+            {!videoUrl ? (
+              <button
+                type="button"
+                disabled={videoUploading}
+                onClick={() =>
+                  videoInputRef.current?.click()
+                }
+                className="
+                  flex
+                  w-full
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                  border-dashed
+                  border-neutral-300
+                  bg-neutral-50
+                  px-4
+                  py-8
+                  text-sm
+                  font-medium
+                  text-neutral-700
+                  transition
+                  hover:border-neutral-500
+                  hover:bg-neutral-100
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
+                "
+              >
+                {videoUploading
+                  ? `Uploading Video ${videoProgress}%...`
+                  : "Upload Video"}
+              </button>
+            ) : (
+              <div className="space-y-4">
+
+                <div
+                  className="
+                    overflow-hidden
+                    rounded-xl
+                    border
+                    border-neutral-200
+                    bg-black
+                  "
+                >
+                  <video
+                    src={videoUrl}
+                    controls
+                    preload="metadata"
+                    className="
+                      max-h-80
+                      w-full
+                      object-contain
+                    "
+                  />
+                </div>
+
+
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-3
+                  "
+                >
+
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-neutral-800">
+                      Product video uploaded
+                    </p>
+                    <p className="mt-1 truncate text-xs text-neutral-400">
+                      {videoUrl}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={videoUploading}
+                    onClick={removeProductVideo}
+                    className="
+                      shrink-0
+                      rounded-lg
+                      border
+                      border-neutral-300
+                      px-3
+                      py-2
+                      text-xs
+                      font-medium
+                      text-neutral-700
+                      transition
+                      hover:border-red-300
+                      hover:text-red-600
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
+                  >
+                    Remove Video
+                  </button>
+
+                </div>
+
+
+                <button
+                  type="button"
+                  disabled={videoUploading}
+                  onClick={() =>
+                    videoInputRef.current?.click()
+                  }
+                  className="
+                    w-full
+                    rounded-xl
+                    border
+                    border-neutral-200
+                    px-4
+                    py-2.5
+                    text-sm
+                    font-medium
+                    text-neutral-700
+                    transition
+                    hover:bg-neutral-50
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                  "
+                >
+                  Replace Video
+                </button>
+
+              </div>
+            )}
+
+
+            {videoUploading && (
+              <div className="mt-4">
+
+                <div className="mb-2 flex items-center justify-between text-xs text-neutral-500">
+                  <span>Uploading video...</span>
+                  <span>{videoProgress}%</span>
+                </div>
+
+                <div className="h-2 overflow-hidden rounded-full bg-neutral-100">
+                  <div
+                    className="h-full rounded-full bg-black transition-all duration-200"
+                    style={{
+                      width: `${videoProgress}%`,
+                    }}
+                  />
+                </div>
+
+              </div>
+            )}
+
+
+            <p
+              className="
+                mt-3
+                text-xs
+                leading-5
+                text-neutral-400
+              "
+            >
+              MP4, WebM or MOV · Maximum 100MB
+            </p>
 
           </div>
 

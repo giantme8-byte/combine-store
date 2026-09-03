@@ -556,7 +556,7 @@ function SortableProductCard({
 
 
         {/* ================================================= */}
-        {/* PRICE + AVAILABILITY */}
+        {/* PRICE + AVAILABILITY + VIDEO */}
         {/* ================================================= */}
 
         <div
@@ -593,7 +593,7 @@ function SortableProductCard({
 
 
           {/* ================================================= */}
-          {/* AVAILABILITY */}
+          {/* AVAILABILITY + VIDEO */}
           {/* ================================================= */}
 
           <div
@@ -602,6 +602,8 @@ function SortableProductCard({
               flex
               min-w-0
               items-center
+              justify-between
+              gap-2
             "
           >
 
@@ -631,6 +633,51 @@ function SortableProductCard({
               Availability.IN_STOCK
                 ? "In Stock"
                 : "Out of Stock"}
+
+            </span>
+
+
+            {/* ================================================= */}
+            {/* VIDEO STATUS */}
+            {/* ================================================= */}
+
+            <span
+              className="
+                shrink-0
+                text-[10px]
+                font-medium
+
+                sm:text-xs
+              "
+            >
+
+              <span className="text-neutral-400">
+                Video
+              </span>{" "}
+
+              {product.videoUrl?.trim() ? (
+
+                <span
+                  className="
+                    font-semibold
+                    text-cyan-600
+                  "
+                >
+                  ✓
+                </span>
+
+              ) : (
+
+                <span
+                  className="
+                    font-medium
+                    text-neutral-300
+                  "
+                >
+                  —
+                </span>
+
+              )}
 
             </span>
 
@@ -1149,7 +1196,9 @@ export default function ProductGrid({
             text-neutral-600
           "
         >
+
           Saving product order...
+
         </div>
 
       )}

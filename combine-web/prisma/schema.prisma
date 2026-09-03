@@ -19,9 +19,10 @@ model Product {
   description       String
   costPriceCny      Float?
   priceRemark       String?
-  price             Float
-  mainColor         String?
-  dimensions        String?
+price             Float
+videoUrl          String?
+mainColor         String?
+dimensions        String?
   availability      Availability      @default(PRE_ORDER)
   featured          Boolean           @default(false)
   newArrival        Boolean           @default(false)

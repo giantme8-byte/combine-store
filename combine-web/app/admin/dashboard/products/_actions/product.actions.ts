@@ -156,6 +156,16 @@ function getCustomPackagingId(formData: FormData) {
   return id;
 }
 
+function getVideoUrl(formData: FormData) {
+  const value =
+    formData
+      .get("videoUrl")
+      ?.toString()
+      .trim() ?? "";
+
+  return value || null;
+}
+
 export async function quickUpdateProductPrice(
   productId: number,
   price: number
@@ -457,14 +467,18 @@ export async function createProduct(
           ?.toString() || null
       );
 
-    const customPackagingId =
-      getCustomPackagingId(
-        formData
-      );
-    const categoryRelations =
-      await getProductCategoryRelations(
-        formData
-      );
+const customPackagingId =
+  getCustomPackagingId(
+    formData
+  );
+
+const videoUrl =
+  getVideoUrl(formData);
+
+const categoryRelations =
+  await getProductCategoryRelations(
+    formData
+  );
 
     // =========================================================
     // Create Product
@@ -515,17 +529,19 @@ export async function createProduct(
             )
             ?.toString() || null,
 
-        price:
-          Number(
-            formData.get(
-              "price"
-            )
-          ),
+price:
+  Number(
+    formData.get(
+      "price"
+    )
+  ),
 
-        description:
-          formData.get(
-            "description"
-          ) as string,
+videoUrl,
+
+description:
+  formData.get(
+    "description"
+  ) as string,
 
         category:
           categoryRelations.categoryName,
@@ -1012,14 +1028,18 @@ export async function updateProduct(
         id
       );
 
-    const customPackagingId =
-      getCustomPackagingId(
-        formData
-      );
-    const categoryRelations =
-      await getProductCategoryRelations(
-        formData
-      );
+const customPackagingId =
+  getCustomPackagingId(
+    formData
+  );
+
+const videoUrl =
+  getVideoUrl(formData);
+
+const categoryRelations =
+  await getProductCategoryRelations(
+    formData
+  );
 
     await prisma.product.update({
       where: {
@@ -1068,17 +1088,19 @@ export async function updateProduct(
             .get("priceRemark")
             ?.toString() || null,
 
-        price:
-          Number(
-            formData.get(
-              "price"
-            )
-          ),
+price:
+  Number(
+    formData.get(
+      "price"
+    )
+  ),
 
-        description:
-          formData.get(
-            "description"
-          ) as string,
+videoUrl,
+
+description:
+  formData.get(
+    "description"
+  ) as string,
 
         category:
           categoryRelations.categoryName,
@@ -1923,11 +1945,14 @@ export async function duplicateProduct(
         priceRemark:
           product.priceRemark,
 
-        price:
-          product.price,
+price:
+  product.price,
 
-        mainColor:
-          product.mainColor,
+videoUrl:
+  product.videoUrl,
+
+mainColor:
+  product.mainColor,
 
         dimensions:
           product.dimensions,
