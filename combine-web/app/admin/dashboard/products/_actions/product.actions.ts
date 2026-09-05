@@ -166,6 +166,23 @@ function getVideoUrl(formData: FormData) {
   return value || null;
 }
 
+function getSizeChartUrl(
+  formData: FormData,
+  categoryName: string
+) {
+  if (categoryName !== "Clothing") {
+    return null;
+  }
+
+  const value =
+    formData
+      .get("sizeChartUrl")
+      ?.toString()
+      .trim() ?? "";
+
+  return value || null;
+}
+
 export async function quickUpdateProductPrice(
   productId: number,
   price: number

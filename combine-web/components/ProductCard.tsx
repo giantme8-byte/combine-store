@@ -65,38 +65,35 @@ export default function ProductCard({
   // NEW BADGE
   // ============================================================
 
-  const isNewArrival =
-    useMemo(() => {
+  const isNewArrival = useMemo(() => {
+    if (!newArrival) {
+      return false;
+    }
 
-      if (!newArrival) {
-        return false;
-      }
+    const now = new Date();
+    const created = new Date(createdAt);
 
+    const age = now.getTime() - created.getTime();
 
-      const now =
-        new Date();
-
-
-      const created =
-        new Date(
-          createdAt
-        );
-
-
-      return (
-        now.getTime() -
-          created.getTime() <
-        30 *
-          24 *
-          60 *
-          60 *
-          1000
-      );
-
-    }, [
+    // DEBUG
+    console.log("NEW DEBUG:", {
+      id,
+      name,
       createdAt,
+      createdDate: created.toISOString(),
+      now: now.toISOString(),
+      ageInDays: age / (1000 * 60 * 60 * 24),
       newArrival,
-    ]);
+      isNew: age >= 0 && age < 30 * 24 * 60 * 60 * 1000,
+    });
+
+    return age >= 0 && age < 30 * 24 * 60 * 60 * 1000;
+  }, [
+    id,
+    name,
+    createdAt,
+    newArrival,
+  ]);
 
 
   // ============================================================
@@ -184,6 +181,7 @@ export default function ProductCard({
         )
       : undefined;
 
+
   // ============================================================
   // SMART IMAGE FILL
   // ============================================================
@@ -203,6 +201,7 @@ export default function ProductCard({
       ? price
       : null;
 
+
   const variantPrices =
     (variants ?? [])
       .map((variant) =>
@@ -217,11 +216,13 @@ export default function ProductCard({
           value !== null
       );
 
+
   const uniqueVariantPrices = [
     ...new Set(variantPrices),
   ].sort(
     (a, b) => a - b
   );
+
 
   const displayPrice =
     uniqueVariantPrices.length === 1
@@ -258,6 +259,7 @@ export default function ProductCard({
             )}`
           : null;
 
+
   const hasPrice =
     displayPrice !== null;
 
@@ -275,15 +277,15 @@ export default function ProductCard({
         border-neutral-100
         bg-white
         shadow-sm
-transition-[transform,box-shadow]
-duration-300
-ease-out
+        transition-[transform,box-shadow]
+        duration-300
+        ease-out
 
-sm:rounded-[32px]
-sm:hover:-translate-y-3
-sm:hover:scale-[1.02]
-sm:hover:border-[#C8A96A]/60
-sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
+        sm:rounded-[32px]
+        sm:hover:-translate-y-3
+        sm:hover:scale-[1.02]
+        sm:hover:border-[#C8A96A]/60
+        sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
       "
     >
 
@@ -556,19 +558,25 @@ sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
               "
               loading="lazy"
               onLoad={(event) => {
-                const img = event.currentTarget;
+                const img =
+                  event.currentTarget;
+
                 const ratio =
                   img.naturalWidth /
                   img.naturalHeight;
 
-                if (ratio >= 1.15 || ratio <= 0.88) {
+                if (
+                  ratio >= 1.15 ||
+                  ratio <= 0.88
+                ) {
                   setImageScale(1.05);
                 } else {
                   setImageScale(1);
                 }
               }}
               style={{
-                transform: `scale(${imageScale})`,
+                transform:
+                  `scale(${imageScale})`,
               }}
               className={`
                 pointer-events-none
@@ -607,7 +615,8 @@ sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
                 "
                 loading="lazy"
                 style={{
-                  transform: `scale(${imageScale})`,
+                  transform:
+                    `scale(${imageScale})`,
                 }}
                 className="
                   pointer-events-none
@@ -670,15 +679,15 @@ sm:hover:shadow-[0_45px_120px_rgba(0,0,0,.16)]
               hidden
               -translate-x-1/2
               -translate-y-1/2
-scale-95
-opacity-0
-transition-all
-duration-300
-ease-out
+              scale-95
+              opacity-0
+              transition-all
+              duration-300
+              ease-out
 
-sm:block
-sm:group-hover:scale-100
-sm:group-hover:opacity-100
+              sm:block
+              sm:group-hover:scale-100
+              sm:group-hover:opacity-100
             "
           >
 
@@ -895,6 +904,7 @@ sm:group-hover:opacity-100
 
         </div>
       </Link>
+
 
       {/* ====================================================== */}
       {/* SINGLE ACTION */}

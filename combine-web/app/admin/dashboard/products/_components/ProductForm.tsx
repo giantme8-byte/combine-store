@@ -176,6 +176,13 @@ export default function ProductForm({
   const slugEdited =
     useRef(false);
 
+  const [
+    selectedCategoryName,
+    setSelectedCategoryName,
+  ] = useState<string>(
+    product?.category ?? ""
+  );
+
 
   // =========================================================
   // PRODUCT VIDEO
@@ -200,6 +207,42 @@ export default function ProductForm({
 
   const videoInputRef =
     useRef<HTMLInputElement>(null);
+
+
+
+
+  // =========================================================
+  // CATEGORY TRACKING
+  // =========================================================
+
+  useEffect(() => {
+    if (!formRef.current) {
+      return;
+    }
+
+    const form = formRef.current;
+
+    const handleCategoryChange = (event: Event) => {
+      const target = event.target as HTMLSelectElement | null;
+
+      if (!target || target.name !== "categoryId") {
+        return;
+      }
+
+      const category = categories.find(
+        (item) => item.id.toString() === target.value
+      );
+
+      setSelectedCategoryName(category?.name ?? "");
+
+    };
+
+    form.addEventListener("change", handleCategoryChange);
+
+    return () => {
+      form.removeEventListener("change", handleCategoryChange);
+    };
+  }, [categories]);
 
 
   // =========================================================
@@ -457,6 +500,9 @@ export default function ProductForm({
       ""
     );
 
+    setSelectedCategoryName(product.category ?? "");
+
+
 
     setVideoProgress(0);
     setVideoUploading(false);
@@ -706,6 +752,8 @@ export default function ProductForm({
   }
 
 
+
+
   // =========================================================
   // SUBMIT
   // =========================================================
@@ -737,6 +785,7 @@ export default function ProductForm({
       );
       return;
     }
+
 
 
     // =======================================================
@@ -925,6 +974,7 @@ export default function ProductForm({
       "videoUrl",
       videoUrl.trim()
     );
+
 
 
     // =======================================================
@@ -3112,6 +3162,8 @@ startTransition(
             </p>
 
           </div>
+
+
 
 
           {/* ================================================= */}

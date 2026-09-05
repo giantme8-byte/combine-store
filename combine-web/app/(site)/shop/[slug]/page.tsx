@@ -47,29 +47,28 @@ export async function generateMetadata({
 }: Props): Promise<Metadata> {
   const { slug } = await params;
 
-  const product =
-    await prisma.product.findUnique({
-      where: {
-        slug,
-      },
+  const product = await prisma.product.findUnique({
+    where: {
+      slug,
+    },
 
-      select: {
-        brand: true,
-        name: true,
-        shortDescription: true,
-        description: true,
+    select: {
+      brand: true,
+      name: true,
+      shortDescription: true,
+      description: true,
 
-        images: {
-          select: {
-            url: true,
-          },
+      images: {
+        select: {
+          url: true,
+        },
 
-          orderBy: {
-            sortOrder: "asc",
-          },
+        orderBy: {
+          sortOrder: "asc",
         },
       },
-    });
+    },
+  });
 
   if (!product) {
     return {
@@ -79,54 +78,39 @@ export async function generateMetadata({
 
   const description =
     product.shortDescription ||
-    product.description.slice(
-      0,
-      160
-    );
+    product.description.slice(0, 160);
 
   return {
-    title:
-      `${product.brand} ${product.name}`,
+    title: `${product.brand} ${product.name}`,
 
     description,
 
     openGraph: {
-      title:
-        `${product.brand} ${product.name}`,
+      title: `${product.brand} ${product.name}`,
 
       description,
 
-      images:
-        product.images.length
-          ? [
-              {
-                url:
-                  product.images[0]
-                    .url,
+      images: product.images.length
+        ? [
+            {
+              url: product.images[0].url,
 
-                alt:
-                  product.name,
-              },
-            ]
-          : [],
+              alt: product.name,
+            },
+          ]
+        : [],
     },
 
     twitter: {
-      card:
-        "summary_large_image",
+      card: "summary_large_image",
 
-      title:
-        `${product.brand} ${product.name}`,
+      title: `${product.brand} ${product.name}`,
 
       description,
 
-      images:
-        product.images.length
-          ? [
-              product.images[0]
-                .url,
-            ]
-          : [],
+      images: product.images.length
+        ? [product.images[0].url]
+        : [],
     },
   };
 }
@@ -148,295 +132,287 @@ export default async function ProductPage({
    * ----------------------------------------------------------
    */
 
-  const product =
-    await prisma.product.findUnique({
-      where: {
-        slug,
-      },
+  const product = await prisma.product.findUnique({
+    where: {
+      slug,
+    },
 
-      select: {
-        id: true,
+    select: {
+      id: true,
 
-        slug: true,
+      slug: true,
 
-        // ======================================================
-        // BASIC PRODUCT INFORMATION
-        // ======================================================
+      // ======================================================
+      // BASIC PRODUCT INFORMATION
+      // ======================================================
 
-        brand: true,
+      brand: true,
 
-        name: true,
+      name: true,
 
-        model: true,
+      model: true,
 
-        sku: true,
+      sku: true,
 
-        videoUrl: true,
+      videoUrl: true,
 
-        // ======================================================
-        // PRICE
-        // ======================================================
+      // ======================================================
+      // PRICE
+      // ======================================================
 
-        price: true,
+      price: true,
 
-        // ======================================================
-        // DESCRIPTION
-        // ======================================================
+      // ======================================================
+      // DESCRIPTION
+      // ======================================================
 
-        shortDescription: true,
+      shortDescription: true,
 
-        description: true,
+      description: true,
 
-        // ======================================================
-        // CATEGORY
-        // ======================================================
+      // ======================================================
+      // CATEGORY
+      // ======================================================
 
-        category: true,
+      category: true,
 
-        subCategory: true,
+      subCategory: true,
 
-        // ======================================================
-        // PRODUCT INFORMATION
-        // ======================================================
+      // ======================================================
+      // PRODUCT INFORMATION
+      // ======================================================
 
-        mainColor: true,
+      mainColor: true,
 
-        dimensions: true,
+      dimensions: true,
 
-        // ======================================================
-        // BADGES
-        // ======================================================
+      // ======================================================
+      // BADGES
+      // ======================================================
 
-        featured: true,
+      featured: true,
 
-        newArrival: true,
+      newArrival: true,
 
-        bestSeller: true,
+      bestSeller: true,
 
-        limited: true,
+      limited: true,
 
-        onSale: true,
+      onSale: true,
 
-        /*
-         * ------------------------------------------------------
-         * Product-specific custom packaging.
-         * ------------------------------------------------------
-         */
+      /*
+       * ------------------------------------------------------
+       * Product-specific custom packaging.
+       * ------------------------------------------------------
+       */
 
-        customPackaging: {
-          select: {
-            id: true,
+      customPackaging: {
+        select: {
+          id: true,
 
-            key: true,
+          key: true,
 
-            name: true,
+          name: true,
 
-            brand: true,
+          brand: true,
 
-            title: true,
+          title: true,
 
-            description: true,
+          description: true,
 
-            active: true,
+          active: true,
 
-            images: {
-              select: {
-                id: true,
+          images: {
+            select: {
+              id: true,
 
-                url: true,
+              url: true,
 
-                altText: true,
+              altText: true,
 
-                caption: true,
-              },
-
-              orderBy: {
-                sortOrder:
-                  "asc",
-              },
+              caption: true,
             },
 
-            items: {
-              select: {
-                id: true,
-
-                name: true,
-              },
-
-              orderBy: {
-                sortOrder:
-                  "asc",
-              },
-            },
-          },
-        },
-
-        /*
-         * ------------------------------------------------------
-         * Product Gallery
-         * ------------------------------------------------------
-         */
-
-        images: {
-          select: {
-            url: true,
-          },
-
-          orderBy: {
-            sortOrder:
-              "asc",
-          },
-        },
-
-        /*
-         * ======================================================
-         * Product Colors
-         * ======================================================
-         *
-         * IMPORTANT:
-         *
-         * We now load the complete Color Gallery.
-         *
-         * Old:
-         *
-         * imageUrl
-         *
-         * New:
-         *
-         * images[]
-         *
-         */
-
-        colors: {
-          select: {
-            id: true,
-
-            name: true,
-
-            imageUrl: true,
-
-            model: true,
-
-            images: {
-              select: {
-                id: true,
-
-                url: true,
-
-                publicId: true,
-
-                sortOrder: true,
-              },
-
-              orderBy: {
-                sortOrder:
-                  "asc",
-              },
+            orderBy: {
+              sortOrder: "asc",
             },
           },
 
-          orderBy: {
-            sortOrder:
-              "asc",
-          },
-        },
+          items: {
+            select: {
+              id: true,
 
-        /*
-         * ======================================================
-         * Product Variants
-         * ======================================================
-         *
-         * Load the complete Variant Gallery.
-         *
-         * Each Variant can now have multiple images.
-         *
-         * Example:
-         *
-         * Small
-         * ├── Cover
-         * ├── Front
-         * ├── Back
-         * └── Interior
-         *
-         * Large
-         * ├── Cover
-         * ├── Front
-         * ├── Back
-         * └── Interior
-         *
-         */
-
-        variants: {
-          select: {
-            id: true,
-
-            /*
-             * Global Color relation.
-             *
-             * Required by ProductOptions so the
-             * customer-facing page can correctly
-             * match:
-             *
-             * Color × Size = Variant
-             */
-
-            colorId: true,
-
-            size: true,
-
-            /*
-             * Variant-specific price.
-             *
-             * If a variant has its own price,
-             * ProductActions can use this price
-             * after the variant is selected.
-             */
-
-            price: true,
-
-            model: true,
-
-            dimensions: true,
-
-            /*
-             * Legacy / fallback cover image.
-             */
-
-            imageUrl: true,
-
-            /*
-             * Complete Variant Gallery.
-             */
-
-            images: {
-              select: {
-                id: true,
-
-                url: true,
-
-                publicId: true,
-
-                altText: true,
-
-                caption: true,
-
-                sortOrder: true,
-              },
-
-              orderBy: {
-                sortOrder:
-                  "asc",
-              },
+              name: true,
             },
-          },
 
-          orderBy: {
-            sortOrder:
-              "asc",
+            orderBy: {
+              sortOrder: "asc",
+            },
           },
         },
       },
-    });
+
+      /*
+       * ------------------------------------------------------
+       * Product Gallery
+       * ------------------------------------------------------
+       */
+
+      images: {
+        select: {
+          url: true,
+        },
+
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+
+      /*
+       * ======================================================
+       * Product Colors
+       * ======================================================
+       *
+       * IMPORTANT:
+       *
+       * We now load the complete Color Gallery.
+       *
+       * Old:
+       *
+       * imageUrl
+       *
+       * New:
+       *
+       * images[]
+       *
+       */
+
+      colors: {
+        select: {
+          id: true,
+
+          name: true,
+
+          imageUrl: true,
+
+          model: true,
+
+          images: {
+            select: {
+              id: true,
+
+              url: true,
+
+              publicId: true,
+
+              sortOrder: true,
+            },
+
+            orderBy: {
+              sortOrder: "asc",
+            },
+          },
+        },
+
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+
+      /*
+       * ======================================================
+       * Product Variants
+       * ======================================================
+       *
+       * Load the complete Variant Gallery.
+       *
+       * Each Variant can now have multiple images.
+       *
+       * Example:
+       *
+       * Small
+       * ├── Cover
+       * ├── Front
+       * ├── Back
+       * └── Interior
+       *
+       * Large
+       * ├── Cover
+       * ├── Front
+       * ├── Back
+       * └── Interior
+       *
+       */
+
+      variants: {
+        select: {
+          id: true,
+
+          /*
+           * Global Color relation.
+           *
+           * Required by ProductOptions so the
+           * customer-facing page can correctly
+           * match:
+           *
+           * Color × Size = Variant
+           */
+
+          colorId: true,
+
+          size: true,
+
+          /*
+           * Variant-specific price.
+           *
+           * If a variant has its own price,
+           * ProductActions can use this price
+           * after the variant is selected.
+           */
+
+          price: true,
+
+          model: true,
+
+          dimensions: true,
+
+          /*
+           * Legacy / fallback cover image.
+           */
+
+          imageUrl: true,
+
+          /*
+           * Complete Variant Gallery.
+           */
+
+          images: {
+            select: {
+              id: true,
+
+              url: true,
+
+              publicId: true,
+
+              altText: true,
+
+              caption: true,
+
+              sortOrder: true,
+            },
+
+            orderBy: {
+              sortOrder: "asc",
+            },
+          },
+        },
+
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+    },
+  });
 
   if (!product) {
     notFound();
@@ -468,8 +444,7 @@ export default async function ProductPage({
           },
 
           {
-            brand:
-              product.brand,
+            brand: product.brand,
           },
         ],
       },
@@ -499,8 +474,7 @@ export default async function ProductPage({
           },
 
           orderBy: {
-            sortOrder:
-              "asc",
+            sortOrder: "asc",
           },
         },
 
@@ -512,8 +486,7 @@ export default async function ProductPage({
           },
 
           orderBy: {
-            sortOrder:
-              "asc",
+            sortOrder: "asc",
           },
         },
       },
@@ -526,8 +499,7 @@ export default async function ProductPage({
   const brandPackaging =
     packagingProfiles.find(
       (packaging) =>
-        packaging.brand ===
-        product.brand
+        packaging.brand === product.brand
     ) ?? null;
 
   /*
@@ -537,8 +509,7 @@ export default async function ProductPage({
   const defaultPackaging =
     packagingProfiles.find(
       (packaging) =>
-        packaging.brand ===
-        null
+        packaging.brand === null
     ) ?? null;
 
   /*
@@ -548,11 +519,9 @@ export default async function ProductPage({
    */
 
   const packaging =
-    product.customPackaging
-      ?.active
+    product.customPackaging?.active
       ? product.customPackaging
-      : brandPackaging ??
-        defaultPackaging;
+      : brandPackaging ?? defaultPackaging;
 
   /*
    * ----------------------------------------------------------
@@ -564,13 +533,9 @@ export default async function ProductPage({
     product.images[0]?.url ??
     "/placeholder.png";
 
-  const gallery =
-    product.images
-      .slice(1)
-      .map(
-        (image) =>
-          image.url
-      );
+  const gallery = product.images
+    .slice(1)
+    .map((image) => image.url);
 
   return (
     <main
@@ -589,9 +554,7 @@ export default async function ProductPage({
       {/* ===================================================== */}
 
       <ProductViewTracker
-        productId={
-          product.id
-        }
+        productId={product.id}
       />
 
       {/* ===================================================== */}
@@ -599,9 +562,7 @@ export default async function ProductPage({
       {/* ===================================================== */}
 
       <RecentlyViewedTracker
-        slug={
-          product.slug ?? ""
-        }
+        slug={product.slug ?? ""}
       />
 
       {/* ===================================================== */}
@@ -617,20 +578,17 @@ export default async function ProductPage({
           },
 
           {
-            label:
-              "Collection",
+            label: "Collection",
 
             href: "/shop",
           },
 
           {
-            label:
-              product.brand,
+            label: product.brand,
           },
 
           {
-            label:
-              product.name,
+            label: product.name,
           },
         ]}
       />
@@ -640,13 +598,8 @@ export default async function ProductPage({
       {/* ===================================================== */}
 
       <ProductDetailClient
-        colors={
-          product.colors
-        }
-
-        variants={
-          product.variants
-        }
+        colors={product.colors}
+        variants={product.variants}
       >
         <section
           className="
@@ -667,20 +620,10 @@ export default async function ProductPage({
 
           <ProductGallery
             cover={cover}
-
             gallery={gallery}
-
-            colors={
-              product.colors
-            }
-
-            name={
-              product.name
-            }
-
-            videoUrl={
-              product.videoUrl
-            }
+            colors={product.colors}
+            name={product.name}
+            videoUrl={product.videoUrl}
           />
 
           {/* ================================================= */}
@@ -700,11 +643,9 @@ export default async function ProductPage({
 
             <ProductInfo
               product={{
-                brand:
-                  product.brand,
+                brand: product.brand,
 
-                name:
-                  product.name,
+                name: product.name,
 
                 shortDescription:
                   product.shortDescription,
@@ -734,82 +675,34 @@ export default async function ProductPage({
                 Product Actions
                 ================================================= */}
 
-<ProductActions
-  productId={
-    product.id
-  }
-
-slug={
-  product.slug ?? ""
-}
-
-  brand={
-    product.brand
-  }
-
-  name={
-    product.name
-  }
-
-  sku={
-    product.sku
-  }
-
-  model={
-    product.model
-  }
-
-  mainColor={
-    product.mainColor
-  }
-
-  dimensions={
-    product.dimensions
-  }
-
-  price={
-    product.price
-  }
-
-  image={
-    cover
-  }
-/>
+            <ProductActions
+              productId={product.id}
+              slug={product.slug ?? ""}
+              brand={product.brand}
+              name={product.name}
+              sku={product.sku}
+              model={product.model}
+              mainColor={product.mainColor}
+              dimensions={product.dimensions}
+              price={product.price}
+              image={cover}
+            />
 
             {/* Product Meta */}
 
             <ProductMeta
-              sku={
-                product.sku
-              }
-
-              model={
-                product.model
-              }
-
-              category={
-                product.category
-              }
-
-              subCategory={
-                product.subCategory
-              }
-
-              mainColor={
-                product.mainColor
-              }
-
-              dimensions={
-                product.dimensions
-              }
+              sku={product.sku}
+              model={product.model}
+              category={product.category}
+              subCategory={product.subCategory}
+              mainColor={product.mainColor}
+              dimensions={product.dimensions}
             />
 
             {/* Description */}
 
             <ProductAccordion
-              description={
-                product.description
-              }
+              description={product.description}
             />
           </div>
         </section>
@@ -868,10 +761,8 @@ slug={
                 lg:text-5xl
               "
             >
-              {
-                packaging.title ??
-                packaging.name
-              }
+              {packaging.title ??
+                packaging.name}
             </h2>
 
             <div
@@ -901,9 +792,7 @@ slug={
                   sm:leading-8
                 "
               >
-                {
-                  packaging.description
-                }
+                {packaging.description}
               </p>
             )}
           </div>
@@ -912,139 +801,112 @@ slug={
           {/* Editorial Packaging Gallery */}
           {/* ================================================= */}
 
-          {packaging.images
-            .length > 0 && (
+          {packaging.images.length > 0 && (
             <div
               className="
                 mx-auto
                 mt-10
-                max-w-6xl
                 sm:mt-14
                 lg:mt-16
               "
             >
               <div
-                className="
-                  grid
-                  grid-cols-2
-                  gap-2.5
-                  sm:gap-4
-                  lg:grid-cols-4
-                  lg:grid-rows-2
-                "
+                className={
+                  packaging.images.length === 1
+                    ? "flex justify-center"
+                    : `
+                        grid
+                        grid-cols-2
+                        gap-3
+                        sm:gap-5
+                        lg:grid-cols-4
+                        lg:gap-6
+                      `
+                }
               >
                 {packaging.images.map(
-                  (
-                    image,
-                    index
-                  ) => {
-                    const isFirst =
-                      index === 0;
-
-                    return (
-                      <div
-                        key={
-                          image.id
+                  (image) => (
+                    <div
+                      key={image.id}
+                      className={`
+                        group
+                        relative
+                        overflow-hidden
+                        rounded-2xl
+                        bg-neutral-100
+                        sm:rounded-3xl
+                        ${
+                          packaging.images
+                            .length === 1
+                            ? "w-[82vw] max-w-[360px] sm:w-[360px] sm:max-w-[400px] lg:w-[400px] lg:max-w-[440px]"
+                            : "w-full"
                         }
-                        className={`
-                          group
+                      `}
+                    >
+                      <div
+                        className="
                           relative
-                          overflow-hidden
-                          rounded-2xl
-                          bg-neutral-100
-                          sm:rounded-3xl
-                          ${
-                            isFirst
-                              ? "col-span-2 row-span-2"
-                              : ""
-                          }
-                        `}
+                          aspect-[2/3]
+                          w-full
+                        "
                       >
-                        <div
-                          className={`
-                            relative
-                            ${
-                              isFirst
-                                ? "aspect-[4/3] lg:h-full lg:min-h-[560px]"
-                                : "aspect-square"
-                            }
-                          `}
-                        >
-                          <Image
-                            src={
-                              image.url
-                            }
-                            alt={
-                              image.altText ??
-                              packaging.name
-                            }
-                            fill
-                            sizes={
-                              isFirst
-                                ? "(max-width: 640px) 100vw, (max-width: 1024px) 66vw, 50vw"
-                                : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                            }
-                            className="
-                              object-cover
-                              transition-transform
-                              duration-700
-                              ease-out
-                              group-hover:scale-[1.035]
-                            "
-                          />
+                        <Image
+                          src={image.url}
+                          alt={
+                            image.altText ??
+                            packaging.name
+                          }
+                          fill
+                          sizes={
+                            packaging.images
+                              .length === 1
+                              ? "(max-width: 640px) 82vw, 440px"
+                              : "(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                          }
+                          className="
+                            object-contain
+                            p-0
+                            transition-transform
+                            duration-500
+                            group-hover:scale-[1.01]
+                          "
+                        />
 
-                          {/* Soft overlay */}
+                        {/* Caption */}
 
+                        {image.caption && (
                           <div
                             className="
-                              pointer-events-none
                               absolute
-                              inset-0
+                              inset-x-0
+                              bottom-0
                               bg-gradient-to-t
-                              from-black/20
-                              via-transparent
+                              from-black/45
+                              via-black/10
                               to-transparent
-                              opacity-60
-                              transition-opacity
-                              duration-500
-                              group-hover:opacity-80
+                              px-4
+                              pb-4
+                              pt-14
+                              sm:px-5
+                              sm:pb-5
                             "
-                          />
-
-                          {/* Caption */}
-
-                          {image.caption && (
-                            <div
+                          >
+                            <p
                               className="
-                                absolute
-                                inset-x-0
-                                bottom-0
-                                px-4
-                                pb-4
-                                pt-14
-                                sm:px-6
-                                sm:pb-6
+                                text-[10px]
+                                uppercase
+                                tracking-[0.25em]
+                                text-white/90
+                                sm:text-xs
                               "
                             >
-                              <p
-                                className="
-                                  text-[10px]
-                                  uppercase
-                                  tracking-[0.25em]
-                                  text-white/90
-                                  sm:text-xs
-                                "
-                              >
-                                {
-                                  image.caption
-                                }
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                              {image.caption}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    );
-                  }
+                    </div>
+                  )
                 )}
               </div>
             </div>
@@ -1054,8 +916,7 @@ slug={
           {/* Included Packaging */}
           {/* ================================================= */}
 
-          {packaging.items
-            .length > 0 && (
+          {packaging.items.length > 0 && (
             <div
               className="
                 mx-auto
@@ -1110,14 +971,9 @@ slug={
                 "
               >
                 {packaging.items.map(
-                  (
-                    item,
-                    index
-                  ) => (
+                  (item, index) => (
                     <div
-                      key={
-                        item.id
-                      }
+                      key={item.id}
                       className="
                         group
                         flex
@@ -1143,9 +999,7 @@ slug={
                           sm:text-xs
                         "
                       >
-                        {String(
-                          index + 1
-                        ).padStart(
+                        {String(index + 1).padStart(
                           2,
                           "0"
                         )}
@@ -1180,9 +1034,7 @@ slug={
                           sm:text-base
                         "
                       >
-                        {
-                          item.name
-                        }
+                        {item.name}
                       </span>
                     </div>
                   )
@@ -1204,17 +1056,10 @@ slug={
           lg:mt-28
         "
       >
-        <Suspense
-          fallback={null}
-        >
+        <Suspense fallback={null}>
           <RelatedProducts
-            currentId={
-              product.id
-            }
-
-            category={
-              product.category
-            }
+            currentId={product.id}
+            category={product.category}
           />
         </Suspense>
       </section>
@@ -1235,9 +1080,7 @@ slug={
           lg:pt-24
         "
       >
-        <Suspense
-          fallback={null}
-        >
+        <Suspense fallback={null}>
           <RecentlyViewed />
         </Suspense>
       </section>

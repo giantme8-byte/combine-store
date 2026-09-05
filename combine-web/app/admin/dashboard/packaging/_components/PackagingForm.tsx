@@ -2,6 +2,8 @@
 
 import {
   ChangeEvent,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -66,6 +68,9 @@ export default function PackagingForm({
   packaging,
 }: PackagingFormProps) {
   const isEdit = Boolean(packaging);
+
+  const imageInputRef =
+    useRef<HTMLInputElement | null>(null);
 
   const [type, setType] =
     useState<"default" | "brand">(
@@ -197,9 +202,36 @@ export default function PackagingForm({
       ...current,
       ...newImages,
     ]);
-
-    e.target.value = "";
   }
+
+  useEffect(() => {
+    const input = imageInputRef.current;
+
+    if (!input) return;
+
+    const dataTransfer = new DataTransfer();
+
+    images
+      .filter(
+        (image) =>
+          image.isNew &&
+          !image.deleted &&
+          image.file
+      )
+      .sort(
+        (a, b) =>
+          a.sortOrder - b.sortOrder
+      )
+      .forEach((image) => {
+        if (image.file) {
+          dataTransfer.items.add(
+            image.file
+          );
+        }
+      });
+
+    input.files = dataTransfer.files;
+  }, [images]);
 
   function removeImage(
     id: string
@@ -738,6 +770,7 @@ export default function PackagingForm({
           </span>
 
           <input
+            ref={imageInputRef}
             id="packaging-images"
             type="file"
             name="images"

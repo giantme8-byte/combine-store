@@ -61,6 +61,21 @@ export default function UserRow({
 
 
   // ==========================================================
+  // CREATED DATE
+  // ==========================================================
+
+  const createdDate =
+    new Intl.DateTimeFormat(
+      "en-MY",
+      {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }
+    ).format(user.createdAt);
+
+
+  // ==========================================================
   // RENDER
   // ==========================================================
 
@@ -120,14 +135,7 @@ export default function UserRow({
           text-neutral-500
         "
       >
-        {new Intl.DateTimeFormat(
-          "en-MY",
-          {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          }
-        ).format(user.createdAt)}
+        {createdDate}
       </td>
 
 
@@ -152,9 +160,7 @@ export default function UserRow({
           "
         >
 
-          {/* ============================================== */}
           {/* EDIT */}
-          {/* ============================================== */}
 
           {canEdit && (
             <EditUserButton
@@ -166,9 +172,7 @@ export default function UserRow({
           )}
 
 
-          {/* ============================================== */}
           {/* DELETE */}
-          {/* ============================================== */}
 
           <DeleteUserButton
             user={user}

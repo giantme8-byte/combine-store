@@ -17,6 +17,18 @@ import {
 
 
 // ============================================================
+// ALLOWED MANAGED ROLES
+// ============================================================
+
+const MANAGED_ROLES: UserRole[] = [
+  UserRole.CUSTOMER,
+  UserRole.STAFF,
+  UserRole.MANAGER,
+  UserRole.ADMIN,
+];
+
+
+// ============================================================
 // CREATE USER
 // ============================================================
 
@@ -58,7 +70,7 @@ export async function createUser(
   const roleValue =
     String(
       formData.get("role") ??
-        UserRole.STAFF
+        UserRole.CUSTOMER
     );
 
 
@@ -67,9 +79,7 @@ export async function createUser(
   // ==========================================================
 
   const isValidRole =
-    Object.values(
-      UserRole
-    ).includes(
+    MANAGED_ROLES.includes(
       roleValue as UserRole
     );
 
@@ -79,7 +89,7 @@ export async function createUser(
       ? (
           roleValue as UserRole
         )
-      : UserRole.STAFF;
+      : UserRole.CUSTOMER;
 
 
   // ==========================================================
@@ -119,13 +129,12 @@ export async function createUser(
   // ==========================================================
 
   if (
-    currentUser.role !==
-      UserRole.OWNER &&
-    role === UserRole.OWNER
+    roleValue ===
+    UserRole.OWNER
   ) {
 
     throw new Error(
-      "Only the owner can assign the Owner role."
+      "The Owner role cannot be assigned through User Management."
     );
 
   }
@@ -242,7 +251,7 @@ export async function updateUser(
   const roleValue =
     String(
       formData.get("role") ??
-        UserRole.STAFF
+        UserRole.CUSTOMER
     );
 
 
@@ -251,9 +260,7 @@ export async function updateUser(
   // ==========================================================
 
   const isValidRole =
-    Object.values(
-      UserRole
-    ).includes(
+    MANAGED_ROLES.includes(
       roleValue as UserRole
     );
 
@@ -263,7 +270,7 @@ export async function updateUser(
       ? (
           roleValue as UserRole
         )
-      : UserRole.STAFF;
+      : UserRole.CUSTOMER;
 
 
   // ==========================================================
@@ -319,14 +326,12 @@ export async function updateUser(
   // ==========================================================
 
   if (
-    currentUser.role !==
-      UserRole.OWNER &&
     targetUser.role ===
-      UserRole.OWNER
+    UserRole.OWNER
   ) {
 
     throw new Error(
-      "Only the owner can modify an Owner account."
+      "Owner accounts cannot be modified through User Management."
     );
 
   }
@@ -337,13 +342,12 @@ export async function updateUser(
   // ==========================================================
 
   if (
-    currentUser.role !==
-      UserRole.OWNER &&
-    role === UserRole.OWNER
+    roleValue ===
+    UserRole.OWNER
   ) {
 
     throw new Error(
-      "Only the owner can assign the Owner role."
+      "The Owner role cannot be assigned through User Management."
     );
 
   }
@@ -519,14 +523,12 @@ export async function deleteUser(
   // ==========================================================
 
   if (
-    currentUser.role !==
-      UserRole.OWNER &&
     targetUser.role ===
-      UserRole.OWNER
+    UserRole.OWNER
   ) {
 
     throw new Error(
-      "Only the owner can delete an Owner account."
+      "Owner accounts cannot be deleted through User Management."
     );
 
   }

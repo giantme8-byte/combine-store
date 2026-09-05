@@ -17,6 +17,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -274,6 +275,14 @@ const checkoutCountries = [
 
 
 // ============================================================
+// NEW CUSTOMER VOUCHER
+// ============================================================
+
+const NEW_CUSTOMER_VOUCHER_CODE = "WELCOME50";
+const NEW_CUSTOMER_VOUCHER_MIN_SPEND = 899;
+
+
+// ============================================================
 // CHECKOUT FORM
 // ============================================================
 
@@ -343,6 +352,11 @@ const {
 
   const isMalaysia = country === "Malaysia";
   const isInternational = Boolean(country) && !isMalaysia;
+  const canCalculateCheckout = Boolean(
+    checkoutItems.length > 0 &&
+    country &&
+    (!isMalaysia || state)
+  );
 
   const [
     shippingRequestSubmitted,
@@ -407,6 +421,8 @@ const {
     voucherApplied,
     setVoucherApplied,
   ] = useState(false);
+
+  const autoVoucherAttemptedKeyRef = useRef("");
 
   const [
     calculatingCheckout,
@@ -478,7 +494,7 @@ const {
 
   const calculateOrderTotal =
     useCallback(
-      async (code?: string) => {
+      async (code?: string, options?: { silent?: boolean }) => {
 
         if (
           checkoutItems.length === 0 ||
@@ -598,7 +614,7 @@ const {
 
 
           setVoucherError(
-            returnedVoucherError
+            options?.silent ? "" : returnedVoucherError
           );
 
 
@@ -619,6 +635,15 @@ const {
               false
             );
 
+          }
+
+          if (
+            options?.silent &&
+            returnedVoucherError
+          ) {
+            setVoucherCode("");
+            setVoucherApplied(false);
+            setVoucherError("");
           }
 
         } catch (error) {
@@ -656,6 +681,12 @@ const {
 
           }
 
+          if (options?.silent) {
+            setVoucherCode("");
+            setVoucherApplied(false);
+            setVoucherError("");
+          }
+
         } finally {
 
           setCalculatingCheckout(
@@ -674,6 +705,49 @@ const {
         selectedPaymentMethod,
       ]
     );
+
+
+  // ==========================================================
+  // AUTO APPLY NEW CUSTOMER VOUCHER
+  // ==========================================================
+
+  useEffect(() => {
+
+    const attemptKey =
+      `${checkoutItems.map((item) => item.cartItemId).join(",")}:${selectedSubtotal}:${state}`;
+
+    if (
+      !isLoggedIn ||
+      !canCalculateCheckout ||
+      autoVoucherAttemptedKeyRef.current === attemptKey ||
+      voucherApplied ||
+      voucherCode.trim() ||
+      selectedSubtotal < NEW_CUSTOMER_VOUCHER_MIN_SPEND
+    ) {
+      return;
+    }
+
+    autoVoucherAttemptedKeyRef.current = attemptKey;
+
+    // The customer does not need to type the code. We keep it in state
+    // so the existing server-side voucher validation can apply the discount.
+    setVoucherCode(NEW_CUSTOMER_VOUCHER_CODE);
+
+    void calculateOrderTotal(
+      NEW_CUSTOMER_VOUCHER_CODE,
+      { silent: true }
+    );
+
+  }, [
+    isLoggedIn,
+    canCalculateCheckout,
+    voucherApplied,
+    voucherCode,
+    selectedSubtotal,
+    checkoutItems.length,
+    state,
+    calculateOrderTotal,
+  ]);
 
 
   // ==========================================================
@@ -700,6 +774,11 @@ const {
       return;
     }
 
+    // A voucher code that has not been validated yet should not trigger
+    // a second calculation with an empty voucher while auto-apply runs.
+    if (voucherCode.trim() && !voucherApplied) {
+      return;
+    }
 
     void calculateOrderTotal(
       voucherApplied
@@ -2260,18 +2339,41 @@ const {
                       "
                     >
 
-                      <p
-                        className="
-                          text-sm
-                          font-medium
-                          text-neutral-900
-                        "
-                      >
-                        {formatAmount(
-                          item.price *
-                          item.quantity
+                      <div className="text-right">
+                        {voucherApplied && voucherDiscount > 0 ? (
+                          <>
+                            <p className="text-xs text-neutral-400 line-through">
+                              {formatAmount(
+                                item.price * item.quantity
+                              )}
+                            </p>
+                            <p className="mt-0.5 text-sm font-medium text-neutral-900">
+                              {formatAmount(
+                                Math.max(
+                                  item.price * item.quantity -
+                                    (selectedSubtotal > 0
+                                      ? voucherDiscount *
+                                        ((item.price * item.quantity) /
+                                          selectedSubtotal)
+                                      : 0),
+                                  0
+                                )
+                              )}
+                              {item.quantity === 1 && (
+                                <span className="ml-1 text-xs font-normal text-neutral-400">
+                                  only
+                                </span>
+                              )}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-medium text-neutral-900">
+                            {formatAmount(
+                              item.price * item.quantity
+                            )}
+                          </p>
                         )}
-                      </p>
+                      </div>
 
 
                       <button
@@ -2469,18 +2571,34 @@ const {
                     "
                   >
 
-                    <p
-                      className="
-                        text-sm
-                        font-medium
-                        text-neutral-700
-                      "
-                    >
-                      {formatAmount(
-                        item.price *
-                        item.quantity
-                      )}
-                    </p>
+                    {voucherApplied && voucherDiscount > 0 ? (
+                      <div>
+                        <p className="text-xs text-neutral-400 line-through">
+                          {formatAmount(
+                            item.price * item.quantity
+                          )}
+                        </p>
+                        <p className="mt-0.5 text-sm font-medium text-neutral-700">
+                          {formatAmount(
+                            Math.max(
+                              item.price * item.quantity -
+                                (selectedSubtotal > 0
+                                  ? voucherDiscount *
+                                    ((item.price * item.quantity) /
+                                      selectedSubtotal)
+                                  : 0),
+                              0
+                            )
+                          )}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-neutral-700">
+                        {formatAmount(
+                          item.price * item.quantity
+                        )}
+                      </p>
+                    )}
 
                   </div>
 
@@ -2503,119 +2621,117 @@ const {
             "
           >
 
-            <label
-              className="
-                mb-2
-                block
-                text-xs
-                font-medium
-                uppercase
-                tracking-[0.2em]
-                text-neutral-400
-              "
-            >
-              Voucher
-            </label>
+            {voucherApplied &&
+            voucherCode.trim().toUpperCase() ===
+              NEW_CUSTOMER_VOUCHER_CODE ? (
 
-
-            <div
-              className="
-                flex
-                gap-2
-              "
-            >
-
-              <input
-                value={voucherCode}
-                onChange={(event) =>
-                  setVoucherCode(
-                    event.target.value
-                  )
-                }
-                placeholder="Voucher code"
+              <div
                 className="
-                  min-w-0
-                  flex-1
-                  rounded-xl
+                  rounded-2xl
                   border
-                  border-neutral-200
-                  bg-neutral-50
+                  border-[#C8A96A]/30
+                  bg-[#C8A96A]/5
                   px-4
-                  py-3
-                  text-sm
-                  outline-none
-                  focus:border-[#C8A96A]
-                "
-              />
-
-
-              <button
-                type="button"
-                disabled={
-                  calculatingCheckout ||
-                  !voucherCode.trim() ||
-                  !country ||
-                  (isMalaysia && !state)
-                }
-                onClick={() => {
-                  void calculateOrderTotal(
-                    voucherCode.trim()
-                  );
-                }}
-                className="
-                  rounded-xl
-                  border
-                  border-neutral-200
-                  px-4
-                  py-3
-                  text-xs
-                  font-medium
-                  text-neutral-400
+                  py-4
                 "
               >
-                {calculatingCheckout
-                  ? "Checking..."
-                  : "Apply"}
-              </button>
-
-            </div>
-
-
-            {voucherError ? (
-
-              <p
-                className="
-                  mt-2
-                  text-xs
-                  text-red-600
-                "
-              >
-                {voucherError}
-              </p>
-
-            ) : voucherApplied ? (
-
-              <p
-                className="
-                  mt-2
-                  text-xs
-                  text-green-600
-                "
-              >
-                Voucher applied successfully.
-              </p>
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
+                      Welcome Offer
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-neutral-900">
+                      RM50 off for new customers
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-medium text-green-600">
+                    -RM50.00
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-neutral-400">
+                  Automatically applied — no voucher code needed.
+                </p>
+              </div>
 
             ) : (
 
-              <p
-                className="
-                  mt-2
-                  text-xs
-                  text-neutral-400
-                "
-              >
-                Enter your voucher code and click Apply.
-              </p>
+              <>
+                <label
+                  className="
+                    mb-2
+                    block
+                    text-xs
+                    font-medium
+                    uppercase
+                    tracking-[0.2em]
+                    text-neutral-400
+                  "
+                >
+                  Voucher
+                </label>
+
+                <div className="flex gap-2">
+                  <input
+                    value={voucherCode}
+                    onChange={(event) =>
+                      setVoucherCode(event.target.value)
+                    }
+                    placeholder="Voucher code"
+                    className="
+                      min-w-0
+                      flex-1
+                      rounded-xl
+                      border
+                      border-neutral-200
+                      bg-neutral-50
+                      px-4
+                      py-3
+                      text-sm
+                      outline-none
+                      focus:border-[#C8A96A]
+                    "
+                  />
+
+                  <button
+                    type="button"
+                    disabled={
+                      calculatingCheckout ||
+                      !voucherCode.trim() ||
+                      !country ||
+                      (isMalaysia && !state)
+                    }
+                    onClick={() => {
+                      void calculateOrderTotal(
+                        voucherCode.trim()
+                      );
+                    }}
+                    className="
+                      rounded-xl
+                      border
+                      border-neutral-200
+                      px-4
+                      py-3
+                      text-xs
+                      font-medium
+                      text-neutral-400
+                    "
+                  >
+                    {calculatingCheckout
+                      ? "Checking..."
+                      : "Apply"}
+                  </button>
+                </div>
+
+                {voucherError ? (
+                  <p className="mt-2 text-xs text-red-600">
+                    {voucherError}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs leading-5 text-neutral-400">
+                    New customers can enjoy RM50 off when they spend RM899 or more.
+                  </p>
+                )}
+              </>
 
             )}
 

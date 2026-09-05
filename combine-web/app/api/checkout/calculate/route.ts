@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
 
 import {
   calculateCheckout,
@@ -84,16 +85,13 @@ export async function POST(
 
 
     // ========================================================
-    // USER ID
+    // AUTHENTICATED USER
     // ========================================================
 
-    const userId =
-      Number.isInteger(
-        body.userId
-      ) &&
-      body.userId > 0
-        ? body.userId
-        : null;
+    // Never trust a userId supplied by the browser.
+    // Resolve the authenticated user from the server session.
+    const currentUser = await getCurrentUser();
+    const userId = currentUser?.id ?? null;
 
 
     // ========================================================

@@ -465,6 +465,17 @@ export default async function DashboardPage({
 
 
   // ==========================================================
+  // NEW ARRIVAL DATE RANGE
+  // ==========================================================
+
+  const newArrivalSince = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000
+  );
+
+  const newArrivalUntil = new Date();
+
+
+  // ==========================================================
   // LOAD DATA
   // ==========================================================
 
@@ -601,8 +612,11 @@ export default async function DashboardPage({
 
     prisma.product.count({
       where: {
-        newArrival:
-          true,
+        newArrival: true,
+        createdAt: {
+          gt: newArrivalSince,
+          lte: newArrivalUntil,
+        },
       },
     }),
 

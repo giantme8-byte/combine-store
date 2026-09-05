@@ -21,15 +21,6 @@ export default function UserForm({
 }: UserFormProps) {
 
   // ==========================================================
-  // OWNER PERMISSION
-  // ==========================================================
-
-  const canAssignOwner =
-    currentUserRole ===
-    UserRole.OWNER;
-
-
-  // ==========================================================
   // RENDER
   // ==========================================================
 
@@ -199,7 +190,7 @@ export default function UserForm({
           name="role"
           defaultValue={
             defaultValues?.role ??
-            UserRole.STAFF
+            UserRole.CUSTOMER
           }
           className="
             w-full
@@ -215,6 +206,17 @@ export default function UserForm({
             focus:ring-black
           "
         >
+
+          {/* ================================================ */}
+          {/* CUSTOMER */}
+          {/* ================================================ */}
+
+          <option
+            value={UserRole.CUSTOMER}
+          >
+            Customer
+          </option>
+
 
           {/* ================================================ */}
           {/* STAFF */}
@@ -247,19 +249,6 @@ export default function UserForm({
           >
             Admin
           </option>
-
-
-          {/* ================================================ */}
-          {/* OWNER */}
-          {/* ================================================ */}
-
-          {canAssignOwner && (
-            <option
-              value={UserRole.OWNER}
-            >
-              Owner
-            </option>
-          )}
 
         </select>
 

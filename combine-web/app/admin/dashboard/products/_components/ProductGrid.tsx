@@ -266,6 +266,31 @@ function SortableProductCard({
   }
 
 
+  // ============================================================
+  // NEW BADGE
+  // ============================================================
+
+  const created = new Date(
+    product.createdAt
+  );
+
+  const now = new Date();
+
+  const age =
+    now.getTime() -
+    created.getTime();
+
+  const isNewArrival =
+    product.newArrival &&
+    age >= 0 &&
+    age <
+      30 *
+        24 *
+        60 *
+        60 *
+        1000;
+
+
   return (
     <div
       ref={setNodeRef}
@@ -369,7 +394,7 @@ function SortableProductCard({
           "
         >
 
-          {product.newArrival && (
+          {isNewArrival && (
 
             <span
               className="
