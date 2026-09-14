@@ -1,14 +1,41 @@
 /**
  * Cloudinary image delivery helper.
  *
- * The original Cloudinary URL is returned unchanged.
+ * Applies lightweight, automatic Cloudinary transformations
+ * while keeping the original asset path and version intact.
  *
- * We intentionally do not apply any Cloudinary transformation
- * here so product images always use the original uploaded URL.
+ * - f_auto: automatically serves the best supported image format
+ * - q_auto: automatically optimizes image quality
+ * - c_limit: prevents unnecessary upscaling
+ * - w_<width>: limits the delivered image width
  */
 export function optimizeCloudinaryImage(
   url: string,
-  _width: number
+  width: number
 ) {
+  if (!url) return url;
+
+  // Only optimize Cloudinary delivery URLs.
+  if (!url.includes("res.cloudinary.com")) {
+    return url;
+  }
+
+  // Keep width within sensible limits.
+  const safeWidth = Math.max(
+    320,
+    Math.min(Math.round(width), 1600)
+  );
+
+  const transformation =
+    `f_auto,q_auto,c_limit,w_${safeWidth}`;
+
+  // Already transformed URL.
+  if (url.includes("/image/upload/")) {
+    return url.replace(
+      "/image/upload/",
+      `/image/upload/${transformation}/`
+    );
+  }
+
   return url;
 }

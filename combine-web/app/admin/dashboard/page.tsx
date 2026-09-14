@@ -56,6 +56,7 @@ type DashboardPageProps = {
   }>;
 };
 
+export const dynamic = "force-dynamic";
 
 // ============================================================
 // VALID SALES PERIODS
