@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-
-import {
-  AnalyticsEventType,
-} from "@prisma/client";
+import { AnalyticsEventType } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
@@ -11,6 +8,7 @@ type TrackRequestBody = {
   event?: AnalyticsEventType;
   path?: string;
   productId?: number | null;
+  quantity?: number;
 };
 
 const allowedEvents =
@@ -19,22 +17,32 @@ const allowedEvents =
     AnalyticsEventType.PRODUCT_VIEW,
     AnalyticsEventType.WHATSAPP_CLICK,
     AnalyticsEventType.INSTAGRAM_CLICK,
+    AnalyticsEventType.ADD_TO_CART,
   ]);
+
+/*
+ * ============================================================
+ * VISITOR ID
+ * ============================================================
+ */
 
 function isValidVisitorId(
   value: string
 ) {
   /*
    * crypto.randomUUID() generates UUID v4.
-   *
-   * Example:
-   * 550e8400-e29b-41d4-a716-446655440000
    */
+  const uuidV4Regex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value
-  );
+  return uuidV4Regex.test(value);
 }
+
+/*
+ * ============================================================
+ * POST
+ * ============================================================
+ */
 
 export async function POST(
   request: Request
@@ -44,9 +52,9 @@ export async function POST(
       (await request.json()) as TrackRequestBody;
 
     /*
-     * =========================================================
-     * BASIC INPUT
-     * =========================================================
+     * ----------------------------------------------------------
+     * VISITOR ID
+     * ----------------------------------------------------------
      */
 
     const visitorId =
@@ -54,32 +62,11 @@ export async function POST(
         ? body.visitorId.trim()
         : "";
 
-    const event =
-      body.event;
-
-    const path =
-      typeof body.path === "string"
-        ? body.path.trim().slice(0, 500)
-        : null;
-
-    const productId =
-      typeof body.productId === "number" &&
-      Number.isInteger(body.productId) &&
-      body.productId > 0
-        ? body.productId
-        : null;
-
-    /*
-     * =========================================================
-     * VALIDATE VISITOR ID
-     * =========================================================
-     */
-
     if (!visitorId) {
       return NextResponse.json(
         {
-          success: false,
-          error: "Missing visitorId.",
+          error:
+            "Missing visitorId.",
         },
         {
           status: 400,
@@ -87,11 +74,15 @@ export async function POST(
       );
     }
 
-    if (!isValidVisitorId(visitorId)) {
+    if (
+      !isValidVisitorId(
+        visitorId
+      )
+    ) {
       return NextResponse.json(
         {
-          success: false,
-          error: "Invalid visitorId.",
+          error:
+            "Invalid visitorId.",
         },
         {
           status: 400,
@@ -100,10 +91,13 @@ export async function POST(
     }
 
     /*
-     * =========================================================
-     * VALIDATE EVENT
-     * =========================================================
+     * ----------------------------------------------------------
+     * EVENT
+     * ----------------------------------------------------------
      */
+
+    const event =
+      body.event;
 
     if (
       !event ||
@@ -111,8 +105,8 @@ export async function POST(
     ) {
       return NextResponse.json(
         {
-          success: false,
-          error: "Invalid analytics event.",
+          error:
+            "Invalid analytics event.",
         },
         {
           status: 400,
@@ -121,21 +115,47 @@ export async function POST(
     }
 
     /*
-     * =========================================================
-     * EVENT / PRODUCT RULES
-     * =========================================================
-     *
-     * PAGE_VIEW
-     * → productId should not be provided.
-     *
-     * PRODUCT_VIEW
-     * → productId is required.
-     *
-     * WHATSAPP_CLICK
-     * → productId optional.
-     *
-     * INSTAGRAM_CLICK
-     * → productId optional.
+     * ----------------------------------------------------------
+     * PATH
+     * ----------------------------------------------------------
+     */
+
+    const path =
+      typeof body.path === "string"
+        ? body.path.trim()
+        : null;
+
+    /*
+     * ----------------------------------------------------------
+     * PRODUCT ID
+     * ----------------------------------------------------------
+     */
+
+    const productId =
+      body.productId == null
+        ? null
+        : Number(body.productId);
+
+    if (
+      productId !== null &&
+      (!Number.isInteger(productId) ||
+        productId <= 0)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid productId.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * ----------------------------------------------------------
+     * EVENT RULES
+     * ----------------------------------------------------------
      */
 
     if (
@@ -145,9 +165,8 @@ export async function POST(
     ) {
       return NextResponse.json(
         {
-          success: false,
           error:
-            "PAGE_VIEW cannot contain productId.",
+            "PAGE_VIEW cannot have productId.",
         },
         {
           status: 400,
@@ -156,15 +175,16 @@ export async function POST(
     }
 
     if (
-      event ===
-        AnalyticsEventType.PRODUCT_VIEW &&
+      (event ===
+        AnalyticsEventType.PRODUCT_VIEW ||
+        event ===
+          AnalyticsEventType.ADD_TO_CART) &&
       productId === null
     ) {
       return NextResponse.json(
         {
-          success: false,
           error:
-            "PRODUCT_VIEW requires productId.",
+            "This event requires productId.",
         },
         {
           status: 400,
@@ -173,12 +193,42 @@ export async function POST(
     }
 
     /*
-     * =========================================================
-     * VALIDATE PRODUCT
-     * =========================================================
+     * ----------------------------------------------------------
+     * QUANTITY
+     * ----------------------------------------------------------
      *
-     * Only PRODUCT_VIEW strictly requires
-     * a valid existing product.
+     * Only ADD_TO_CART uses the quantity.
+     *
+     * Other analytics events always use 1.
+     *
+     * ----------------------------------------------------------
+     */
+
+    const quantity =
+      body.quantity == null
+        ? 1
+        : Number(body.quantity);
+
+    if (
+      !Number.isInteger(quantity) ||
+      quantity <= 0 ||
+      quantity > 1000
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid quantity.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * ----------------------------------------------------------
+     * VERIFY PRODUCT
+     * ----------------------------------------------------------
      */
 
     let validProductId:
@@ -190,7 +240,6 @@ export async function POST(
           where: {
             id: productId,
           },
-
           select: {
             id: true,
           },
@@ -199,8 +248,8 @@ export async function POST(
       if (!product) {
         return NextResponse.json(
           {
-            success: false,
-            error: "Product not found.",
+            error:
+              "Product not found.",
           },
           {
             status: 404,
@@ -213,33 +262,25 @@ export async function POST(
     }
 
     /*
-     * =========================================================
+     * ----------------------------------------------------------
      * VISITOR
-     * =========================================================
-     *
-     * Create the anonymous visitor if this browser
-     * has never been seen before.
-     *
-     * Existing visitors automatically update
-     * lastSeenAt because it uses @updatedAt.
+     * ----------------------------------------------------------
      */
 
     await prisma.analyticsVisitor.upsert({
       where: {
         visitorId,
       },
-
       create: {
         visitorId,
       },
-
       update: {},
     });
 
     /*
-     * =========================================================
-     * CREATE EVENT
-     * =========================================================
+     * ----------------------------------------------------------
+     * EVENT
+     * ----------------------------------------------------------
      */
 
     await prisma.analyticsEvent.create({
@@ -249,33 +290,36 @@ export async function POST(
         path,
         productId:
           validProductId,
+        quantity:
+          event ===
+          AnalyticsEventType.ADD_TO_CART
+            ? quantity
+            : 1,
       },
     });
 
-    /*
-     * =========================================================
-     * SUCCESS
-     * =========================================================
-     */
-
-    return NextResponse.json({
-      success: true,
-    });
-
+    return NextResponse.json(
+      {
+        success: true,
+      },
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
     console.error(
-      "Analytics tracking error:",
+      "[analytics/track]",
       error
     );
 
     /*
      * Analytics must NEVER break
-     * the customer's website.
+     * the customer-facing website.
      */
-
     return NextResponse.json(
       {
-        success: false,
+        error:
+          "Analytics tracking failed.",
       },
       {
         status: 500,

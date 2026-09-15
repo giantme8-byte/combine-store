@@ -19,6 +19,11 @@ import SortDropdown from "./SortDropdown";
 import ProductGrid from "./ProductGrid";
 import SearchAutocomplete from "./SearchAutocomplete";
 
+
+// ============================================================
+// PRODUCT
+// ============================================================
+
 type Product = {
   id: number;
   slug: string;
@@ -52,11 +57,31 @@ type Product = {
   onSale: boolean;
 };
 
+
+// ============================================================
+// FILTER OPTIONS
+// ============================================================
+
 type FilterOptions = {
   categories: string[];
   brands: string[];
   subCategories: string[];
 };
+
+
+// ============================================================
+// CUSTOMER VOUCHER PRICE
+// ============================================================
+
+type VoucherPrice = {
+  price: number;
+  discount: number;
+  isNewCustomerVoucher: boolean;
+};
+
+// ============================================================
+// PROPS
+// ============================================================
 
 type Props = {
   products: Product[];
@@ -70,8 +95,18 @@ type Props = {
   filterOptions: FilterOptions;
 };
 
+
+// ============================================================
+// SHOP SCROLL KEY
+// ============================================================
+
 const SHOP_SCROLL_KEY =
   "combine-shop-scroll-position";
+
+
+// ============================================================
+// SHOP CLIENT
+// ============================================================
 
 export default function ShopClient({
   products,
@@ -82,13 +117,16 @@ export default function ShopClient({
   totalPages,
   filterOptions,
 }: Props) {
+
   const router = useRouter();
 
   const searchParams =
     useSearchParams();
 
+
   const productsRef =
     useRef<HTMLDivElement>(null);
+
 
   /*
    * =========================================================
@@ -100,9 +138,11 @@ export default function ShopClient({
     searchParams.get("category") ??
     "All";
 
+
   const urlBrand =
     searchParams.get("brand") ??
     "All";
+
 
   /*
    * =========================================================
@@ -121,9 +161,11 @@ export default function ShopClient({
       "subCategory"
     );
 
+
   const urlSearch =
     searchParams.get("search") ??
     "";
+
 
   /*
    * =========================================================
@@ -142,6 +184,7 @@ export default function ShopClient({
     searchParams.get("sort") ??
     "Recommended";
 
+
   /*
    * =========================================================
    * Local State
@@ -151,8 +194,10 @@ export default function ShopClient({
   const [search, setSearch] =
     useState(urlSearch);
 
+
   const [brand, setBrand] =
     useState(urlBrand);
+
 
   const [
     subCategories,
@@ -161,8 +206,183 @@ export default function ShopClient({
     urlSubCategories
   );
 
+
   const [sort, setSort] =
     useState(urlSort);
+
+
+  /*
+   * =========================================================
+   * CUSTOMER VOUCHER PRICES
+   *
+   * This contains the customer-specific
+   * display price for products.
+   *
+   * Example:
+   *
+   * Product RM999
+   * Voucher RM50 OFF
+   *
+   * {
+   *   123: {
+   *     price: 949,
+   *     discount: 50
+   *   }
+   * }
+   * =========================================================
+   */
+
+  const [
+    voucherPrices,
+    setVoucherPrices,
+  ] = useState<
+    Record<
+      number,
+      VoucherPrice
+    >
+  >({});
+
+
+  /*
+   * =========================================================
+   * LOAD CUSTOMER VOUCHER PRICES
+   *
+   * IMPORTANT:
+   *
+   * We send ALL products currently shown
+   * in this Shop page in ONE request.
+   *
+   * We do NOT make one API request per ProductCard.
+   * =========================================================
+   */
+
+  useEffect(() => {
+
+    let cancelled = false;
+
+
+    async function loadVoucherPrices() {
+
+      /*
+       * No products.
+       */
+
+      if (
+        products.length === 0
+      ) {
+
+        if (!cancelled) {
+          setVoucherPrices({});
+        }
+
+        return;
+      }
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/shop/voucher-prices",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify({
+                productIds:
+                  products.map(
+                    (product) =>
+                      product.id
+                  ),
+              }),
+            }
+          );
+
+
+        /*
+         * API failed.
+         *
+         * Simply use normal product prices.
+         */
+
+        if (
+          !response.ok
+        ) {
+
+          if (!cancelled) {
+            setVoucherPrices({});
+          }
+
+          return;
+        }
+
+
+        const data =
+          await response.json();
+
+
+        /*
+         * Make sure this component
+         * has not unmounted or started
+         * another request.
+         */
+
+        if (
+          !cancelled
+        ) {
+
+          setVoucherPrices(
+            data?.prices ??
+              {}
+          );
+
+        }
+
+      } catch (
+        error
+      ) {
+
+        console.error(
+          "Failed to load customer voucher prices:",
+          error
+        );
+
+
+        /*
+         * If voucher pricing fails,
+         * keep the normal product price.
+         */
+
+        if (
+          !cancelled
+        ) {
+
+          setVoucherPrices(
+            {}
+          );
+
+        }
+
+      }
+
+    }
+
+
+    loadVoucherPrices();
+
+
+    return () => {
+
+      cancelled = true;
+
+    };
+
+  }, [products]);
+
 
   /*
    * =========================================================
@@ -171,6 +391,7 @@ export default function ShopClient({
    */
 
   useEffect(() => {
+
     setSearch(urlSearch);
 
     setBrand(urlBrand);
@@ -180,12 +401,14 @@ export default function ShopClient({
     );
 
     setSort(urlSort);
+
   }, [
     urlSearch,
     urlBrand,
     urlSort,
     urlSubCategories.join("|"),
   ]);
+
 
   /*
    * =========================================================
@@ -194,22 +417,27 @@ export default function ShopClient({
    */
 
   useEffect(() => {
+
     const savedPosition =
       sessionStorage.getItem(
         SHOP_SCROLL_KEY
       );
 
+
     if (!savedPosition) {
       return;
     }
 
+
     const scrollY =
       Number(savedPosition);
+
 
     if (
       !Number.isFinite(scrollY) ||
       scrollY < 0
     ) {
+
       sessionStorage.removeItem(
         SHOP_SCROLL_KEY
       );
@@ -217,15 +445,21 @@ export default function ShopClient({
       return;
     }
 
+
     let frameId = 0;
+
     let attempts = 0;
 
+
     const restoreScroll = () => {
+
       attempts += 1;
+
 
       const documentHeight =
         document.documentElement
           .scrollHeight;
+
 
       if (
         documentHeight >=
@@ -233,35 +467,46 @@ export default function ShopClient({
             window.innerHeight ||
         attempts >= 60
       ) {
+
         window.scrollTo({
           top: scrollY,
           behavior: "auto",
         });
 
+
         sessionStorage.removeItem(
           SHOP_SCROLL_KEY
         );
 
+
         return;
       }
+
 
       frameId =
         requestAnimationFrame(
           restoreScroll
         );
+
     };
+
 
     frameId =
       requestAnimationFrame(
         restoreScroll
       );
 
+
     return () => {
+
       cancelAnimationFrame(
         frameId
       );
+
     };
+
   }, []);
+
 
   /*
    * =========================================================
@@ -272,33 +517,45 @@ export default function ShopClient({
   const previousPageRef =
     useRef(currentPage);
 
+
   useEffect(() => {
+
     if (
       previousPageRef.current ===
       currentPage
     ) {
+
       return;
     }
+
 
     previousPageRef.current =
       currentPage;
 
+
     const frameId =
       requestAnimationFrame(() => {
+
         productsRef.current?.scrollIntoView(
           {
             behavior: "smooth",
             block: "start",
           }
         );
+
       });
 
+
     return () => {
+
       cancelAnimationFrame(
         frameId
       );
+
     };
+
   }, [currentPage]);
+
 
   /*
    * =========================================================
@@ -307,13 +564,16 @@ export default function ShopClient({
    */
 
   useEffect(() => {
+
     function handleProductNavigation(
       event: MouseEvent
     ) {
+
       const target =
         event.target as
           | HTMLElement
           | null;
+
 
       const link =
         target?.closest(
@@ -322,18 +582,22 @@ export default function ShopClient({
           | HTMLAnchorElement
           | null;
 
+
       if (!link) {
         return;
       }
+
 
       const href =
         link.getAttribute(
           "href"
         );
 
+
       if (!href) {
         return;
       }
+
 
       /*
        * Ignore normal Shop links.
@@ -343,8 +607,10 @@ export default function ShopClient({
         href === "/shop" ||
         href === "/shop/"
       ) {
+
         return;
       }
+
 
       /*
        * Only save position when
@@ -356,14 +622,18 @@ export default function ShopClient({
           "/shop/"
         )
       ) {
+
         return;
       }
+
 
       sessionStorage.setItem(
         SHOP_SCROLL_KEY,
         String(window.scrollY)
       );
+
     }
+
 
     document.addEventListener(
       "click",
@@ -371,14 +641,19 @@ export default function ShopClient({
       true
     );
 
+
     return () => {
+
       document.removeEventListener(
         "click",
         handleProductNavigation,
         true
       );
+
     };
+
   }, []);
+
 
   /*
    * =========================================================
@@ -392,28 +667,37 @@ export default function ShopClient({
       string | null
     >
   ) {
+
     const params =
       new URLSearchParams(
         searchParams.toString()
       );
 
+
     Object.entries(
       changes
     ).forEach(
       ([key, value]) => {
+
         if (
           !value ||
           value === "All"
         ) {
+
           params.delete(key);
+
         } else {
+
           params.set(
             key,
             value
           );
+
         }
+
       }
     );
+
 
     /*
      * Every filter/search/sort
@@ -422,15 +706,19 @@ export default function ShopClient({
 
     params.delete("page");
 
+
     const query =
       params.toString();
+
 
     router.push(
       query
         ? `/shop?${query}`
         : "/shop"
     );
+
   }
+
 
   /*
    * =========================================================
@@ -441,25 +729,34 @@ export default function ShopClient({
   function handleSearch(
     value: string
   ) {
+
     setSearch(value);
+
   }
+
 
   function handleSearchKeyDown(
     event: React.KeyboardEvent<HTMLInputElement>
   ) {
+
     if (
       event.key !== "Enter"
     ) {
+
       return;
     }
 
+
     event.preventDefault();
+
 
     updateParams({
       search:
         search.trim() || null,
     });
+
   }
+
 
   /*
    * =========================================================
@@ -470,6 +767,7 @@ export default function ShopClient({
   function handleCategoryChange(
     value: string
   ) {
+
     /*
      * When Category changes,
      * remove selected Sub Categories.
@@ -481,10 +779,12 @@ export default function ShopClient({
 
     setSubCategories([]);
 
+
     const params =
       new URLSearchParams(
         searchParams.toString()
       );
+
 
     /*
      * Category
@@ -493,15 +793,20 @@ export default function ShopClient({
     if (
       value === "All"
     ) {
+
       params.delete(
         "category"
       );
+
     } else {
+
       params.set(
         "category",
         value
       );
+
     }
+
 
     /*
      * Remove all Sub Categories.
@@ -511,21 +816,26 @@ export default function ShopClient({
       "subCategory"
     );
 
+
     /*
      * Start from Page 1.
      */
 
     params.delete("page");
 
+
     const query =
       params.toString();
+
 
     router.push(
       query
         ? `/shop?${query}`
         : "/shop"
     );
+
   }
+
 
   /*
    * =========================================================
@@ -536,7 +846,9 @@ export default function ShopClient({
   function handleBrandChange(
     value: string
   ) {
+
     setBrand(value);
+
 
     updateParams({
       brand:
@@ -544,7 +856,9 @@ export default function ShopClient({
           ? null
           : value,
     });
+
   }
+
 
   /*
    * =========================================================
@@ -557,12 +871,17 @@ export default function ShopClient({
   function handleSubCategoryChange(
     values: string[]
   ) {
-    setSubCategories(values);
+
+    setSubCategories(
+      values
+    );
+
 
     const params =
       new URLSearchParams(
         searchParams.toString()
       );
+
 
     /*
      * Remove existing
@@ -573,12 +892,14 @@ export default function ShopClient({
       "subCategory"
     );
 
+
     /*
      * Any filter change
      * starts from Page 1.
      */
 
     params.delete("page");
+
 
     /*
      * Add every selected
@@ -587,31 +908,38 @@ export default function ShopClient({
 
     values.forEach(
       (value) => {
+
         if (
           value !== "All"
         ) {
+
           params.append(
             "subCategory",
             value
           );
+
         }
+
       }
     );
 
+
     const query =
       params.toString();
+
 
     router.push(
       query
         ? `/shop?${query}`
         : "/shop"
     );
+
   }
+
 
   /*
    * =========================================================
    * Sort
-   * =========================================================
    *
    * Recommended is the default.
    *
@@ -627,7 +955,9 @@ export default function ShopClient({
   function handleSortChange(
     value: string
   ) {
+
     setSort(value);
+
 
     updateParams({
       sort:
@@ -635,7 +965,9 @@ export default function ShopClient({
           ? null
           : value,
     });
+
   }
+
 
   /*
    * =========================================================
@@ -644,6 +976,7 @@ export default function ShopClient({
    */
 
   function clearFilters() {
+
     setSearch("");
 
     setBrand("All");
@@ -652,8 +985,11 @@ export default function ShopClient({
 
     setSort("Recommended");
 
+
     router.push("/shop");
+
   }
+
 
   /*
    * =========================================================
@@ -664,18 +1000,22 @@ export default function ShopClient({
   function goToPage(
     page: number
   ) {
+
     if (
       page < 1 ||
       page > totalPages ||
       page === currentPage
     ) {
+
       return;
     }
+
 
     const params =
       new URLSearchParams(
         searchParams.toString()
       );
+
 
     /*
      * Page 1 does not need
@@ -683,13 +1023,18 @@ export default function ShopClient({
      */
 
     if (page === 1) {
+
       params.delete("page");
+
     } else {
+
       params.set(
         "page",
         String(page)
       );
+
     }
+
 
     /*
      * Pagination should not
@@ -701,15 +1046,19 @@ export default function ShopClient({
       SHOP_SCROLL_KEY
     );
 
+
     const query =
       params.toString();
+
 
     router.push(
       query
         ? `/shop?${query}`
         : "/shop"
     );
+
   }
+
 
   /*
    * =========================================================
@@ -718,9 +1067,11 @@ export default function ShopClient({
    */
 
   function getPaginationItems() {
+
     if (
       totalPages <= 7
     ) {
+
       return Array.from(
         {
           length:
@@ -729,11 +1080,14 @@ export default function ShopClient({
         (_, index) =>
           index + 1
       );
+
     }
+
 
     if (
       currentPage <= 4
     ) {
+
       return [
         1,
         2,
@@ -743,12 +1097,15 @@ export default function ShopClient({
         "ellipsis-right",
         totalPages,
       ];
+
     }
+
 
     if (
       currentPage >=
       totalPages - 3
     ) {
+
       return [
         1,
         "ellipsis-left",
@@ -758,7 +1115,9 @@ export default function ShopClient({
         totalPages - 1,
         totalPages,
       ];
+
     }
+
 
     return [
       1,
@@ -769,10 +1128,13 @@ export default function ShopClient({
       "ellipsis-right",
       totalPages,
     ];
+
   }
+
 
   const paginationItems =
     getPaginationItems();
+
 
   /*
    * =========================================================
@@ -787,6 +1149,7 @@ export default function ShopClient({
           pageSize +
         1;
 
+
   const endItem =
     Math.min(
       currentPage *
@@ -794,15 +1157,16 @@ export default function ShopClient({
       total
     );
 
+
   const resultLabel =
     total === 0
       ? "0 Products"
       : `${startItem}–${endItem} of ${total} Products`;
 
+
   /*
    * =========================================================
    * Active Filters
-   * =========================================================
    *
    * Recommended is the default state,
    * so it is NOT treated as an active filter.
@@ -815,6 +1179,7 @@ export default function ShopClient({
     brand !== "All" ||
     subCategories.length > 0 ||
     sort !== "Recommended";
+
 
   /*
    * =========================================================
@@ -829,11 +1194,13 @@ export default function ShopClient({
         sm:space-y-10
       "
     >
+
       {/* ================================================= */}
       {/* Search */}
       {/* ================================================= */}
 
       <div className="relative">
+
         <SearchBar
           value={search}
           onChange={
@@ -844,10 +1211,13 @@ export default function ShopClient({
           }
         />
 
+
         <SearchAutocomplete
           query={search}
         />
+
       </div>
+
 
       {/* ================================================= */}
       {/* Filters */}
@@ -865,6 +1235,7 @@ export default function ShopClient({
           sm:p-7
         "
       >
+
         <div
           className="
             grid
@@ -875,6 +1246,7 @@ export default function ShopClient({
             xl:gap-6
           "
         >
+
           {/* ================================================= */}
           {/* Category */}
           {/* ================================================= */}
@@ -886,6 +1258,7 @@ export default function ShopClient({
               xl:col-span-1
             "
           >
+
             <CategoryFilter
               selected={category}
               onSelect={
@@ -895,7 +1268,9 @@ export default function ShopClient({
                 filterOptions.categories
               }
             />
+
           </div>
+
 
           {/* ================================================= */}
           {/* Brand */}
@@ -908,6 +1283,7 @@ export default function ShopClient({
               xl:col-span-1
             "
           >
+
             <BrandFilter
               selected={brand}
               onSelect={
@@ -917,16 +1293,17 @@ export default function ShopClient({
                 filterOptions.brands
               }
             />
+
           </div>
 
-          {/* ================================================= */}
-          {/* Sub Category
-           *
-           * Give Sub Category two
-           * desktop grid columns.
-           *
-           * This is the important fix.
-           * ================================================= */}
+
+{/*
+  =================================================
+  Sub Category
+  Give Sub Category two desktop grid columns.
+  This is the important fix.
+  =================================================
+*/}
 
           <div
             className="
@@ -935,6 +1312,7 @@ export default function ShopClient({
               xl:col-span-2
             "
           >
+
             <SubCategoryFilter
               selected={
                 subCategories
@@ -946,7 +1324,9 @@ export default function ShopClient({
                 filterOptions.subCategories
               }
             />
+
           </div>
+
 
           {/* ================================================= */}
           {/* Sort */}
@@ -959,15 +1339,20 @@ export default function ShopClient({
               xl:col-span-1
             "
           >
+
             <SortDropdown
               value={sort}
               onChange={
                 handleSortChange
               }
             />
+
           </div>
+
         </div>
+
       </section>
+
 
       {/* ================================================= */}
       {/* Result Header */}
@@ -988,7 +1373,9 @@ export default function ShopClient({
           md:pb-6
         "
       >
+
         <div>
+
           <p
             className="
               text-[10px]
@@ -1002,6 +1389,7 @@ export default function ShopClient({
             COLLECTION
           </p>
 
+
           <h2
             className="
               mt-2
@@ -1014,9 +1402,12 @@ export default function ShopClient({
           >
             {resultLabel}
           </h2>
+
         </div>
 
+
         {hasActiveFilters && (
+
           <button
             type="button"
             onClick={
@@ -1046,8 +1437,11 @@ export default function ShopClient({
           >
             Clear Filters
           </button>
+
         )}
+
       </section>
+
 
       {/* ================================================= */}
       {/* Products */}
@@ -1060,21 +1454,37 @@ export default function ShopClient({
           sm:scroll-mt-8
         "
       >
+
         <ProductGrid
           products={
             products
           }
+
           featuredProducts={
             featuredProducts
           }
+
           searchKeyword={
             search
           }
+
           onClearFilters={
             clearFilters
           }
+
+          /*
+           * =================================================
+           * CUSTOMER VOUCHER PRICES
+           * =================================================
+           */
+
+          voucherPrices={
+            voucherPrices
+          }
         />
+
       </div>
+
 
       {/* ================================================= */}
       {/* Pagination */}
@@ -1082,6 +1492,7 @@ export default function ShopClient({
 
       {totalPages > 1 &&
         products.length > 0 && (
+
           <nav
             aria-label="Product pagination"
             className="
@@ -1095,6 +1506,7 @@ export default function ShopClient({
               sm:pt-10
             "
           >
+
             {/* Page Info */}
 
             <p
@@ -1111,6 +1523,7 @@ export default function ShopClient({
               {totalPages}
             </p>
 
+
             {/* Pagination Controls */}
 
             <div
@@ -1123,6 +1536,7 @@ export default function ShopClient({
                 sm:gap-2
               "
             >
+
               {/* Previous */}
 
               <button
@@ -1164,6 +1578,7 @@ export default function ShopClient({
                 ←
               </button>
 
+
               {/* Page Numbers */}
 
               {paginationItems.map(
@@ -1171,10 +1586,12 @@ export default function ShopClient({
                   item,
                   index
                 ) => {
+
                   if (
                     typeof item !==
                     "number"
                   ) {
+
                     return (
                       <span
                         key={`${item}-${index}`}
@@ -1195,11 +1612,14 @@ export default function ShopClient({
                         …
                       </span>
                     );
+
                   }
+
 
                   const active =
                     item ===
                     currentPage;
+
 
                   return (
                     <button
@@ -1252,8 +1672,10 @@ export default function ShopClient({
                       {item}
                     </button>
                   );
+
                 }
               )}
+
 
               {/* Next */}
 
@@ -1295,9 +1717,13 @@ export default function ShopClient({
               >
                 →
               </button>
+
             </div>
+
           </nav>
+
         )}
+
     </div>
   );
 }

@@ -23,6 +23,7 @@ import {
 
 type AnalyticsRange =
   | "today"
+  | "yesterday"
   | "7days"
   | "30days";
 
@@ -33,6 +34,13 @@ type DailyData = {
   pageViews: number;
   productViews: number;
   whatsappClicks: number;
+};
+
+type AddToCartProduct = {
+  id: number;
+  name: string;
+  brand: string;
+  quantity: number;
 };
 
 type TopProduct = {
@@ -59,11 +67,23 @@ type WebsiteAnalyticsClientProps = {
 
   topProductsToday: TopProduct[];
 
+  topProductsYesterday: TopProduct[];
+
   topProducts7Days: TopProduct[];
 
   topProducts30Days: TopProduct[];
 
+  addToCartProductsToday: AddToCartProduct[];
+
+  addToCartProductsYesterday: AddToCartProduct[];
+
+  addToCartProducts7Days: AddToCartProduct[];
+
+  addToCartProducts30Days: AddToCartProduct[];
+
   todayStats: TodayStats;
+
+  yesterdayStats: TodayStats;
 
   periodVisitors: PeriodVisitors;
 };
@@ -77,9 +97,15 @@ type WebsiteAnalyticsClientProps = {
 export default function WebsiteAnalyticsClient({
   dailyData,
   topProductsToday,
+  topProductsYesterday,
   topProducts7Days,
   topProducts30Days,
+  addToCartProductsToday,
+  addToCartProductsYesterday,
+  addToCartProducts7Days,
+  addToCartProducts30Days,
   todayStats,
+  yesterdayStats,
   periodVisitors,
 }: WebsiteAnalyticsClientProps) {
   const [range, setRange] =
@@ -96,6 +122,10 @@ export default function WebsiteAnalyticsClient({
   const selectedDays =
     useMemo(() => {
       if (range === "today") {
+        return 1;
+      }
+
+      if (range === "yesterday") {
         return 1;
       }
 
@@ -116,6 +146,10 @@ export default function WebsiteAnalyticsClient({
     useMemo(() => {
       if (range === "today") {
         return dailyData.slice(-1);
+      }
+
+      if (range === "yesterday") {
+        return dailyData.slice(-2, -1);
       }
 
       return dailyData.slice(
@@ -154,6 +188,19 @@ export default function WebsiteAnalyticsClient({
 
           whatsappClicks:
             todayStats.whatsappClicks,
+        };
+      }
+
+      if (range === "yesterday") {
+        return {
+          visitors:
+            yesterdayStats.visitors,
+          pageViews:
+            yesterdayStats.pageViews,
+          productViews:
+            yesterdayStats.productViews,
+          whatsappClicks:
+            yesterdayStats.whatsappClicks,
         };
       }
 
@@ -203,6 +250,7 @@ export default function WebsiteAnalyticsClient({
       range,
       chartData,
       todayStats,
+      yesterdayStats,
       periodVisitors,
     ]);
 
@@ -218,6 +266,10 @@ export default function WebsiteAnalyticsClient({
         return topProductsToday;
       }
 
+      if (range === "yesterday") {
+        return topProductsYesterday;
+      }
+
       if (range === "7days") {
         return topProducts7Days;
       }
@@ -226,8 +278,32 @@ export default function WebsiteAnalyticsClient({
     }, [
       range,
       topProductsToday,
+      topProductsYesterday,
       topProducts7Days,
       topProducts30Days,
+    ]);
+
+  const addToCartProducts =
+    useMemo(() => {
+      if (range === "today") {
+        return addToCartProductsToday;
+      }
+
+      if (range === "yesterday") {
+        return addToCartProductsYesterday;
+      }
+
+      if (range === "7days") {
+        return addToCartProducts7Days;
+      }
+
+      return addToCartProducts30Days;
+    }, [
+      range,
+      addToCartProductsToday,
+      addToCartProductsYesterday,
+      addToCartProducts7Days,
+      addToCartProducts30Days,
     ]);
 
   /*
@@ -239,6 +315,8 @@ export default function WebsiteAnalyticsClient({
   const rangeLabel =
     range === "today"
       ? "Today"
+      : range === "yesterday"
+      ? "Yesterday"
       : range === "7days"
       ? "Last 7 Days"
       : "Last 30 Days";
@@ -350,6 +428,33 @@ export default function WebsiteAnalyticsClient({
             `}
           >
             Today
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              setRange("yesterday")
+            }
+            className={`
+              flex-1
+              rounded-lg
+              px-3
+              py-2
+              text-xs
+              font-medium
+              transition
+
+              sm:flex-none
+              sm:px-4
+
+              ${
+                range === "yesterday"
+                  ? "bg-white text-black shadow-sm"
+                  : "text-neutral-500 hover:text-black"
+              }
+            `}
+          >
+            Yesterday
           </button>
 
           <button
@@ -956,6 +1061,165 @@ export default function WebsiteAnalyticsClient({
 
         </div>
 
+      </div>
+
+      {/* ADD TO CART PRODUCTS */}
+
+      <div
+        className="
+          rounded-2xl
+          border
+          border-neutral-200
+          bg-white
+          p-4
+          shadow-sm
+
+          sm:rounded-3xl
+          sm:p-6
+        "
+      >
+        <div className="mb-6">
+          <p
+            className="
+              text-[10px]
+              font-medium
+              uppercase
+              tracking-[0.3em]
+              text-neutral-400
+
+              sm:text-xs
+            "
+          >
+            Conversion
+          </p>
+
+          <h3
+            className="
+              mt-1.5
+              text-xl
+              font-light
+              text-neutral-900
+
+              sm:text-2xl
+            "
+          >
+            Add to Cart Products
+          </h3>
+
+          <p
+            className="
+              mt-1
+              text-xs
+              text-neutral-500
+
+              sm:text-sm
+            "
+          >
+            Products added to cart during {rangeLabel.toLowerCase()}
+          </p>
+        </div>
+
+        {addToCartProducts.length === 0 ? (
+          <div
+            className="
+              rounded-2xl
+              border
+              border-dashed
+              border-neutral-300
+              py-10
+              text-center
+              text-sm
+              text-neutral-500
+            "
+          >
+            No add to cart yet.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {addToCartProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className="
+                  flex
+                  min-w-0
+                  items-center
+                  gap-3
+                  rounded-2xl
+                  border
+                  border-neutral-200
+                  p-3
+
+                  sm:p-4
+                "
+              >
+                <div
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-neutral-100
+                    text-xs
+                    font-medium
+                    text-neutral-500
+                  "
+                >
+                  {index + 1}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="
+                      truncate
+                      text-sm
+                      font-medium
+                      text-neutral-900
+                    "
+                  >
+                    {product.name}
+                  </p>
+
+                  <p
+                    className="
+                      mt-0.5
+                      truncate
+                      text-[11px]
+                      text-neutral-500
+
+                      sm:text-xs
+                    "
+                  >
+                    {product.brand}
+                  </p>
+                </div>
+
+                <div className="shrink-0 text-right">
+                  <p
+                    className="
+                      text-sm
+                      font-medium
+                      text-neutral-900
+                    "
+                  >
+                    {product.quantity}
+                  </p>
+
+                  <p
+                    className="
+                      text-[10px]
+                      text-neutral-400
+                    "
+                  >
+                    added
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>

@@ -9,9 +9,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import WishlistButton from "@/components/WishlistButton";
+
 import {
   useInquiry,
 } from "@/components/providers/InquiryProvider";
+
 import {
   useQuickView,
 } from "@/components/providers/QuickViewProvider";
@@ -24,6 +26,10 @@ import {
   optimizeCloudinaryImage,
 } from "@/lib/cloudinary-image";
 
+
+// ============================================================
+// PRODUCT CARD
+// ============================================================
 
 export default function ProductCard({
   id,
@@ -42,6 +48,15 @@ export default function ProductCard({
   limited,
   onSale,
   buttonSize = "default",
+
+  // ==========================================================
+  // CUSTOMER VOUCHER PRICE
+  // ==========================================================
+
+  customerPrice = null,
+  customerDiscount = 0,
+  isNewCustomerVoucher = false,
+
 }: ProductCardProps) {
 
   const {
@@ -66,31 +81,32 @@ export default function ProductCard({
   // ============================================================
 
   const isNewArrival = useMemo(() => {
+
     if (!newArrival) {
       return false;
     }
 
-    const now = new Date();
-    const created = new Date(createdAt);
+    const now =
+      new Date();
 
-    const age = now.getTime() - created.getTime();
+    const created =
+      new Date(createdAt);
 
-    // DEBUG
-    console.log("NEW DEBUG:", {
-      id,
-      name,
-      createdAt,
-      createdDate: created.toISOString(),
-      now: now.toISOString(),
-      ageInDays: age / (1000 * 60 * 60 * 24),
-      newArrival,
-      isNew: age >= 0 && age < 30 * 24 * 60 * 60 * 1000,
-    });
+    const age =
+      now.getTime() -
+      created.getTime();
 
-    return age >= 0 && age < 30 * 24 * 60 * 60 * 1000;
+    return (
+      age >= 0 &&
+      age <
+        30 *
+          24 *
+          60 *
+          60 *
+          1000
+    );
+
   }, [
-    id,
-    name,
     createdAt,
     newArrival,
   ]);
@@ -108,11 +124,9 @@ export default function ProductCard({
 
     event.stopPropagation();
 
-
     addItem(id);
 
     openDrawer();
-
   }
 
 
@@ -127,7 +141,6 @@ export default function ProductCard({
     event.preventDefault();
 
     event.stopPropagation();
-
 
     open({
       id,
@@ -158,7 +171,6 @@ export default function ProductCard({
 
       onSale,
     });
-
   }
 
 
@@ -169,7 +181,7 @@ export default function ProductCard({
   const optimizedImage =
     optimizeCloudinaryImage(
       image,
-      800
+      600
     );
 
 
@@ -177,7 +189,7 @@ export default function ProductCard({
     secondImage
       ? optimizeCloudinaryImage(
           secondImage,
-          800
+          600
         )
       : undefined;
 
@@ -186,12 +198,14 @@ export default function ProductCard({
   // SMART IMAGE FILL
   // ============================================================
 
-  const [imageScale, setImageScale] =
-    useState(1);
+  const [
+    imageScale,
+    setImageScale,
+  ] = useState(1);
 
 
   // ============================================================
-  // DISPLAY PRICE
+  // BASE PRODUCT PRICE
   // ============================================================
 
   const productPrice =
@@ -202,27 +216,53 @@ export default function ProductCard({
       : null;
 
 
+  // ============================================================
+  // VARIANT PRICES
+  // ============================================================
+
   const variantPrices =
     (variants ?? [])
-      .map((variant) =>
-        typeof variant.price === "number" &&
-        Number.isFinite(variant.price) &&
-        variant.price > 0
-          ? variant.price
-          : null
+      .map(
+        (variant) =>
+          typeof variant.price === "number" &&
+          Number.isFinite(
+            variant.price
+          ) &&
+          variant.price > 0
+            ? variant.price
+            : null
       )
       .filter(
-        (value): value is number =>
+        (
+          value
+        ): value is number =>
           value !== null
       );
 
 
   const uniqueVariantPrices = [
-    ...new Set(variantPrices),
+    ...new Set(
+      variantPrices
+    ),
   ].sort(
-    (a, b) => a - b
+    (a, b) =>
+      a - b
   );
 
+
+  // ============================================================
+  // NUMERIC BASE DISPLAY PRICE
+  // ============================================================
+
+  const numericDisplayPrice =
+    uniqueVariantPrices.length > 0
+      ? uniqueVariantPrices[0]
+      : productPrice;
+
+
+  // ============================================================
+  // DISPLAY PRICE
+  // ============================================================
 
   const displayPrice =
     uniqueVariantPrices.length === 1
@@ -233,7 +273,9 @@ export default function ProductCard({
             maximumFractionDigits: 2,
           }
         )}`
+
       : uniqueVariantPrices.length > 1
+
         ? `RM ${uniqueVariantPrices[0].toLocaleString(
             "en-MY",
             {
@@ -249,7 +291,9 @@ export default function ProductCard({
               maximumFractionDigits: 2,
             }
           )}`
+
         : productPrice !== null
+
           ? `RM ${productPrice.toLocaleString(
               "en-MY",
               {
@@ -257,12 +301,34 @@ export default function ProductCard({
                 maximumFractionDigits: 2,
               }
             )}`
+
           : null;
 
+
+  // ============================================================
+  // CUSTOMER VOUCHER PRICE
+  // ============================================================
+
+  const hasCustomerVoucherPrice =
+    typeof customerPrice === "number" &&
+    Number.isFinite(customerPrice) &&
+    customerPrice > 0 &&
+    numericDisplayPrice !== null &&
+    customerPrice <
+      numericDisplayPrice;
+
+
+  // ============================================================
+  // HAS PRICE
+  // ============================================================
 
   const hasPrice =
     displayPrice !== null;
 
+
+  // ============================================================
+  // RENDER
+  // ============================================================
 
   return (
     <article
@@ -489,7 +555,7 @@ export default function ProductCard({
                   sm:px-3
                   sm:py-1
                   sm:text-[10px]
-                  sm:tracking-[0.15em]
+                  sm:tracking-[0.14em]
                   sm:group-hover:-translate-y-1
                   sm:group-hover:scale-105
                 "
@@ -542,9 +608,7 @@ export default function ProductCard({
             "
           >
 
-            {/* ================================================= */}
             {/* MAIN IMAGE */}
-            {/* ================================================= */}
 
             <Image
               src={optimizedImage}
@@ -558,6 +622,7 @@ export default function ProductCard({
               "
               loading="lazy"
               onLoad={(event) => {
+
                 const img =
                   event.currentTarget;
 
@@ -569,9 +634,13 @@ export default function ProductCard({
                   ratio >= 1.15 ||
                   ratio <= 0.88
                 ) {
+
                   setImageScale(1.05);
+
                 } else {
+
                   setImageScale(1);
+
                 }
               }}
               style={{
@@ -596,9 +665,7 @@ export default function ProductCard({
             />
 
 
-            {/* ================================================= */}
             {/* HOVER IMAGE */}
-            {/* ================================================= */}
 
             {optimizedSecondImage && (
               <Image
@@ -635,11 +702,6 @@ export default function ProductCard({
             )}
 
           </div>
-
-
-          {/* ================================================== */}
-          {/* LUXURY SHINE */}
-          {/* ================================================== */}
 
 
           {/* ================================================== */}
@@ -751,9 +813,7 @@ export default function ProductCard({
           "
         >
 
-          {/* ================================================== */}
           {/* BRAND */}
-          {/* ================================================== */}
 
           <p
             className="
@@ -774,9 +834,7 @@ export default function ProductCard({
           </p>
 
 
-          {/* ================================================== */}
           {/* PRODUCT TITLE */}
-          {/* ================================================== */}
 
           <h3
             className="
@@ -809,9 +867,7 @@ export default function ProductCard({
           </h3>
 
 
-          {/* ================================================== */}
           {/* MODEL */}
-          {/* ================================================== */}
 
           <div
             className="
@@ -822,6 +878,7 @@ export default function ProductCard({
               lg:mt-5
             "
           >
+
             <p
               className="
                 text-[7px]
@@ -853,6 +910,7 @@ export default function ProductCard({
             >
               {model ?? "—"}
             </p>
+
           </div>
 
 
@@ -866,11 +924,113 @@ export default function ProductCard({
               border-t
               border-neutral-100
               pt-3
+
               sm:mt-5
               sm:pt-4
             "
           >
-            {displayPrice ? (
+
+            {hasCustomerVoucherPrice ? (
+
+              <div
+                className="
+                  flex
+                  flex-col
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    items-baseline
+                    gap-2
+                  "
+                >
+
+                  {/* ORIGINAL PRICE */}
+
+                  <span
+                    className="
+                      text-[10px]
+                      font-light
+                      text-neutral-400
+                      line-through
+
+                      sm:text-[13px]
+                    "
+                  >
+                    RM{" "}
+                    {numericDisplayPrice!.toLocaleString(
+                      "en-MY",
+                      {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                      }
+                    )}
+                  </span>
+
+
+                  {/* CUSTOMER PRICE */}
+
+                  <span
+                    className="
+                      text-[15px]
+                      font-semibold
+                      tracking-[-0.02em]
+                      text-neutral-950
+
+                      sm:text-[18px]
+                      lg:text-[19px]
+                    "
+                  >
+                    RM{" "}
+                    {customerPrice!.toLocaleString(
+                      "en-MY",
+                      {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                      }
+                    )}
+                  </span>
+
+                </div>
+
+
+                {/* VOUCHER LABEL */}
+
+                {customerDiscount > 0 && (
+                  <span
+                    className="
+                      mt-1
+                      text-[7px]
+                      font-medium
+                      uppercase
+                      tracking-[0.18em]
+                      text-[#C8A96A]
+
+                      sm:text-[9px]
+                      sm:tracking-[0.22em]
+                    "
+                  >
+                    {isNewCustomerVoucher
+                      ? "New Customers"
+                      : "Special Offer"}{" "}
+                    · RM{" "}
+                    {customerDiscount.toLocaleString(
+                      "en-MY",
+                      {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                      }
+                    )}{" "}
+                    Off
+                  </span>
+                )}
+
+              </div>
+
+            ) : displayPrice ? (
+
               <p
                 className="
                   text-[13px]
@@ -884,7 +1044,9 @@ export default function ProductCard({
               >
                 {displayPrice}
               </p>
+
             ) : (
+
               <p
                 className="
                   text-[8px]
@@ -899,10 +1061,13 @@ export default function ProductCard({
               >
                 Price Upon Request
               </p>
+
             )}
+
           </div>
 
         </div>
+
       </Link>
 
 
@@ -927,7 +1092,9 @@ export default function ProductCard({
           lg:px-6
         "
       >
+
         {hasPrice ? (
+
           <Link
             href={productHref}
             prefetch
@@ -949,6 +1116,7 @@ export default function ProductCard({
               sm:tracking-[0.24em]
             "
           >
+
             <span>
               View Details
             </span>
@@ -962,11 +1130,16 @@ export default function ProductCard({
             >
               →
             </span>
+
           </Link>
+
         ) : (
+
           <button
             type="button"
-            onClick={handleInquiry}
+            onClick={
+              handleInquiry
+            }
             className="
               inline-flex
               items-center
@@ -985,6 +1158,7 @@ export default function ProductCard({
               sm:tracking-[0.24em]
             "
           >
+
             <span>
               Request Price
             </span>
@@ -998,8 +1172,11 @@ export default function ProductCard({
             >
               →
             </span>
+
           </button>
+
         )}
+
       </div>
 
     </article>

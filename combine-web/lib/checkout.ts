@@ -51,7 +51,6 @@ export type CheckoutCalculation = {
   shipping: ShippingCalculation;
 };
 
-
 // ============================================================
 // CONSTANTS
 // ============================================================
@@ -59,7 +58,6 @@ export type CheckoutCalculation = {
 const WEST_SHIPPING_FEE = 15;
 
 const EAST_SHIPPING_FEE = 25;
-
 
 // ============================================================
 // PAYPAL FEE
@@ -85,7 +83,6 @@ const PAYPAL_FEE_RATE = 0.06;
 
 const PAYPAL_FEE_FIXED = 2.00;
 
-
 // ============================================================
 // EAST MALAYSIA STATES
 // ============================================================
@@ -94,7 +91,6 @@ const EAST_MALAYSIA_STATES = [
   "sabah",
   "sarawak",
 ];
-
 
 // ============================================================
 // NORMALIZE MONEY
@@ -111,7 +107,6 @@ function roundMoney(
       100
   ) / 100;
 }
-
 
 // ============================================================
 // SHIPPING REGION
@@ -137,7 +132,6 @@ export function getShippingRegion(
   return "WEST";
 }
 
-
 // ============================================================
 // CALCULATE SHIPPING
 // ============================================================
@@ -147,27 +141,43 @@ export function calculateShipping({
   state,
   country = "Malaysia",
   internationalShippingFee,
+  isNewCustomer = false,
 }: {
   totalQuantity: number;
   state?: string | null;
   country?: string | null;
   internationalShippingFee?: number | null;
+  isNewCustomer?: boolean;
 }): ShippingCalculation {
 
   const normalizedCountry =
     (country ?? "Malaysia").trim();
 
-  // ------------------------------------------------------------
+  // ============================================================
   // INTERNATIONAL SHIPPING
-  // ------------------------------------------------------------
+  // ============================================================
+  //
+  // IMPORTANT:
+  //
+  // International customers NEVER receive
+  // New Customer Free Shipping.
+  //
+  // International shipping is always MANUAL.
+  // The shipping fee must be confirmed separately.
+  //
+  // ============================================================
 
   if (
     normalizedCountry &&
-    normalizedCountry !== "Malaysia"
+    normalizedCountry.toLowerCase() !==
+      "malaysia"
   ) {
+
     const fee =
       Math.max(
-        Number(internationalShippingFee ?? 0),
+        Number(
+          internationalShippingFee ?? 0
+        ),
         0
       );
 
@@ -179,44 +189,79 @@ export function calculateShipping({
     };
   }
 
+  // ============================================================
+  // MALAYSIA SHIPPING
+  // ============================================================
+
   const region =
     getShippingRegion(
       state ?? ""
     );
 
-
-  /*
-   * Two or more items:
-   *
-   * FREE ABX SHIPPING
-   */
+  // ============================================================
+  // NEW CUSTOMER — FIRST ORDER FREE SHIPPING
+  // ============================================================
+  //
+  // Only applies to Malaysia.
+  //
+  // Customer must:
+  //
+  // 1. Be logged in
+  // 2. Have NO previous Order
+  //
+  // First order:
+  // → FREE ABX SHIPPING
+  //
+  // Second order onwards:
+  // → This condition is false
+  // → Normal shipping rules apply
+  //
+  // ============================================================
 
   if (
-    totalQuantity >= 2
+    isNewCustomer
   ) {
-
     return {
       courier: "ABX",
       region,
       fee: 0,
       isFree: true,
     };
-
   }
 
+  // ============================================================
+  // TWO OR MORE ITEMS — FREE SHIPPING
+  // ============================================================
+  //
+  // This existing rule remains available
+  // to both new and existing customers.
+  //
+  // ============================================================
 
-  /*
-   * One item:
-   *
-   * West Malaysia = RM15
-   * East Malaysia = RM25
-   */
+  if (
+    totalQuantity >= 2
+  ) {
+    return {
+      courier: "ABX",
+      region,
+      fee: 0,
+      isFree: true,
+    };
+  }
+
+  // ============================================================
+  // ONE ITEM — NORMAL SHIPPING
+  // ============================================================
+  //
+  // West Malaysia = RM15
+  // East Malaysia = RM25
+  //
+  // ============================================================
 
   const fee =
     region === "EAST"
       ? EAST_SHIPPING_FEE
       : WEST_SHIPPING_FEE;
-
 
   return {
     courier: "ABX",
@@ -224,24 +269,39 @@ export function calculateShipping({
     fee,
     isFree: false,
   };
-
 }
-
 
 // ============================================================
 // ADD ONE CALENDAR MONTH
 // ============================================================
 
-function addOneCalendarMonth(date: Date): Date {
-  const year = date.getUTCFullYear();
-  const monthIndex = date.getUTCMonth();
-  const day = date.getUTCDate();
-  const hours = date.getUTCHours();
-  const minutes = date.getUTCMinutes();
-  const seconds = date.getUTCSeconds();
-  const milliseconds = date.getUTCMilliseconds();
+function addOneCalendarMonth(
+  date: Date
+): Date {
 
-  const targetMonthIndex = monthIndex + 1;
+  const year =
+    date.getUTCFullYear();
+
+  const monthIndex =
+    date.getUTCMonth();
+
+  const day =
+    date.getUTCDate();
+
+  const hours =
+    date.getUTCHours();
+
+  const minutes =
+    date.getUTCMinutes();
+
+  const seconds =
+    date.getUTCSeconds();
+
+  const milliseconds =
+    date.getUTCMilliseconds();
+
+  const targetMonthIndex =
+    monthIndex + 1;
 
   const lastDayOfTargetMonth =
     new Date(
@@ -252,10 +312,11 @@ function addOneCalendarMonth(date: Date): Date {
       )
     ).getUTCDate();
 
-  const targetDay = Math.min(
-    day,
-    lastDayOfTargetMonth
-  );
+  const targetDay =
+    Math.min(
+      day,
+      lastDayOfTargetMonth
+    );
 
   return new Date(
     Date.UTC(
@@ -269,7 +330,6 @@ function addOneCalendarMonth(date: Date): Date {
     )
   );
 }
-
 
 // ============================================================
 // CALCULATE VOUCHER
@@ -292,24 +352,20 @@ export async function calculateVoucher({
       ?.trim()
       .toUpperCase();
 
-
-  /*
-   * No voucher entered.
-   */
+  // ==========================================================
+  // NO VOUCHER ENTERED
+  // ==========================================================
 
   if (
     !normalizedCode
   ) {
-
     return {
       code: null,
       discount: 0,
       error: null,
       voucherId: null,
     };
-
   }
-
 
   // ==========================================================
   // FIND VOUCHER
@@ -323,9 +379,7 @@ export async function calculateVoucher({
       },
     });
 
-
   if (!voucher) {
-
     return {
       code: normalizedCode,
       discount: 0,
@@ -333,9 +387,7 @@ export async function calculateVoucher({
         "Invalid voucher code.",
       voucherId: null,
     };
-
   }
-
 
   // ==========================================================
   // ACTIVE
@@ -344,7 +396,6 @@ export async function calculateVoucher({
   if (
     !voucher.isActive
   ) {
-
     return {
       code: normalizedCode,
       discount: 0,
@@ -352,9 +403,7 @@ export async function calculateVoucher({
         "This voucher is no longer available.",
       voucherId: voucher.id,
     };
-
   }
-
 
   // ==========================================================
   // START DATE
@@ -363,11 +412,9 @@ export async function calculateVoucher({
   const now =
     new Date();
 
-
   if (
     now < voucher.startAt
   ) {
-
     return {
       code: normalizedCode,
       discount: 0,
@@ -375,26 +422,20 @@ export async function calculateVoucher({
         "This voucher is not available yet.",
       voucherId: voucher.id,
     };
-
   }
-
 
   // ==========================================================
   // EXPIRY
   // ==========================================================
   //
   // Normal Voucher:
-  // - Uses the admin-defined expiresAt.
+  // - Uses admin-defined expiresAt.
   // - NULL means no expiry.
   //
   // New Customer Voucher:
   // - Ignores voucher.expiresAt.
-  // - Starts from the customer's account creation time.
-  // - Expires exactly one calendar month later.
-  //
-  // Example:
-  // Customer registered 15 Sep
-  // -> Voucher expires 15 Oct
+  // - Starts from account creation time.
+  // - Expires one calendar month later.
   //
   // ==========================================================
 
@@ -403,7 +444,6 @@ export async function calculateVoucher({
   ) {
 
     if (!userId) {
-
       return {
         code: normalizedCode,
         discount: 0,
@@ -411,7 +451,6 @@ export async function calculateVoucher({
           "Please log in to use this voucher.",
         voucherId: voucher.id,
       };
-
     }
 
     const customer =
@@ -425,7 +464,6 @@ export async function calculateVoucher({
       });
 
     if (!customer) {
-
       return {
         code: normalizedCode,
         discount: 0,
@@ -433,7 +471,6 @@ export async function calculateVoucher({
           "Customer account could not be found.",
         voucherId: voucher.id,
       };
-
     }
 
     const customerVoucherExpiry =
@@ -442,9 +479,9 @@ export async function calculateVoucher({
       );
 
     if (
-      now >= customerVoucherExpiry
+      now >=
+      customerVoucherExpiry
     ) {
-
       return {
         code: normalizedCode,
         discount: 0,
@@ -452,12 +489,12 @@ export async function calculateVoucher({
           "This new customer voucher has expired.",
         voucherId: voucher.id,
       };
-
     }
 
   } else if (
     voucher.expiresAt &&
-    now >= voucher.expiresAt
+    now >=
+      voucher.expiresAt
   ) {
 
     return {
@@ -467,9 +504,7 @@ export async function calculateVoucher({
         "This voucher has expired.",
       voucherId: voucher.id,
     };
-
   }
-
 
   // ==========================================================
   // TOTAL USAGE LIMIT
@@ -480,7 +515,6 @@ export async function calculateVoucher({
     voucher.usageCount >=
       voucher.usageLimit
   ) {
-
     return {
       code: normalizedCode,
       discount: 0,
@@ -488,9 +522,7 @@ export async function calculateVoucher({
         "This voucher has reached its usage limit.",
       voucherId: voucher.id,
     };
-
   }
-
 
   // ==========================================================
   // MINIMUM SPEND
@@ -500,7 +532,6 @@ export async function calculateVoucher({
     subtotal <
     voucher.minSpend
   ) {
-
     return {
       code: normalizedCode,
       discount: 0,
@@ -510,9 +541,7 @@ export async function calculateVoucher({
         )} is required.`,
       voucherId: voucher.id,
     };
-
   }
-
 
   // ==========================================================
   // CATEGORY
@@ -527,7 +556,6 @@ export async function calculateVoucher({
         .trim()
         .toLowerCase();
 
-
     const eligible =
       productCategories.some(
         (category) =>
@@ -537,9 +565,7 @@ export async function calculateVoucher({
           requiredCategory
       );
 
-
     if (!eligible) {
-
       return {
         code: normalizedCode,
         discount: 0,
@@ -547,11 +573,8 @@ export async function calculateVoucher({
           `This voucher is only valid for ${voucher.category}.`,
         voucherId: voucher.id,
       };
-
     }
-
   }
-
 
   // ==========================================================
   // NEW CUSTOMER ONLY
@@ -561,17 +584,7 @@ export async function calculateVoucher({
     voucher.newCustomerOnly
   ) {
 
-    /*
-     * If the customer is not logged in,
-     * we cannot safely confirm that they
-     * are a new customer.
-     *
-     * Therefore this voucher requires
-     * a logged-in customer.
-     */
-
     if (!userId) {
-
       return {
         code: normalizedCode,
         discount: 0,
@@ -579,9 +592,7 @@ export async function calculateVoucher({
           "Please log in to use this voucher.",
         voucherId: voucher.id,
       };
-
     }
-
 
     const existingOrder =
       await prisma.order.findFirst({
@@ -593,9 +604,9 @@ export async function calculateVoucher({
         },
       });
 
-
-    if (existingOrder) {
-
+    if (
+      existingOrder
+    ) {
       return {
         code: normalizedCode,
         discount: 0,
@@ -603,11 +614,8 @@ export async function calculateVoucher({
           "This voucher is only available to new customers.",
         voucherId: voucher.id,
       };
-
     }
-
   }
-
 
   // ==========================================================
   // PER CUSTOMER LIMIT
@@ -618,7 +626,6 @@ export async function calculateVoucher({
   ) {
 
     if (!userId) {
-
       return {
         code: normalizedCode,
         discount: 0,
@@ -626,9 +633,7 @@ export async function calculateVoucher({
           "Please log in to use this voucher.",
         voucherId: voucher.id,
       };
-
     }
-
 
     const customerUsageCount =
       await prisma.voucherUsage.count({
@@ -639,12 +644,10 @@ export async function calculateVoucher({
         },
       });
 
-
     if (
       customerUsageCount >=
       voucher.usagePerCustomer
     ) {
-
       return {
         code: normalizedCode,
         discount: 0,
@@ -652,11 +655,8 @@ export async function calculateVoucher({
           "You have already reached the usage limit for this voucher.",
         voucherId: voucher.id,
       };
-
     }
-
   }
-
 
   // ==========================================================
   // CALCULATE DISCOUNT
@@ -664,32 +664,25 @@ export async function calculateVoucher({
 
   let discount = 0;
 
-
   if (
     voucher.type ===
     "FIXED"
   ) {
-
     discount =
       voucher.value;
-
   }
-
 
   if (
     voucher.type ===
     "PERCENTAGE"
   ) {
-
     discount =
       subtotal *
       (
         voucher.value /
         100
       );
-
   }
-
 
   // ==========================================================
   // MAX DISCOUNT
@@ -700,12 +693,9 @@ export async function calculateVoucher({
     discount >
       voucher.maxDiscount
   ) {
-
     discount =
       voucher.maxDiscount;
-
   }
-
 
   // ==========================================================
   // NEVER DISCOUNT MORE THAN SUBTOTAL
@@ -715,12 +705,9 @@ export async function calculateVoucher({
     discount >
     subtotal
   ) {
-
     discount =
       subtotal;
-
   }
-
 
   discount =
     roundMoney(
@@ -729,7 +716,6 @@ export async function calculateVoucher({
         0
       )
     );
-
 
   // ==========================================================
   // SUCCESS
@@ -747,9 +733,7 @@ export async function calculateVoucher({
     voucherId:
       voucher.id,
   };
-
 }
-
 
 // ============================================================
 // CALCULATE PAYPAL FEE
@@ -780,30 +764,24 @@ export function calculatePaypalFee({
     return 0;
   }
 
-
   if (
     amount <= 0
   ) {
     return 0;
   }
 
-
   const percentageFee =
     amount *
     PAYPAL_FEE_RATE;
-
 
   const paypalFee =
     percentageFee +
     PAYPAL_FEE_FIXED;
 
-
   return roundMoney(
     paypalFee
   );
-
 }
-
 
 // ============================================================
 // COMPLETE CHECKOUT CALCULATION
@@ -844,7 +822,6 @@ export async function calculateCheckout({
     | null;
 }): Promise<CheckoutCalculation> {
 
-
   // ==========================================================
   // VOUCHER
   // ==========================================================
@@ -861,9 +838,54 @@ export async function calculateCheckout({
       productCategories,
     });
 
+  // ==========================================================
+  // CUSTOMER — FIRST ORDER CHECK
+  // ==========================================================
+  //
+  // New Customer:
+  //
+  // - Logged in
+  // - Has NO previous Order
+  //
+  // This is based on Order history,
+  // NOT account creation date.
+  //
+  // ==========================================================
+
+  let isNewCustomer =
+    false;
+
+  if (
+    userId
+  ) {
+
+    const existingOrder =
+      await prisma.order.findFirst({
+        where: {
+          userId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    isNewCustomer =
+      !existingOrder;
+  }
 
   // ==========================================================
   // SHIPPING
+  // ==========================================================
+  //
+  // International:
+  // → Always MANUAL
+  // → Never New Customer Free Shipping
+  //
+  // Malaysia:
+  // → New customer's first order = FREE
+  // → Existing customer 2+ items = FREE
+  // → Existing customer 1 item = RM15/RM25
+  //
   // ==========================================================
 
   const shipping =
@@ -871,20 +893,23 @@ export async function calculateCheckout({
       totalQuantity,
 
       state,
-    });
 
+      country,
+
+      internationalShippingFee,
+
+      isNewCustomer,
+    });
 
   // ==========================================================
   // BASE AMOUNT
   // ==========================================================
-
-  /*
-   * Base amount before PayPal fee:
-   *
-   * Subtotal
-   * - Voucher Discount
-   * + Shipping
-   */
+  //
+  // Subtotal
+  // - Voucher Discount
+  // + Shipping
+  //
+  // ==========================================================
 
   const baseAmount =
     roundMoney(
@@ -895,7 +920,6 @@ export async function calculateCheckout({
         0
       )
     );
-
 
   // ==========================================================
   // PAYPAL FEE
@@ -930,7 +954,6 @@ export async function calculateCheckout({
       paymentMethodType,
     });
 
-
   // ==========================================================
   // FINAL
   // ==========================================================
@@ -944,13 +967,11 @@ export async function calculateCheckout({
       )
     );
 
-
   // ==========================================================
   // RETURN
-  // ==========================================================
+  // ============================================================
 
   return {
-
     subtotal:
       roundMoney(
         subtotal
@@ -969,7 +990,5 @@ export async function calculateCheckout({
     voucher,
 
     shipping,
-
   };
-
 }

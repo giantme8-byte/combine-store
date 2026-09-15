@@ -56,11 +56,9 @@ function getDateKey(
 
   return [
     malaysiaDate.getUTCFullYear(),
-
     String(
       malaysiaDate.getUTCMonth() + 1
     ).padStart(2, "0"),
-
     String(
       malaysiaDate.getUTCDate()
     ).padStart(2, "0"),
@@ -82,7 +80,7 @@ function formatDay(
 
 /*
  * ============================================================
- * TOP PRODUCT TYPE
+ * TOP PRODUCT
  * ============================================================
  */
 
@@ -93,18 +91,11 @@ type TopProductData = {
   views: number;
 };
 
-/*
- * ============================================================
- * BUILD TOP PRODUCTS
- * ============================================================
- */
-
 function buildTopProducts(
   events: {
     event: string;
     productId: number | null;
   }[],
-
   productMap: Map<
     number,
     {
@@ -171,30 +162,119 @@ function buildTopProducts(
 
 /*
  * ============================================================
+ * ADD TO CART PRODUCTS
+ * ============================================================
+ */
+
+type AddToCartProductData = {
+  id: number;
+  name: string;
+  brand: string;
+  quantity: number;
+};
+
+function buildAddToCartProducts(
+  events: {
+    event: string;
+    productId: number | null;
+    quantity: number;
+  }[],
+  productMap: Map<
+    number,
+    {
+      id: number;
+      name: string;
+      brand: string;
+    }
+  >
+): AddToCartProductData[] {
+  const quantities =
+    new Map<number, number>();
+
+  for (const event of events) {
+    if (
+      event.event !==
+        "ADD_TO_CART" ||
+      event.productId === null
+    ) {
+      continue;
+    }
+
+    quantities.set(
+      event.productId,
+      (quantities.get(
+        event.productId
+      ) ?? 0) + event.quantity
+    );
+  }
+
+  return Array.from(
+    quantities.entries()
+  )
+    .map(
+      ([productId, quantity]) => {
+        const product =
+          productMap.get(
+            productId
+          );
+
+        if (!product) {
+          return null;
+        }
+
+        return {
+          id: product.id,
+          name: product.name,
+          brand: product.brand,
+          quantity,
+        };
+      }
+    )
+    .filter(
+      (
+        product
+      ): product is AddToCartProductData =>
+        product !== null
+    )
+    .sort(
+      (a, b) =>
+        b.quantity - a.quantity
+    )
+    .slice(0, 10);
+}
+
+/*
+ * ============================================================
  * WEBSITE ANALYTICS
  * ============================================================
  */
 
 export default async function WebsiteAnalytics() {
-  const now = new Date();
+  const now =
+    new Date();
 
   /*
-   * =========================================================
+   * ==========================================================
    * DATE RANGE
-   * =========================================================
-   *
-   * Latest 30 calendar days.
-   *
-   * Used for:
-   *
-   * Today
-   * Last 7 Days
-   * Last 30 Days
-   * =========================================================
+   * ==========================================================
    */
 
   const today =
     getDayRange(now);
+
+  const yesterday =
+    {
+      start:
+        new Date(
+          today.start.getTime() -
+            24 *
+              60 *
+              60 *
+              1000
+        ),
+      end:
+        today.start,
+    };
 
   const thirtyDaysAgo =
     new Date(
@@ -207,17 +287,19 @@ export default async function WebsiteAnalytics() {
     );
 
   /*
-   * =========================================================
+   * ==========================================================
    * ANALYTICS EVENTS
-   * =========================================================
+   * ==========================================================
    */
 
   const events =
     await prisma.analyticsEvent.findMany({
       where: {
         createdAt: {
-          gte: thirtyDaysAgo,
-          lt: today.end,
+          gte:
+            thirtyDaysAgo,
+          lt:
+            today.end,
         },
       },
 
@@ -227,6 +309,7 @@ export default async function WebsiteAnalytics() {
         event: true,
         path: true,
         productId: true,
+        quantity: true,
         createdAt: true,
       },
 
@@ -236,9 +319,9 @@ export default async function WebsiteAnalytics() {
     });
 
   /*
-   * =========================================================
+   * ==========================================================
    * PRODUCT DATA
-   * =========================================================
+   * ==========================================================
    */
 
   const productIds =
@@ -263,7 +346,8 @@ export default async function WebsiteAnalytics() {
       ? await prisma.product.findMany({
           where: {
             id: {
-              in: productIds,
+              in:
+                productIds,
             },
           },
 
@@ -276,9 +360,9 @@ export default async function WebsiteAnalytics() {
       : [];
 
   /*
-   * =========================================================
+   * ==========================================================
    * PRODUCT MAP
-   * =========================================================
+   * ==========================================================
    */
 
   const productMap =
@@ -287,18 +371,21 @@ export default async function WebsiteAnalytics() {
         (product) => [
           product.id,
           {
-            id: product.id,
-            name: product.name,
-            brand: product.brand,
+            id:
+              product.id,
+            name:
+              product.name,
+            brand:
+              product.brand,
           },
         ]
       )
     );
 
   /*
-   * =========================================================
+   * ==========================================================
    * DAILY DATA
-   * =========================================================
+   * ==========================================================
    */
 
   const dailyData: {
@@ -343,14 +430,6 @@ export default async function WebsiteAnalytics() {
             dayEnd
       );
 
-    /*
-     * Daily Unique Visitors
-     *
-     * This remains daily unique.
-     * 7/30-day unique visitors are calculated
-     * separately below.
-     */
-
     const visitors =
       new Set(
         dayEvents.map(
@@ -361,10 +440,14 @@ export default async function WebsiteAnalytics() {
 
     dailyData.push({
       date:
-        getDateKey(dayStart),
+        getDateKey(
+          dayStart
+        ),
 
       label:
-        formatDay(dayStart),
+        formatDay(
+          dayStart
+        ),
 
       visitors:
         visitors.size,
@@ -393,9 +476,9 @@ export default async function WebsiteAnalytics() {
   }
 
   /*
-   * =========================================================
-   * TODAY EVENTS
-   * =========================================================
+   * ==========================================================
+   * TODAY
+   * ==========================================================
    */
 
   const todayEvents =
@@ -416,14 +499,32 @@ export default async function WebsiteAnalytics() {
     );
 
   /*
-   * =========================================================
-   * 7 DAY RANGE
-   * =========================================================
-   *
-   * Today + previous 6 calendar days.
-   *
-   * Total = 7 calendar days.
-   * =========================================================
+   * ==========================================================
+   * YESTERDAY
+   * ==========================================================
+   */
+
+  const yesterdayEvents =
+    events.filter(
+      (event) =>
+        event.createdAt >=
+          yesterday.start &&
+        event.createdAt <
+          yesterday.end
+    );
+
+  const yesterdayVisitors =
+    new Set(
+      yesterdayEvents.map(
+        (event) =>
+          event.visitorId
+      )
+    );
+
+  /*
+   * ==========================================================
+   * 7 DAYS
+   * ==========================================================
    */
 
   const sevenDaysStart =
@@ -445,21 +546,6 @@ export default async function WebsiteAnalytics() {
           today.end
     );
 
-  /*
-   * =========================================================
-   * 7 DAY UNIQUE VISITORS
-   * =========================================================
-   *
-   * IMPORTANT:
-   *
-   * Count each visitor only once across
-   * the entire 7-day period.
-   *
-   * A visitor who comes back multiple days
-   * is still one unique visitor.
-   * =========================================================
-   */
-
   const sevenDaysVisitors =
     new Set(
       sevenDaysEvents.map(
@@ -469,9 +555,9 @@ export default async function WebsiteAnalytics() {
     );
 
   /*
-   * =========================================================
-   * 30 DAY RANGE
-   * =========================================================
+   * ==========================================================
+   * 30 DAYS
+   * ==========================================================
    */
 
   const thirtyDaysEvents =
@@ -483,16 +569,6 @@ export default async function WebsiteAnalytics() {
           today.end
     );
 
-  /*
-   * =========================================================
-   * 30 DAY UNIQUE VISITORS
-   * =========================================================
-   *
-   * Count each visitor only once across
-   * the entire 30-day period.
-   * =========================================================
-   */
-
   const thirtyDaysVisitors =
     new Set(
       thirtyDaysEvents.map(
@@ -502,9 +578,9 @@ export default async function WebsiteAnalytics() {
     );
 
   /*
-   * =========================================================
-   * TOP PRODUCTS — TODAY
-   * =========================================================
+   * ==========================================================
+   * TOP PRODUCTS
+   * ==========================================================
    */
 
   const topProductsToday =
@@ -513,23 +589,17 @@ export default async function WebsiteAnalytics() {
       productMap
     );
 
-  /*
-   * =========================================================
-   * TOP PRODUCTS — 7 DAYS
-   * =========================================================
-   */
+  const topProductsYesterday =
+    buildTopProducts(
+      yesterdayEvents,
+      productMap
+    );
 
   const topProducts7Days =
     buildTopProducts(
       sevenDaysEvents,
       productMap
     );
-
-  /*
-   * =========================================================
-   * TOP PRODUCTS — 30 DAYS
-   * =========================================================
-   */
 
   const topProducts30Days =
     buildTopProducts(
@@ -538,9 +608,39 @@ export default async function WebsiteAnalytics() {
     );
 
   /*
-   * =========================================================
+   * ==========================================================
+   * ADD TO CART PRODUCTS
+   * ==========================================================
+   */
+
+  const addToCartProductsToday =
+    buildAddToCartProducts(
+      todayEvents,
+      productMap
+    );
+
+  const addToCartProductsYesterday =
+    buildAddToCartProducts(
+      yesterdayEvents,
+      productMap
+    );
+
+  const addToCartProducts7Days =
+    buildAddToCartProducts(
+      sevenDaysEvents,
+      productMap
+    );
+
+  const addToCartProducts30Days =
+    buildAddToCartProducts(
+      thirtyDaysEvents,
+      productMap
+    );
+
+  /*
+   * ==========================================================
    * SEND DATA TO CLIENT
-   * =========================================================
+   * ==========================================================
    */
 
   return (
@@ -553,12 +653,32 @@ export default async function WebsiteAnalytics() {
         topProductsToday
       }
 
+      topProductsYesterday={
+        topProductsYesterday
+      }
+
       topProducts7Days={
         topProducts7Days
       }
 
       topProducts30Days={
         topProducts30Days
+      }
+
+      addToCartProductsToday={
+        addToCartProductsToday
+      }
+
+      addToCartProductsYesterday={
+        addToCartProductsYesterday
+      }
+
+      addToCartProducts7Days={
+        addToCartProducts7Days
+      }
+
+      addToCartProducts30Days={
+        addToCartProducts30Days
       }
 
       todayStats={{
@@ -581,6 +701,32 @@ export default async function WebsiteAnalytics() {
 
         whatsappClicks:
           todayEvents.filter(
+            (event) =>
+              event.event ===
+              "WHATSAPP_CLICK"
+          ).length,
+      }}
+
+      yesterdayStats={{
+        visitors:
+          yesterdayVisitors.size,
+
+        pageViews:
+          yesterdayEvents.filter(
+            (event) =>
+              event.event ===
+              "PAGE_VIEW"
+          ).length,
+
+        productViews:
+          yesterdayEvents.filter(
+            (event) =>
+              event.event ===
+              "PRODUCT_VIEW"
+          ).length,
+
+        whatsappClicks:
+          yesterdayEvents.filter(
             (event) =>
               event.event ===
               "WHATSAPP_CLICK"

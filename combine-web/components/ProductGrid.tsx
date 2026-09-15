@@ -1,11 +1,19 @@
 import ProductCard from "./ProductCard";
 
+
+// ============================================================
+// PRODUCT
+// ============================================================
+
 type Product = {
   id: number;
+
   slug: string;
 
   brand: string;
+
   name: string;
+
   model: string | null;
 
   price: number | null;
@@ -15,19 +23,43 @@ type Product = {
   }[];
 
   image: string;
+
   secondImage?: string;
 
   createdAt: Date;
 
   category: string;
+
   subCategory: string | null;
 
   featured: boolean;
+
   newArrival: boolean;
+
   bestSeller: boolean;
+
   limited: boolean;
+
   onSale: boolean;
 };
+
+
+// ============================================================
+// VOUCHER PRICE
+// ============================================================
+
+type VoucherPrice = {
+  price: number;
+
+  discount: number;
+
+  isNewCustomerVoucher: boolean;
+};
+
+
+// ============================================================
+// PROPS
+// ============================================================
 
 type Props = {
   products: Product[];
@@ -37,19 +69,41 @@ type Props = {
   searchKeyword?: string;
 
   onClearFilters?: () => void;
+
+  voucherPrices?: Record<
+    number,
+    VoucherPrice
+  >;
 };
+
+
+// ============================================================
+// PRODUCT GRID
+// ============================================================
 
 export default function ProductGrid({
   products,
+
   featuredProducts,
+
   searchKeyword,
+
   onClearFilters,
+
+  voucherPrices = {},
+
 }: Props) {
+
+
+  // ==========================================================
+  // WHATSAPP
+  // ==========================================================
 
   function handleWhatsApp() {
 
     const message =
       searchKeyword
+
         ? `Hi COMBINE,
 
 I'm looking for:
@@ -57,6 +111,7 @@ I'm looking for:
 ${searchKeyword}
 
 Can you help me source it?`
+
         : `Hi COMBINE,
 
 I'm looking for a product that I couldn't find on your website.
@@ -70,15 +125,12 @@ Can you help me source it?`;
       )}`,
       "_blank"
     );
-
   }
 
 
-  /*
-   * =========================================================
-   * Empty State
-   * =========================================================
-   */
+  // ==========================================================
+  // EMPTY STATE
+  // ==========================================================
 
   if (
     products.length === 0
@@ -93,7 +145,7 @@ Can you help me source it?`;
       >
 
         {/* ================================================= */}
-        {/* Empty State */}
+        {/* EMPTY STATE */}
         {/* ================================================= */}
 
         <div
@@ -119,7 +171,7 @@ Can you help me source it?`;
           "
         >
 
-          {/* Search Icon */}
+          {/* SEARCH ICON */}
 
           <div
             className="
@@ -142,7 +194,7 @@ Can you help me source it?`;
           </div>
 
 
-          {/* Title */}
+          {/* TITLE */}
 
           <h2
             className="
@@ -158,7 +210,7 @@ Can you help me source it?`;
           </h2>
 
 
-          {/* Description */}
+          {/* DESCRIPTION */}
 
           <p
             className="
@@ -178,7 +230,7 @@ Can you help me source it?`;
           </p>
 
 
-          {/* Actions */}
+          {/* ACTIONS */}
 
           <div
             className="
@@ -224,7 +276,6 @@ Can you help me source it?`;
 
 
             {onClearFilters && (
-
               <button
                 type="button"
                 onClick={
@@ -253,7 +304,6 @@ Can you help me source it?`;
               >
                 Clear Filters
               </button>
-
             )}
 
           </div>
@@ -262,14 +312,14 @@ Can you help me source it?`;
 
 
         {/* ================================================= */}
-        {/* Featured Products */}
+        {/* FEATURED PRODUCTS */}
         {/* ================================================= */}
 
         {featuredProducts.length > 0 && (
 
           <section>
 
-            {/* Header */}
+            {/* HEADER */}
 
             <div
               className="
@@ -309,7 +359,7 @@ Can you help me source it?`;
             </div>
 
 
-            {/* Featured Grid */}
+            {/* FEATURED GRID */}
 
             <div
               className="
@@ -326,75 +376,96 @@ Can you help me source it?`;
             >
 
               {featuredProducts.map(
-                (product) => (
+                (product) => {
 
-                  <ProductCard
-                    key={
+                  const voucher =
+                    voucherPrices[
                       product.id
-                    }
+                    ];
 
-                    id={
-                      product.id
-                    }
 
-                    slug={
-                      product.slug
-                    }
+                  return (
+                    <ProductCard
+                      key={
+                        product.id
+                      }
 
-                    brand={
-                      product.brand
-                    }
+                      id={
+                        product.id
+                      }
 
-                    name={
-                      product.name
-                    }
+                      slug={
+                        product.slug
+                      }
 
-                    model={
-                      product.model
-                    }
+                      brand={
+                        product.brand
+                      }
 
-                    price={
-                      product.price
-                    }
+                      name={
+                        product.name
+                      }
 
-                    variants={
-                      product.variants
-                    }
+                      model={
+                        product.model
+                      }
 
-                    image={
-                      product.image
-                    }
+                      price={
+                        product.price
+                      }
 
-                    secondImage={
-                      product.secondImage
-                    }
+                      variants={
+                        product.variants
+                      }
 
-                    createdAt={
-                      product.createdAt
-                    }
+                      image={
+                        product.image
+                      }
 
-                    featured={
-                      product.featured
-                    }
+                      secondImage={
+                        product.secondImage
+                      }
 
-                    newArrival={
-                      product.newArrival
-                    }
+                      createdAt={
+                        product.createdAt
+                      }
 
-                    bestSeller={
-                      product.bestSeller
-                    }
+                      featured={
+                        product.featured
+                      }
 
-                    limited={
-                      product.limited
-                    }
+                      newArrival={
+                        product.newArrival
+                      }
 
-                    onSale={
-                      product.onSale
-                    }
-                  />
+                      bestSeller={
+                        product.bestSeller
+                      }
 
-                )
+                      limited={
+                        product.limited
+                      }
+
+                      onSale={
+                        product.onSale
+                      }
+
+                      customerPrice={
+                        voucher?.price
+                      }
+
+                      customerDiscount={
+                        voucher?.discount ??
+                        0
+                      }
+
+                      isNewCustomerVoucher={
+                        voucher?.isNewCustomerVoucher ??
+                        false
+                      }
+                    />
+                  );
+                }
               )}
 
             </div>
@@ -408,11 +479,9 @@ Can you help me source it?`;
   }
 
 
-  /*
-   * =========================================================
-   * Product Grid
-   * =========================================================
-   */
+  // ==========================================================
+  // PRODUCT GRID
+  // ==========================================================
 
   return (
     <div
@@ -430,75 +499,92 @@ Can you help me source it?`;
     >
 
       {products.map(
-        (product) => (
+        (product) => {
 
-          <ProductCard
-            key={
+          const voucher =
+            voucherPrices[
               product.id
-            }
+            ];
 
-            id={
-              product.id
-            }
 
-            slug={
-              product.slug
-            }
+          return (
+            <ProductCard
+              key={
+                product.id
+              }
 
-            brand={
-              product.brand
-            }
+              id={
+                product.id
+              }
 
-            name={
-              product.name
-            }
+              slug={
+                product.slug
+              }
 
-            model={
-              product.model
-            }
+              brand={
+                product.brand
+              }
 
-            price={
-              product.price
-            }
+              name={
+                product.name
+              }
 
-            variants={
-              product.variants
-            }
+              model={
+                product.model
+              }
 
-            image={
-              product.image
-            }
+              price={
+                product.price
+              }
 
-            secondImage={
-              product.secondImage
-            }
+              variants={
+                product.variants
+              }
 
-            createdAt={
-              product.createdAt
-            }
+              image={
+                product.image
+              }
 
-            featured={
-              product.featured
-            }
+              secondImage={
+                product.secondImage
+              }
 
-            newArrival={
-              product.newArrival
-            }
+              createdAt={
+                product.createdAt
+              }
 
-            bestSeller={
-              product.bestSeller
-            }
+              featured={
+                product.featured
+              }
 
-            limited={
-              product.limited
-            }
+              newArrival={
+                product.newArrival
+              }
 
-            onSale={
-              product.onSale
-            }
-          />
+              bestSeller={
+                product.bestSeller
+              }
 
-        )
+              limited={
+                product.limited
+              }
+
+              onSale={
+                product.onSale
+              }
+
+              customerPrice={
+                voucher?.price
+              }
+
+              customerDiscount={
+                voucher?.discount ??
+                0
+              }
+            />
+          );
+
+        }
       )}
 
     </div>

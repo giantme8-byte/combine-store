@@ -19,10 +19,9 @@ model Product {
   description       String
   costPriceCny      Float?
   priceRemark       String?
-price             Float
-videoUrl          String?
-mainColor         String?
-dimensions        String?
+  price             Float
+  mainColor         String?
+  dimensions        String?
   availability      Availability      @default(PRE_ORDER)
   featured          Boolean           @default(false)
   newArrival        Boolean           @default(false)
@@ -36,6 +35,8 @@ dimensions        String?
   customPackagingId Int?
   categoryId        Int?
   subCategoryId     Int?
+  videoUrl          String?
+  sizeChartUrl      String?
   inquiryItems      InquiryItem[]
   orderItems        OrderItem[]
   categoryRecord    Category?         @relation("ProductCategory", fields: [categoryId], references: [id])
@@ -378,116 +379,105 @@ model PaymentMethod {
 }
 
 model Order {
-  id                    Int                  @id @default(autoincrement())
-  customerName          String
-  customerPhone         String
-  customerEmail         String?
-  address               String?
-  subtotal              Float
-  voucherCode           String?
-  voucherDiscount       Float                @default(0)
-  finalAmount           Float
-  status                OrderStatus          @default(PENDING_PAYMENT)
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
-
+  id                  Int                 @id @default(autoincrement())
+  customerName        String
+  customerPhone       String
+  customerEmail       String?
+  address             String?
+  subtotal            Float
+  voucherCode         String?
+  voucherDiscount     Float               @default(0)
+  finalAmount         Float
+  status              OrderStatus         @default(PENDING_PAYMENT)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
   /// *
-  ///    * Random public token used for customer-facing
-  ///    * order/payment pages.
-  ///    * Customers must use this token instead of
-  ///    * exposing the numeric Order ID directly.
+  /// * Random public token used for customer-facing
+  /// * order/payment pages.
+  /// * Customers must use this token instead of
+  /// * exposing the numeric Order ID directly.
   /// *
-  publicToken            String               @unique @default(cuid())
-
-  shippingCourier        String?
-  trackingNumber         String?
-  trackingUrl            String?
-  message                String?
-
+  publicToken         String              @unique @default(cuid())
+  shippingCourier     String?
+  trackingNumber      String?
+  trackingUrl         String?
+  message             String?
   /// *
-  ///    * Customer Account relation.
-  ///    * Optional so existing orders created before
-  ///    * Customer Account linking continue to work.
+  /// * Customer Account relation.
+  /// * Optional so existing orders created before
+  /// * Customer Account linking continue to work.
   /// *
-  userId                 Int?
-
+  userId              Int?
   /// *
-  ///    * Shipping fee snapshot.
-  ///    *
-  ///    * For Malaysia orders this stores the normal
-  ///    * ABX shipping fee.
-  ///    *
-  ///    * For international orders this remains 0
-  ///    * until the shipping fee is confirmed.
+  /// * Shipping fee snapshot.
   /// *
-  shippingFee            Float                @default(0)
-
+  /// * For Malaysia orders this stores the normal
+  /// * ABX shipping fee.
   /// *
-  ///    * Malaysia shipping region.
-  ///    *
-  ///    * WEST / EAST for the existing Malaysia
-  ///    * ABX shipping calculation.
-  ///    *
-  ///    * International orders use null.
+  /// * For international orders this remains 0
+  /// * until the shipping fee is confirmed.
   /// *
-  shippingRegion         String?
-
+  shippingFee         Float               @default(0)
   /// *
-  ///    * Customer shipping country.
-  ///    *
-  ///    * Example:
-  ///    * Malaysia
-  ///    * Singapore
-  ///    * United Arab Emirates
+  /// * Malaysia shipping region.
   /// *
-  shippingCountry        String?
-
+  /// * WEST / EAST for the existing Malaysia
+  /// * ABX shipping calculation.
   /// *
-  ///    * Shipping type.
-  ///    *
-  ///    * LOCAL:
-  ///    * Existing Malaysia shipping rules.
-  ///    *
-  ///    * INTERNATIONAL:
-  ///    * Shipping fee must be confirmed manually.
+  /// * International orders use null.
   /// *
-  shippingType           ShippingType         @default(LOCAL)
-
+  shippingRegion      String?
   /// *
-  ///    * International shipping quotation status.
-  ///    *
-  ///    * NOT_REQUIRED:
-  ///    * Malaysia/local order.
-  ///    *
-  ///    * PENDING:
-  ///    * Customer has requested shipping fee.
-  ///    *
-  ///    * QUOTED:
-  ///    * Admin has confirmed the international
-  ///    * shipping fee and customer can continue
-  ///    * with payment.
+  /// * Customer-facing Order Reference.
+  /// * Example:
+  /// * CL-20260901-0050
   /// *
-  shippingQuoteStatus    ShippingQuoteStatus  @default(NOT_REQUIRED)
-
+  /// * Nullable temporarily so existing orders can remain
+  /// * in the database while their Order Reference is backfilled.
   /// *
-  ///    * Customer-facing Order Reference.
-  ///    * Example:
-  ///    * CL-20260901-0050
-  ///    *
-  ///    * Nullable temporarily so existing orders can remain
-  ///    * in the database while their Order Reference is backfilled.
+  orderNumber         String?             @unique
   /// *
-  orderNumber            String?              @unique
-
+  /// * PayPal processing fee snapshot.
   /// *
-  ///    * PayPal processing fee snapshot.
+  paypalFee           Float               @default(0)
   /// *
-  paypalFee              Float                @default(0)
-
-  user                   User?                @relation(fields: [userId], references: [id])
-  items                  OrderItem[]
-  payment                Payment?
-  voucherUsage           VoucherUsage?
+  /// * Customer shipping country.
+  /// *
+  /// * Example:
+  /// * Malaysia
+  /// * Singapore
+  /// * United Arab Emirates
+  /// *
+  shippingCountry     String?
+  /// *
+  /// * International shipping quotation status.
+  /// *
+  /// * NOT_REQUIRED:
+  /// * Malaysia/local order.
+  /// *
+  /// * PENDING:
+  /// * Customer has requested shipping fee.
+  /// *
+  /// * QUOTED:
+  /// * Admin has confirmed the international
+  /// * shipping fee and customer can continue
+  /// * with payment.
+  /// *
+  shippingQuoteStatus ShippingQuoteStatus @default(NOT_REQUIRED)
+  /// *
+  /// * Shipping type.
+  /// *
+  /// * LOCAL:
+  /// * Existing Malaysia shipping rules.
+  /// *
+  /// * INTERNATIONAL:
+  /// * Shipping fee must be confirmed manually.
+  /// *
+  shippingType        ShippingType        @default(LOCAL)
+  user                User?               @relation(fields: [userId], references: [id])
+  items               OrderItem[]
+  payment             Payment?
+  voucherUsage        VoucherUsage?
 
   @@index([status])
   @@index([customerPhone])
@@ -517,26 +507,26 @@ model OrderItem {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   /// *
-  ///    * Exact ProductVariant ID.
-  ///    * Nullable so products without Variants
-  ///    * remain supported.
+  /// * Exact ProductVariant ID.
+  /// * Nullable so products without Variants
+  /// * remain supported.
   variantId      Int?
   profit         Float?
   totalCost      Float?
   /// *
-  ///    * Cost / Profit Snapshot
-  ///    * These values are stored permanently on the
-  ///    * OrderItem so historical orders remain accurate
-  ///    * even if the Product / ProductVariant cost price
-  ///    * or exchange rate changes later.
-  ///    * unitCost:
-  ///    * Cost of one unit in MYR.
-  ///    * totalCost:
-  ///    * unitCost × quantity.
-  ///    * profit:
-  ///    * totalPrice - totalCost.
-  ///    * Nullable for legacy orders or products where
-  ///    * a valid cost price cannot be determined.
+  /// * Cost / Profit Snapshot
+  /// * These values are stored permanently on the
+  /// * OrderItem so historical orders remain accurate
+  /// * even if the Product / ProductVariant cost price
+  /// * or exchange rate changes later.
+  /// * unitCost:
+  /// * Cost of one unit in MYR.
+  /// * totalCost:
+  /// * unitCost × quantity.
+  /// * profit:
+  /// * totalPrice - totalCost.
+  /// * Nullable for legacy orders or products where
+  /// * a valid cost price cannot be determined.
   unitCost       Float?
   order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product        Product         @relation(fields: [productId], references: [id])
@@ -581,67 +571,67 @@ model Payment {
 model Voucher {
   id               Int            @id @default(autoincrement())
   /// *
-  ///    * Voucher code shown to customers.
-  ///    * Stored uppercase so validation remains consistent.
+  /// * Voucher code shown to customers.
+  /// * Stored uppercase so validation remains consistent.
   code             String         @unique
   /// *
-  ///    * FIXED:
-  ///    * RM100 OFF
-  ///    * PERCENTAGE:
-  ///    * 10% OFF
+  /// * FIXED:
+  /// * RM100 OFF
+  /// * PERCENTAGE:
+  /// * 10% OFF
   type             VoucherType
   /// *
-  ///    * Discount value.
-  ///    * FIXED:
-  ///    * 100 = RM100
-  ///    * PERCENTAGE:
-  ///    * 10 = 10%
+  /// * Discount value.
+  /// * FIXED:
+  /// * 100 = RM100
+  /// * PERCENTAGE:
+  /// * 10 = 10%
   value            Float
   /// *
-  ///    * Minimum product subtotal required
-  ///    * before the voucher can be used.
+  /// * Minimum product subtotal required
+  /// * before the voucher can be used.
   minSpend         Float          @default(0)
   /// *
-  ///    * Maximum discount allowed.
-  ///    * Mainly useful for percentage vouchers.
-  ///    * Example:
-  ///    * 10% OFF
-  ///    * Maximum RM300
+  /// * Maximum discount allowed.
+  /// * Mainly useful for percentage vouchers.
+  /// * Example:
+  /// * 10% OFF
+  /// * Maximum RM300
   maxDiscount      Float?
   /// *
-  ///    * Optional category restriction.
-  ///    * NULL:
-  ///    * All categories
-  ///    * "Bags":
-  ///    * Bags only
-  ///    * "Watches":
-  ///    * Watches only
+  /// * Optional category restriction.
+  /// * NULL:
+  /// * All categories
+  /// * "Bags":
+  /// * Bags only
+  /// * "Watches":
+  /// * Watches only
   category         String?
   /// *
-  ///    * Voucher validity period.
+  /// * Voucher validity period.
   startAt          DateTime       @default(now())
   expiresAt        DateTime?
   /// *
-  ///    * Total number of times this voucher
-  ///    * can be redeemed.
-  ///    * NULL = unlimited.
+  /// * Total number of times this voucher
+  /// * can be redeemed.
+  /// * NULL = unlimited.
   usageLimit       Int?
   /// *
-  ///    * Number of successful redemptions.
+  /// * Number of successful redemptions.
   usageCount       Int            @default(0)
   /// *
-  ///    * Maximum number of times one customer
-  ///    * can use this voucher.
-  ///    * NULL = unlimited.
+  /// * Maximum number of times one customer
+  /// * can use this voucher.
+  /// * NULL = unlimited.
   usagePerCustomer Int?
   /// *
-  ///    * Only customers who have never
-  ///    * successfully placed an order
-  ///    * can use this voucher.
+  /// * Only customers who have never
+  /// * successfully placed an order
+  /// * can use this voucher.
   newCustomerOnly  Boolean        @default(false)
   /// *
-  ///    * Admin can activate/deactivate
-  ///    * the voucher without deleting it.
+  /// * Admin can activate/deactivate
+  /// * the voucher without deleting it.
   isActive         Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -659,15 +649,15 @@ model VoucherUsage {
   voucherId Int
   orderId   Int      @unique
   /// *
-  ///    * Nullable because orders can exist
-  ///    * without a logged-in Customer Account.
+  /// * Nullable because orders can exist
+  /// * without a logged-in Customer Account.
   userId    Int?
   /// *
-  ///    * Actual discount granted by this
-  ///    * particular Voucher usage.
-  ///    * This is stored permanently so changing
-  ///    * the Voucher later does not alter
-  ///    * historical order records.
+  /// * Actual discount granted by this
+  /// * particular Voucher usage.
+  /// * This is stored permanently so changing
+  /// * the Voucher later does not alter
+  /// * historical order records.
   discount  Float
   createdAt DateTime @default(now())
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -720,6 +710,7 @@ model AnalyticsEvent {
   path      String?
   productId Int?
   createdAt DateTime           @default(now())
+  quantity  Int                @default(1)
 
   @@index([visitorId])
   @@index([event])
@@ -801,4 +792,5 @@ enum AnalyticsEventType {
   PRODUCT_VIEW
   WHATSAPP_CLICK
   INSTAGRAM_CLICK
+  ADD_TO_CART
 }

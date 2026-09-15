@@ -1,0 +1,5 @@
+ALTER TABLE "AnalyticsEvent"
+ADD COLUMN "quantity" INTEGER NOT NULL DEFAULT 1;
+
+ALTER TYPE "AnalyticsEventType"
+ADD VALUE 'ADD_TO_CART';

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -21,6 +22,35 @@ import {
 } from "./ProductContext";
 
 import { useRouter } from "next/navigation";
+
+
+function getAnalyticsVisitorId() {
+  const storageKey =
+    "combine_analytics_visitor_id";
+
+  try {
+    const existing =
+      window.localStorage.getItem(
+        storageKey
+      );
+
+    if (existing) {
+      return existing;
+    }
+
+    const visitorId =
+      crypto.randomUUID();
+
+    window.localStorage.setItem(
+      storageKey,
+      visitorId
+    );
+
+    return visitorId;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
 
 
 // ============================================================
@@ -47,6 +77,7 @@ type ProductActionsProps = {
    * AND
    * Color Model is empty.
    */
+
   model: string | null;
 
   mainColor: string | null;
@@ -117,6 +148,39 @@ export default function ProductActions({
   const [
     addedToCart,
     setAddedToCart,
+  ] = useState(false);
+
+
+  // ==========================================================
+  // NEW CUSTOMER PRICE
+  // ==========================================================
+  //
+  // This is DISPLAY ONLY.
+  //
+  // IMPORTANT:
+  //
+  // Add to Cart and Buy Now continue to use
+  // currentPrice.
+  //
+  // The real voucher discount is still calculated
+  // server-side during Checkout.
+  //
+
+  const [
+    newCustomerDiscount,
+    setNewCustomerDiscount,
+  ] = useState(0);
+
+
+  const [
+    newCustomerPrice,
+    setNewCustomerPrice,
+  ] = useState<number | null>(null);
+
+
+  const [
+    loadingNewCustomerPrice,
+    setLoadingNewCustomerPrice,
   ] = useState(false);
 
 
@@ -214,6 +278,157 @@ export default function ProductActions({
 
 
   // ==========================================================
+  // NEW CUSTOMER PRICE
+  // ==========================================================
+  //
+  // Ask the server whether the current customer and
+  // current product / variant qualify for the New Customer
+  // Voucher.
+  //
+  // The server uses the same existing calculateVoucher()
+  // logic used by Checkout.
+  //
+  // ==========================================================
+
+  useEffect(() => {
+
+    let cancelled = false;
+
+
+    async function loadNewCustomerPrice() {
+
+      // --------------------------------------------------------
+      // RESET WHEN THERE IS NO PRICE
+      // --------------------------------------------------------
+
+      if (
+        currentPrice <= 0
+      ) {
+
+        setNewCustomerDiscount(0);
+        setNewCustomerPrice(null);
+        setLoadingNewCustomerPrice(false);
+
+        return;
+
+      }
+
+
+      setLoadingNewCustomerPrice(true);
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/product/new-customer-price",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify({
+
+                productId,
+
+                variantId:
+                  selectedVariant?.id ??
+                  null,
+
+              }),
+
+            }
+          );
+
+
+        if (!response.ok) {
+
+          if (!cancelled) {
+
+            setNewCustomerDiscount(0);
+            setNewCustomerPrice(null);
+
+          }
+
+          return;
+
+        }
+
+
+        const data =
+          await response.json();
+
+
+        if (cancelled) {
+          return;
+        }
+
+
+        if (
+          data.eligible === true &&
+          Number(data.discount) > 0 &&
+          Number(data.newCustomerPrice) >= 0
+        ) {
+
+          setNewCustomerDiscount(
+            Number(data.discount)
+          );
+
+          setNewCustomerPrice(
+            Number(data.newCustomerPrice)
+          );
+
+        } else {
+
+          setNewCustomerDiscount(0);
+          setNewCustomerPrice(null);
+
+        }
+
+      } catch {
+
+        if (!cancelled) {
+
+          setNewCustomerDiscount(0);
+          setNewCustomerPrice(null);
+
+        }
+
+      } finally {
+
+        if (!cancelled) {
+
+          setLoadingNewCustomerPrice(
+            false
+          );
+
+        }
+
+      }
+
+    }
+
+
+    void loadNewCustomerPrice();
+
+
+    return () => {
+
+      cancelled = true;
+
+    };
+
+  }, [
+    productId,
+    selectedVariant?.id,
+    currentPrice,
+  ]);
+
+
+  // ==========================================================
   // PRICE AVAILABILITY
   // ==========================================================
 
@@ -268,81 +483,57 @@ export default function ProductActions({
   // ==========================================================
 
   function handleAddToCart() {
-
     if (!hasPrice) {
       return;
     }
 
-
     addToCart(
       {
         productId,
-
-        /*
-         * Product slug.
-         *
-         * This is stored in Cart so the customer
-         * can click the product name in Cart and
-         * return to the correct Product Detail page.
-         */
-
         slug,
-
         name,
-
         brand,
-
-        /*
-         * Exact ProductVariant ID.
-         *
-         * This identifies the selected
-         * Color × Size combination in Cart.
-         */
-
         variantId:
           selectedVariant?.id ??
           null,
-
-        /*
-         * Use the selected Variant price.
-         *
-         * If Variant has no custom price,
-         * Product price is used as fallback.
-         */
-
         price:
           currentPrice,
-
         image:
           cartImage,
-
         sku,
-
-        /*
-         * IMPORTANT:
-         *
-         * Save the Model that belongs to
-         * the exact selected configuration.
-         */
-
         model:
           currentModel,
-
         color:
           colour,
-
         variant,
-
         dimensions:
           itemDimensions,
       },
-
       quantity
     );
 
+    void fetch(
+      "/api/analytics/track",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          visitorId:
+            getAnalyticsVisitorId(),
+          event:
+            "ADD_TO_CART",
+          path:
+            window.location.pathname,
+          productId,
+          quantity,
+        }),
+      }
+    ).catch(() => {});
 
     setAddedToCart(true);
-
 
     window.setTimeout(
       () => {
@@ -353,77 +544,62 @@ export default function ProductActions({
   }
 
 
-  // ==========================================================
-  // BUY NOW
-  // ==========================================================
-
   function handleBuyNow() {
-
     if (!hasPrice) {
       return;
     }
 
-
     addToCart(
       {
         productId,
-
-        /*
-         * Product slug.
-         *
-         * Keep the same slug in Cart so
-         * Buy Now items also link back to
-         * the correct Product Detail page.
-         */
-
         slug,
-
         name,
-
         brand,
-
         variantId:
           selectedVariant?.id ??
           null,
-
         price:
           currentPrice,
-
         image:
           cartImage,
-
         sku,
-
-        /*
-         * Use the exact Model for the
-         * selected Color × Size.
-         */
-
         model:
           currentModel,
-
         color:
           colour,
-
         variant,
-
         dimensions:
           itemDimensions,
       },
-
       quantity
     );
 
+    void fetch(
+      "/api/analytics/track",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          visitorId:
+            getAnalyticsVisitorId(),
+          event:
+            "ADD_TO_CART",
+          path:
+            window.location.pathname,
+          productId,
+          quantity,
+        }),
+      }
+    ).catch(() => {});
 
     router.push(
       "/checkout"
     );
   }
 
-
-  // ==========================================================
-  // WHATSAPP
-  // ==========================================================
 
   async function handleWhatsApp() {
 
@@ -518,6 +694,7 @@ Thank you 😊`;
   // ==========================================================
 
   return (
+
     <div
       className="
         mt-6
@@ -581,25 +758,119 @@ Thank you 😊`;
 
           {hasPrice ? (
 
-            <p
+            <div
               className="
                 mt-2
-                text-2xl
-                font-light
-                tracking-[-0.02em]
-                text-neutral-900
-                sm:text-3xl
               "
             >
-              RM{" "}
-              {currentPrice.toLocaleString(
-                "en-MY",
-                {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }
+
+              {newCustomerPrice !== null &&
+              newCustomerDiscount > 0 ? (
+
+                <>
+
+                  {/* ==================================================
+                      ORIGINAL PRICE
+                      ================================================== */}
+
+                  <p
+                    className="
+                      text-sm
+                      font-light
+                      text-neutral-400
+                      line-through
+                      sm:text-base
+                    "
+                  >
+                    RM{" "}
+                    {currentPrice.toLocaleString(
+                      "en-MY",
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }
+                    )}
+                  </p>
+
+
+                  {/* ==================================================
+                      NEW CUSTOMER PRICE
+                      ================================================== */}
+
+                  <p
+                    className="
+                      mt-1
+                      text-2xl
+                      font-light
+                      tracking-[-0.02em]
+                      text-neutral-900
+                      sm:text-3xl
+                    "
+                  >
+                    RM{" "}
+                    {newCustomerPrice.toLocaleString(
+                      "en-MY",
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }
+                    )}
+                  </p>
+
+
+                  {/* ==================================================
+                      VOUCHER LABEL
+                      ================================================== */}
+
+                  <p
+                    className="
+                      mt-2
+                      text-[10px]
+                      font-medium
+                      uppercase
+                      tracking-[0.22em]
+                      text-[#A88755]
+                      sm:text-[11px]
+                      sm:tracking-[0.28em]
+                    "
+                  >
+                    New Customer · RM
+                    {newCustomerDiscount.toLocaleString(
+                      "en-MY",
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }
+                    )}{" "}
+                    OFF
+                  </p>
+
+                </>
+
+              ) : (
+
+                <p
+                  className="
+                    text-2xl
+                    font-light
+                    tracking-[-0.02em]
+                    text-neutral-900
+                    sm:text-3xl
+                  "
+                >
+                  RM{" "}
+                  {currentPrice.toLocaleString(
+                    "en-MY",
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
+                  )}
+                </p>
+
               )}
-            </p>
+
+            </div>
 
           ) : (
 
@@ -872,5 +1143,6 @@ Thank you 😊`;
       </div>
 
     </div>
+
   );
 }

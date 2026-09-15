@@ -127,6 +127,16 @@ export type ProductCardProps = {
   onSale: boolean;
 
   buttonSize?: "default" | "small";
+
+  // ==========================================================
+  // CUSTOMER-SPECIFIC VOUCHER DISPLAY PRICE
+  // ==========================================================
+
+  customerPrice?: number | null;
+
+  customerDiscount?: number;
+
+  isNewCustomerVoucher?: boolean;
 };
 
 
