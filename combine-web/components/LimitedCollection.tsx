@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { getCustomerVoucherPrices } from "@/lib/customer-voucher-prices";
 import ProductCard from "./ProductCard";
 
+export const dynamic = "force-dynamic";
 
 export default async function LimitedCollection() {
   const allLimitedProducts =
@@ -40,22 +42,9 @@ export default async function LimitedCollection() {
       },
     });
 
-
   /*
    * =========================================================
    * RANDOMIZE LIMITED PRODUCTS
-   * =========================================================
-   *
-   * Every time the homepage renders, the Limited products
-   * are shuffled and a different selection of 4 may appear.
-   *
-   * Example:
-   *
-   * Refresh 1 → A B C D
-   * Refresh 2 → G I A E
-   * Refresh 3 → C F H B
-   *
-   * No manual sorting is required.
    * =========================================================
    */
 
@@ -68,6 +57,17 @@ export default async function LimitedCollection() {
     )
     .slice(0, 4);
 
+  // =========================================================
+  // CUSTOMER VOUCHER PRICES
+  // =========================================================
+
+  const voucherPrices =
+    await getCustomerVoucherPrices(
+      products.map(
+        (product) =>
+          product.id
+      )
+    );
 
   return (
     <section
@@ -81,7 +81,6 @@ export default async function LimitedCollection() {
         lg:px-12
       "
     >
-
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -95,7 +94,6 @@ export default async function LimitedCollection() {
           sm:mb-24
         "
       >
-
         <p
           className="
             text-[10px]
@@ -107,7 +105,6 @@ export default async function LimitedCollection() {
         >
           LIMITED COLLECTION
         </p>
-
 
         <h2
           className="
@@ -124,7 +121,6 @@ export default async function LimitedCollection() {
           Exclusively Selected
         </h2>
 
-
         <div
           className="
             mx-auto
@@ -138,7 +134,6 @@ export default async function LimitedCollection() {
             sm:mt-8
           "
         />
-
 
         <p
           className="
@@ -159,7 +154,6 @@ export default async function LimitedCollection() {
           their distinctive character, exceptional craftsmanship and
           timeless appeal.
         </p>
-
 
         <Link
           href="/shop"
@@ -192,16 +186,9 @@ export default async function LimitedCollection() {
         >
           Explore Collection
         </Link>
-
       </div>
 
-
       {products.length === 0 ? (
-
-        /* ================================================= */
-        /* Empty State */
-        /* ================================================= */
-
         <div
           className="
             mx-auto
@@ -224,7 +211,6 @@ export default async function LimitedCollection() {
             sm:py-20
           "
         >
-
           <h3
             className="
               text-2xl
@@ -236,7 +222,6 @@ export default async function LimitedCollection() {
           >
             Limited Collection Coming Soon
           </h3>
-
 
           <p
             className="
@@ -253,15 +238,8 @@ export default async function LimitedCollection() {
             We are preparing our limited collection. Please check
             back soon to discover our most exclusive selections.
           </p>
-
         </div>
-
       ) : (
-
-        /* ================================================= */
-        /* Products */
-        /* ================================================= */
-
         <div
           className="
             grid
@@ -271,81 +249,96 @@ export default async function LimitedCollection() {
             lg:grid-cols-4
           "
         >
-
           {products.map(
-            (product) => (
-
-              <ProductCard
-                key={
+            (product) => {
+              const voucher =
+                voucherPrices[
                   product.id
-                }
+                ];
 
-                id={
-                  product.id
-                }
+              return (
+                <ProductCard
+                  key={
+                    product.id
+                  }
 
-                slug={
-                  product.slug ??
-                  ""
-                }
+                  id={
+                    product.id
+                  }
 
-                brand={
-                  product.brand
-                }
+                  slug={
+                    product.slug ??
+                    ""
+                  }
 
-                name={
-                  product.name
-                }
+                  brand={
+                    product.brand
+                  }
 
-                model={
-                  product.model
-                }
+                  name={
+                    product.name
+                  }
 
-                price={
-                  product.price
-                }
+                  model={
+                    product.model
+                  }
 
-                image={
-                  product.images[0]?.url ??
-                  "/placeholder.png"
-                }
+                  price={
+                    product.price
+                  }
 
-                secondImage={
-                  product.images[1]?.url
-                }
+                  customerPrice={
+                    voucher?.price
+                  }
 
-                createdAt={
-                  product.createdAt
-                }
+                  customerDiscount={
+                    voucher?.discount ??
+                    0
+                  }
 
-                featured={
-                  product.featured
-                }
+                  isNewCustomerVoucher={
+                    voucher?.isNewCustomerVoucher ??
+                    false
+                  }
 
-                newArrival={
-                  product.newArrival
-                }
+                  image={
+                    product.images[0]?.url ??
+                    "/placeholder.png"
+                  }
 
-                bestSeller={
-                  product.bestSeller
-                }
+                  secondImage={
+                    product.images[1]?.url
+                  }
 
-                limited={
-                  product.limited
-                }
+                  createdAt={
+                    product.createdAt
+                  }
 
-                onSale={
-                  product.onSale
-                }
-              />
+                  featured={
+                    product.featured
+                  }
 
-            )
+                  newArrival={
+                    product.newArrival
+                  }
+
+                  bestSeller={
+                    product.bestSeller
+                  }
+
+                  limited={
+                    product.limited
+                  }
+
+                  onSale={
+                    product.onSale
+                  }
+                />
+              );
+            }
           )}
-
         </div>
-
       )}
-
     </section>
   );
 }

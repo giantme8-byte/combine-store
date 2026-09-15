@@ -3,8 +3,10 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
+import { getCustomerVoucherPrices } from "@/lib/customer-voucher-prices";
 import ProductCard from "./ProductCard";
 
+export const dynamic = "force-dynamic";
 
 export default async function NewArrivals() {
   const allNewArrivalProducts =
@@ -42,24 +44,9 @@ export default async function NewArrivals() {
       },
     });
 
-
   /*
    * =========================================================
    * RANDOMIZE NEW ARRIVALS
-   * =========================================================
-   *
-   * Every time the homepage renders, New Arrival products
-   * are shuffled and a random selection of 4 is displayed.
-   *
-   * Example:
-   *
-   * Refresh 1 → A B C D
-   * Refresh 2 → G I A E
-   * Refresh 3 → C F H B
-   *
-   * Only products with newArrival = true are included.
-   *
-   * No manual sorting is required.
    * =========================================================
    */
 
@@ -72,6 +59,17 @@ export default async function NewArrivals() {
     )
     .slice(0, 4);
 
+  // =========================================================
+  // CUSTOMER VOUCHER PRICES
+  // =========================================================
+
+  const voucherPrices =
+    await getCustomerVoucherPrices(
+      products.map(
+        (product) =>
+          product.id
+      )
+    );
 
   return (
     <section
@@ -86,7 +84,6 @@ export default async function NewArrivals() {
         lg:py-36
       "
     >
-
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -100,7 +97,6 @@ export default async function NewArrivals() {
           sm:mb-24
         "
       >
-
         <p
           className="
             text-[10px]
@@ -112,7 +108,6 @@ export default async function NewArrivals() {
         >
           NEW ARRIVALS
         </p>
-
 
         <h2
           className="
@@ -129,7 +124,6 @@ export default async function NewArrivals() {
           Latest Collection
         </h2>
 
-
         <div
           className="
             mx-auto
@@ -144,7 +138,6 @@ export default async function NewArrivals() {
             sm:w-28
           "
         />
-
 
         <p
           className="
@@ -163,16 +156,9 @@ export default async function NewArrivals() {
           for exceptional craftsmanship, timeless elegance and
           modern sophistication.
         </p>
-
       </div>
 
-
       {products.length === 0 ? (
-
-        /* ================================================= */
-        /* Empty State */
-        /* ================================================= */
-
         <div
           className="
             rounded-[28px]
@@ -186,7 +172,6 @@ export default async function NewArrivals() {
             sm:py-28
           "
         >
-
           <h3
             className="
               text-3xl
@@ -198,7 +183,6 @@ export default async function NewArrivals() {
           >
             New Arrivals Coming Soon
           </h3>
-
 
           <p
             className="
@@ -218,13 +202,9 @@ export default async function NewArrivals() {
             Our latest collection is currently being curated.
             Stay tuned for exclusive new arrivals.
           </p>
-
         </div>
-
       ) : (
-
         <>
-
           {/* ================================================= */}
           {/* View All */}
           {/* ================================================= */}
@@ -237,7 +217,6 @@ export default async function NewArrivals() {
               sm:mb-16
             "
           >
-
             <Link
               href="/shop?filter=new"
               className="
@@ -265,7 +244,6 @@ export default async function NewArrivals() {
                 sm:tracking-[0.3em]
               "
             >
-
               View All New Arrivals
 
               <ArrowRight
@@ -276,11 +254,8 @@ export default async function NewArrivals() {
                   group-hover:translate-x-1
                 "
               />
-
             </Link>
-
           </div>
-
 
           {/* ================================================= */}
           {/* Products */}
@@ -295,83 +270,97 @@ export default async function NewArrivals() {
               lg:grid-cols-4
             "
           >
-
             {products.map(
-              (product) => (
-
-                <ProductCard
-                  key={
+              (product) => {
+                const voucher =
+                  voucherPrices[
                     product.id
-                  }
+                  ];
 
-                  id={
-                    product.id
-                  }
+                return (
+                  <ProductCard
+                    key={
+                      product.id
+                    }
 
-                  slug={
-                    product.slug ??
-                    ""
-                  }
+                    id={
+                      product.id
+                    }
 
-                  brand={
-                    product.brand
-                  }
+                    slug={
+                      product.slug ??
+                      ""
+                    }
 
-                  name={
-                    product.name
-                  }
+                    brand={
+                      product.brand
+                    }
 
-                  model={
-                    product.model
-                  }
+                    name={
+                      product.name
+                    }
 
-                  price={
-                    product.price
-                  }
+                    model={
+                      product.model
+                    }
 
-                  image={
-                    product.images[0]?.url ??
-                    "/placeholder.png"
-                  }
+                    price={
+                      product.price
+                    }
 
-                  secondImage={
-                    product.images[1]?.url
-                  }
+                    customerPrice={
+                      voucher?.price
+                    }
 
-                  createdAt={
-                    product.createdAt
-                  }
+                    customerDiscount={
+                      voucher?.discount ??
+                      0
+                    }
 
-                  featured={
-                    product.featured
-                  }
+                    isNewCustomerVoucher={
+                      voucher?.isNewCustomerVoucher ??
+                      false
+                    }
 
-                  newArrival={
-                    product.newArrival
-                  }
+                    image={
+                      product.images[0]?.url ??
+                      "/placeholder.png"
+                    }
 
-                  bestSeller={
-                    product.bestSeller
-                  }
+                    secondImage={
+                      product.images[1]?.url
+                    }
 
-                  limited={
-                    product.limited
-                  }
+                    createdAt={
+                      product.createdAt
+                    }
 
-                  onSale={
-                    product.onSale
-                  }
-                />
+                    featured={
+                      product.featured
+                    }
 
-              )
+                    newArrival={
+                      product.newArrival
+                    }
+
+                    bestSeller={
+                      product.bestSeller
+                    }
+
+                    limited={
+                      product.limited
+                    }
+
+                    onSale={
+                      product.onSale
+                    }
+                  />
+                );
+              }
             )}
-
           </div>
-
         </>
-
       )}
-
     </section>
   );
 }

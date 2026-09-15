@@ -1,14 +1,14 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { getCustomerVoucherPrices } from "@/lib/customer-voucher-prices";
 import ProductCard from "./ProductCard";
 
+export const dynamic = "force-dynamic";
 
 export default async function FeaturedCollection() {
-
   const products =
     await prisma.product.findMany({
-
       where: {
         featured: true,
       },
@@ -21,27 +21,17 @@ export default async function FeaturedCollection() {
 
       select: {
         id: true,
-
         slug: true,
-
         brand: true,
-
         name: true,
-
         model: true,
-
         price: true,
-
         createdAt: true,
 
         featured: true,
-
         newArrival: true,
-
         bestSeller: true,
-
         limited: true,
-
         onSale: true,
 
         images: {
@@ -58,6 +48,17 @@ export default async function FeaturedCollection() {
       },
     });
 
+  // =========================================================
+  // CUSTOMER VOUCHER PRICES
+  // =========================================================
+
+  const voucherPrices =
+    await getCustomerVoucherPrices(
+      products.map(
+        (product) =>
+          product.id
+      )
+    );
 
   return (
     <section
@@ -71,7 +72,6 @@ export default async function FeaturedCollection() {
         lg:px-12
       "
     >
-
       {/* =====================================================
           Header
           ===================================================== */}
@@ -85,7 +85,6 @@ export default async function FeaturedCollection() {
           sm:mb-24
         "
       >
-
         <p
           className="
             text-[10px]
@@ -97,7 +96,6 @@ export default async function FeaturedCollection() {
         >
           FEATURED COLLECTION
         </p>
-
 
         <h2
           className="
@@ -114,7 +112,6 @@ export default async function FeaturedCollection() {
           Editor&apos;s Selection
         </h2>
 
-
         <div
           className="
             mx-auto
@@ -128,7 +125,6 @@ export default async function FeaturedCollection() {
             sm:mt-8
           "
         />
-
 
         <p
           className="
@@ -149,7 +145,6 @@ export default async function FeaturedCollection() {
           luxury pieces, selected for their timeless aesthetics,
           superior craftsmanship and iconic appeal.
         </p>
-
 
         <Link
           href="/shop"
@@ -182,16 +177,13 @@ export default async function FeaturedCollection() {
         >
           Explore Collection
         </Link>
-
       </div>
-
 
       {/* =====================================================
           Empty State / Products
           ===================================================== */}
 
       {products.length === 0 ? (
-
         <div
           className="
             mx-auto
@@ -214,7 +206,6 @@ export default async function FeaturedCollection() {
             sm:py-20
           "
         >
-
           <h3
             className="
               text-2xl
@@ -226,7 +217,6 @@ export default async function FeaturedCollection() {
           >
             Featured Collection Coming Soon
           </h3>
-
 
           <p
             className="
@@ -243,11 +233,8 @@ export default async function FeaturedCollection() {
             We are preparing our featured collection. Please check
             back soon to discover our editor&apos;s finest selections.
           </p>
-
         </div>
-
       ) : (
-
         <div
           className="
             grid
@@ -257,81 +244,96 @@ export default async function FeaturedCollection() {
             lg:grid-cols-4
           "
         >
-
           {products.map(
-            (product) => (
-
-              <ProductCard
-                key={
+            (product) => {
+              const voucher =
+                voucherPrices[
                   product.id
-                }
+                ];
 
-                id={
-                  product.id
-                }
+              return (
+                <ProductCard
+                  key={
+                    product.id
+                  }
 
-                slug={
-                  product.slug ??
-                  ""
-                }
+                  id={
+                    product.id
+                  }
 
-                brand={
-                  product.brand
-                }
+                  slug={
+                    product.slug ??
+                    ""
+                  }
 
-                name={
-                  product.name
-                }
+                  brand={
+                    product.brand
+                  }
 
-                model={
-                  product.model
-                }
+                  name={
+                    product.name
+                  }
 
-                price={
-                  product.price
-                }
+                  model={
+                    product.model
+                  }
 
-                image={
-                  product.images[0]?.url ??
-                  "/placeholder.png"
-                }
+                  price={
+                    product.price
+                  }
 
-                secondImage={
-                  product.images[1]?.url
-                }
+                  customerPrice={
+                    voucher?.price
+                  }
 
-                createdAt={
-                  product.createdAt
-                }
+                  customerDiscount={
+                    voucher?.discount ??
+                    0
+                  }
 
-                featured={
-                  product.featured
-                }
+                  isNewCustomerVoucher={
+                    voucher?.isNewCustomerVoucher ??
+                    false
+                  }
 
-                newArrival={
-                  product.newArrival
-                }
+                  image={
+                    product.images[0]?.url ??
+                    "/placeholder.png"
+                  }
 
-                bestSeller={
-                  product.bestSeller
-                }
+                  secondImage={
+                    product.images[1]?.url
+                  }
 
-                limited={
-                  product.limited
-                }
+                  createdAt={
+                    product.createdAt
+                  }
 
-                onSale={
-                  product.onSale
-                }
-              />
+                  featured={
+                    product.featured
+                  }
 
-            )
+                  newArrival={
+                    product.newArrival
+                  }
+
+                  bestSeller={
+                    product.bestSeller
+                  }
+
+                  limited={
+                    product.limited
+                  }
+
+                  onSale={
+                    product.onSale
+                  }
+                />
+              );
+            }
           )}
-
         </div>
-
       )}
-
     </section>
   );
 }

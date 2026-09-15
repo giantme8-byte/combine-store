@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { getCustomerVoucherPrices } from "@/lib/customer-voucher-prices";
 import ProductCard from "./ProductCard";
 
+export const dynamic = "force-dynamic";
 
 export default async function BestSellers() {
   const allBestSellerProducts =
@@ -40,22 +42,9 @@ export default async function BestSellers() {
       },
     });
 
-
   /*
    * =========================================================
    * RANDOMIZE BEST SELLERS
-   * =========================================================
-   *
-   * Every time the homepage renders, Best Seller products
-   * are shuffled and a random selection of 4 is displayed.
-   *
-   * Example:
-   *
-   * Refresh 1 → A B C D
-   * Refresh 2 → G I A E
-   * Refresh 3 → C F H B
-   *
-   * No manual product sorting is required.
    * =========================================================
    */
 
@@ -68,6 +57,17 @@ export default async function BestSellers() {
     )
     .slice(0, 4);
 
+  // =========================================================
+  // CUSTOMER VOUCHER PRICES
+  // =========================================================
+
+  const voucherPrices =
+    await getCustomerVoucherPrices(
+      products.map(
+        (product) =>
+          product.id
+      )
+    );
 
   return (
     <section
@@ -81,7 +81,6 @@ export default async function BestSellers() {
         lg:px-12
       "
     >
-
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -95,7 +94,6 @@ export default async function BestSellers() {
           sm:mb-24
         "
       >
-
         <p
           className="
             text-[10px]
@@ -108,7 +106,6 @@ export default async function BestSellers() {
         >
           BEST SELLERS
         </p>
-
 
         <h2
           className="
@@ -125,7 +122,6 @@ export default async function BestSellers() {
           Our Signature Pieces
         </h2>
 
-
         <div
           className="
             mx-auto
@@ -140,7 +136,6 @@ export default async function BestSellers() {
             sm:w-20
           "
         />
-
 
         <p
           className="
@@ -159,7 +154,6 @@ export default async function BestSellers() {
           timeless elegance, exceptional craftsmanship and enduring
           popularity among our clients worldwide.
         </p>
-
 
         <Link
           href="/shop"
@@ -192,16 +186,13 @@ export default async function BestSellers() {
         >
           View Collection
         </Link>
-
       </div>
-
 
       {/* ================================================= */}
       {/* Empty State / Products */}
       {/* ================================================= */}
 
       {products.length === 0 ? (
-
         <div
           className="
             rounded-[28px]
@@ -215,7 +206,6 @@ export default async function BestSellers() {
             sm:py-24
           "
         >
-
           <h3
             className="
               text-2xl
@@ -227,7 +217,6 @@ export default async function BestSellers() {
           >
             Our Signature Collection Is Coming Soon
           </h3>
-
 
           <p
             className="
@@ -245,11 +234,8 @@ export default async function BestSellers() {
             We are curating our most iconic luxury pieces. Please check
             back soon for our signature selection.
           </p>
-
         </div>
-
       ) : (
-
         <div
           className="
             grid
@@ -260,81 +246,96 @@ export default async function BestSellers() {
             lg:gap-8
           "
         >
-
           {products.map(
-            (product) => (
-
-              <ProductCard
-                key={
+            (product) => {
+              const voucher =
+                voucherPrices[
                   product.id
-                }
+                ];
 
-                id={
-                  product.id
-                }
+              return (
+                <ProductCard
+                  key={
+                    product.id
+                  }
 
-                slug={
-                  product.slug ??
-                  ""
-                }
+                  id={
+                    product.id
+                  }
 
-                brand={
-                  product.brand
-                }
+                  slug={
+                    product.slug ??
+                    ""
+                  }
 
-                name={
-                  product.name
-                }
+                  brand={
+                    product.brand
+                  }
 
-                model={
-                  product.model
-                }
+                  name={
+                    product.name
+                  }
 
-                price={
-                  product.price
-                }
+                  model={
+                    product.model
+                  }
 
-                image={
-                  product.images[0]?.url ??
-                  "/placeholder.png"
-                }
+                  price={
+                    product.price
+                  }
 
-                secondImage={
-                  product.images[1]?.url
-                }
+                  customerPrice={
+                    voucher?.price
+                  }
 
-                createdAt={
-                  product.createdAt
-                }
+                  customerDiscount={
+                    voucher?.discount ??
+                    0
+                  }
 
-                featured={
-                  product.featured
-                }
+                  isNewCustomerVoucher={
+                    voucher?.isNewCustomerVoucher ??
+                    false
+                  }
 
-                newArrival={
-                  product.newArrival
-                }
+                  image={
+                    product.images[0]?.url ??
+                    "/placeholder.png"
+                  }
 
-                bestSeller={
-                  product.bestSeller
-                }
+                  secondImage={
+                    product.images[1]?.url
+                  }
 
-                limited={
-                  product.limited
-                }
+                  createdAt={
+                    product.createdAt
+                  }
 
-                onSale={
-                  product.onSale
-                }
-              />
+                  featured={
+                    product.featured
+                  }
 
-            )
+                  newArrival={
+                    product.newArrival
+                  }
+
+                  bestSeller={
+                    product.bestSeller
+                  }
+
+                  limited={
+                    product.limited
+                  }
+
+                  onSale={
+                    product.onSale
+                  }
+                />
+              );
+            }
           )}
-
         </div>
-
       )}
-
     </section>
   );
 }
