@@ -26,6 +26,12 @@ type Product = {
 
   secondImage?: string;
 
+colors?: {
+  id: string;
+  name: string;
+  image: string;
+}[];
+
   createdAt: Date;
 
   category: string;
@@ -426,6 +432,14 @@ Can you help me source it?`;
                         product.secondImage
                       }
 
+                      colors={
+
+
+                        product.colors
+
+
+                      }
+
                       createdAt={
                         product.createdAt
                       }
@@ -547,6 +561,14 @@ Can you help me source it?`;
 
               secondImage={
                 product.secondImage
+              }
+
+              colors={
+
+
+                product.colors
+
+
               }
 
               createdAt={

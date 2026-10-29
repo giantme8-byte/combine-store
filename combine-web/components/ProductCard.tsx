@@ -31,6 +31,12 @@ import {
 // PRODUCT CARD
 // ============================================================
 
+type ProductCardColor = {
+  id: string;
+  name: string;
+  image: string;
+};
+
 export default function ProductCard({
   id,
   slug,
@@ -47,6 +53,7 @@ export default function ProductCard({
   bestSeller,
   limited,
   onSale,
+  colors = [],
   buttonSize = "default",
 
   // ==========================================================
@@ -57,7 +64,9 @@ export default function ProductCard({
   customerDiscount = 0,
   isNewCustomerVoucher = false,
 
-}: ProductCardProps) {
+}: ProductCardProps & {
+  colors?: ProductCardColor[];
+}) {
 
   const {
     addItem,
@@ -1070,6 +1079,63 @@ export default function ProductCard({
 
       </Link>
 
+      {/* ====================================================== */}
+      {/* COLOR PHOTO SWATCHES */}
+      {/* ====================================================== */}
+
+      {colors.length > 0 && (
+        <div
+          className="
+            flex
+            flex-wrap
+            items-center
+            gap-2
+            px-3
+            pb-3
+            sm:gap-2.5
+            sm:px-6
+            sm:pb-4
+          "
+          aria-label="Available colours"
+        >
+          {colors.map((color) => (
+            <Link
+              key={color.id}
+              href={productHref}
+              prefetch
+              title={color.name}
+              aria-label={`${color.name} colour`}
+              className="
+                block
+                h-7
+                w-7
+                shrink-0
+                overflow-hidden
+                rounded-full
+                border
+                border-neutral-200
+                bg-white
+                transition
+                hover:border-[#C8A96A]
+                hover:ring-2
+                hover:ring-[#C8A96A]/30
+                sm:h-8
+                sm:w-8
+              "
+            >
+              <Image
+                src={optimizeCloudinaryImage(color.image, 120)}
+                alt={`${brand} ${name} - ${color.name}`}
+                width={32}
+                height={32}
+                sizes="32px"
+                loading="lazy"
+                className="h-full w-full rounded-full object-cover"
+              />
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* ====================================================== */}
       {/* SINGLE ACTION */}

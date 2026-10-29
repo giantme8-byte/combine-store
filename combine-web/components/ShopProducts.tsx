@@ -479,6 +479,29 @@ const productSelect = {
 
     take: 2,
   },
+
+  colors: {
+    select: {
+      id: true,
+      name: true,
+      imageUrl: true,
+
+      images: {
+        select: {
+          url: true,
+          sortOrder: true,
+        },
+
+        orderBy: {
+          sortOrder: "asc" as const,
+        },
+      },
+    },
+
+    orderBy: {
+      sortOrder: "asc" as const,
+    },
+  },
 };
 
 /*
@@ -994,6 +1017,16 @@ export default async function ShopProducts({
     secondImage:
       product.images[1]
         ?.url,
+
+    colors:
+      product.colors.map((color) => ({
+        id: color.id,
+        name: color.name,
+        image:
+          color.images[0]?.url ??
+          color.imageUrl ??
+          "/placeholder.png",
+      })),
 
     category:
       product.category,
