@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import ReviewForm from "@/components/ReviewForm";
 
 
 // ============================================================
@@ -257,6 +258,13 @@ export default async function OrdersPage() {
                     url: true,
                   },
                 },
+              },
+            },
+
+            review: {
+              select: {
+                id: true,
+                status: true,
               },
             },
 
@@ -834,6 +842,23 @@ export default async function OrdersPage() {
                             </div>
 
                             </div>
+
+                            {/* REVIEW */}
+                            {order.status === "COMPLETED" && (
+                              <div className="mt-5">
+                                {item.review ? (
+                                  <div className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-emerald-700">
+                                    ✓ Review Submitted
+                                  </div>
+                                ) : (
+                                  <ReviewForm
+                                    orderItemId={item.id}
+                                    productName={item.productName}
+                                    onSuccess={() => window.location.reload()}
+                                  />
+                                )}
+                              </div>
+                            )}
 
                           </div>
 

@@ -1,21 +1,18 @@
 import { prisma } from "@/lib/prisma";
+import { getCustomerVoucherPrices } from "@/lib/customer-voucher-prices";
 import ProductCard from "./ProductCard";
-
 
 type Props = {
   currentId: number;
   category: string;
 };
 
-
 export default async function RelatedProducts({
   currentId,
   category,
 }: Props) {
-
   const products =
     await prisma.product.findMany({
-
       where: {
         category,
 
@@ -67,11 +64,21 @@ export default async function RelatedProducts({
       take: 4,
     });
 
-
   if (products.length === 0) {
     return null;
   }
 
+  // =========================================================
+  // CUSTOMER VOUCHER PRICES
+  // =========================================================
+
+  const voucherPrices =
+    await getCustomerVoucherPrices(
+      products.map(
+        (product) =>
+          product.id
+      )
+    );
 
   return (
     <section
@@ -81,7 +88,6 @@ export default async function RelatedProducts({
         lg:mt-40
       "
     >
-
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -93,7 +99,6 @@ export default async function RelatedProducts({
           sm:mb-12
         "
       >
-
         <p
           className="
             text-[9px]
@@ -106,7 +111,6 @@ export default async function RelatedProducts({
         >
           DISCOVER MORE
         </p>
-
 
         <h2
           className="
@@ -123,7 +127,6 @@ export default async function RelatedProducts({
           You May Also Like
         </h2>
 
-
         <div
           className="
             mx-auto
@@ -138,9 +141,7 @@ export default async function RelatedProducts({
             sm:w-20
           "
         />
-
       </div>
-
 
       {/* ================================================= */}
       {/* Products */}
@@ -159,83 +160,99 @@ export default async function RelatedProducts({
           lg:gap-y-12
         "
       >
-
         {products.map(
-          (product) => (
-
-            <ProductCard
-              key={
+          (product) => {
+            const voucher =
+              voucherPrices[
                 product.id
-              }
+              ];
 
-              id={
-                product.id
-              }
+            return (
+              <ProductCard
+                key={
+                  product.id
+                }
 
-              slug={
-                product.slug ??
-                ""
-              }
+                id={
+                  product.id
+                }
 
-              brand={
-                product.brand
-              }
+                slug={
+                  product.slug ??
+                  ""
+                }
 
-              name={
-                product.name
-              }
+                brand={
+                  product.brand
+                }
 
-              model={
-                product.model
-              }
+                name={
+                  product.name
+                }
 
-              price={
-                product.price
-              }
+                model={
+                  product.model
+                }
 
-              image={
-                product.images[0]
-                  ?.url ??
-                "/placeholder.png"
-              }
+                price={
+                  product.price
+                }
 
-              secondImage={
-                product.images[1]
-                  ?.url
-              }
+                customerPrice={
+                  voucher?.price
+                }
 
-              createdAt={
-                product.createdAt
-              }
+                customerDiscount={
+                  voucher?.discount ??
+                  0
+                }
 
-              featured={
-                product.featured
-              }
+                isNewCustomerVoucher={
+                  voucher?.isNewCustomerVoucher ??
+                  false
+                }
 
-              newArrival={
-                product.newArrival
-              }
+                image={
+                  product.images[0]
+                    ?.url ??
+                  "/placeholder.png"
+                }
 
-              bestSeller={
-                product.bestSeller
-              }
+                secondImage={
+                  product.images[1]
+                    ?.url
+                }
 
-              limited={
-                product.limited
-              }
+                createdAt={
+                  product.createdAt
+                }
 
-              onSale={
-                product.onSale
-              }
+                featured={
+                  product.featured
+                }
 
-              buttonSize="small"
-            />
+                newArrival={
+                  product.newArrival
+                }
 
-          )
+                bestSeller={
+                  product.bestSeller
+                }
+
+                limited={
+                  product.limited
+                }
+
+                onSale={
+                  product.onSale
+                }
+
+                buttonSize="small"
+              />
+            );
+          }
         )}
-
       </div>
-
     </section>
   );
 }

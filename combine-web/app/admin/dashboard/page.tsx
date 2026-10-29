@@ -638,12 +638,14 @@ export default async function DashboardPage({
     // ALL PRODUCTS
     // ========================================================
 
-    prisma.product.findMany({
-      include: {
-        variants:
-          true,
-      },
-    }),
+
+prisma.product.findMany({
+  include: {
+    variants: true,
+    colors: true,
+  },
+}),
+
 
 
     // ========================================================

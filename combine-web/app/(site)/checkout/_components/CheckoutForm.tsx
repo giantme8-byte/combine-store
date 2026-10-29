@@ -30,6 +30,22 @@ import {
 // PAYMENT METHOD
 // ============================================================
 
+type AvailableVoucher = {
+  id: number;
+  code: string;
+  type: "FIXED" | "PERCENTAGE";
+  value: number;
+  minSpend: number;
+  maxDiscount: number | null;
+  category: string | null;
+  startAt: string;
+  expiresAt: string | null;
+  usageLimit: number | null;
+  usageCount: number;
+  usagePerCustomer: number | null;
+  newCustomerOnly: boolean;
+};
+
 type PaymentMethod = {
   id: number;
 
@@ -279,7 +295,7 @@ const checkoutCountries = [
 // ============================================================
 
 const NEW_CUSTOMER_VOUCHER_CODE = "WELCOME50";
-const NEW_CUSTOMER_VOUCHER_MIN_SPEND = 899;
+const NEW_CUSTOMER_VOUCHER_MIN_SPEND = 699;
 
 
 // ============================================================
@@ -424,6 +440,11 @@ const {
 
   const autoVoucherAttemptedKeyRef = useRef("");
 
+  const [availableVouchers, setAvailableVouchers] = useState<AvailableVoucher[]>([]);
+  const [loadingVouchers, setLoadingVouchers] = useState(false);
+  const [vouchersLoaded, setVouchersLoaded] = useState(false);
+  const [showVoucherList, setShowVoucherList] = useState(false);
+
   const [
     calculatingCheckout,
     setCalculatingCheckout,
@@ -487,6 +508,57 @@ const {
       paymentMethodId,
     ]);
 
+
+  // ==========================================================
+  // AVAILABLE VOUCHERS
+  // ==========================================================
+
+  async function loadAvailableVouchers() {
+    if (loadingVouchers || vouchersLoaded) {
+      setShowVoucherList(true);
+      return;
+    }
+
+    setLoadingVouchers(true);
+    setShowVoucherList(true);
+
+    try {
+      const response = await fetch("/api/vouchers/available", {
+        method: "GET",
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Unable to load available vouchers.");
+      }
+
+      setAvailableVouchers(Array.isArray(data?.vouchers) ? data.vouchers : []);
+      setVouchersLoaded(true);
+    } catch (loadError) {
+      console.error("Failed to load available vouchers:", loadError);
+      setVoucherError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Unable to load available vouchers."
+      );
+    } finally {
+      setLoadingVouchers(false);
+    }
+  }
+
+  function applyListedVoucher(voucher: AvailableVoucher) {
+    if (voucher.newCustomerOnly && !isLoggedIn) {
+      setVoucherError("This offer is for registered customers. Please create an account or log in to use it.");
+      return;
+    }
+
+    setVoucherCode(voucher.code);
+    setVoucherError("");
+    setShowVoucherList(false);
+
+    void calculateOrderTotal(voucher.code);
+  }
 
   // ==========================================================
   // CHECKOUT CALCULATION
@@ -1764,7 +1836,7 @@ const {
                     event.target.value
                   )
                 }
-                placeholder="e.g. 60166620448"
+                placeholder="e.g. 60123456789"
                 inputMode="tel"
                 className="
                   w-full
@@ -2620,11 +2692,8 @@ const {
               pt-6
             "
           >
-
             {voucherApplied &&
-            voucherCode.trim().toUpperCase() ===
-              NEW_CUSTOMER_VOUCHER_CODE ? (
-
+            voucherCode.trim().toUpperCase() === NEW_CUSTOMER_VOUCHER_CODE ? (
               <div
                 className="
                   rounded-2xl
@@ -2645,16 +2714,14 @@ const {
                     </p>
                   </div>
                   <span className="shrink-0 text-sm font-medium text-green-600">
-                    -RM50.00
+                    -{formatAmount(voucherDiscount)}
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-neutral-400">
                   Automatically applied — no voucher code needed.
                 </p>
               </div>
-
             ) : (
-
               <>
                 <label
                   className="
@@ -2673,10 +2740,11 @@ const {
                 <div className="flex gap-2">
                   <input
                     value={voucherCode}
-                    onChange={(event) =>
-                      setVoucherCode(event.target.value)
-                    }
-                    placeholder="Voucher code"
+                    onChange={(event) => {
+                      setVoucherCode(event.target.value.toUpperCase());
+                      setVoucherError("");
+                    }}
+                    placeholder="Enter voucher code"
                     className="
                       min-w-0
                       flex-1
@@ -2701,9 +2769,7 @@ const {
                       (isMalaysia && !state)
                     }
                     onClick={() => {
-                      void calculateOrderTotal(
-                        voucherCode.trim()
-                      );
+                      void calculateOrderTotal(voucherCode.trim());
                     }}
                     className="
                       rounded-xl
@@ -2713,28 +2779,164 @@ const {
                       py-3
                       text-xs
                       font-medium
-                      text-neutral-400
+                      text-neutral-700
+                      transition
+                      hover:border-[#C8A96A]
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
                     "
                   >
-                    {calculatingCheckout
-                      ? "Checking..."
-                      : "Apply"}
+                    {calculatingCheckout ? "Checking..." : "Apply"}
                   </button>
                 </div>
 
-                {voucherError ? (
-                  <p className="mt-2 text-xs text-red-600">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showVoucherList) {
+                      setShowVoucherList(false);
+                    } else {
+                      void loadAvailableVouchers();
+                    }
+                  }}
+                  className="
+                    mt-3
+                    inline-flex
+                    items-center
+                    gap-2
+                    text-xs
+                    font-medium
+                    text-neutral-700
+                    underline
+                    underline-offset-4
+                    decoration-neutral-300
+                    hover:text-[#A8874A]
+                  "
+                >
+                  {showVoucherList ? "Hide available vouchers" : "View available vouchers"}
+                </button>
+
+                {voucherError && (
+                  <p className="mt-2 text-xs leading-5 text-red-600">
                     {voucherError}
                   </p>
-                ) : (
+                )}
+
+                {!voucherError && (
                   <p className="mt-2 text-xs leading-5 text-neutral-400">
-                    New customers can enjoy RM50 off when they spend RM899 or more.
+                    Register for RM50 Off. Create a COMBINE account to enjoy RM50 off your first order when you spend RM699 or more.
                   </p>
                 )}
+
+                {showVoucherList && (
+                  <div className="mt-4 space-y-3">
+                    {loadingVouchers ? (
+                      <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-5 text-center text-xs text-neutral-500">
+                        Loading available vouchers...
+                      </div>
+                    ) : availableVouchers.length === 0 ? (
+                      <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-5 text-center text-xs leading-5 text-neutral-500">
+                        No vouchers are currently available. You can still enter a voucher code manually.
+                      </div>
+                    ) : (
+                      availableVouchers.map((voucher) => {
+                        const discountLabel =
+                          voucher.type === "PERCENTAGE"
+                            ? `${voucher.value}% OFF`
+                            : `${formatAmount(voucher.value)} OFF`;
+
+                        const eligibleBySpend = selectedSubtotal >= voucher.minSpend;
+                        const memberOnly = voucher.newCustomerOnly;
+                        const canSelect = !memberOnly || isLoggedIn;
+
+                        return (
+                          <div
+                            key={voucher.id}
+                            className="rounded-2xl border border-neutral-200 bg-white p-4"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-neutral-900">
+                                  {discountLabel}
+                                </p>
+                                <p className="mt-1 font-mono text-xs tracking-wide text-neutral-500">
+                                  {voucher.code}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                disabled={
+                                  !canSelect ||
+                                  calculatingCheckout ||
+                                  !country ||
+                                  (isMalaysia && !state)
+                                }
+                                onClick={() => applyListedVoucher(voucher)}
+                                className="
+                                  shrink-0
+                                  rounded-full
+                                  bg-black
+                                  px-4
+                                  py-2
+                                  text-[10px]
+                                  font-medium
+                                  uppercase
+                                  tracking-[0.15em]
+                                  text-white
+                                  transition
+                                  hover:bg-[#C8A96A]
+                                  disabled:cursor-not-allowed
+                                  disabled:bg-neutral-200
+                                  disabled:text-neutral-500
+                                "
+                              >
+                                {memberOnly && !isLoggedIn ? "Members only" : "Apply"}
+                              </button>
+                            </div>
+
+                            <div className="mt-3 space-y-1 text-xs leading-5 text-neutral-500">
+                              <p>
+                                {voucher.minSpend > 0
+                                  ? `Minimum spend: ${formatAmount(voucher.minSpend)}`
+                                  : "No minimum spend"}
+                              </p>
+                              {voucher.type === "PERCENTAGE" && voucher.maxDiscount !== null && (
+                                <p>Maximum discount: {formatAmount(voucher.maxDiscount)}</p>
+                              )}
+                              {voucher.category && <p>Category: {voucher.category}</p>}
+                              {voucher.usagePerCustomer !== null && (
+                                <p>Limit: {voucher.usagePerCustomer} use(s) per customer</p>
+                              )}
+                              {memberOnly && (
+                                <p className="font-medium text-[#A8874A]">
+                                  New customers only
+                                </p>
+                              )}
+                              {!eligibleBySpend && (
+                                <p className="text-amber-700">
+                                  Add {formatAmount(voucher.minSpend - selectedSubtotal)} more to meet the minimum spend.
+                                </p>
+                              )}
+                              {memberOnly && !isLoggedIn && (
+                                <p className="text-amber-700">
+                                  <Link href="/register" className="underline underline-offset-2">
+                                    Create an account
+                                  </Link>{" "}
+                                  or <Link href="/login" className="underline underline-offset-2">log in</Link> to use this offer.
+                                </p>
+                              )}
+                              {voucher.expiresAt && (
+                                <p>Valid until {new Date(voucher.expiresAt).toLocaleDateString("en-MY")}</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
               </>
-
             )}
-
           </div>
 
 

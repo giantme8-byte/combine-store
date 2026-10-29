@@ -1,11 +1,14 @@
+
 import {
   Product,
   ProductVariant,
+  ProductColor,
 } from "@prisma/client";
 
 export type ProductWithVariants =
   Product & {
     variants: ProductVariant[];
+    colors: ProductColor[];
   };
 
 export type InventorySummary = {
@@ -23,208 +26,108 @@ export function calculateInventorySummary(
   let totalRevenue = 0;
 
   for (const product of products) {
+    const productCostPriceCny =
+      product.costPriceCny ?? 0;
+
+    const productCostMyr =
+      productCostPriceCny * exchangeRate;
+
+    const productSellingPrice =
+      product.price;
+
     // ========================================================
     // PRODUCT WITH VARIANTS
     // ========================================================
 
     if (product.variants.length > 0) {
-      /*
-       * ======================================================
-       * DETERMINE PRICING MODE
-       * ======================================================
-       *
-       * 1 Size:
-       *   Product Pricing is used.
-       *
-       * Multiple Sizes:
-       *   Variant Pricing is used.
-       *
-       * Every Variant represents one stock unit.
-       */
+const uniqueSizes = new Set(
+  product.variants
+    .map((variant) => variant.size.trim())
+    .filter(Boolean)
+);
 
-      const uniqueSizes =
-        new Set(
-          product.variants.map(
-            (variant) =>
-              variant.size.trim()
-          )
+const hasMultipleSizes =
+  uniqueSizes.size > 1;
+
+const hasMultipleColors =
+  (product.colors?.length ?? 0) > 1;
+
+const hasVariantSpecificPricing =
+  hasMultipleSizes || hasMultipleColors;
+
+      // ======================================================
+      // SINGLE SIZE
+      // Use product-level pricing.
+      // Each saved variant counts as one unit.
+      // ======================================================
+
+      if (!hasVariantSpecificPricing) {
+        const unitCount = Math.max(
+          product.variants.length,
+          product.colors?.length ?? 0,
+          1
         );
 
-      const hasMultipleSizes =
-        uniqueSizes.size > 1;
+        totalCostMyr +=
+          productCostMyr * unitCount;
 
-
-      // ======================================================
-      // 1 SIZE
-      // ======================================================
-      //
-      // Examples:
-      //
-      // Black / One Size
-      // White / One Size
-      // Brown / One Size
-      //
-      // Product Pricing is the source of truth.
-      //
-      // Every Color / Size combination = 1 stock.
-      //
-      // Therefore:
-      //
-      // Product Cost × Variant Count
-      // Product Price × Variant Count
-      // ======================================================
-
-      if (!hasMultipleSizes) {
-        const productCostPriceCny =
-          product.costPriceCny ?? 0;
-
-        const productCostMyr =
-          productCostPriceCny *
-          exchangeRate;
-
-        const productSellingPrice =
-          product.price;
-
-
-        for (
-          const variant of
-          product.variants
-        ) {
-          /*
-           * Every Variant represents
-           * exactly one stock unit.
-           *
-           * Variant-specific pricing is NOT
-           * used when there is only one Size.
-           */
-
-          totalCostMyr +=
-            productCostMyr;
-
-          totalRevenue +=
-            productSellingPrice;
-        }
-
+        totalRevenue +=
+          productSellingPrice * unitCount;
 
         continue;
       }
 
-
       // ======================================================
       // MULTIPLE SIZES
-      // ======================================================
-      //
-      // Each Variant has its own Pricing.
-      //
-      // Every Variant = 1 stock.
-      //
-      // Variant Cost:
-      //   Variant Cost → Product Cost fallback
-      //
-      // Variant Exchange Rate:
-      //   Variant Rate → Global Rate fallback
-      //
-      // Variant Selling Price:
-      //   Variant Price → Product Price fallback
+      // Use variant-level pricing with fallbacks.
+      // Each variant counts as one unit.
       // ======================================================
 
-      for (
-        const variant of
-        product.variants
-      ) {
-        // ----------------------------------------------------
-        // Effective Exchange Rate
-        // ----------------------------------------------------
-
+      for (const variant of product.variants) {
         const effectiveExchangeRate =
-          variant.exchangeRate ??
-          exchangeRate;
-
-
-        // ----------------------------------------------------
-        // Effective Cost Price
-        // ----------------------------------------------------
+          variant.exchangeRate ?? exchangeRate;
 
         const costPriceCny =
           variant.costPriceCny ??
-          product.costPriceCny ??
-          0;
-
-
-        // ----------------------------------------------------
-        // Cost MYR
-        // ----------------------------------------------------
+          productCostPriceCny;
 
         const costMyr =
-          costPriceCny *
-          effectiveExchangeRate;
-
-
-        // ----------------------------------------------------
-        // Selling Price
-        // ----------------------------------------------------
+          costPriceCny * effectiveExchangeRate;
 
         const sellingPrice =
-          variant.price ??
-          product.price;
+          variant.price ?? productSellingPrice;
 
-
-        // ----------------------------------------------------
-        // Every Variant = 1 Stock
-        // ----------------------------------------------------
-
-        totalCostMyr +=
-          costMyr;
-
-        totalRevenue +=
-          sellingPrice;
+        totalCostMyr += costMyr;
+        totalRevenue += sellingPrice;
       }
-
 
       continue;
     }
 
-
     // ========================================================
     // PRODUCT WITHOUT VARIANTS
-    // ========================================================
-    //
-    // No Color / Size combinations exist.
-    //
-    // Product itself = 1 stock unit.
-    //
-    // Product Pricing is used.
+    // Each saved color counts as one unit.
+    // If no colors exist, count one unit.
     // ========================================================
 
-    const productCostPriceCny =
-      product.costPriceCny ?? 0;
-
-
-    const productCostMyr =
-      productCostPriceCny *
-      exchangeRate;
-
-
-    const productSellingPrice =
-      product.price;
-
+const unitCount = Math.max(
+  product.colors?.length ?? 0,
+  1
+);
 
     totalCostMyr +=
-      productCostMyr;
+      productCostMyr * unitCount;
 
     totalRevenue +=
-      productSellingPrice;
+      productSellingPrice * unitCount;
   }
-
 
   // ==========================================================
   // TOTAL PROFIT
   // ==========================================================
 
   const totalProfit =
-    totalRevenue -
-    totalCostMyr;
-
+    totalRevenue - totalCostMyr;
 
   // ==========================================================
   // PROFIT MARGIN
@@ -235,16 +138,10 @@ export function calculateInventorySummary(
       ? 0
       : Number(
           (
-            (totalProfit /
-              totalRevenue) *
+            (totalProfit / totalRevenue) *
             100
           ).toFixed(2)
         );
-
-
-  // ==========================================================
-  // RETURN
-  // ==========================================================
 
   return {
     totalCostMyr,

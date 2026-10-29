@@ -606,6 +606,10 @@ export default function ProductActions({
     setLoading(true);
 
 
+    const productUrl =
+      `${window.location.origin}/shop/${slug}`;
+
+
     const message =
       `Hi COMBINE 👋
 
@@ -640,6 +644,9 @@ Quantity
 ${quantity}
 
 ━━━━━━━━━━━━━━
+
+Product URL
+${productUrl}
 
 Item ID
 #${productId}
@@ -679,6 +686,31 @@ Thank you 😊`;
         url,
         "_blank"
       );
+
+
+      // ========================================================
+      // ANALYTICS - WHATSAPP INQUIRY
+      // ========================================================
+
+      void fetch(
+        "/api/analytics/track",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            visitorId:
+              getAnalyticsVisitorId(),
+            event:
+              "WHATSAPP_CLICK",
+            path:
+              window.location.pathname,
+            productId,
+          }),
+        }
+      ).catch(() => {});
 
     } finally {
 

@@ -25,11 +25,9 @@ export type CustomerVoucherPrices = Record<
 export async function getCustomerVoucherPrices(
   productIds: number[]
 ): Promise<CustomerVoucherPrices> {
-  const currentUser = await getCurrentUser();
+const currentUser = await getCurrentUser();
 
-  if (!currentUser) {
-    return {};
-  }
+const userId = currentUser?.id ?? null;
 
   const normalizedProductIds = Array.from(
     new Set(
@@ -52,8 +50,6 @@ export async function getCustomerVoucherPrices(
       "Too many product IDs."
     );
   }
-
-  const userId = currentUser.id;
 
   /*
    * Load the real product data from Prisma.
@@ -90,17 +86,26 @@ export async function getCustomerVoucherPrices(
    * calculateVoucher() remains the single
    * source of truth for voucher eligibility.
    */
-  const vouchers =
-    await prisma.voucher.findMany({
-      where: {
-        isActive: true,
-      },
-
-      select: {
-        code: true,
-        newCustomerOnly: true,
-      },
-    });
+const vouchers =
+  await prisma.voucher.findMany({
+    where: {
+      isActive: true,
+    },
+    select: {
+      code: true,
+      newCustomerOnly: true,
+      type: true,
+      value: true,
+      minSpend: true,
+      maxDiscount: true,
+      category: true,
+      startAt: true,
+      expiresAt: true,
+      usageLimit: true,
+      usageCount: true,
+      usagePerCustomer: true,
+    },
+  });
 
   const prices: CustomerVoucherPrices = {};
 
@@ -158,33 +163,89 @@ export async function getCustomerVoucherPrices(
          * Check every active Voucher through
          * calculateVoucher().
          */
-        const calculations =
-          await Promise.all(
-            vouchers.map(
-              async (voucher) => {
-                const calculation =
-                  await calculateVoucher({
-                    code: voucher.code,
+const now = new Date();
 
-                    subtotal:
-                      productPrice,
+const calculations =
+  await Promise.all(
+    vouchers.map(async (voucher) => {
+      // Logged-in customers use the real voucher validation.
+      if (currentUser) {
+        const calculation =
+          await calculateVoucher({
+            code: voucher.code,
+            subtotal: productPrice,
+            userId,
+            productCategories: [
+              product.category,
+            ],
+          });
 
-                    userId,
+        return {
+          calculation,
+          isNewCustomerVoucher:
+            voucher.newCustomerOnly,
+        };
+      }
 
-                    productCategories: [
-                      product.category,
-                    ],
-                  });
+      // Anonymous visitors get a display preview only.
+      const invalid =
+        now < voucher.startAt ||
+        (!voucher.newCustomerOnly &&
+          voucher.expiresAt !== null &&
+          now >= voucher.expiresAt) ||
+        (voucher.usageLimit !== null &&
+          voucher.usageCount >=
+            voucher.usageLimit) ||
+        productPrice < Number(voucher.minSpend) ||
+        (voucher.category !== null &&
+          voucher.category.trim().toLowerCase() !==
+            product.category.trim().toLowerCase());
 
-                return {
-                  calculation,
+      if (invalid) {
+        return {
+          calculation: {
+            code: voucher.code,
+            discount: 0,
+            error: "Voucher is not available for preview.",
+            voucherId: null,
+          },
+          isNewCustomerVoucher:
+            voucher.newCustomerOnly,
+        };
+      }
 
-                  isNewCustomerVoucher:
-                    voucher.newCustomerOnly,
-                };
-              }
-            )
-          );
+      let discount =
+        voucher.type === "FIXED"
+          ? Number(voucher.value)
+          : productPrice *
+            (Number(voucher.value) / 100);
+
+      if (voucher.maxDiscount !== null) {
+        discount = Math.min(
+          discount,
+          Number(voucher.maxDiscount)
+        );
+      }
+
+      discount = Math.round(
+        Math.min(
+          Math.max(discount, 0),
+          productPrice
+        ) * 100
+      ) / 100;
+
+      return {
+        calculation: {
+          code: voucher.code,
+          discount,
+          error: null,
+          voucherId: null,
+        },
+        isNewCustomerVoucher:
+          voucher.newCustomerOnly,
+      };
+    })
+  );
 
         /*
          * Only successful vouchers with

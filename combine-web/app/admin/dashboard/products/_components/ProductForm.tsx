@@ -1195,6 +1195,18 @@ export default function ProductForm({
     const hasMultipleSizesForSubmit =
       uniqueSizesForSubmit.size > 1;
 
+    const activeColorsForSubmit =
+      colors.filter(
+        (color) => !color.deleted
+      );
+
+    const hasMultipleColorsForSubmit =
+      activeColorsForSubmit.length > 1;
+
+    const hasVariantSpecificPricingForSubmit =
+      hasMultipleSizesForSubmit ||
+      hasMultipleColorsForSubmit;
+
     variants.forEach(
       (
         variant,
@@ -1270,7 +1282,7 @@ export default function ProductForm({
               null,
 
             price:
-              hasMultipleSizesForSubmit
+              hasVariantSpecificPricingForSubmit
                 ? variant.price ?? null
                 : null,
 
@@ -1374,196 +1386,115 @@ startTransition(
   // =========================================================
   // PRICING CALCULATIONS
   // =========================================================
-  //
-  // RULES:
-  //
-  // 1. No variants:
-  //      Product Pricing × 1
-  //
-  // 2. Variants + ONE unique size:
-  //      Product Pricing × number of variants
-  //
-  //      Example:
-  //      Black / One Size
-  //      White / One Size
-  //      Brown / One Size
-  //
-  //      Product Price = RM500
-  //      Revenue = RM500 × 3
-  //
-  // 3. Variants + MULTIPLE sizes:
-  //      Each Variant uses its own Variant Pricing.
-  //
-  //      Every Variant = 1 stock unit.
-  //
-  // =========================================================
+
+  const activeColors =
+    colors.filter(
+      (color) => !color.deleted
+    );
 
   const activeVariants =
     variants.filter(
-      (variant) =>
-        !variant.deleted
+      (variant) => !variant.deleted
     );
-
 
   const uniqueSizes =
     new Set(
-      activeVariants.map(
-        (variant) =>
-          variant.size
-      )
+      activeVariants
+        .map((variant) => variant.size.trim())
+        .filter(Boolean)
     );
-
 
   const hasVariants =
     activeVariants.length > 0;
 
-
   const hasMultipleSizes =
     uniqueSizes.size > 1;
 
+  const hasMultipleColors =
+    activeColors.length > 1;
+
+const hasVariantSpecificPricing =
+  hasVariants &&
+  (hasMultipleSizes || hasMultipleColors);
 
   // =========================================================
   // PRODUCT PRICING MODE
   // =========================================================
 
   const productCostMyr =
-    costPriceCny *
-    exchangeRate;
-
+    costPriceCny * exchangeRate;
 
   const productProfitPerUnit =
-    sellingPrice -
-    productCostMyr;
-
+    sellingPrice - productCostMyr;
 
   // =========================================================
-  // INVENTORY SUMMARY FOR THIS PRODUCT
+  // INVENTORY SUMMARY
   // =========================================================
 
-  let estimatedCostMyr =
-    0;
-
-
-  let potentialRevenue =
-    0;
-
-
-  let estimatedProfit =
-    0;
-
+  let estimatedCostMyr = 0;
+  let potentialRevenue = 0;
+  let estimatedProfit = 0;
+  let stockUnits = 1;
 
   // =========================================================
-  // NO VARIANTS
+  // MULTIPLE SIZES
+  // Calculate each configured variant separately.
   // =========================================================
 
-  if (!hasVariants) {
+  if (hasVariantSpecificPricing) {
+    stockUnits = activeVariants.length;
 
-    estimatedCostMyr =
-      productCostMyr;
+    for (const variant of activeVariants) {
+      const variantExchangeRate =
+        variant.exchangeRate ?? exchangeRate;
 
-    potentialRevenue =
-      sellingPrice;
+      const variantCostCny =
+        variant.costPriceCny ?? costPriceCny;
 
-    estimatedProfit =
-      productProfitPerUnit;
+      const variantCostMyr =
+        variantCostCny * variantExchangeRate;
 
+      const variantSellingPrice =
+        variant.price ?? sellingPrice;
+
+      estimatedCostMyr += variantCostMyr;
+
+      potentialRevenue += variantSellingPrice;
+
+      estimatedProfit +=
+        variantSellingPrice - variantCostMyr;
+    }
   }
 
-
   // =========================================================
-  // VARIANTS + ONE SIZE
-  // =========================================================
-  //
-  // Product Pricing applies to every Color.
-  //
-  // Each Color / One Size combination = 1 stock.
-  //
-  // =========================================================
-
-  else if (!hasMultipleSizes) {
-
-    const variantCount =
-      activeVariants.length;
-
-
-    estimatedCostMyr =
-      productCostMyr *
-      variantCount;
-
-
-    potentialRevenue =
-      sellingPrice *
-      variantCount;
-
-
-    estimatedProfit =
-      productProfitPerUnit *
-      variantCount;
-
-  }
-
-
-  // =========================================================
-  // VARIANTS + MULTIPLE SIZES
-  // =========================================================
-  //
-  // Each Variant has its own pricing.
-  //
-  // Every Variant = 1 stock.
-  //
+  // NO MULTIPLE SIZES
+  // Count colors as individual units.
   // =========================================================
 
   else {
+    stockUnits = Math.max(
+      activeColors.length,
+      activeVariants.length,
+      1
+    );
 
-    for (
-      const variant of
-      activeVariants
-    ) {
+    estimatedCostMyr =
+      productCostMyr * stockUnits;
 
-      const variantExchangeRate =
-        variant.exchangeRate ??
-        exchangeRate;
+    potentialRevenue =
+      sellingPrice * stockUnits;
 
-
-      const variantCostCny =
-        variant.costPriceCny ??
-        costPriceCny;
-
-
-      const variantCostMyr =
-        variantCostCny *
-        variantExchangeRate;
-
-
-      const variantSellingPrice =
-        variant.price ??
-        sellingPrice;
-
-
-      estimatedCostMyr +=
-        variantCostMyr;
-
-
-      potentialRevenue +=
-        variantSellingPrice;
-
-
-      estimatedProfit +=
-        variantSellingPrice -
-        variantCostMyr;
-
-    }
-
+    estimatedProfit =
+      productProfitPerUnit * stockUnits;
   }
 
+  // =========================================================
+  // PROFIT MARGIN
+  // =========================================================
 
   const estimatedMargin =
     potentialRevenue > 0
-      ? (
-          estimatedProfit /
-          potentialRevenue
-        ) *
-        100
+      ? (estimatedProfit / potentialRevenue) * 100
       : 0;
 
 
@@ -2249,7 +2180,7 @@ startTransition(
                     text-neutral-500
                   "
                 >
-                  {hasMultipleSizes
+                  {hasVariantSpecificPricing
                     ? "Calculated from each variant's pricing. Every variant is counted as 1 stock unit."
                     : hasVariants
                     ? "Product pricing is applied to each color. Every color is counted as 1 stock unit."
@@ -2351,14 +2282,9 @@ startTransition(
                     Stock Units
                   </span>
 
-
-                  <span className="font-medium">
-                    {
-                      hasVariants
-                        ? activeVariants.length
-                        : 1
-                    }
-                  </span>
+<span className="font-medium">
+  {stockUnits}
+</span>
 
                 </div>
 
@@ -3232,23 +3158,24 @@ startTransition(
               </div>
 
 
-              <div
-                className="
-                  flex
-                  justify-between
-                "
-              >
 
-                <span>
-                  SKU
-                </span>
+<div
+  className="
+    flex
+    justify-between
+  "
+>
 
-                <span className="font-medium">
-                  {product?.sku ||
-                    "-"}
-                </span>
+  <span>
+    SKU
+  </span>
 
-              </div>
+  <span className="font-medium">
+    {product?.sku ||
+      "-"}
+  </span>
+
+</div>
 
 
               <div

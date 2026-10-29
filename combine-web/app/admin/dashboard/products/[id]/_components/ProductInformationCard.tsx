@@ -1,3 +1,4 @@
+
 type ProductInformationCardProps = {
   product: {
     sku: string | null;
@@ -37,15 +38,15 @@ export default function ProductInformationCard({
 }: ProductInformationCardProps) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-<p className="text-xs font-medium uppercase tracking-[0.28em] text-neutral-400">
-  DETAILS
-</p>
+      <p className="text-xs font-medium uppercase tracking-[0.28em] text-neutral-400">
+        DETAILS
+      </p>
 
-<h2 className="mt-2 mb-6 text-2xl font-light">
-  Product Information
-</h2>
+      <h2 className="mt-2 mb-6 text-2xl font-light">
+        Product Information
+      </h2>
 
-<div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <InfoItem
           label="SKU"
           value={product.sku ?? "-"}
@@ -107,13 +108,19 @@ function InfoItem({
   label: string;
   value: string;
 }) {
+  const isSku = label === "SKU";
+
   return (
-    <div className="rounded-xl border border-neutral-200 p-4">
+    <div className="min-w-0 rounded-xl border border-neutral-200 p-4">
       <p className="text-xs uppercase tracking-wide text-neutral-500">
         {label}
       </p>
 
-      <p className="mt-2 font-medium text-neutral-900">
+      <p
+        className={`mt-2 font-medium text-neutral-900 ${
+          isSku ? "min-w-0 break-words [overflow-wrap:anywhere]" : ""
+        }`}
+      >
         {value}
       </p>
     </div>

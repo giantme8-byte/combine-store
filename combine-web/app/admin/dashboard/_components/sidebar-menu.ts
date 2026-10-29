@@ -12,6 +12,7 @@ import {
   Box,
   CreditCard,
   TicketPercent,
+  Star,
   type LucideIcon,
 } from "lucide-react";
 
@@ -133,6 +134,19 @@ export const sidebarSections: {
         title: "Inquiries",
         href: "/admin/dashboard/inquiries",
         icon: MessageCircle,
+        roles: [
+          UserRole.OWNER,
+          UserRole.ADMIN,
+          UserRole.MANAGER,
+          UserRole.STAFF,
+        ],
+      },
+
+      // ⭐ CUSTOMER REVIEWS
+      {
+        title: "Reviews",
+        href: "/admin/dashboard/reviews",
+        icon: Star,
         roles: [
           UserRole.OWNER,
           UserRole.ADMIN,

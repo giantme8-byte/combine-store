@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import { getRecentlyViewed } from "@/lib/recentlyViewed";
 
-
 type Product = {
   id: number;
 
@@ -38,27 +37,38 @@ type Product = {
   }[];
 };
 
+type VoucherPrice = {
+  price: number;
+
+  discount: number;
+
+  isNewCustomerVoucher: boolean;
+};
 
 export default function RecentlyViewed() {
-
   const [
     products,
     setProducts,
   ] = useState<Product[]>([]);
 
+  const [
+    voucherPrices,
+    setVoucherPrices,
+  ] = useState<
+    Record<
+      number,
+      VoucherPrice
+    >
+  >({});
 
   useEffect(() => {
-
     async function loadProducts() {
-
       const slugs =
         getRecentlyViewed();
-
 
       if (slugs.length === 0) {
         return;
       }
-
 
       const response =
         await fetch(
@@ -67,30 +77,78 @@ export default function RecentlyViewed() {
           )}`
         );
 
-
       if (!response.ok) {
         return;
       }
 
-
       const data =
         await response.json();
 
-
       setProducts(data);
 
+      // =====================================================
+      // CUSTOMER VOUCHER PRICES
+      // =====================================================
+
+      const productIds =
+        data
+          .map(
+            (product: Product) =>
+              product.id
+          )
+          .filter(
+            (
+              id: unknown
+            ): id is number =>
+              typeof id ===
+              "number"
+          );
+
+      if (
+        productIds.length ===
+        0
+      ) {
+        return;
+      }
+
+      const voucherResponse =
+        await fetch(
+          "/api/shop/voucher-prices",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              productIds,
+            }),
+          }
+        );
+
+      if (
+        !voucherResponse.ok
+      ) {
+        return;
+      }
+
+      const voucherData =
+        await voucherResponse.json();
+
+      setVoucherPrices(
+        voucherData.prices ??
+          {}
+      );
     }
 
-
     loadProducts();
-
   }, []);
-
 
   if (products.length === 0) {
     return null;
   }
-
 
   return (
     <section
@@ -105,7 +163,6 @@ export default function RecentlyViewed() {
         lg:pt-28
       "
     >
-
       {/* ================================================= */}
       {/* Header */}
       {/* ================================================= */}
@@ -117,7 +174,6 @@ export default function RecentlyViewed() {
           sm:mb-12
         "
       >
-
         <p
           className="
             text-[9px]
@@ -130,7 +186,6 @@ export default function RecentlyViewed() {
         >
           RECENTLY VIEWED
         </p>
-
 
         <h2
           className="
@@ -147,7 +202,6 @@ export default function RecentlyViewed() {
           Recently Viewed
         </h2>
 
-
         <div
           className="
             mx-auto
@@ -162,9 +216,7 @@ export default function RecentlyViewed() {
             sm:w-20
           "
         />
-
       </div>
-
 
       {/* ================================================= */}
       {/* Products */}
@@ -183,83 +235,99 @@ export default function RecentlyViewed() {
           lg:gap-y-12
         "
       >
-
         {products.map(
-          (product) => (
-
-            <ProductCard
-              key={
+          (product) => {
+            const voucher =
+              voucherPrices[
                 product.id
-              }
+              ];
 
-              id={
-                product.id
-              }
+            return (
+              <ProductCard
+                key={
+                  product.id
+                }
 
-              slug={
-                product.slug ??
-                ""
-              }
+                id={
+                  product.id
+                }
 
-              brand={
-                product.brand
-              }
+                slug={
+                  product.slug ??
+                  ""
+                }
 
-              name={
-                product.name
-              }
+                brand={
+                  product.brand
+                }
 
-              model={
-                product.model
-              }
+                name={
+                  product.name
+                }
 
-              price={
-                product.price
-              }
+                model={
+                  product.model
+                }
 
-              image={
-                product.images[0]
-                  ?.url ??
-                "/placeholder.png"
-              }
+                price={
+                  product.price
+                }
 
-              secondImage={
-                product.images[1]
-                  ?.url
-              }
+                customerPrice={
+                  voucher?.price
+                }
 
-              createdAt={
-                product.createdAt
-              }
+                customerDiscount={
+                  voucher?.discount ??
+                  0
+                }
 
-              featured={
-                product.featured
-              }
+                isNewCustomerVoucher={
+                  voucher?.isNewCustomerVoucher ??
+                  false
+                }
 
-              newArrival={
-                product.newArrival
-              }
+                image={
+                  product.images[0]
+                    ?.url ??
+                  "/placeholder.png"
+                }
 
-              bestSeller={
-                product.bestSeller
-              }
+                secondImage={
+                  product.images[1]
+                    ?.url
+                }
 
-              limited={
-                product.limited
-              }
+                createdAt={
+                  product.createdAt
+                }
 
-              onSale={
-                product.onSale
-              }
+                featured={
+                  product.featured
+                }
 
-              buttonSize="small"
-            />
+                newArrival={
+                  product.newArrival
+                }
 
-          )
+                bestSeller={
+                  product.bestSeller
+                }
+
+                limited={
+                  product.limited
+                }
+
+                onSale={
+                  product.onSale
+                }
+
+                buttonSize="small"
+              />
+            );
+          }
         )}
-
       </div>
-
     </section>
   );
 }

@@ -1387,6 +1387,106 @@ export default function VariantManager({
 
 
   /* =========================================================
+   * GENERATE MISSING COLOR × SIZE COMBINATIONS
+   * Existing variants are preserved; only missing combinations
+   * are added. Newly generated variants need their own pricing.
+   * ======================================================= */
+
+  function generateColorSizeCombinations() {
+    const activeColors = colors.filter(
+      (color) => !color.deleted
+    );
+
+    const activeVariants = variants.filter(
+      (variant) => !variant.deleted
+    );
+
+    if (activeColors.length === 0) {
+      alert("Please add Product Colors first.");
+      return;
+    }
+
+    const sizes = [
+      ...new Set(
+        activeVariants
+          .map((variant) => variant.size.trim())
+          .filter(Boolean)
+      ),
+    ];
+
+    if (sizes.length === 0) {
+      alert(
+        "Please enter at least one Size in an existing Variant first."
+      );
+      return;
+    }
+
+    if (
+      activeColors.length > 1 &&
+      activeColors.some((color) => color.colorId == null)
+    ) {
+      alert(
+        "Each Product Color must be linked to a saved global Color first."
+      );
+      return;
+    }
+
+    const combinationKey = (colorId: number | null, size: string) =>
+      `${colorId ?? "none"}::${size.trim()}`;
+
+    const existingKeys = new Set(
+      activeVariants.map((variant) =>
+        combinationKey(variant.colorId ?? null, variant.size)
+      )
+    );
+
+    const newVariants: ProductVariantItem[] = [];
+
+    for (const color of activeColors) {
+      const colorId = color.colorId ?? null;
+
+      for (const size of sizes) {
+        const key = combinationKey(colorId, size);
+
+        if (existingKeys.has(key)) {
+          continue;
+        }
+
+        newVariants.push({
+          id: crypto.randomUUID(),
+          colorId,
+          size,
+          costPriceCny: null,
+          exchangeRate: null,
+          price: null,
+          model: "",
+          dimensions: "",
+          imageUrl: "",
+          publicId: "",
+          images: [],
+          file: undefined,
+          isNew: true,
+          deleted: false,
+        });
+
+        existingKeys.add(key);
+      }
+    }
+
+    if (newVariants.length === 0) {
+      alert("All Color × Size combinations already exist.");
+      return;
+    }
+
+    onChange([...variants, ...newVariants]);
+
+    alert(
+      `Added ${newVariants.length} missing Color × Size combination(s). Please review their cost and selling prices before saving.`
+    );
+  }
+
+
+  /* =========================================================
    * UPDATE VARIANT
    * ======================================================= */
 
@@ -1565,25 +1665,23 @@ export default function VariantManager({
         </div>
 
 
-        <button
-          type="button"
-          onClick={
-            addVariant
-          }
-          className="
-            rounded-xl
-            bg-black
-            px-4
-            py-2
-            text-sm
-            font-medium
-            text-white
-            transition
-            hover:bg-neutral-800
-          "
-        >
-          + Add Variant
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={generateColorSizeCombinations}
+            className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100"
+          >
+            Generate Color × Size
+          </button>
+
+          <button
+            type="button"
+            onClick={addVariant}
+            className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800"
+          >
+            + Add Variant
+          </button>
+        </div>
 
       </div>
 
@@ -1708,10 +1806,10 @@ export default function VariantManager({
                   effectiveExchangeRate
                 : null;
 
-            const effectiveSellingPrice =
-              hasMultipleSizes
-                ? variant.price
-                : productPrice;
+const effectiveSellingPrice =
+  hasMultipleColors || hasMultipleSizes
+    ? variant.price
+    : productPrice;
 
             const estimatedProfit =
               estimatedCost != null &&
@@ -2158,7 +2256,7 @@ export default function VariantManager({
                         Selling Price
                       </label>
 
-                      {hasMultipleSizes ? (
+                      {hasMultipleColors || hasMultipleSizes ? (
                         <>
                           <div className="relative">
 

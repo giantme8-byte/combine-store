@@ -17,6 +17,7 @@ import ProductActions from "@/components/product/ProductActions";
 import ProductAccordion from "@/components/product/ProductAccordion";
 import ProductDetailClient from "@/components/product/ProductDetailClient";
 import ProductOptions from "@/components/product/ProductOptions";
+import ProductTrustFaq from "@/components/product/ProductTrustFaq";
 
 import ProductViewTracker from "@/components/analytics/ProductViewTracker";
 
@@ -29,6 +30,12 @@ import ProductViewTracker from "@/components/analytics/ProductViewTracker";
  */
 
 export const revalidate = 300;
+
+/*
+ * ============================================================
+ * Types
+ * ============================================================
+ */
 
 type Props = {
   params: Promise<{
@@ -47,28 +54,29 @@ export async function generateMetadata({
 }: Props): Promise<Metadata> {
   const { slug } = await params;
 
-  const product = await prisma.product.findUnique({
-    where: {
-      slug,
-    },
+  const product =
+    await prisma.product.findUnique({
+      where: {
+        slug,
+      },
 
-    select: {
-      brand: true,
-      name: true,
-      shortDescription: true,
-      description: true,
+      select: {
+        brand: true,
+        name: true,
+        shortDescription: true,
+        description: true,
 
-      images: {
-        select: {
-          url: true,
-        },
+        images: {
+          select: {
+            url: true,
+          },
 
-        orderBy: {
-          sortOrder: "asc",
+          orderBy: {
+            sortOrder: "asc",
+          },
         },
       },
-    },
-  });
+    });
 
   if (!product) {
     return {
@@ -78,39 +86,52 @@ export async function generateMetadata({
 
   const description =
     product.shortDescription ||
-    product.description.slice(0, 160);
+    product.description.slice(
+      0,
+      160
+    );
 
   return {
-    title: `${product.brand} ${product.name}`,
+    title:
+      `${product.brand} ${product.name}`,
 
     description,
 
     openGraph: {
-      title: `${product.brand} ${product.name}`,
+      title:
+        `${product.brand} ${product.name}`,
 
       description,
 
-      images: product.images.length
-        ? [
-            {
-              url: product.images[0].url,
+      images:
+        product.images.length
+          ? [
+              {
+                url:
+                  product.images[0].url,
 
-              alt: product.name,
-            },
-          ]
-        : [],
+                alt:
+                  product.name,
+              },
+            ]
+          : [],
     },
 
     twitter: {
-      card: "summary_large_image",
+      card:
+        "summary_large_image",
 
-      title: `${product.brand} ${product.name}`,
+      title:
+        `${product.brand} ${product.name}`,
 
       description,
 
-      images: product.images.length
-        ? [product.images[0].url]
-        : [],
+      images:
+        product.images.length
+          ? [
+              product.images[0].url,
+            ]
+          : [],
     },
   };
 }
@@ -132,287 +153,263 @@ export default async function ProductPage({
    * ----------------------------------------------------------
    */
 
-  const product = await prisma.product.findUnique({
-    where: {
-      slug,
-    },
-
-    select: {
-      id: true,
-
-      slug: true,
-
-      // ======================================================
-      // BASIC PRODUCT INFORMATION
-      // ======================================================
-
-      brand: true,
-
-      name: true,
-
-      model: true,
-
-      sku: true,
-
-      videoUrl: true,
-
-      // ======================================================
-      // PRICE
-      // ======================================================
-
-      price: true,
-
-      // ======================================================
-      // DESCRIPTION
-      // ======================================================
-
-      shortDescription: true,
-
-      description: true,
-
-      // ======================================================
-      // CATEGORY
-      // ======================================================
-
-      category: true,
-
-      subCategory: true,
-
-      // ======================================================
-      // PRODUCT INFORMATION
-      // ======================================================
-
-      mainColor: true,
-
-      dimensions: true,
-
-      // ======================================================
-      // BADGES
-      // ======================================================
-
-      featured: true,
-
-      newArrival: true,
-
-      bestSeller: true,
-
-      limited: true,
-
-      onSale: true,
-
-      /*
-       * ------------------------------------------------------
-       * Product-specific custom packaging.
-       * ------------------------------------------------------
-       */
-
-      customPackaging: {
-        select: {
-          id: true,
-
-          key: true,
-
-          name: true,
-
-          brand: true,
-
-          title: true,
-
-          description: true,
-
-          active: true,
-
-          images: {
-            select: {
-              id: true,
-
-              url: true,
-
-              altText: true,
-
-              caption: true,
-            },
-
-            orderBy: {
-              sortOrder: "asc",
-            },
-          },
-
-          items: {
-            select: {
-              id: true,
-
-              name: true,
-            },
-
-            orderBy: {
-              sortOrder: "asc",
-            },
-          },
-        },
+  const product =
+    await prisma.product.findUnique({
+      where: {
+        slug,
       },
 
-      /*
-       * ------------------------------------------------------
-       * Product Gallery
-       * ------------------------------------------------------
-       */
+      select: {
+        id: true,
 
-      images: {
-        select: {
-          url: true,
-        },
+        slug: true,
 
-        orderBy: {
-          sortOrder: "asc",
-        },
-      },
+        // ======================================================
+        // BASIC PRODUCT INFORMATION
+        // ======================================================
 
-      /*
-       * ======================================================
-       * Product Colors
-       * ======================================================
-       *
-       * IMPORTANT:
-       *
-       * We now load the complete Color Gallery.
-       *
-       * Old:
-       *
-       * imageUrl
-       *
-       * New:
-       *
-       * images[]
-       *
-       */
+        brand: true,
 
-      colors: {
-        select: {
-          id: true,
+        name: true,
 
-          name: true,
+        model: true,
 
-          imageUrl: true,
+        sku: true,
 
-          model: true,
+        videoUrl: true,
 
-          images: {
-            select: {
-              id: true,
+        // ======================================================
+        // PRICE
+        // ======================================================
 
-              url: true,
+        price: true,
 
-              publicId: true,
+        // ======================================================
+        // DESCRIPTION
+        // ======================================================
 
-              sortOrder: true,
+        shortDescription: true,
+
+        description: true,
+
+        // ======================================================
+        // CATEGORY
+        // ======================================================
+
+        category: true,
+
+        subCategory: true,
+
+        // ======================================================
+        // PRODUCT INFORMATION
+        // ======================================================
+
+        mainColor: true,
+
+        dimensions: true,
+
+        // ======================================================
+        // BADGES
+        // ======================================================
+
+        featured: true,
+
+        newArrival: true,
+
+        bestSeller: true,
+
+        limited: true,
+
+        onSale: true,
+
+        /*
+         * ------------------------------------------------------
+         * Product-specific custom packaging.
+         * ------------------------------------------------------
+         */
+
+        customPackaging: {
+          select: {
+            id: true,
+
+            key: true,
+
+            name: true,
+
+            brand: true,
+
+            title: true,
+
+            description: true,
+
+            active: true,
+
+            images: {
+              select: {
+                id: true,
+
+                url: true,
+
+                altText: true,
+
+                caption: true,
+              },
+
+              orderBy: {
+                sortOrder: "asc",
+              },
             },
 
-            orderBy: {
-              sortOrder: "asc",
+            items: {
+              select: {
+                id: true,
+
+                name: true,
+              },
+
+              orderBy: {
+                sortOrder: "asc",
+              },
             },
           },
         },
 
-        orderBy: {
-          sortOrder: "asc",
-        },
-      },
+        /*
+         * ------------------------------------------------------
+         * Product Gallery
+         * ------------------------------------------------------
+         */
 
-      /*
-       * ======================================================
-       * Product Variants
-       * ======================================================
-       *
-       * Load the complete Variant Gallery.
-       *
-       * Each Variant can now have multiple images.
-       *
-       * Example:
-       *
-       * Small
-       * ├── Cover
-       * ├── Front
-       * ├── Back
-       * └── Interior
-       *
-       * Large
-       * ├── Cover
-       * ├── Front
-       * ├── Back
-       * └── Interior
-       *
-       */
+        images: {
+          select: {
+            url: true,
+          },
 
-      variants: {
-        select: {
-          id: true,
-
-          /*
-           * Global Color relation.
-           *
-           * Required by ProductOptions so the
-           * customer-facing page can correctly
-           * match:
-           *
-           * Color × Size = Variant
-           */
-
-          colorId: true,
-
-          size: true,
-
-          /*
-           * Variant-specific price.
-           *
-           * If a variant has its own price,
-           * ProductActions can use this price
-           * after the variant is selected.
-           */
-
-          price: true,
-
-          model: true,
-
-          dimensions: true,
-
-          /*
-           * Legacy / fallback cover image.
-           */
-
-          imageUrl: true,
-
-          /*
-           * Complete Variant Gallery.
-           */
-
-          images: {
-            select: {
-              id: true,
-
-              url: true,
-
-              publicId: true,
-
-              altText: true,
-
-              caption: true,
-
-              sortOrder: true,
-            },
-
-            orderBy: {
-              sortOrder: "asc",
-            },
+          orderBy: {
+            sortOrder: "asc",
           },
         },
 
-        orderBy: {
-          sortOrder: "asc",
+        /*
+         * ======================================================
+         * Product Colors
+         * ======================================================
+         *
+         * Load the complete Color Gallery.
+         */
+
+        colors: {
+          select: {
+            id: true,
+
+            name: true,
+
+            imageUrl: true,
+
+            model: true,
+
+            images: {
+              select: {
+                id: true,
+
+                url: true,
+
+                publicId: true,
+
+                sortOrder: true,
+              },
+
+              orderBy: {
+                sortOrder: "asc",
+              },
+            },
+          },
+
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
+
+        /*
+         * ======================================================
+         * Product Variants
+         * ======================================================
+         *
+         * IMPORTANT:
+         *
+         * ProductDetailClient requires the exact
+         * ProductVariant ID.
+         *
+         * Therefore id MUST be selected here.
+         */
+
+        variants: {
+          select: {
+            id: true,
+
+            /*
+             * Global Color relation.
+             *
+             * Color × Size = Variant
+             */
+
+            colorId: true,
+
+            size: true,
+
+            /*
+             * Variant-specific price.
+             */
+
+            price: true,
+
+            model: true,
+
+            dimensions: true,
+
+            /*
+             * Legacy / fallback cover image.
+             */
+
+            imageUrl: true,
+
+            /*
+             * Complete Variant Gallery.
+             */
+
+            images: {
+              select: {
+                id: true,
+
+                url: true,
+
+                publicId: true,
+
+                altText: true,
+
+                caption: true,
+
+                sortOrder: true,
+              },
+
+              orderBy: {
+                sortOrder: "asc",
+              },
+            },
+          },
+
+          orderBy: {
+            sortOrder: "asc",
+          },
         },
       },
-    },
-  });
+    });
+
+  /*
+   * ----------------------------------------------------------
+   * Product Not Found
+   * ----------------------------------------------------------
+   */
 
   if (!product) {
     notFound();
@@ -428,9 +425,6 @@ export default async function ProductPage({
    * 1. Product Custom Packaging
    * 2. Brand Packaging
    * 3. Default Packaging
-   *
-   * This means you only need to create one packaging
-   * profile for each brand.
    */
 
   const packagingProfiles =
@@ -444,7 +438,8 @@ export default async function ProductPage({
           },
 
           {
-            brand: product.brand,
+            brand:
+              product.brand,
           },
         ],
       },
@@ -499,7 +494,8 @@ export default async function ProductPage({
   const brandPackaging =
     packagingProfiles.find(
       (packaging) =>
-        packaging.brand === product.brand
+        packaging.brand ===
+        product.brand
     ) ?? null;
 
   /*
@@ -509,7 +505,8 @@ export default async function ProductPage({
   const defaultPackaging =
     packagingProfiles.find(
       (packaging) =>
-        packaging.brand === null
+        packaging.brand ===
+        null
     ) ?? null;
 
   /*
@@ -521,7 +518,8 @@ export default async function ProductPage({
   const packaging =
     product.customPackaging?.active
       ? product.customPackaging
-      : brandPackaging ?? defaultPackaging;
+      : brandPackaging ??
+        defaultPackaging;
 
   /*
    * ----------------------------------------------------------
@@ -533,9 +531,19 @@ export default async function ProductPage({
     product.images[0]?.url ??
     "/placeholder.png";
 
-  const gallery = product.images
-    .slice(1)
-    .map((image) => image.url);
+  const gallery =
+    product.images
+      .slice(1)
+      .map(
+        (image) =>
+          image.url
+      );
+
+  /*
+   * ============================================================
+   * Render
+   * ============================================================
+   */
 
   return (
     <main
@@ -554,7 +562,9 @@ export default async function ProductPage({
       {/* ===================================================== */}
 
       <ProductViewTracker
-        productId={product.id}
+        productId={
+          product.id
+        }
       />
 
       {/* ===================================================== */}
@@ -562,7 +572,9 @@ export default async function ProductPage({
       {/* ===================================================== */}
 
       <RecentlyViewedTracker
-        slug={product.slug ?? ""}
+        slug={
+          product.slug ?? ""
+        }
       />
 
       {/* ===================================================== */}
@@ -573,22 +585,22 @@ export default async function ProductPage({
         items={[
           {
             label: "Home",
-
             href: "/",
           },
 
           {
             label: "Collection",
-
             href: "/shop",
           },
 
           {
-            label: product.brand,
+            label:
+              product.brand,
           },
 
           {
-            label: product.name,
+            label:
+              product.name,
           },
         ]}
       />
@@ -599,7 +611,25 @@ export default async function ProductPage({
 
       <ProductDetailClient
         colors={product.colors}
-        variants={product.variants}
+        variants={product.variants.map(
+          (variant) => ({
+            id: variant.id,
+            colorId:
+              variant.colorId,
+            size:
+              variant.size,
+            price:
+              variant.price,
+            model:
+              variant.model,
+            dimensions:
+              variant.dimensions,
+            imageUrl:
+              variant.imageUrl,
+            images:
+              variant.images,
+          })
+        )}
       >
         <section
           className="
@@ -621,9 +651,15 @@ export default async function ProductPage({
           <ProductGallery
             cover={cover}
             gallery={gallery}
-            colors={product.colors}
-            name={product.name}
-            videoUrl={product.videoUrl}
+            colors={
+              product.colors
+            }
+            name={
+              product.name
+            }
+            videoUrl={
+              product.videoUrl
+            }
           />
 
           {/* ================================================= */}
@@ -643,9 +679,11 @@ export default async function ProductPage({
 
             <ProductInfo
               product={{
-                brand: product.brand,
+                brand:
+                  product.brand,
 
-                name: product.name,
+                name:
+                  product.name,
 
                 shortDescription:
                   product.shortDescription,
@@ -676,33 +714,79 @@ export default async function ProductPage({
                 ================================================= */}
 
             <ProductActions
-              productId={product.id}
-              slug={product.slug ?? ""}
-              brand={product.brand}
-              name={product.name}
-              sku={product.sku}
-              model={product.model}
-              mainColor={product.mainColor}
-              dimensions={product.dimensions}
-              price={product.price}
+              productId={
+                product.id
+              }
+
+              slug={
+                product.slug ?? ""
+              }
+
+              brand={
+                product.brand
+              }
+
+              name={
+                product.name
+              }
+
+              sku={
+                product.sku
+              }
+
+              model={
+                product.model
+              }
+
+              mainColor={
+                product.mainColor
+              }
+
+              dimensions={
+                product.dimensions
+              }
+
+              price={
+                product.price
+              }
+
               image={cover}
             />
 
             {/* Product Meta */}
 
             <ProductMeta
-              sku={product.sku}
-              model={product.model}
-              category={product.category}
-              subCategory={product.subCategory}
-              mainColor={product.mainColor}
-              dimensions={product.dimensions}
+              sku={
+                product.sku
+              }
+
+              model={
+                product.model
+              }
+
+              category={
+                product.category
+              }
+
+              subCategory={
+                product.subCategory
+              }
+
+              mainColor={
+                product.mainColor
+              }
+
+              dimensions={
+                product.dimensions
+              }
             />
 
             {/* Description */}
 
             <ProductAccordion
-              description={product.description}
+              description={
+                product.description
+              }
             />
           </div>
         </section>
@@ -792,7 +876,9 @@ export default async function ProductPage({
                   sm:leading-8
                 "
               >
-                {packaging.description}
+                {
+                  packaging.description
+                }
               </p>
             )}
           </div>
@@ -801,7 +887,8 @@ export default async function ProductPage({
           {/* Editorial Packaging Gallery */}
           {/* ================================================= */}
 
-          {packaging.images.length > 0 && (
+          {packaging.images.length >
+            0 && (
             <div
               className="
                 mx-auto
@@ -812,7 +899,8 @@ export default async function ProductPage({
             >
               <div
                 className={
-                  packaging.images.length === 1
+                  packaging.images
+                    .length === 1
                     ? "flex justify-center"
                     : `
                         grid
@@ -827,7 +915,9 @@ export default async function ProductPage({
                 {packaging.images.map(
                   (image) => (
                     <div
-                      key={image.id}
+                      key={
+                        image.id
+                      }
                       className={`
                         group
                         relative
@@ -836,7 +926,8 @@ export default async function ProductPage({
                         bg-neutral-100
                         sm:rounded-3xl
                         ${
-                          packaging.images
+                          packaging
+                            .images
                             .length === 1
                             ? "w-[82vw] max-w-[360px] sm:w-[360px] sm:max-w-[400px] lg:w-[400px] lg:max-w-[440px]"
                             : "w-full"
@@ -851,15 +942,19 @@ export default async function ProductPage({
                         "
                       >
                         <Image
-                          src={image.url}
+                          src={
+                            image.url
+                          }
                           alt={
                             image.altText ??
                             packaging.name
                           }
                           fill
                           sizes={
-                            packaging.images
-                              .length === 1
+                            packaging
+                              .images
+                              .length ===
+                            1
                               ? "(max-width: 640px) 82vw, 440px"
                               : "(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 25vw"
                           }
@@ -900,7 +995,9 @@ export default async function ProductPage({
                                 sm:text-xs
                               "
                             >
-                              {image.caption}
+                              {
+                                image.caption
+                              }
                             </p>
                           </div>
                         )}
@@ -916,7 +1013,8 @@ export default async function ProductPage({
           {/* Included Packaging */}
           {/* ================================================= */}
 
-          {packaging.items.length > 0 && (
+          {packaging.items.length >
+            0 && (
             <div
               className="
                 mx-auto
@@ -971,9 +1069,14 @@ export default async function ProductPage({
                 "
               >
                 {packaging.items.map(
-                  (item, index) => (
+                  (
+                    item,
+                    index
+                  ) => (
                     <div
-                      key={item.id}
+                      key={
+                        item.id
+                      }
                       className="
                         group
                         flex
@@ -999,7 +1102,9 @@ export default async function ProductPage({
                           sm:text-xs
                         "
                       >
-                        {String(index + 1).padStart(
+                        {String(
+                          index + 1
+                        ).padStart(
                           2,
                           "0"
                         )}
@@ -1034,7 +1139,9 @@ export default async function ProductPage({
                           sm:text-base
                         "
                       >
-                        {item.name}
+                        {
+                          item.name
+                        }
                       </span>
                     </div>
                   )
@@ -1044,6 +1151,12 @@ export default async function ProductPage({
           )}
         </section>
       )}
+
+      {/* ===================================================== */}
+      {/* Trust / FAQ */}
+      {/* ===================================================== */}
+
+      <ProductTrustFaq />
 
       {/* ===================================================== */}
       {/* Related Products */}
@@ -1056,10 +1169,16 @@ export default async function ProductPage({
           lg:mt-28
         "
       >
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={null}
+        >
           <RelatedProducts
-            currentId={product.id}
-            category={product.category}
+            currentId={
+              product.id
+            }
+            category={
+              product.category
+            }
           />
         </Suspense>
       </section>
@@ -1080,7 +1199,9 @@ export default async function ProductPage({
           lg:pt-24
         "
       >
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={null}
+        >
           <RecentlyViewed />
         </Suspense>
       </section>
